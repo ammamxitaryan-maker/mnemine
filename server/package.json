@@ -7,7 +7,6 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "postinstall": "prisma generate",
     "dev": "prisma db push --accept-data-loss && tsc-watch --onSuccess \"node dist/index.js\"",
     "build": "npx prisma generate && tsc && pnpm run postbuild",
     "postbuild": "node -e \"const fs = require('fs'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.copyFileSync('dist-package.json', 'dist/package.json');\"",

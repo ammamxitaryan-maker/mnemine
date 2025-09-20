@@ -1,10 +1,12 @@
 services:
+  # Backend Service
   - type: web
-    name: mnemine-app
+    name: mnemine-backend
     env: node
     plan: starter
-    buildCommand: pnpm install --frozen-lockfile && pnpm run build && pnpm run copy:frontend && pnpm run verify:production
-    startCommand: node server/dist/index.js
+    rootDirectory: server
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter server run build
+    startCommand: pnpm --filter server run start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -14,48 +16,46 @@ services:
           name: mnemine-db
           property: connectionString
       - key: PORT
-        value: 10000
+        value: 10000 # Render will inject its own PORT, but good to have a default
       - key: JWT_SECRET
-        generateValue: true
+        generateValue: true # Render will generate a secure value
       - key: TELEGRAM_BOT_TOKEN
-        sync: false
+        sync: false # User must provide this in Render dashboard
       - key: ADMIN_TELEGRAM_ID
-        sync: false
-      - key: ENCRYPTION_KEY
-        generateValue: true
-      - key: SESSION_SECRET
-        generateValue: true
-      - key: CORS_ORIGIN
-        value: https://mnemine-app.onrender.com
+        sync: false # User must provide this in Render dashboard
+      - key: BACKEND_URL
+        value: https://mnemine-backend.onrender.com # Render will set this to the service URL
       - key: FRONTEND_URL
-        value: https://mnemine-app.onrender.com
+        value: https://mnemine-frontend.onrender.com # Render will set this to the frontend service URL
       - key: ALLOWED_ORIGINS
-        value: https://mnemine-app.onrender.com
-      - key: VITE_BACKEND_URL
-        value: https://mnemine-app.onrender.com
-      - key: VITE_WS_URL
-        value: wss://mnemine-app.onrender.com/ws
-      - key: VITE_APP_NAME
-        value: Mnemine
-      - key: RATE_LIMIT_WINDOW_MS
-        value: "900000"
-      - key: RATE_LIMIT_MAX_REQUESTS
-        value: "100"
-      - key: LOG_LEVEL
-        value: info
-      - key: DB_SSL_MODE
-        value: require
-      - key: ENABLE_METRICS
-        value: "true"
+        value: https://mnemine-frontend.onrender.com # Allow frontend to access backend
+      - key: VITE_BACKEND_URL # For client-side API calls
+        value: https://mnemine-backend.onrender.com
+      - key: VITE_WS_URL # For client-side WebSocket connections
+        value: wss://mnemine-backend.onrender.com/ws
     autoDeploy: true
     branch: main
-    regions:
-      - oregon
 
+  # Frontend Service
+  - type: static # <--- ИСПРАВЛЕНО: Должен быть 'static' для статического сайта
+    name: mnemine-frontend
+    env: static
+    rootDirectory: client
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter client run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_BACKEND_URL # Frontend needs to know backend URL
+        value: https://mnemine-backend.onrender.com
+      - key: VITE_WS_URL # Frontend needs to know WebSocket URL
+        value: wss://mnemine-backend.onrender.com/ws
+      - key: VITE_APP_NAME
+        value: Mnemine
+    autoDeploy: true
+    branch: main
+
+  # PostgreSQL Database
   - type: pserv
     name: mnemine-db
     plan: starter
     databaseName: mnemine
     user: mnemine_user
-    regions:
-      - oregon
