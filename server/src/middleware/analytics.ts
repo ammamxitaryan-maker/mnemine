@@ -27,7 +27,7 @@ export const analyticsMiddleware = (req: Request, res: Response, next: NextFunct
 
   // Override res.end to capture response data
   const originalEnd = res.end;
-  res.end = function(chunk?: any, encoding?: any) {
+  res.end = function(chunk?: any, encoding?: any, cb?: any) {
     analyticsData.responseTime = Date.now() - startTime;
     analyticsData.statusCode = res.statusCode;
     
@@ -38,7 +38,7 @@ export const analyticsMiddleware = (req: Request, res: Response, next: NextFunct
       console.log('[ANALYTICS]', analyticsData);
     }
     
-    originalEnd.call(this, chunk, encoding);
+    return originalEnd.call(this, chunk, encoding, cb);
   };
 
   next();

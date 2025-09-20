@@ -9,7 +9,6 @@ import {
   DollarSign, 
   Activity,
   Search,
-  Filter,
   Download,
   RefreshCw,
   UserCheck,

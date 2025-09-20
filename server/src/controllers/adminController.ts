@@ -32,17 +32,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
       prisma.user.count({ where })
     ]);
     
-    res.status(200).json({
-      users,
-      pagination: {
-        page,
-        limit,
-        totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-        hasNext: page * limit < totalCount,
-        hasPrev: page > 1
-      }
-    });
+    res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching all users:', error);
     res.status(500).json({ error: 'Internal server error' });

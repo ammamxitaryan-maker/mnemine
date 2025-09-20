@@ -7,7 +7,9 @@ export interface AdminUser {
   telegramId: string;
   firstName: string | null;
   username: string | null;
+  role: 'USER' | 'ADMIN';
   createdAt: string;
+  lastSeenAt: string | null;
   totalInvested: number;
   wallets: { currency: string; balance: number }[];
   _count: {
