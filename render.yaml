@@ -1,12 +1,12 @@
 databases:
   - name: mnemine-db
-    plan: starter
+    plan: free
 
 services:
   - type: web
     name: mnemine-app
     env: node
-    plan: starter
+    plan: free
     buildCommand: pnpm install --frozen-lockfile && pnpm run build && pnpm run copy:frontend
     startCommand: node server/dist/index.js
     healthCheckPath: /health
