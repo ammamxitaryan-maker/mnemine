@@ -11,6 +11,10 @@ export const useTelegramAuth = () => {
   useEffect(() => {
     const validateAuth = async () => {
       const tg = window.Telegram?.WebApp;
+      console.log('[useTelegramAuth] Telegram WebApp object:', tg);
+      console.log('[useTelegramAuth] initData:', tg?.initData);
+      console.log('[useTelegramAuth] initDataUnsafe:', tg?.initDataUnsafe);
+      
       let initDataForValidation = tg?.initData;
 
       // Fallback for local development when not in Telegram WebApp
@@ -20,6 +24,7 @@ export const useTelegramAuth = () => {
       }
 
       if (!initDataForValidation) {
+        console.error('[useTelegramAuth] No initData available');
         setError('Telegram WebApp data is missing. Please open this app through Telegram.');
         setLoading(false);
         return;
