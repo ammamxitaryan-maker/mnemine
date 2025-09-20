@@ -1,10 +1,15 @@
 services:
-  # Backend Service
+  # Backend Service (Alternative approach)
   - type: web
     name: mnemine-backend
     env: node
     plan: starter
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter server run build
+    buildCommand: |
+      pnpm install --frozen-lockfile
+      cd server
+      npx prisma generate
+      tsc
+      pnpm run postbuild
     startCommand: cd server && node dist/index.js
     healthCheckPath: /health
     envVars:
@@ -27,11 +32,14 @@ services:
     autoDeploy: true
     branch: main
 
-  # Frontend Service
+  # Frontend Service (Alternative approach)
   - type: web
     name: mnemine-frontend
     env: static
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter client run build
+    buildCommand: |
+      pnpm install --frozen-lockfile
+      cd client
+      vite build
     staticPublishPath: ./client/dist
     envVars:
       - key: VITE_API_URL
