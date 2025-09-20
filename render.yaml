@@ -22,7 +22,7 @@ services:
       - key: ADMIN_TELEGRAM_ID
         value: "6760298907"
       - key: ENCRYPTION_KEY
-        generateValue: true
+        value: "mnemine-encryption-key-32chars-12345"
       - key: SESSION_SECRET
         generateValue: true
       - key: CORS_ORIGIN
