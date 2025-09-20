@@ -56,8 +56,8 @@ const port = parseInt(process.env.PORT || '10112', 10);
 // Trust proxy for Render deployment
 app.set('trust proxy', 1);
 // Use environment variables for URLs, fallback to localhost for development
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 const backendUrl = process.env.BACKEND_URL || `http://localhost:${port}`;
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Frontend URL for Telegram bot
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const adminTelegramId = process.env.ADMIN_TELEGRAM_ID || '6760298907';
 // Set fallback values for security variables if not provided
@@ -132,8 +132,8 @@ app.use('/api/auth', authLimiter);
 const corsOptions = {
     origin: (origin, callback) => {
         const allowedOrigins = process.env.NODE_ENV === 'production'
-            ? [backendUrl, ...(process.env.ALLOWED_ORIGINS?.split(',') || [])].flat()
-            : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', backendUrl];
+            ? [backendUrl, frontendUrl, ...(process.env.ALLOWED_ORIGINS?.split(',') || [])].flat()
+            : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', backendUrl, frontendUrl];
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) {
             return callback(null, true);
@@ -143,9 +143,6 @@ const corsOptions = {
             return callback(null, true);
         }
         // Allow same-origin requests (when frontend and backend are served from same domain)
-        if (origin === backendUrl) {
-            return callback(null, true);
-        }
         if (allowedOrigins.includes(origin)) {
             callback(null, true);
         }
@@ -172,50 +169,8 @@ app.use(express_1.default.json({
     }
 }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
-// Serve static files from the frontend build
-// Try multiple possible paths for the frontend build, prioritizing server/public
-const possiblePaths = [
-    path_1.default.join(__dirname, '../public'), // server/public (primary for single service)
-    path_1.default.join(__dirname, '../../client/dist'), // client/dist (fallback for development)
-    path_1.default.join(__dirname, '../../dist'), // project/dist (legacy)
-    path_1.default.join(__dirname, '../../public'), // project/public (legacy)
-    path_1.default.join(__dirname, '../dist'), // server/dist (fallback)
-];
-let publicPath = null;
-const fs = require('fs');
-for (const testPath of possiblePaths) {
-    if (fs.existsSync(testPath)) {
-        const files = fs.readdirSync(testPath);
-        if (files.includes('index.html')) {
-            publicPath = testPath;
-            console.log(`[SERVER] Found frontend build at: ${publicPath}`);
-            console.log(`[SERVER] Public directory contents: ${files.join(', ')}`);
-            break;
-        }
-    }
-}
-if (!publicPath) {
-    console.error(`[SERVER] Frontend build not found in any of these paths:`);
-    possiblePaths.forEach(p => console.error(`  - ${p}`));
-    console.error(`[SERVER] This will cause 404 errors for frontend routes`);
-}
-// Only serve static files if frontend build is found
-if (publicPath) {
-    app.use(express_1.default.static(publicPath, {
-        maxAge: process.env.NODE_ENV === 'production' ? '1y' : '0',
-        etag: true,
-        lastModified: true,
-        setHeaders: (res, path) => {
-            // Set cache headers for static assets
-            if (path.endsWith('.js') || path.endsWith('.css') || path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg') || path.endsWith('.ico')) {
-                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-            }
-        }
-    }));
-}
-else {
-    console.warn('[SERVER] Static file serving disabled - frontend build not found');
-}
+// --- REMOVED STATIC FILE SERVING AND SPA FALLBACK FOR SEPARATE DEPLOYMENT ---
+// The frontend will be served by a separate static site service on Render.
 // Request validation middleware
 app.use((req, res, next) => {
     // Validate content type for POST/PUT requests
@@ -253,28 +208,17 @@ app.get('/health', async (req, res) => {
 app.use('/api', routes_1.default);
 // Error handling middleware
 app.use(errorHandler_1.errorHandler);
-// SPA fallback - serve index.html for all non-API routes
+// --- REMOVED SPA FALLBACK FOR SEPARATE DEPLOYMENT ---
+// All non-API routes will be handled by the frontend service.
 app.get('*', (req, res) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({
-            error: 'API route not found',
-            path: req.originalUrl,
-            method: req.method,
-            timestamp: new Date().toISOString()
-        });
-    }
-    // Serve the frontend for all other routes
-    if (publicPath) {
-        res.sendFile(path_1.default.join(publicPath, 'index.html'));
-    }
-    else {
-        res.status(404).json({
-            error: 'Frontend build not found',
-            message: 'The frontend application is not available. Please check the deployment configuration.',
-            timestamp: new Date().toISOString()
-        });
-    }
+    // If it's not an API route, it's a 404 for the backend
+    res.status(404).json({
+        error: 'Route not found',
+        message: 'This is a backend service. Please check API routes.',
+        path: req.originalUrl,
+        method: req.method,
+        timestamp: new Date().toISOString()
+    });
 });
 // Global error handler
 process.on('uncaughtException', (error) => {
@@ -289,9 +233,9 @@ process.on('unhandledRejection', (reason, promise) => {
 if (token && token.length > 0) {
     const bot = new telegraf_1.Telegraf(token);
     const webhookPath = `/api/webhook/${token}`;
-    const webhookUrl = `${backendUrl}${webhookPath}`;
+    const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
     // Only set webhook if backendUrl is HTTPS (for production)
-    if (backendUrl.startsWith('https://')) {
+    if (webhookUrl.startsWith('https://')) {
         bot.telegram.setWebhook(webhookUrl)
             .then(() => console.log(`[BOT] Webhook set to ${webhookUrl}`))
             .catch(err => console.error('[BOT] Failed to set webhook:', err));
@@ -305,7 +249,7 @@ if (token && token.length > 0) {
         ctx.reply(welcomeMessage, {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: '🚀 Launch App', web_app: { url: backendUrl } }]
+                    [{ text: '🚀 Launch App', web_app: { url: frontendUrl } }]
                 ]
             }
         });
@@ -443,7 +387,7 @@ async function startServer() {
         server.listen(port, '0.0.0.0', () => {
             console.log(`[SERVER] Backend server listening on port ${port}`);
             console.log(`[WebSocket] WebSocket server available at ws://localhost:${port}/ws`);
-            console.log(`[SERVER] Frontend served from ${publicPath}`);
+            console.log(`[SERVER] Frontend URL for bot: ${frontendUrl}`);
         });
     }
     catch (error) {
