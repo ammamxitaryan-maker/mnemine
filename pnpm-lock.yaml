@@ -286,6 +286,9 @@ importers:
       '@prisma/client':
         specifier: ^6.16.1
         version: 6.16.2(prisma@6.16.2)(typescript@5.9.2)
+      '@types/node':
+        specifier: ^22.5.5
+        version: 22.18.6
       compression:
         specifier: ^1.7.4
         version: 1.8.1
@@ -326,9 +329,6 @@ importers:
       '@types/morgan':
         specifier: ^1.9.9
         version: 1.9.10
-      '@types/node':
-        specifier: ^22.5.5
-        version: 22.18.6
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
