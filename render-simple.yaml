@@ -25,24 +25,6 @@ services:
         generateValue: true
       - key: SESSION_SECRET
         generateValue: true
-      - key: CORS_ORIGIN
-        value: https://mnemine-app.onrender.com
-      - key: FRONTEND_URL
-        value: https://mnemine-app.onrender.com
-      - key: ALLOWED_ORIGINS
-        value: https://mnemine-app.onrender.com
-      - key: VITE_BACKEND_URL
-        value: https://mnemine-app.onrender.com
-      - key: VITE_WS_URL
-        value: wss://mnemine-app.onrender.com/ws
-      - key: VITE_APP_NAME
-        value: Mnemine
-      - key: RATE_LIMIT_WINDOW_MS
-        value: "900000"
-      - key: RATE_LIMIT_MAX_REQUESTS
-        value: "100"
-      - key: LOG_LEVEL
-        value: info
     autoDeploy: true
     branch: main
 
