@@ -188,8 +188,8 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// --- REMOVED STATIC FILE SERVING AND SPA FALLBACK FOR SEPARATE DEPLOYMENT ---
-// The frontend will be served by a separate static site service on Render.
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Request validation middleware
 app.use((req: any, res: any, next: any) => {
@@ -232,17 +232,9 @@ app.use('/api', apiRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
-// --- REMOVED SPA FALLBACK FOR SEPARATE DEPLOYMENT ---
-// All non-API routes will be handled by the frontend service.
+// SPA fallback - serve index.html for all non-API routes
 app.get('*', (req: any, res: any) => {
-  // If it's not an API route, it's a 404 for the backend
-  res.status(404).json({
-    error: 'Route not found',
-    message: 'This is a backend service. Please check API routes.',
-    path: req.originalUrl,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 
