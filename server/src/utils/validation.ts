@@ -30,6 +30,8 @@ export function validateEnvironment() {
 
   // Validate encryption key length if provided
   if (process.env.ENCRYPTION_KEY && process.env.ENCRYPTION_KEY.length !== 32) {
+    console.error('[ENV] ENCRYPTION_KEY value:', process.env.ENCRYPTION_KEY);
+    console.error('[ENV] ENCRYPTION_KEY length:', process.env.ENCRYPTION_KEY.length);
     throw new Error('ENCRYPTION_KEY must be exactly 32 characters long');
   }
 
