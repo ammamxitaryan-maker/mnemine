@@ -206,9 +206,58 @@ app.get('/health', async (req, res) => {
 });
 // API routes
 app.use('/api', routes_1.default);
+// Initialize bot and setup webhook BEFORE SPA fallback
+let bot = null;
+if (token && token.length > 0) {
+    bot = new telegraf_1.Telegraf(token);
+    bot.start((ctx) => {
+        console.log(`[BOT] /start command received from user: ${ctx.from?.id} (${ctx.from?.username || ctx.from?.first_name})`);
+        const welcomeMessage = "👋 Welcome to TG Mining Sim!\n\nClick the button below to launch the mining app and start earning.";
+        ctx.reply(welcomeMessage, {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '🚀 Launch App', web_app: { url: frontendUrl } }]
+                ]
+            }
+        }).then(() => {
+            console.log(`[BOT] Welcome message sent to user: ${ctx.from?.id}`);
+        }).catch(err => {
+            console.error(`[BOT] Failed to send welcome message to user ${ctx.from?.id}:`, err);
+        });
+    });
+    // Add error handling for bot
+    bot.catch((err, ctx) => {
+        console.error(`[BOT] Error occurred for user ${ctx.from?.id}:`, err);
+    });
+    // Setup webhook endpoint immediately
+    const webhookPath = `/api/webhook/${token}`;
+    const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
+    const webhookDelayMs = parseInt(process.env.WEBHOOK_DELAY_MS || '0', 10);
+    console.log(`[BOT] Webhook delay configured: ${webhookDelayMs}ms`);
+    console.log(`[BOT] Webhook path: ${webhookPath}`);
+    console.log(`[BOT] Webhook URL: ${webhookUrl}`);
+    // Create webhook callback
+    const webhookCallback = bot.webhookCallback(webhookPath);
+    if (webhookDelayMs > 0) {
+        // Wrap webhook callback with delay
+        app.use(webhookPath, async (req, res, next) => {
+            console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
+            await new Promise(resolve => setTimeout(resolve, webhookDelayMs));
+            webhookCallback(req, res, next);
+        });
+    }
+    else {
+        app.use(webhookPath, webhookCallback);
+    }
+    console.log(`[BOT] Webhook endpoint registered at: ${webhookPath}`);
+    console.log("[BOT] Bot initialized successfully");
+}
+else {
+    console.warn("[SERVER] Telegram bot token is not provided. Bot features will be disabled.");
+}
 // Error handling middleware
 app.use(errorHandler_1.errorHandler);
-// SPA fallback - serve index.html for all non-API routes
+// SPA fallback - serve index.html for all non-API routes (GET only to avoid interfering with webhooks)
 app.get('*', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../public/index.html'));
 });
@@ -221,50 +270,6 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('[SERVER] Unhandled Rejection at:', promise, 'reason:', reason);
     process.exit(1);
 });
-// Check if token is provided and not just an empty string
-if (token && token.length > 0) {
-    const bot = new telegraf_1.Telegraf(token);
-    const webhookPath = `/api/webhook/${token}`;
-    const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
-    // Webhook delay configuration
-    const webhookDelayMs = parseInt(process.env.WEBHOOK_DELAY_MS || '0', 10);
-    console.log(`[BOT] Webhook delay configured: ${webhookDelayMs}ms`);
-    // Only set webhook if backendUrl is HTTPS (for production)
-    if (webhookUrl.startsWith('https://')) {
-        bot.telegram.setWebhook(webhookUrl)
-            .then(() => console.log(`[BOT] Webhook set to ${webhookUrl}`))
-            .catch(err => console.error('[BOT] Failed to set webhook:', err));
-        // Create webhook callback with delay
-        const webhookCallback = bot.webhookCallback(webhookPath);
-        if (webhookDelayMs > 0) {
-            // Wrap webhook callback with delay
-            app.use(webhookPath, async (req, res, next) => {
-                console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
-                await new Promise(resolve => setTimeout(resolve, webhookDelayMs));
-                webhookCallback(req, res, next);
-            });
-        }
-        else {
-            app.use(webhookCallback);
-        }
-    }
-    else {
-        console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
-    }
-    bot.start((ctx) => {
-        const welcomeMessage = "👋 Welcome to TG Mining Sim!\n\nClick the button below to launch the mining app and start earning.";
-        ctx.reply(welcomeMessage, {
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: '🚀 Launch App', web_app: { url: frontendUrl } }]
-                ]
-            }
-        });
-    });
-}
-else {
-    console.warn("[SERVER] Telegram bot token is not provided. Bot features will be disabled.");
-}
 async function seedTasks() {
     for (const task of constants_1.tasks) {
         await prisma_1.default.task.upsert({
@@ -391,6 +396,21 @@ async function startServer() {
         // Initialize WebSocket server
         const wsServer = new WebSocketServer_1.WebSocketServer(server);
         console.log('[WebSocket] WebSocket server initialized');
+        // Set Telegram webhook URL if bot is initialized
+        if (bot && token && token.length > 0) {
+            const webhookPath = `/api/webhook/${token}`;
+            const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
+            // Only set webhook if backendUrl is HTTPS (for production)
+            if (webhookUrl.startsWith('https://')) {
+                console.log(`[BOT] Setting webhook to: ${webhookUrl}`);
+                bot.telegram.setWebhook(webhookUrl)
+                    .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
+                    .catch((err) => console.error('[BOT] ❌ Failed to set webhook:', err));
+            }
+            else {
+                console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
+            }
+        }
         server.listen(port, '0.0.0.0', () => {
             console.log(`[SERVER] Backend server listening on port ${port}`);
             console.log(`[WebSocket] WebSocket server available at ws://localhost:${port}/ws`);

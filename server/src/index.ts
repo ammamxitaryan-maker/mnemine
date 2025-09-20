@@ -229,27 +229,7 @@ app.get('/health', async (req: any, res: any) => {
 // API routes
 app.use('/api', apiRoutes);
 
-// Error handling middleware
-app.use(errorHandler);
-
-// SPA fallback - serve index.html for all non-API routes
-app.get('*', (req: any, res: any) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
-});
-
-
-// Global error handler
-process.on('uncaughtException', (error) => {
-  console.error('[SERVER] Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[SERVER] Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
-});
-
-// Initialize bot and setup webhook
+// Initialize bot and setup webhook BEFORE SPA fallback
 let bot: Telegraf | null = null;
 if (token && token.length > 0) {
   bot = new Telegraf(token);
@@ -303,6 +283,27 @@ if (token && token.length > 0) {
 } else {
   console.warn("[SERVER] Telegram bot token is not provided. Bot features will be disabled.");
 }
+
+// Error handling middleware
+app.use(errorHandler);
+
+// SPA fallback - serve index.html for all non-API routes (GET only to avoid interfering with webhooks)
+app.get('*', (req: any, res: any) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+
+// Global error handler
+process.on('uncaughtException', (error) => {
+  console.error('[SERVER] Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[SERVER] Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 
 async function seedTasks() {
   for (const task of tasks) {
