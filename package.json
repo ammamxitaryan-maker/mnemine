@@ -1,0 +1,52 @@
+{
+  "name": "tg-mining-sim-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "workspaces": [
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm --prefix client run dev\" \"pnpm --prefix server run dev\"",
+    "build": "pnpm run build:shared && pnpm run build:client && pnpm run build:server && pnpm run copy:frontend",
+    "build:shared": "echo 'Shared constants.js already exists, skipping build'",
+    "start": "node scripts/start-server.js",
+    "build:client": "pnpm --prefix client run build",
+    "build:server": "pnpm --prefix server run build",
+    "copy:frontend": "node scripts/copy-frontend.js",
+    "verify:deployment": "node scripts/verify-deployment.js",
+    "verify:production": "node scripts/verify-deployment.js production",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "preview": "pnpm --prefix client run preview",
+    "test": "pnpm --prefix client run test && pnpm --prefix server run test",
+    "test:ui": "pnpm --prefix client run test:ui",
+    "test:coverage": "pnpm --prefix client run test:coverage && pnpm --prefix server run test:coverage",
+    "test:watch": "pnpm --prefix client run test:watch",
+    "test:e2e": "pnpm --prefix client run test:e2e",
+    "test:e2e:report": "pnpm --prefix client run test:e2e:report",
+    "type-check": "pnpm --prefix client run type-check && pnpm --prefix server run type-check",
+    "build:analyze": "pnpm --prefix client run build:analyze"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.16.1"
+  },
+  "overrides": {
+    "@eslint-community/eslint-utils": "^4.9.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/node": "^22.5.5",
+    "@types/node-telegram-bot-api": "^0.64.7",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.9.0",
+    "globals": "^15.9.0",
+    "prisma": "^6.16.1",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.1"
+  }
+}

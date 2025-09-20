@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                                String          @id @default(cuid())
+  telegramId                        String          @unique
+  username                          String?
+  firstName                         String?
+  lastName                          String?
+  avatarUrl                         String?
+  role                              UserRole        @default(USER)
+  createdAt                         DateTime        @default(now())
+  updatedAt                         DateTime        @updatedAt
+  lastSeenAt                        DateTime?
+  referralCode                      String          @unique
+  referredById                      String?
+  referredBy                        User?           @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  referrals                         User[]          @relation("UserReferrals")
+  totalInvested                     Float           @default(0)
+  lastDepositAt                     DateTime?
+  lastWithdrawalAt                  DateTime?
+  lastSlotPurchaseAt                DateTime?
+  wallets                           Wallet[]
+  miningSlots                       MiningSlot[]
+  completedTasks                    CompletedTask[]
+  activityLogs                      ActivityLog[]
+  lotteryTickets                    LotteryTicket[]
+  captchaValidated                  Boolean         @default(false)
+  lastReferralZeroPenaltyAppliedAt  DateTime?
+  isSuspicious                      Boolean         @default(false)
+  lastSuspiciousPenaltyAppliedAt    DateTime?
+  rank                              String?
+  lastInvestmentGrowthBonusClaimedAt DateTime?
+
+  @@index([referredById])
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  currency  String
+  balance   Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model MiningSlot {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id])
+  principal           Float
+  startAt             DateTime @default(now())
+  lastAccruedAt       DateTime
+  effectiveWeeklyRate Float
+  expiresAt           DateTime
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  type                String   @default("standard")
+
+  @@index([userId])
+}
+
+model Task {
+  id          String          @id @default(cuid())
+  taskId      String          @unique
+  title       String
+  description String
+  reward      Float
+  link        String
+  createdAt   DateTime        @default(now())
+  completedBy CompletedTask[]
+}
+
+model CompletedTask {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    String
+  createdAt DateTime @default(now())
+
+  @@id([userId, taskId])
+}
+
+model Booster {
+  id            String   @id @default(cuid())
+  boosterId     String   @unique
+  name          String
+  price         Float
+  powerIncrease Float
+  createdAt     DateTime @default(now())
+}
+
+model ActivityLog {
+  id           String          @id @default(cuid())
+  user         User            @relation(fields: [userId], references: [id])
+  userId       String
+  type         ActivityLogType
+  amount       Float
+  description  String
+  createdAt    DateTime        @default(now())
+  sourceUserId String?
+  ipAddress    String?
+
+  @@index([userId])
+}
+
+model Lottery {
+  id             String          @id @default(cuid())
+  drawDate       DateTime
+  jackpot        Float
+  isDrawn        Boolean         @default(false)
+  winningNumbers String?
+  createdAt      DateTime        @default(now())
+  tickets        LotteryTicket[]
+}
+
+model LotteryTicket {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  lottery     Lottery  @relation(fields: [lotteryId], references: [id])
+  lotteryId   String
+  numbers     String
+  isWinner    Boolean  @default(false)
+  prizeAmount Float?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([lotteryId])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ActivityLogType {
+  DEPOSIT
+  WITHDRAWAL
+  CLAIM
+  NEW_SLOT_PURCHASE
+  SLOT_EXTENSION
+  BOOSTER_PURCHASE
+  REFERRAL_SIGNUP_BONUS
+  REFERRAL_COMMISSION
+  REFERRAL_DEPOSIT_BONUS
+  TASK_REWARD
+  DAILY_BONUS
+  WELCOME_BONUS
+  REINVESTMENT
+  LEADERBOARD_BONUS
+  INVESTMENT_GROWTH_BONUS
+  DIVIDEND_BONUS
+  REFERRAL_3_IN_3_DAYS_BONUS
+  BALANCE_ZEROED_PENALTY
+  LOTTERY_TICKET_PURCHASE
+  LOTTERY_WIN
+}

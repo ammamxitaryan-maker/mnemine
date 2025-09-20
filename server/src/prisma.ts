@@ -1,0 +1,18 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient({
+  // Увеличиваем таймаут для интерактивных транзакций, чтобы избежать ошибок Socket timeout
+  transactionOptions: {
+    maxWait: 20000, // Максимальное время ожидания для получения транзакции (в мс)
+    timeout: 20000, // Максимальное время выполнения самой транзакции (в мс)
+  },
+  // Production optimizations
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
+
+export default prisma;

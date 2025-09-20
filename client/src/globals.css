@@ -1,0 +1,288 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%; /* #f9fafb */
+    --foreground: 222 47% 11%; /* #111827 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 223 65% 32%; /* #1e3a8a */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 175 85% 32%; /* #0d9488 */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 14% 47%; /* #6b7280 */
+
+    --accent: 262 83% 58%; /* #7c3aed */
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 72% 51%; /* #dc2626 */
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 223 65% 32%; /* primary */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222 47% 11%; /* #0f172a - dark background */
+    --foreground: 210 40% 98%; /* #f8fafc - light text for contrast */
+
+    --card: 222 47% 11%; /* #0f172a - dark cards */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 221 83% 53%; /* #3b82f6 - bright blue */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 142 76% 36%; /* #16a34a - bright green */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 16% 47%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 262 83% 58%; /* #7c3aed */
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 72% 51%; /* #dc2626 */
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 16% 47%;
+    --input: 215 16% 47%;
+    --ring: 221 83% 53%; /* primary */
+  }
+}
+
+@layer base {
+  html, body, #root {
+    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height for mobile */
+    overflow: hidden;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    margin: auto;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #bae6fd 50%, #e0f2fe 75%, #f0f9ff 100%);
+    animation: gradient 20s ease infinite;
+    background-size: 400% 400%;
+    background-attachment: fixed;
+    @apply text-foreground;
+  }
+
+  button, input, select {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  body.no-scroll main {
+    overflow-y: hidden;
+  }
+}
+
+/* Shimmer Effect */
+@layer components {
+  .shimmer-effect {
+    @apply relative overflow-hidden;
+  }
+  .shimmer-effect::after {
+    content: '';
+    @apply absolute top-0 -left-full w-full h-full;
+    background: linear-gradient(90deg, transparent, rgba(30, 58, 138, 0.15), transparent);
+    transition: left 0.6s ease-in-out;
+  }
+  .shimmer-effect:hover::after {
+    @apply left-full;
+  }
+
+  .dark .card {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Splash Screen Animation */
+.splash-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #0f172a;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem; /* 24px */
+  animation: fadeInGlow 2.5s ease-in-out forwards;
+}
+
+.splash-title {
+  font-size: 3rem; /* 48px */
+  font-weight: bold;
+  color: white;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 10px rgba(30, 58, 138, 0.3), 0 0 20px rgba(30, 58, 138, 0.2);
+}
+
+@keyframes fadeInGlow {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* New Gradient Spinner Styles */
+@layer utilities {
+  .gradient-spinner {
+    background: linear-gradient(90deg, #1e3a8a, #fbbf24, #059669, #06b6d4, #1e3a8a);
+    background-size: 400% 400%;
+    animation: gradient-flow 8s ease infinite, spin 2s linear infinite;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Enhanced Wave Background Animation */
+.wave {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3), rgba(236, 72, 153, 0.3));
+    border-radius: 1000% 1000% 0 0;
+    position: fixed;
+    width: 200%;
+    height: 15em;
+    animation: wave 12s -3s linear infinite;
+    transform: translate3d(0, 0, 0);
+    opacity: 0.8;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+.wave:nth-of-type(2) {
+    bottom: -1.25em;
+    animation: wave 16s linear reverse infinite;
+    opacity: 0.7;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(59, 130, 246, 0.3), rgba(168, 85, 247, 0.3));
+}
+
+.wave:nth-of-type(3) {
+    bottom: -2.5em;
+    animation: wave 20s -1s reverse infinite;
+    opacity: 0.6;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.3), rgba(34, 197, 94, 0.3), rgba(59, 130, 246, 0.3));
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 0%;
+    }
+    50% {
+        background-position: 100% 100%;
+    }
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
+@keyframes wave {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    25% {
+        transform: translate3d(-25%, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(-50%, 0, 0);
+    }
+
+    75% {
+        transform: translate3d(-25%, 0, 0);
+    }
+
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+/* Custom Scrollbar Styles */
+.custom-scrollbar {
+  /* For Webkit browsers (Chrome, Safari) */
+  &::-webkit-scrollbar {
+    width: 6px; /* Width of the scrollbar */
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent; /* Color of the track */
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(124, 58, 237, 0.5); /* Color of the scroll thumb */
+    border-radius: 10px; /* Roundness of the scroll thumb */
+    border: 1px solid transparent; /* Padding around thumb */
+  }
+
+  /* For Firefox */
+  scrollbar-width: thin; /* "auto" or "thin" */
+  scrollbar-color: rgba(124, 58, 237, 0.5) transparent; /* thumb and track color */
+}
+
+/* New animation for greeting overlay */
+@keyframes fade-in-out {
+  0% { opacity: 0; transform: scale(0.9); }
+  20% { opacity: 1; transform: scale(1); }
+  80% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9); }
+}
+
+/* New animation for subtle pulse/blink */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-fade-in-out {
+  animation: fade-in-out 3s ease-in-out forwards;
+}

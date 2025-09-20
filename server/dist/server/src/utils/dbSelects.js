@@ -1,0 +1,85 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.userSelectForAdminList = exports.userSelectWithoutMiningSlots = exports.userSelect = void 0;
+const client_1 = require("@prisma/client");
+exports.userSelect = client_1.Prisma.validator()({
+    id: true,
+    telegramId: true,
+    username: true,
+    firstName: true,
+    lastName: true,
+    avatarUrl: true,
+    role: true,
+    createdAt: true,
+    updatedAt: true,
+    referralCode: true,
+    referredById: true,
+    totalInvested: true,
+    lastDepositAt: true,
+    lastWithdrawalAt: true,
+    lastSlotPurchaseAt: true,
+    wallets: true,
+    miningSlots: {
+        where: { isActive: true },
+        select: {
+            id: true,
+            userId: true,
+            principal: true,
+            startAt: true,
+            lastAccruedAt: true,
+            effectiveWeeklyRate: true,
+            expiresAt: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            type: true,
+        },
+    },
+    lastReferralZeroPenaltyAppliedAt: true,
+    isSuspicious: true,
+    lastSuspiciousPenaltyAppliedAt: true,
+    rank: true,
+});
+exports.userSelectWithoutMiningSlots = client_1.Prisma.validator()({
+    id: true,
+    telegramId: true,
+    username: true,
+    firstName: true,
+    lastName: true,
+    avatarUrl: true,
+    role: true,
+    createdAt: true,
+    updatedAt: true,
+    referralCode: true,
+    referredById: true,
+    totalInvested: true,
+    lastDepositAt: true,
+    lastWithdrawalAt: true,
+    lastSlotPurchaseAt: true,
+    wallets: true,
+    lastReferralZeroPenaltyAppliedAt: true,
+    isSuspicious: true,
+    lastSuspiciousPenaltyAppliedAt: true,
+    rank: true,
+    lastInvestmentGrowthBonusClaimedAt: true,
+});
+exports.userSelectForAdminList = client_1.Prisma.validator()({
+    id: true,
+    telegramId: true,
+    firstName: true,
+    username: true,
+    createdAt: true,
+    totalInvested: true,
+    wallets: {
+        select: {
+            currency: true,
+            balance: true,
+        },
+    },
+    _count: {
+        select: {
+            referrals: true,
+            miningSlots: true,
+        },
+    },
+});

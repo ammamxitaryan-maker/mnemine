@@ -1,0 +1,13 @@
+{
+  "name": "mnemine-backend",
+  "version": "1.0.0",
+  "description": "Backend service for Mnemine application",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build handled by root Dockerfile'",
+    "dev": "echo 'Development handled by root package.json'"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

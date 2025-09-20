@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const lotteryController_1 = require("../controllers/lotteryController");
+const router = (0, express_1.Router)();
+router.get('/status', lotteryController_1.getLotteryStatus);
+router.post('/:telegramId/buy', lotteryController_1.buyLotteryTicket);
+router.get('/:telegramId/tickets', lotteryController_1.getUserLotteryTickets);
+router.get('/last-draw', lotteryController_1.getLastDrawResults);
+router.get('/:telegramId/history', lotteryController_1.getLotteryHistory);
+exports.default = router;
