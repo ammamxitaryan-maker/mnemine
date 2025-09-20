@@ -13,6 +13,6 @@
       "@prisma/client": ["./node_modules/.prisma/client"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "../shared/**/*.ts", "./node_modules/.prisma/client/index.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "./node_modules/.prisma/client/index.d.ts"],
   "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/test/**/*"]
 }
