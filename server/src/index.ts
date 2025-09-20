@@ -71,10 +71,10 @@ const adminTelegramId = process.env.ADMIN_TELEGRAM_ID || '6760298907';
 
 // Set fallback values for security variables if not provided
 if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = 'default-jwt-secret-for-development-only-change-in-production-32chars';
+  process.env.JWT_SECRET = 'default-jwt-secret-for-development-only-change-in-production-32chars-12345';
 }
 if (!process.env.ENCRYPTION_KEY) {
-  process.env.ENCRYPTION_KEY = 'default-encryption-key-32chars';
+  process.env.ENCRYPTION_KEY = 'default-encryption-key-32chars-12345';
 }
 if (!process.env.SESSION_SECRET) {
   process.env.SESSION_SECRET = 'default-session-secret-for-development';
