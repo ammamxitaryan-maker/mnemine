@@ -132,10 +132,14 @@ app.use('/api/auth', authLimiter);
 const corsOptions = {
     origin: (origin, callback) => {
         const allowedOrigins = process.env.NODE_ENV === 'production'
-            ? [backendUrl, frontendUrl, ...(process.env.ALLOWED_ORIGINS?.split(',') || [])].flat()
-            : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', backendUrl, frontendUrl];
+            ? [backendUrl, frontendUrl, 'https://web.telegram.org', ...(process.env.ALLOWED_ORIGINS?.split(',') || [])].flat()
+            : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', backendUrl, frontendUrl, 'https://web.telegram.org'];
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) {
+            return callback(null, true);
+        }
+        // Allow Telegram WebApp domains
+        if (origin.startsWith('https://web.telegram.org')) {
             return callback(null, true);
         }
         // Dynamically allow any localhost origin during development

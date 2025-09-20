@@ -10,8 +10,9 @@ const router = Router();
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
 router.post('/validate', async (req: any, res: any) => {
-  // console.log('[AUTH] Received /validate request.'); // Removed log
-  // console.log(`[AUTH] Using bot token ending in ...${botToken ? botToken.slice(-4) : 'UNDEFINED'}`); // Removed log
+  console.log('[AUTH] Received /validate request.');
+  console.log(`[AUTH] Using bot token ending in ...${botToken ? botToken.slice(-4) : 'UNDEFINED'}`);
+  console.log('[AUTH] Request body:', req.body);
   const { initData, startParam } = req.body;
   if (!initData || !botToken) {
     console.error('[AUTH] Validation failed: initData or bot token missing.');
@@ -21,8 +22,13 @@ router.post('/validate', async (req: any, res: any) => {
   const params = new URLSearchParams(initData);
   const hash = params.get('hash');
   const userData = JSON.parse(params.get('user') || '{}');
+  
+  console.log('[AUTH] Parsed initData:', { hash: hash ? 'present' : 'missing', userData });
+  
   if (!hash || !userData.id) {
     console.error('[AUTH] Invalid initData structure. Hash or user ID missing.');
+    console.error('[AUTH] Hash present:', !!hash);
+    console.error('[AUTH] User ID present:', !!userData.id);
     return res.status(400).json({ error: 'Invalid initData structure' });
   }
 
@@ -32,6 +38,12 @@ router.post('/validate', async (req: any, res: any) => {
   try {
     const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
     const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+    
+    console.log('[AUTH] Hash validation:', { 
+      receivedHash: hash, 
+      calculatedHash, 
+      dataCheckString: dataCheckString.substring(0, 100) + '...' 
+    });
     
     if (calculatedHash !== hash) {
       console.error('[AUTH] Authentication failed: Hash mismatch.');
