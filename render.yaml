@@ -49,3 +49,4 @@ services:
   - type: pserv
     name: mnemine-db
     plan: starter
+    runtime: postgresql
