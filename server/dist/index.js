@@ -240,8 +240,8 @@ if (token && token.length > 0) {
     console.log(`[BOT] Webhook delay configured: ${webhookDelayMs}ms`);
     console.log(`[BOT] Webhook path: ${webhookPath}`);
     console.log(`[BOT] Webhook URL: ${webhookUrl}`);
-    // Create webhook callback
-    const webhookCallback = bot.webhookCallback(webhookPath);
+    // Create webhook callback - use the full path including /api
+    const webhookCallback = bot.webhookCallback(`/api/webhook/${token}`);
     if (webhookDelayMs > 0) {
         // Wrap webhook callback with delay
         app.use(webhookPath, async (req, res, next) => {
