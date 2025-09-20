@@ -20,7 +20,7 @@ services:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: ADMIN_TELEGRAM_ID
-        sync: false
+        value: "6760298907"
       - key: ENCRYPTION_KEY
         generateValue: true
       - key: SESSION_SECRET
