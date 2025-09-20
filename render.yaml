@@ -10,7 +10,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: mnemine
+          property: connectionString
       - key: PORT
         value: 10000
       - key: JWT_SECRET
