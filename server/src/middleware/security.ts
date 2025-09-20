@@ -115,17 +115,24 @@ export const securityLogger = (req: Request, res: Response, next: NextFunction) 
   const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
   const userAgent = req.get('User-Agent') || 'unknown';
   
-  // Log suspicious patterns
+  // Skip security checks for static files and health checks
+  const staticFileExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot'];
+  const isStaticFile = staticFileExtensions.some(ext => req.url.toLowerCase().endsWith(ext));
+  const isHealthCheck = req.url === '/health';
+  const isApiRequest = req.url.startsWith('/api/');
+  
+  if (isStaticFile || isHealthCheck) {
+    return next(); // Skip security checks for static files and health checks
+  }
+  
+  // Log suspicious patterns (only for non-static, non-health requests)
   const suspiciousPatterns = [
-    /script/i,
-    /javascript/i,
     /vbscript/i,
     /onload/i,
     /onerror/i,
     /eval/i,
     /expression/i,
     /url\(/i,
-    /import/i,
     /union/i,
     /select/i,
     /insert/i,
@@ -138,13 +145,13 @@ export const securityLogger = (req: Request, res: Response, next: NextFunction) 
     /execute/i
   ];
   
-  const requestString = JSON.stringify({
+  // Only check body and query for API requests to avoid false positives
+  const requestString = isApiRequest ? JSON.stringify({
     url: req.url,
     method: req.method,
     body: req.body,
-    query: req.query,
-    headers: req.headers
-  });
+    query: req.query
+  }) : req.url;
   
   const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(requestString));
   
