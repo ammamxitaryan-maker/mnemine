@@ -3,8 +3,8 @@ services:
     name: mnemine-app
     env: node
     plan: starter
-    buildCommand: pnpm install --frozen-lockfile && pnpm run build && pnpm run copy:frontend
-    startCommand: pnpm run start
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build && pnpm run copy:frontend && pnpm run verify:production
+    startCommand: node server/dist/index.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -43,11 +43,19 @@ services:
         value: "100"
       - key: LOG_LEVEL
         value: info
+      - key: DB_SSL_MODE
+        value: require
+      - key: ENABLE_METRICS
+        value: "true"
     autoDeploy: true
     branch: main
+    regions:
+      - oregon
 
   - type: pserv
     name: mnemine-db
     plan: starter
     databaseName: mnemine
     user: mnemine_user
+    regions:
+      - oregon
