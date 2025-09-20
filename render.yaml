@@ -1,3 +1,7 @@
+databases:
+  - name: mnemine-db
+    plan: starter
+
 services:
   - type: web
     name: mnemine-app
@@ -45,8 +49,3 @@ services:
         value: info
     autoDeploy: true
     branch: main
-
-  - type: pserv
-    name: mnemine-db
-    plan: starter
-    runtime: postgresql
