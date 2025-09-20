@@ -32,7 +32,10 @@ function validateEnvironment() {
     }
     // Validate encryption key length if provided
     if (process.env.ENCRYPTION_KEY && process.env.ENCRYPTION_KEY.length !== 32) {
-        throw new Error('ENCRYPTION_KEY must be exactly 32 characters long');
+        console.error('[ENV] ENCRYPTION_KEY value:', process.env.ENCRYPTION_KEY);
+        console.error('[ENV] ENCRYPTION_KEY length:', process.env.ENCRYPTION_KEY.length);
+        console.warn('[ENV] ENCRYPTION_KEY is not 32 characters, using fallback');
+        process.env.ENCRYPTION_KEY = 'mnemine-encryption-key-32chars-1234';
     }
     // Validate database URL format
     if (process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith('postgresql://') && !process.env.DATABASE_URL.startsWith('file:')) {

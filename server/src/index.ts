@@ -256,17 +256,40 @@ if (token && token.length > 0) {
   const webhookPath = `/api/webhook/${token}`;
   const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
 
+  // Webhook delay configuration
+  const webhookDelayMs = parseInt(process.env.WEBHOOK_DELAY_MS || '0', 10);
+  console.log(`[BOT] Webhook delay configured: ${webhookDelayMs}ms`);
+
   // Only set webhook if backendUrl is HTTPS (for production)
   if (webhookUrl.startsWith('https://')) {
+    console.log(`[BOT] Setting webhook to: ${webhookUrl}`);
+    console.log(`[BOT] Webhook path: ${webhookPath}`);
+    
     bot.telegram.setWebhook(webhookUrl)
-      .then(() => console.log(`[BOT] Webhook set to ${webhookUrl}`))
-      .catch(err => console.error('[BOT] Failed to set webhook:', err));
-    app.use(bot.webhookCallback(webhookPath));
+      .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
+      .catch(err => console.error('[BOT] ❌ Failed to set webhook:', err));
+    
+    // Create webhook callback with delay
+    const webhookCallback = bot.webhookCallback(webhookPath);
+    
+    if (webhookDelayMs > 0) {
+      // Wrap webhook callback with delay
+      app.use(webhookPath, async (req, res, next) => {
+        console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
+        await new Promise(resolve => setTimeout(resolve, webhookDelayMs));
+        webhookCallback(req, res, next);
+      });
+    } else {
+      app.use(webhookPath, webhookCallback);
+    }
+    
+    console.log(`[BOT] Webhook endpoint registered at: ${webhookPath}`);
   } else {
     console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
   }
   
   bot.start((ctx) => {
+    console.log(`[BOT] /start command received from user: ${ctx.from?.id} (${ctx.from?.username || ctx.from?.first_name})`);
     const welcomeMessage = "👋 Welcome to TG Mining Sim!\n\nClick the button below to launch the mining app and start earning.";
     ctx.reply(welcomeMessage, {
       reply_markup: {
@@ -274,7 +297,16 @@ if (token && token.length > 0) {
           [{ text: '🚀 Launch App', web_app: { url: frontendUrl } }]
         ]
       }
+    }).then(() => {
+      console.log(`[BOT] Welcome message sent to user: ${ctx.from?.id}`);
+    }).catch(err => {
+      console.error(`[BOT] Failed to send welcome message to user ${ctx.from?.id}:`, err);
     });
+  });
+  
+  // Add error handling for bot
+  bot.catch((err, ctx) => {
+    console.error(`[BOT] Error occurred for user ${ctx.from?.id}:`, err);
   });
 } else {
   console.warn("[SERVER] Telegram bot token is not provided. Bot features will be disabled.");
