@@ -8,16 +8,17 @@
   },
   "packageManager": "pnpm@8.15.0",
   "workspaces": [
-    "server"
+    "server",
+    "client",
+    "shared"
   ],
   "scripts": {
     "dev": "concurrently \"pnpm --prefix client run dev\" \"pnpm --prefix server run dev\"",
-    "build": "pnpm run build:shared && pnpm run build:client && pnpm run build:server && pnpm run copy:frontend",
+    "build": "pnpm run build:shared && pnpm run build:client && pnpm run build:server",
     "build:shared": "echo 'Shared constants.js already exists, skipping build'",
     "start": "node scripts/start-server.js",
     "build:client": "pnpm --prefix client run build",
     "build:server": "pnpm --prefix server run build",
-    "copy:frontend": "node scripts/copy-frontend.js",
     "verify:deployment": "node scripts/verify-deployment.js",
     "verify:production": "node scripts/verify-deployment.js production",
     "lint": "eslint .",
