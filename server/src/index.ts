@@ -249,7 +249,7 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
-// Initialize bot (webhook setup will be done in startServer)
+// Initialize bot and setup webhook
 let bot = null;
 if (token && token.length > 0) {
   bot = new Telegraf(token);
@@ -275,6 +275,30 @@ if (token && token.length > 0) {
     console.error(`[BOT] Error occurred for user ${ctx.from?.id}:`, err);
   });
   
+  // Setup webhook endpoint immediately
+  const webhookPath = `/api/webhook/${token}`;
+  const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
+  const webhookDelayMs = parseInt(process.env.WEBHOOK_DELAY_MS || '0', 10);
+  
+  console.log(`[BOT] Webhook delay configured: ${webhookDelayMs}ms`);
+  console.log(`[BOT] Webhook path: ${webhookPath}`);
+  console.log(`[BOT] Webhook URL: ${webhookUrl}`);
+  
+  // Create webhook callback
+  const webhookCallback = bot.webhookCallback(webhookPath);
+  
+  if (webhookDelayMs > 0) {
+    // Wrap webhook callback with delay
+    app.use(webhookPath, async (req, res, next) => {
+      console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
+      await new Promise(resolve => setTimeout(resolve, webhookDelayMs));
+      webhookCallback(req, res, next);
+    });
+  } else {
+    app.use(webhookPath, webhookCallback);
+  }
+  
+  console.log(`[BOT] Webhook endpoint registered at: ${webhookPath}`);
   console.log("[BOT] Bot initialized successfully");
 } else {
   console.warn("[SERVER] Telegram bot token is not provided. Bot features will be disabled.");
@@ -417,39 +441,18 @@ async function startServer() {
     const wsServer = new WebSocketServer(server);
     console.log('[WebSocket] WebSocket server initialized');
 
-    // Setup Telegram bot webhook if bot is initialized
+    // Set Telegram webhook URL if bot is initialized
     if (bot && token && token.length > 0) {
       const webhookPath = `/api/webhook/${token}`;
       const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
 
-      // Webhook delay configuration
-      const webhookDelayMs = parseInt(process.env.WEBHOOK_DELAY_MS || '0', 10);
-      console.log(`[BOT] Webhook delay configured: ${webhookDelayMs}ms`);
-
       // Only set webhook if backendUrl is HTTPS (for production)
       if (webhookUrl.startsWith('https://')) {
         console.log(`[BOT] Setting webhook to: ${webhookUrl}`);
-        console.log(`[BOT] Webhook path: ${webhookPath}`);
         
         bot.telegram.setWebhook(webhookUrl)
           .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
           .catch(err => console.error('[BOT] ❌ Failed to set webhook:', err));
-        
-        // Create webhook callback with delay
-        const webhookCallback = bot.webhookCallback(webhookPath);
-        
-        if (webhookDelayMs > 0) {
-          // Wrap webhook callback with delay
-          app.use(webhookPath, async (req, res, next) => {
-            console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
-            await new Promise(resolve => setTimeout(resolve, webhookDelayMs));
-            webhookCallback(req, res, next);
-          });
-        } else {
-          app.use(webhookPath, webhookCallback);
-        }
-        
-        console.log(`[BOT] Webhook endpoint registered at: ${webhookPath}`);
       } else {
         console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
       }
