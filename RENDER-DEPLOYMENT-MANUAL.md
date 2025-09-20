@@ -1,4 +1,4 @@
-# Mnemine Render Deployment Manualgit 
+# Mnemine Render Deployment Manual 
 
 ## 🚀 Complete Deployment Guide for Mnemine on Render
 

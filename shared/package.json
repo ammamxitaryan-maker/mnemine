@@ -1,9 +1,11 @@
 {
   "name": "shared",
   "version": "1.0.0",
-  "type": "module",
   "main": "constants.js",
   "exports": {
-    ".": "./constants.js"
+    ".": {
+      "import": "./constants.js",
+      "require": "./constants.js"
+    }
   }
 }

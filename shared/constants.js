@@ -183,7 +183,7 @@ export {
   BASE_REFERRAL_COMMISSIONS,
 };
 
-// CommonJS exports for server compatibility (using dynamic import detection)
+// CommonJS exports for server compatibility
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     boosters,
