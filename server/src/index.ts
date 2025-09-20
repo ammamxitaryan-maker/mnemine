@@ -250,7 +250,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Initialize bot and setup webhook
-let bot = null;
+let bot: Telegraf | null = null;
 if (token && token.length > 0) {
   bot = new Telegraf(token);
   
@@ -452,7 +452,7 @@ async function startServer() {
         
         bot.telegram.setWebhook(webhookUrl)
           .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
-          .catch(err => console.error('[BOT] ❌ Failed to set webhook:', err));
+          .catch((err: any) => console.error('[BOT] ❌ Failed to set webhook:', err));
       } else {
         console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
       }
