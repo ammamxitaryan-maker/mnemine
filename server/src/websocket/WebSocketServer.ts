@@ -311,11 +311,16 @@ export class WebSocketServer {
       }
     }, 30000));
 
-    // Broadcast user earnings every 15 seconds (reduced frequency for better performance)
+    // Broadcast user earnings every 30 seconds (optimized for better performance)
     this.broadcastIntervals.set('earnings', setInterval(async () => {
       try {
-        const promises = Array.from(this.clients.entries()).map(async ([telegramId, clients]) => {
-          if (clients.size > 0) {
+        // Only broadcast to users with active connections
+        const activeUsers = Array.from(this.clients.entries()).filter(([_, clients]) => clients.size > 0);
+        
+        if (activeUsers.length === 0) return;
+        
+        const promises = activeUsers.map(async ([telegramId, clients]) => {
+          try {
             const userData = await this.getUserData(telegramId);
             if (userData) {
               this.broadcastToUser(telegramId, {
@@ -324,6 +329,8 @@ export class WebSocketServer {
                 timestamp: new Date().toISOString()
               });
             }
+          } catch (error) {
+            console.error(`[WebSocket] Error broadcasting earnings for user ${telegramId}:`, error);
           }
         });
         
@@ -331,7 +338,7 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting earnings:', error);
       }
-    }, 15000));
+    }, 30000));
   }
 
   private async getMarketData() {

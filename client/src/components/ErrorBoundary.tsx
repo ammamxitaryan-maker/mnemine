@@ -54,16 +54,26 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private reportError = async (errorData: any) => {
     try {
-      // In a real app, you would send this to your error reporting service
-      // For now, we'll just log it
-      console.error('Error reported:', errorData);
-      
-      // Example: Send to error reporting service
-      // await fetch('/api/errors', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(errorData),
-      // });
+      // In production, send to error reporting service
+      if (import.meta.env.PROD) {
+        // Example: Send to error reporting service (Sentry, LogRocket, etc.)
+        await fetch('/api/errors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...errorData,
+            environment: import.meta.env.MODE,
+            version: import.meta.env.VITE_APP_VERSION || '1.0.0'
+          }),
+        }).catch(() => {
+          // Fallback: store in localStorage for later reporting
+          const errors = JSON.parse(localStorage.getItem('pendingErrors') || '[]');
+          errors.push(errorData);
+          localStorage.setItem('pendingErrors', JSON.stringify(errors.slice(-10))); // Keep only last 10
+        });
+      } else {
+        console.error('Error reported:', errorData);
+      }
     } catch (reportingError) {
       console.error('Failed to report error:', reportingError);
     }

@@ -12,10 +12,11 @@ export const useRealTimeUserData = (telegramId: string) => {
       const response = await api.get(`/realtime/user/${telegramId}`);
       return response.data;
     },
-    refetchInterval: 15000, // Refetch every 15 seconds
-    refetchIntervalInBackground: true,
-    staleTime: 10000, // Consider data stale after 10 seconds
-    gcTime: 30000, // Keep in cache for 30 seconds
+    refetchInterval: 30000, // Reduced to 30 seconds for better performance
+    refetchIntervalInBackground: false, // Don't refetch when tab is not active
+    staleTime: 20000, // Consider data stale after 20 seconds
+    gcTime: 60000, // Keep in cache for 1 minute
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
   });
 
   // Use real-time sync hook for additional synchronization

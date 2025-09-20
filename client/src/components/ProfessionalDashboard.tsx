@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -39,7 +39,7 @@ interface ProfessionalDashboardProps {
   isLoading?: boolean;
 }
 
-export const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = ({
+export const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = memo(({
   userData,
   marketData,
   displayEarnings,
@@ -247,7 +247,7 @@ export const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = ({
       <TrustIndicators />
     </div>
   );
-};
+});
 
 export const MarketTrendsCard: React.FC<{
   trends: Array<{

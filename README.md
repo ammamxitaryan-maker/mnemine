@@ -63,16 +63,40 @@ A sophisticated, professional-grade Telegram-based financial simulation platform
 
 Create `.env` in the root directory:
 ```env
+# Frontend Configuration
 VITE_BACKEND_URL=http://localhost:10112
+VITE_WS_URL=ws://localhost:10112/ws
+VITE_APP_NAME=Mnemine
+VITE_APP_VERSION=1.0.0
+
+# Development Mode
+NODE_ENV=development
 ```
 
 Create `server/.env`:
 ```env
+# Server Configuration
 PORT=10112
+NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
 BACKEND_URL=http://localhost:10112
+
+# Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+ADMIN_TELEGRAM_ID=your_admin_telegram_id
+
+# Database Configuration
 DATABASE_URL="file:./dev.db"
+
+# Security (Development - Use strong secrets in production!)
+JWT_SECRET=dev-jwt-secret-32-chars-minimum-length-required
+ENCRYPTION_KEY=dev-encryption-key-32chars-1234
+SESSION_SECRET=dev-session-secret-for-development-only
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_AUTH_MAX_REQUESTS=5
 ```
 
 ### 2. Installation & Launch
@@ -80,16 +104,24 @@ DATABASE_URL="file:./dev.db"
 ```bash
 # Install dependencies
 pnpm install
-cd backend && pnpm install && cd ..
 
-# Start the application
-npm run dev
+# Start the application in development mode
+pnpm run dev
+
+# Or start individually:
+# Frontend only
+pnpm --prefix client run dev
+
+# Backend only  
+pnpm --prefix server run dev
 ```
 
 **Access Points:**
 - 🌐 Frontend: http://localhost:5173
 - 🔧 Backend API: http://localhost:10112
 - 📊 Real-time API: http://localhost:10112/api/realtime
+- 🔌 WebSocket: ws://localhost:10112/ws
+- 📊 Admin Panel: http://localhost:5173/admin (admin users only)
 
 ## 📊 Professional Dashboard Features
 
@@ -271,5 +303,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ for the Telegram community**#   m n e m i n e  
+**Built with ❤️ for the Telegram community**#   m n e m i n e 
+ 
  

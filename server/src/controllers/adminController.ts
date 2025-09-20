@@ -4,11 +4,45 @@ import { userSelect, userSelectForAdminList } from '../utils/dbSelects';
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: 'desc' },
-      select: userSelectForAdminList,
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const search = req.query.search as string;
+    const sortBy = req.query.sortBy as string || 'createdAt';
+    const sortOrder = req.query.sortOrder as 'asc' | 'desc' || 'desc';
+    
+    const skip = (page - 1) * limit;
+    
+    // Build where clause for search
+    const where = search ? {
+      OR: [
+        { firstName: { contains: search, mode: 'insensitive' as const } },
+        { username: { contains: search, mode: 'insensitive' as const } },
+        { telegramId: { contains: search } }
+      ]
+    } : {};
+    
+    const [users, totalCount] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder },
+        select: userSelectForAdminList,
+        skip,
+        take: limit,
+      }),
+      prisma.user.count({ where })
+    ]);
+    
+    res.status(200).json({
+      users,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNext: page * limit < totalCount,
+        hasPrev: page > 1
+      }
     });
-    res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching all users:', error);
     res.status(500).json({ error: 'Internal server error' });
