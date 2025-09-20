@@ -5,8 +5,8 @@ services:
     env: node
     plan: starter
     rootDirectory: server
-    buildCommand: pnpm install --frozen-lockfile && npx prisma generate && tsc && pnpm run postbuild
-    startCommand: node dist/index.js
+    buildCommand: pnpm run build
+    startCommand: pnpm run start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -41,7 +41,7 @@ services:
     name: mnemine-frontend
     env: static
     rootDirectory: client
-    buildCommand: pnpm install --frozen-lockfile && vite build
+    buildCommand: pnpm run build
     staticPublishPath: ./dist
     envVars:
       - key: VITE_BACKEND_URL # Frontend needs to know backend URL
