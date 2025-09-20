@@ -29,7 +29,7 @@ function main() {
   console.log('🔍 Verifying deployment structure...\n');
   
   const isProduction = process.argv.includes('production');
-  const basePath = isProduction ? '/app' : process.cwd();
+  const basePath = isProduction ? process.cwd() : process.cwd();
   
   console.log(`Base path: ${basePath}`);
   console.log(`Mode: ${isProduction ? 'production' : 'development'}\n`);

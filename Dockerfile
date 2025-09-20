@@ -18,7 +18,7 @@ COPY client/package.json ./client/
 
 # Install pnpm and dependencies
 RUN npm install -g pnpm@latest
-RUN pnpm install --frozen-lockfile --prod=false
+RUN pnpm install --frozen-lockfile
 
 # Temporarily rename package.json files to prevent Render from detecting as Node.js project
 RUN mv server/package.json server/package.json.temp
@@ -52,8 +52,8 @@ COPY --from=deps /app/client/node_modules ./client/node_modules
 # Set build environment
 ENV NODE_ENV=production
 # These will be overridden by Render's environment variables
-ENV VITE_BACKEND_URL=https://your-app-name.onrender.com
-ENV VITE_WS_URL=wss://your-app-name.onrender.com/ws
+ENV VITE_BACKEND_URL=https://mnemine-backend.onrender.com
+ENV VITE_WS_URL=wss://mnemine-backend.onrender.com/ws
 
 # Build shared package first
 RUN pnpm run build:shared
@@ -75,7 +75,7 @@ RUN pnpm run build
 RUN ls -la dist/ || echo "Build directory not found"
 RUN ls -la dist/index.js || echo "Main entry point not found"
 
-# Copy frontend build to server/public (this is done by the build script)
+# Copy frontend build to server/public
 WORKDIR /app
 RUN pnpm run copy:frontend
 
@@ -121,7 +121,7 @@ RUN ls -la ./server/public/index.html || echo "Frontend index.html not found in 
 
 # Install only production dependencies
 WORKDIR /app/server
-RUN pnpm install --production --ignore-scripts
+RUN pnpm install --production --ignore-scripts --frozen-lockfile
 
 # Verify the final structure
 RUN echo "=== Final directory structure ==="

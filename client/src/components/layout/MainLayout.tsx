@@ -1,7 +1,7 @@
 "use client";
 
 import { Outlet } from 'react-router-dom';
-import { BottomNavBar } from '../BottomNavBar.tsx';
+import { BottomNavBar } from '../BottomNavBar';
 import { RealTimeSync } from '../RealTimeSync'; // Import RealTimeSync
 import { NotificationSystem } from '../NotificationSystem'; // Import NotificationSystem
 

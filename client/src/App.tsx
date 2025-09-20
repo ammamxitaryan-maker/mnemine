@@ -23,11 +23,11 @@ import Stats from "./pages/Stats";
 import Settings from "./pages/Settings";
 import AdvancedTradingPage from "./pages/AdvancedTradingPage";
 import AnalyticsPage from "./pages/AnalyticsPage"; // Import new page
-import { MainLayout } from "./components/layout/MainLayout.tsx";
-import { AdminRoute } from "./components/layout/AdminRoute.tsx";
-import WaveBackground from "./components/WaveBackground.tsx";
-import { AppInitializer } from "./components/AppInitializer.tsx";
-import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
+import { MainLayout } from "./components/layout/MainLayout";
+import { AdminRoute } from "./components/layout/AdminRoute";
+import WaveBackground from "./components/WaveBackground";
+import { AppInitializer } from "./components/AppInitializer";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AxiosError } from "axios";
 
 const queryClient = new QueryClient({
@@ -36,7 +36,7 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       retry: (failureCount, error: AxiosError | Error) => {
-        if (error instanceof AxiosError && error.response?.status >= 400 && error.response?.status < 500) {
+        if (error instanceof AxiosError && error.response && error.response.status >= 400 && error.response.status < 500) {
           return false;
         }
         if (error?.message?.includes('Network Error') && failureCount >= 1) {
@@ -54,7 +54,7 @@ const queryClient = new QueryClient({
     },
     mutations: {
       retry: (failureCount, error: AxiosError | Error) => {
-        if (error instanceof AxiosError && error.response?.status >= 400 && error.response?.status < 500) {
+        if (error instanceof AxiosError && error.response && error.response.status >= 400 && error.response.status < 500) {
           return false;
         }
         if (error?.message?.includes('Network Error')) {

@@ -1,10 +1,10 @@
 import { createRoot } from "react-dom/client";
 import React, { Suspense } from "react";
-import App from "./App.tsx";
+import App from "./App";
 import "./globals.css";
 import "./i18n"; // Import i18n configuration
-import { SplashScreen } from "./components/SplashScreen.tsx";
-import { ProfessionalThemeProvider } from "./components/ProfessionalTheme.tsx";
+import { SplashScreen } from "./components/SplashScreen";
+import { ProfessionalThemeProvider } from "./components/ProfessionalTheme";
 
 // console.log("[MAIN] Application starting..."); // Removed log
 

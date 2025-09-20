@@ -19,6 +19,7 @@
     "start": "node scripts/start-server.js",
     "build:client": "pnpm --prefix client run build",
     "build:server": "pnpm --prefix server run build",
+    "copy:frontend": "node scripts/copy-frontend.js",
     "verify:deployment": "node scripts/verify-deployment.js",
     "verify:production": "node scripts/verify-deployment.js production",
     "lint": "eslint .",
