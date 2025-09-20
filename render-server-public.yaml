@@ -22,17 +22,15 @@ services:
         sync: false
       - key: ADMIN_TELEGRAM_ID
         sync: false
-      - key: CORS_ORIGIN
-        value: https://mnemine-frontend.onrender.com
     autoDeploy: true
     branch: main
 
   - type: web
     name: mnemine-frontend
     env: static
-    rootDirectory: client
-    buildCommand: pnpm run build
-    staticPublishPath: ./dist
+    rootDirectory: server
+    buildCommand: echo "Using existing public files"
+    staticPublishPath: ./public
     envVars:
       - key: VITE_BACKEND_URL
         value: https://mnemine-backend.onrender.com
