@@ -74,7 +74,7 @@ if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'default-jwt-secret-for-development-only-change-in-production-32chars-12345';
 }
 if (!process.env.ENCRYPTION_KEY) {
-  process.env.ENCRYPTION_KEY = 'default-encryption-key-32chars-12345';
+  process.env.ENCRYPTION_KEY = 'default-encryption-key-32chars-1234';
 }
 if (!process.env.SESSION_SECRET) {
   process.env.SESSION_SECRET = 'default-session-secret-for-development';
