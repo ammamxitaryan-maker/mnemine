@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: mnemine-app
+    name: mnemine-backend
     env: node
     plan: starter
     buildCommand: pnpm install --frozen-lockfile && cd server && npx prisma generate && tsc && pnpm run postbuild
@@ -21,6 +21,21 @@ services:
         sync: false
       - key: TELEGRAM_WEBHOOK_URL
         sync: false
+      - key: CORS_ORIGIN
+        value: https://mnemine-frontend.onrender.com
+    autoDeploy: true
+    branch: main
+
+  - type: web
+    name: mnemine-frontend
+    env: static
+    buildCommand: pnpm install --frozen-lockfile && cd client && vite build
+    staticPublishPath: ./client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://mnemine-backend.onrender.com
+      - key: VITE_APP_NAME
+        value: Mnemine
     autoDeploy: true
     branch: main
 

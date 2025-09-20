@@ -8,9 +8,7 @@
   },
   "packageManager": "pnpm@8.15.0",
   "workspaces": [
-    "server",
-    "client",
-    "shared"
+    "server"
   ],
   "scripts": {
     "dev": "concurrently \"pnpm --prefix client run dev\" \"pnpm --prefix server run dev\"",
