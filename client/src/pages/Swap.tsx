@@ -7,7 +7,7 @@ import { ArrowRightLeft, TrendingUp, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useUserData } from '@/hooks/useUserData';
 
-export const Swap: React.FC = () => {
+const Swap: React.FC = () => {
   const { data: userData, refetch } = useUserData();
   const [cfmBalance, setCfmBalance] = useState(0);
   const [cfmtBalance, setCfmtBalance] = useState(0);
@@ -191,3 +191,5 @@ export const Swap: React.FC = () => {
     </div>
   );
 };
+
+export default Swap;
