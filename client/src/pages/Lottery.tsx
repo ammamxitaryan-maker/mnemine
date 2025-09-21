@@ -19,6 +19,15 @@ const Lottery = () => {
   const { lottery, tickets, lastDraw, isLoading, error } = useLotteryData();
   const timeLeft = useCountdown(lottery?.drawDate || null);
 
+  // Format timeLeft for display
+  const formatTimeLeft = (timeLeft: any) => {
+    if (typeof timeLeft === 'string') return timeLeft;
+    if (timeLeft && typeof timeLeft === 'object') {
+      return `${String(timeLeft.days).padStart(2, '0')}d ${String(timeLeft.hours).padStart(2, '0')}h ${String(timeLeft.minutes).padStart(2, '0')}m`;
+    }
+    return '00d 00h 00m';
+  };
+
   return (
     <PageLayout
       title={t('lottery.title')}
@@ -82,7 +91,7 @@ const Lottery = () => {
             >
               <div className="text-center">
                 <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  {timeLeft}
+                  {formatTimeLeft(timeLeft)}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Until next draw
@@ -136,7 +145,10 @@ const Lottery = () => {
                 </p>
                 <p className="text-gray-400 mt-2 text-xs">{t('lottery.drawsIn')}</p>
                 <p className="text-xl font-mono text-accent">
-                  {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
+                  {timeLeft && typeof timeLeft === 'object' ? 
+                    `${String(timeLeft.hours).padStart(2, '0')}:${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}` :
+                    '00:00:00'
+                  }
                 </p>
               </CardContent>
             </Card>

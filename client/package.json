@@ -8,7 +8,7 @@
     "build": "vite build",
     "build:prod": "vite build --config vite.config.prod.ts",
     "build:debug": "vite build --config vite.config.simple.ts",
-    "build:simple": "node scripts/create-simple-build.js create && vite build --config vite.config.simple.ts && node scripts/create-simple-build.js restore",
+    "build:simple": "node scripts/create-simple-build.cjs create && vite build --config vite.config.simple.ts && node scripts/create-simple-build.cjs restore",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
     "preview:prod": "vite preview --mode production",
