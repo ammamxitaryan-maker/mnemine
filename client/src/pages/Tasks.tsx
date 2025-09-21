@@ -12,13 +12,13 @@ const Tasks = () => {
 
   const isLoading = authLoading || tasksLoading;
 
+  const completedTasks = tasksData?.filter(task => task.isCompleted) ?? [];
+  const activeTasks = tasksData?.filter(task => !task.isCompleted) ?? [];
+
   if (error) {
     console.error(`[Tasks] Error fetching tasks for user ${user?.telegramId}:`, error);
     return <p className="text-red-500 text-center p-4">Could not load tasks.</p>;
   }
-
-  const completedTasks = tasksData?.filter(task => task.isCompleted) ?? [];
-  const activeTasks = tasksData?.filter(task => !task.isCompleted) ?? [];
 
   return (
     <PageLayout

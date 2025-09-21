@@ -16,6 +16,7 @@ export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     console.log('[AuthWrapper] Rendered. Loading:', loading, 'User:', user ? user.telegramId : 'null', 'Error:', error);
   }, [loading, user, error]);
 
+  // Always call all hooks first, then handle conditional rendering
   if (loading) {
     return <SplashScreen />;
   }

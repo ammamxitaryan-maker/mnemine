@@ -53,34 +53,6 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   // For professional view, use the same data but with different presentation
   const realTimeUserData = classicUserData;
 
-
-  if (anyError) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-white p-4">
-        <div className="text-center max-w-md">
-          <h2 className="text-xl font-bold text-red-500 mb-4">Data Loading Error</h2>
-          <p className="text-red-400 mb-4">{anyError.toString()}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-
-  if (overallLoading || !classicUserData || !realTimeUserData || !marketData) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-screen text-white p-4">
-        <Loader2 className="w-12 h-12 animate-spin mb-4" />
-        <p className="text-gray-400 text-center">Loading your data...</p>
-      </div>
-    );
-  }
-
   // Memoize navigation items to prevent unnecessary re-renders
   const navItems = useMemo(() => [
     { 
@@ -136,6 +108,34 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
       unit: "available"
     },
   ], [tasksData, slotsData, lotteryData, bonusesData, achievementsData, loadingStates]);
+
+  // Handle error state
+  if (anyError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white p-4">
+        <div className="text-center max-w-md">
+          <h2 className="text-xl font-bold text-red-500 mb-4">Data Loading Error</h2>
+          <p className="text-red-400 mb-4">{anyError.toString()}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle loading state
+  if (overallLoading || !classicUserData || !realTimeUserData || !marketData) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen text-white p-4">
+        <Loader2 className="w-12 h-12 animate-spin mb-4" />
+        <p className="text-gray-400 text-center">Loading your data...</p>
+      </div>
+    );
+  }
 
   // Unified Fast & Complete Dashboard View
   return (
