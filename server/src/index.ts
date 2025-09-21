@@ -81,30 +81,18 @@ if (!process.env.SESSION_SECRET) {
   process.env.SESSION_SECRET = 'mnemine-session-secret-for-production-use';
 }
 
-// Security middleware
+// Relaxed security middleware for production testing
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "wss:", "ws:"],
-    },
-  },
+  contentSecurityPolicy: false, // Disabled for testing
   crossOriginEmbedderPolicy: false,
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
+  hsts: false // Disabled for testing
 }));
 
-// Additional security middleware
-app.use(securityHeaders);
-app.use(requestSizeLimiter);
-app.use(sanitizeRequest);
-app.use(securityLogger);
+// Additional security middleware - relaxed for testing
+// app.use(securityHeaders);
+// app.use(requestSizeLimiter);
+// app.use(sanitizeRequest);
+app.use(securityLogger); // Keep logging for debugging
 
 // Compression middleware
 app.use(compression());
@@ -117,70 +105,53 @@ if (process.env.NODE_ENV === 'production') {
   app.use(morgan('dev'));
 }
 
-// Rate limiting
+// Relaxed rate limiting for production testing
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000', 10), // Increased to 1000
   message: {
     error: 'Too many requests from this IP, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    // Skip rate limiting for health checks
-    return req.path === '/health' || req.path === '/';
+    // Skip rate limiting for health checks, webhook endpoints, and all API calls during testing
+    return req.path === '/health' || req.path === '/' || req.path.includes('/webhook/') || req.path.includes('/api/');
   }
 });
-app.use('/api', limiter);
+// Commented out for production testing
+// app.use('/api', limiter);
 
-// Stricter rate limiting for auth endpoints
+// Auth rate limiting disabled for production testing
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_REQUESTS || '5', 10),
+  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_REQUESTS || '1000', 10), // Increased to 1000
   message: {
     error: 'Too many authentication attempts, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for all auth endpoints during testing
+    return true;
+  }
 });
-app.use('/api/auth', authLimiter);
+// Commented out for production testing
+// app.use('/api/auth', authLimiter);
 
+// Relaxed CORS for production testing
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    const allowedOrigins = process.env.NODE_ENV === 'production' 
-      ? [backendUrl, frontendUrl, 'https://web.telegram.org', ...(process.env.ALLOWED_ORIGINS?.split(',') || [])].flat()
-      : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', backendUrl, frontendUrl, 'https://web.telegram.org'];
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) {
-      return callback(null, true);
-    }
-
-    // Allow Telegram WebApp domains
-    if (origin.startsWith('https://web.telegram.org')) {
-      return callback(null, true);
-    }
-
-    // Dynamically allow any localhost origin during development
-    if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
-      return callback(null, true);
-    }
-
-    // Allow same-origin requests (when frontend and backend are served from same domain)
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`[CORS] Blocked request from origin: ${origin}`);
-      console.warn(`[CORS] Allowed origins: ${allowedOrigins.join(', ')}`);
-      callback(new Error('Not allowed by CORS'));
-    }
+    // Allow all origins during testing
+    console.log(`[CORS] Allowing request from origin: ${origin || 'no-origin'}`);
+    callback(null, true);
   },
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   preflightContinue: false,
   optionsSuccessStatus: 204,
   credentials: true,
   maxAge: 86400, // 24 hours
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key', '*'],
 };
 app.use(cors(corsOptions));
 
@@ -197,14 +168,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Request validation middleware
+// Relaxed request validation middleware for testing
 app.use((req: any, res: any, next: any) => {
-  // Validate content type for POST/PUT requests
-  if (['POST', 'PUT', 'PATCH'].includes(req.method) && 
-      !req.is('application/json') && 
-      !req.is('application/x-www-form-urlencoded')) {
-    return res.status(400).json({ error: 'Invalid content type' });
-  }
+  // Allow all content types during testing
+  console.log(`[REQUEST] ${req.method} ${req.path} - Content-Type: ${req.get('Content-Type') || 'none'}`);
   next();
 });
 
@@ -232,10 +199,7 @@ app.get('/health', async (req: any, res: any) => {
   }
 });
 
-// API routes
-app.use('/api', apiRoutes);
-
-// Initialize bot and setup webhook BEFORE SPA fallback
+// Initialize bot and setup webhook BEFORE API routes and rate limiting
 let bot: Telegraf | null = null;
 if (token && token.length > 0) {
   bot = new Telegraf(token);
@@ -261,7 +225,7 @@ if (token && token.length > 0) {
     console.error(`[BOT] Error occurred for user ${ctx.from?.id}:`, err);
   });
   
-  // Setup webhook endpoint immediately
+  // Setup webhook endpoint BEFORE rate limiting
   const webhookPath = `/api/webhook/${token}`;
   const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
   const webhookDelayMs = parseInt(process.env.WEBHOOK_DELAY_MS || '0', 10);
@@ -289,6 +253,9 @@ if (token && token.length > 0) {
 } else {
   console.warn("[SERVER] Telegram bot token is not provided. Bot features will be disabled.");
 }
+
+// API routes
+app.use('/api', apiRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
