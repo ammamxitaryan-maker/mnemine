@@ -483,7 +483,7 @@ async function startServer() {
           .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
           .catch((err: any) => console.error('[BOT] ❌ Failed to set webhook:', err));
       } else {
-        console.warngiBOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
+        console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
       }
     }
 

@@ -435,7 +435,7 @@ export class WebSocketServer {
       }),
       prisma.user.count({
         where: {
-          lastActiveAt: {
+          lastSeenAt: {
             gte: new Date(Date.now() - 60 * 60 * 1000) // Active in last hour
           }
         }

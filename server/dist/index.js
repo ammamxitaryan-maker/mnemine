@@ -60,6 +60,7 @@ const WebSocketServer_1 = require("./websocket/WebSocketServer");
 const validation_1 = require("./utils/validation");
 const errorHandler_1 = require("./middleware/errorHandler");
 const requestLogger_1 = require("./middleware/requestLogger");
+const monitoring_1 = require("./middleware/monitoring");
 const security_1 = require("./middleware/security");
 // Validate environment variables
 (0, validation_1.validateEnvironment)();
@@ -74,20 +75,39 @@ const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Fron
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const adminTelegramId = process.env.ADMIN_TELEGRAM_ID || '6760298907';
 // Environment variables are already set above before validation
-// Relaxed security middleware for production testing
+// Production-ready security middleware
 app.use((0, helmet_1.default)({
-    contentSecurityPolicy: false, // Disabled for testing
-    crossOriginEmbedderPolicy: false,
-    hsts: false // Disabled for testing
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'", "wss:", "ws:"],
+            fontSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            frameAncestors: ["'none'"],
+            upgradeInsecureRequests: []
+        }
+    } : false,
+    crossOriginEmbedderPolicy: process.env.NODE_ENV === 'production',
+    hsts: process.env.NODE_ENV === 'production' ? {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    } : false
 }));
-// Additional security middleware - relaxed for testing
-// app.use(securityHeaders);
-// app.use(requestSizeLimiter);
-// app.use(sanitizeRequest);
-app.use(security_1.securityLogger); // Keep logging for debugging
+// Additional security middleware
+app.use(security_1.securityHeaders);
+app.use(security_1.requestSizeLimiter);
+app.use(security_1.sanitizeRequest);
+app.use(security_1.securityLogger);
 // Compression middleware
 app.use((0, compression_1.default)());
-// Logging middleware
+// Monitoring and logging middleware
+app.use(monitoring_1.performanceMonitor);
 app.use(requestLogger_1.requestLogger);
 if (process.env.NODE_ENV === 'production') {
     app.use((0, morgan_1.default)('combined'));
@@ -95,22 +115,26 @@ if (process.env.NODE_ENV === 'production') {
 else {
     app.use((0, morgan_1.default)('dev'));
 }
-// Relaxed rate limiting for production testing
+// Production-ready rate limiting
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000', 10), // Increased to 1000
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10), // Reasonable limit for production
     message: {
         error: 'Too many requests from this IP, please try again later.',
+        retryAfter: Math.ceil(parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10) / 1000)
     },
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => {
-        // Skip rate limiting for health checks, webhook endpoints, and all API calls during testing
-        return req.path === '/health' || req.path === '/' || req.path.includes('/webhook/') || req.path.includes('/api/');
+        // Skip rate limiting for health checks and webhook endpoints only
+        return req.path === '/health' || req.path === '/' || req.path.includes('/webhook/');
+    },
+    keyGenerator: (req) => {
+        // Use IP address + user agent for more granular rate limiting
+        return `${req.ip}-${req.get('User-Agent')?.slice(0, 50) || 'unknown'}`;
     }
 });
-// Commented out for production testing
-// app.use('/api', limiter);
+app.use('/api', limiter);
 // Auth rate limiting disabled for production testing
 const authLimiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -127,19 +151,45 @@ const authLimiter = (0, express_rate_limit_1.default)({
 });
 // Commented out for production testing
 // app.use('/api/auth', authLimiter);
-// Relaxed CORS for production testing
+// Production-ready CORS configuration
 const corsOptions = {
     origin: (origin, callback) => {
-        // Allow all origins during testing
-        console.log(`[CORS] Allowing request from origin: ${origin || 'no-origin'}`);
-        callback(null, true);
+        // Allow specific origins in production
+        const allowedOrigins = [
+            process.env.FRONTEND_URL,
+            'http://localhost:5173',
+            'http://localhost:3000',
+            'https://localhost:5173',
+            'https://localhost:3000'
+        ].filter(Boolean);
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) {
+            console.log(`[CORS] Allowing request with no origin`);
+            return callback(null, true);
+        }
+        if (process.env.NODE_ENV === 'production') {
+            if (allowedOrigins.includes(origin)) {
+                console.log(`[CORS] Allowing request from origin: ${origin}`);
+                callback(null, true);
+            }
+            else {
+                console.warn(`[CORS] Blocking request from origin: ${origin}`);
+                callback(new Error('Not allowed by CORS'), false);
+            }
+        }
+        else {
+            // Allow all origins in development
+            console.log(`[CORS] Development mode - allowing request from origin: ${origin}`);
+            callback(null, true);
+        }
     },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
     credentials: true,
-    maxAge: 86400, // 24 hours
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key', '*'],
+    maxAge: process.env.NODE_ENV === 'production' ? 86400 : 0, // 24 hours in production
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key', 'X-Request-ID', 'X-Retry-Count'],
+    exposedHeaders: ['X-Request-ID', 'X-Retry-Count'],
 };
 app.use((0, cors_1.default)(corsOptions));
 // Body parsing middleware
@@ -164,21 +214,18 @@ app.get('/health', async (req, res) => {
     try {
         // Check database connection
         await prisma_1.default.$queryRaw `SELECT 1`;
-        res.status(200).json({
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            uptime: process.uptime(),
-            database: 'connected',
-            memory: process.memoryUsage(),
-            version: process.env.npm_package_version || '1.0.0'
-        });
+        const healthData = (0, monitoring_1.getHealthData)();
+        healthData.database = 'connected';
+        res.status(200).json(healthData);
     }
     catch (error) {
         res.status(503).json({
             status: 'unhealthy',
             timestamp: new Date().toISOString(),
             error: 'Database connection failed',
-            database: 'disconnected'
+            database: 'disconnected',
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
         });
     }
 });
@@ -373,6 +420,9 @@ async function startServer() {
         // Initialize WebSocket server
         const wsServer = new WebSocketServer_1.WebSocketServer(server);
         console.log('[WebSocket] WebSocket server initialized');
+        // Start memory monitoring
+        const memoryInterval = (0, monitoring_1.memoryMonitor)();
+        console.log('[MONITORING] Memory monitoring started');
         // Set Telegram webhook URL if bot is initialized
         if (bot && token && token.length > 0) {
             const webhookPath = `/api/webhook/${token}`;

@@ -3,6 +3,7 @@
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { cn } from '@/lib/utils';
 import { useCallback, useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface FlippableCardProps {
   id: string;

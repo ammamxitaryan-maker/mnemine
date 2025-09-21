@@ -9,7 +9,7 @@ export const performanceMonitor = (req: Request, res: Response, next: NextFuncti
   const originalEnd = res.end;
 
   // Override end function to capture metrics
-  res.end = function(chunk?: any, encoding?: any) {
+  res.end = function(chunk?: any, encoding?: any): any {
     const endTime = Date.now();
     const endUsage = process.cpuUsage(startUsage);
     const duration = endTime - startTime;
@@ -100,7 +100,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   const startTime = Date.now();
   const originalEnd = res.end;
 
-  res.end = function(chunk?: any, encoding?: any) {
+  res.end = function(chunk?: any, encoding?: any): any {
     const duration = Date.now() - startTime;
     
     const logData = {

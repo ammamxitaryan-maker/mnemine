@@ -11,6 +11,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import AnimatedProfitDisplay from '@/components/AnimatedProfitDisplay';
 import { UpgradeSlotDialog } from '@/components/UpgradeSlotDialog';
 import { TouchButton } from '@/components/FullscreenSection';
@@ -164,98 +165,129 @@ const Slots = () => {
               </Card>
             </motion.div>
 
-      <Card className="bg-gray-900/80 backdrop-blur-sm border-primary mb-6">
-        <CardHeader>
-          <CardTitle>{t('slots.investTitle')}</CardTitle>
-          <CardDescription className="text-gray-400 mb-4">
-            {t('slots.investDescription')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              placeholder={t('slots.amountPlaceholder')}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-lg h-12 flex-grow"
-            />
-            <Button variant="outline" onClick={() => setAmount(currentBalance.toFixed(4))}>{t('slots.maxButton')}</Button>
-          </div>
-          <div className="flex justify-around text-sm text-gray-300">
-            <span>{t('slots.termInfo')}</span>
-            <span>{t('slots.profitInfo')}</span>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button
-            className="w-full bg-primary hover:bg-primary/90 text-base py-5"
-            onClick={handleBuySlot}
-            disabled={mutation.isPending || !canInvest}
+            {/* Investment Card */}
+            <motion.div
+              whileHover={{ y: -4 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              <Card className="h-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-xl">
+                    <motion.div 
+                      className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl mr-3"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <PlusCircle className="w-6 h-6 text-white" />
+                    </motion.div>
+                    {t('slots.investTitle')}
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    {t('slots.investDescription')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      placeholder={t('slots.amountPlaceholder')}
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-lg h-12 flex-grow"
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setAmount(currentBalance.toFixed(4))}
+                      className="h-12"
+                    >
+                      {t('slots.maxButton')}
+                    </Button>
+                  </div>
+                  <div className="flex justify-around text-sm text-gray-600 dark:text-gray-400">
+                    <span>{t('slots.termInfo')}</span>
+                    <span>{t('slots.profitInfo')}</span>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-base py-5"
+                    onClick={handleBuySlot}
+                    disabled={mutation.isPending || !canInvest}
+                  >
+                    {mutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                      <>
+                        <PlusCircle className="w-5 h-5 mr-2" />
+                        {t('slots.investButton')}
+                      </>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          </motion.section>
+
+          {/* Mining Slots Section */}
+          <motion.section
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
           >
-            {mutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+            {isLoading ? (
+              <div className="flex justify-center pt-10">
+                <Loader2 className="w-8 h-8 animate-spin" />
+              </div>
+            ) : error ? (
+              <p className="text-red-500 text-center">Could not load your mining slots.</p>
+            ) : (
               <>
-                <PlusCircle className="w-5 h-5 mr-2" />
-                {t('slots.investButton')}
+                {activeSlots.length > 0 && (
+                  <Accordion type="single" collapsible defaultValue="active-slots" className="w-full mb-4">
+                    <AccordionItem value="active-slots" className="border-b border-gray-700">
+                      <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline py-4">
+                        {t('slots.yourActive')}
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-4 pb-2 space-y-4">
+                        {activeSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} onUpgradeClick={setSlotToUpgrade} />)}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                )}
+
+                {inactiveSlots.length > 0 && (
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="inactive-slots" className="border-b border-gray-700">
+                      <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline py-4">
+                        {t('slots.inactiveExpired')}
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-4 pb-2 space-y-4">
+                        {inactiveSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} onUpgradeClick={setSlotToUpgrade} />)}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                )}
+
+                {activeSlots.length === 0 && inactiveSlots.length === 0 && (
+                  <div className="text-center py-10 text-gray-500">
+                    <Server className="w-16 h-16 mx-auto mb-4" />
+                    <p className="text-lg">{t('slots.noActive')}</p>
+                  </div>
+                )}
               </>
             )}
-          </Button>
-        </CardFooter>
-      </Card>
+          </motion.section>
 
-      {isLoading ? (
-        <div className="flex justify-center pt-10">
-          <Loader2 className="w-8 h-8 animate-spin" />
+          {slotToUpgrade && user && (
+            <UpgradeSlotDialog
+              slot={slotToUpgrade}
+              isOpen={!!slotToUpgrade}
+              onClose={() => setSlotToUpgrade(null)}
+              telegramId={user.telegramId}
+              currentBalance={currentBalance}
+            />
+          )}
         </div>
-      ) : error ? (
-        <p className="text-red-500 text-center">Could not load your mining slots.</p>
-      ) : (
-        <>
-          {activeSlots.length > 0 && (
-            <Accordion type="single" collapsible defaultValue="active-slots" className="w-full mb-4">
-              <AccordionItem value="active-slots" className="border-b border-gray-700">
-                <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline py-4">
-                  {t('slots.yourActive')}
-                </AccordionTrigger>
-                <AccordionContent className="pt-4 pb-2 space-y-4">
-                  {activeSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} onUpgradeClick={setSlotToUpgrade} />)}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          )}
-
-          {inactiveSlots.length > 0 && (
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="inactive-slots" className="border-b border-gray-700">
-                <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline py-4">
-                  {t('slots.inactiveExpired')}
-                </AccordionTrigger>
-                <AccordionContent className="pt-4 pb-2 space-y-4">
-                  {inactiveSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} onUpgradeClick={setSlotToUpgrade} />)}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          )}
-
-          {activeSlots.length === 0 && inactiveSlots.length === 0 && (
-            <div className="text-center py-10 text-gray-500">
-              <Server className="w-16 h-16 mx-auto mb-4" />
-              <p className="text-lg">{t('slots.noActive')}</p>
-            </div>
-          )}
-        </>
-      )}
-
-      {slotToUpgrade && user && (
-        <UpgradeSlotDialog
-          slot={slotToUpgrade}
-          isOpen={!!slotToUpgrade}
-          onClose={() => setSlotToUpgrade(null)}
-          telegramId={user.telegramId}
-          currentBalance={currentBalance}
-        />
-      )}
-    </div>
+      </div>
+    </motion.div>
   );
 };
 

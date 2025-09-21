@@ -1,0 +1,47 @@
+# ===========================================
+# SERVER ENVIRONMENT CONFIGURATION
+# Скопируйте этот файл в server/.env
+# ===========================================
+
+# Application Environment
+NODE_ENV=development
+
+# Server Configuration
+PORT=10112
+BACKEND_URL=http://localhost:10112
+FRONTEND_URL=http://localhost:5173
+
+# Database Configuration (SQLite for development)
+DATABASE_URL=file:./prisma/dev.db
+
+# Telegram Bot Configuration
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+TELEGRAM_WEBHOOK_SECRET=your_webhook_secret_here
+TELEGRAM_WEBHOOK_URL=http://localhost:10112/api/webhook/your_bot_token
+WEBHOOK_DELAY_MS=0
+
+# Security Configuration
+JWT_SECRET=mnemine-jwt-secret-32-chars-minimum-length-required-for-production
+ENCRYPTION_KEY=mnemine-encryption-key-32chars-1234
+SESSION_SECRET=mnemine-session-secret-for-production-use
+ADMIN_TELEGRAM_ID=6760298907
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_AUTH_MAX_REQUESTS=1000
+
+# Monitoring and Logging
+LOG_LEVEL=info
+ENABLE_METRICS=true
+
+# WebSocket Configuration
+WS_HEARTBEAT_INTERVAL=30000
+WS_MAX_CONNECTIONS=1000
+
+# CORS Configuration
+CORS_ORIGIN=http://localhost:5173
+
+# Development Settings
+DEBUG=true
+HOT_RELOAD=true

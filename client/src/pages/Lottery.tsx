@@ -6,6 +6,7 @@ import { ModernCard } from '@/components/ModernCard';
 import { useLotteryData } from '@/hooks/useLotteryData';
 import { useCountdown } from '@/hooks/useCountdown';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BuyTicketCard } from '@/components/BuyTicketCard';
 import { LotteryTicketCard } from '@/components/LotteryTicketCard';
 import { LastDrawResults } from '@/components/LastDrawResults';
@@ -166,7 +167,7 @@ const Lottery = () => {
           </Card>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 };
 
