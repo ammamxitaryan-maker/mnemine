@@ -3,41 +3,41 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
-  id                                String          @id @default(cuid())
-  telegramId                        String          @unique
-  username                          String?
-  firstName                         String?
-  lastName                          String?
-  avatarUrl                         String?
-  role                              UserRole        @default(USER)
-  createdAt                         DateTime        @default(now())
-  updatedAt                         DateTime        @updatedAt
-  lastSeenAt                        DateTime?
-  referralCode                      String          @unique
-  referredById                      String?
-  referredBy                        User?           @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  referrals                         User[]          @relation("UserReferrals")
-  totalInvested                     Float           @default(0)
-  lastDepositAt                     DateTime?
-  lastWithdrawalAt                  DateTime?
-  lastSlotPurchaseAt                DateTime?
-  wallets                           Wallet[]
-  miningSlots                       MiningSlot[]
-  completedTasks                    CompletedTask[]
-  activityLogs                      ActivityLog[]
-  lotteryTickets                    LotteryTicket[]
-  swapTransactions                  SwapTransaction[]
-  captchaValidated                  Boolean         @default(false)
-  lastReferralZeroPenaltyAppliedAt  DateTime?
-  isSuspicious                      Boolean         @default(false)
-  lastSuspiciousPenaltyAppliedAt    DateTime?
-  rank                              String?
+  id                                 String            @id @default(cuid())
+  telegramId                         String            @unique
+  username                           String?
+  firstName                          String?
+  lastName                           String?
+  avatarUrl                          String?
+  role                               UserRole          @default(USER)
+  createdAt                          DateTime          @default(now())
+  updatedAt                          DateTime          @updatedAt
+  lastSeenAt                         DateTime?
+  referralCode                       String            @unique
+  referredById                       String?
+  totalInvested                      Float             @default(0)
+  lastDepositAt                      DateTime?
+  lastWithdrawalAt                   DateTime?
+  lastSlotPurchaseAt                 DateTime?
+  captchaValidated                   Boolean           @default(false)
+  lastReferralZeroPenaltyAppliedAt   DateTime?
+  isSuspicious                       Boolean           @default(false)
+  lastSuspiciousPenaltyAppliedAt     DateTime?
+  rank                               String?
   lastInvestmentGrowthBonusClaimedAt DateTime?
+  activityLogs                       ActivityLog[]
+  completedTasks                     CompletedTask[]
+  lotteryTickets                     LotteryTicket[]
+  miningSlots                        MiningSlot[]
+  swapTransactions                   SwapTransaction[]
+  referredBy                         User?             @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  referrals                          User[]            @relation("UserReferrals")
+  wallets                            Wallet[]
 
   @@index([referredById])
 }
@@ -45,11 +45,11 @@ model User {
 model Wallet {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   currency  String
   balance   Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -57,7 +57,6 @@ model Wallet {
 model MiningSlot {
   id                  String   @id @default(cuid())
   userId              String
-  user                User     @relation(fields: [userId], references: [id])
   principal           Float
   startAt             DateTime @default(now())
   lastAccruedAt       DateTime
@@ -67,6 +66,7 @@ model MiningSlot {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   type                String   @default("standard")
+  user                User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -83,11 +83,11 @@ model Task {
 }
 
 model CompletedTask {
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
-  task      Task     @relation(fields: [taskId], references: [id])
   taskId    String
   createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@id([userId, taskId])
 }
@@ -103,7 +103,6 @@ model Booster {
 
 model ActivityLog {
   id           String          @id @default(cuid())
-  user         User            @relation(fields: [userId], references: [id])
   userId       String
   type         ActivityLogType
   amount       Float
@@ -111,6 +110,7 @@ model ActivityLog {
   createdAt    DateTime        @default(now())
   sourceUserId String?
   ipAddress    String?
+  user         User            @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -126,38 +126,38 @@ model Lottery {
 }
 
 model LotteryTicket {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  lottery     Lottery  @relation(fields: [lotteryId], references: [id])
-  lotteryId   String
-  numbers     String
-  isWinner    Boolean  @default(false)
-  prizeAmount Float?
-  isAdminSelected Boolean @default(false) // New field for admin-selected winners
-  createdAt   DateTime @default(now())
+  id              String   @id @default(cuid())
+  userId          String
+  lotteryId       String
+  numbers         String
+  isWinner        Boolean  @default(false)
+  prizeAmount     Float?
+  isAdminSelected Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  lottery         Lottery  @relation(fields: [lotteryId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([lotteryId])
 }
 
 model ExchangeRate {
-  id          String   @id @default(cuid())
-  rate        Float    // Exchange rate CFM -> CFMT (0.001 to 0.03)
-  isActive    Boolean  @default(true)
-  createdBy   String   // Admin user ID who set this rate
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  rate      Float
+  isActive  Boolean  @default(true)
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SwapTransaction {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  cfmAmount   Float    // Amount of CFM swapped
-  cfmtAmount  Float    // Amount of CFMT received
-  exchangeRate Float   // Rate used for this swap
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  userId       String
+  cfmAmount    Float
+  cfmtAmount   Float
+  exchangeRate Float
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }

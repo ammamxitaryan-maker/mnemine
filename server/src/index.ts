@@ -23,6 +23,20 @@ for (const envPath of envPaths) {
 // Also load from process.env (for production deployments)
 dotenv.config();
 
+// Set fallback values for environment variables BEFORE validation
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'file:./prisma/dev.db';
+}
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'mnemine-jwt-secret-32-chars-minimum-length-required-for-production';
+}
+if (!process.env.ENCRYPTION_KEY) {
+  process.env.ENCRYPTION_KEY = 'mnemine-encryption-key-32chars-1234';
+}
+if (!process.env.SESSION_SECRET) {
+  process.env.SESSION_SECRET = 'mnemine-session-secret-for-production-use';
+}
+
 // Log environment status for debugging
 console.log('[ENV] NODE_ENV:', process.env.NODE_ENV);
 console.log('[ENV] DATABASE_URL exists:', !!process.env.DATABASE_URL);
@@ -69,17 +83,7 @@ const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Fron
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const adminTelegramId = process.env.ADMIN_TELEGRAM_ID || '6760298907';
 
-// Set fallback values for security variables if not provided
-// This ensures the app works in all environments
-if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = 'mnemine-jwt-secret-32-chars-minimum-length-required-for-production';
-}
-if (!process.env.ENCRYPTION_KEY) {
-  process.env.ENCRYPTION_KEY = 'mnemine-encryption-key-32chars-1234';
-}
-if (!process.env.SESSION_SECRET) {
-  process.env.SESSION_SECRET = 'mnemine-session-secret-for-production-use';
-}
+// Environment variables are already set above before validation
 
 // Relaxed security middleware for production testing
 app.use(helmet({
@@ -206,17 +210,16 @@ if (token && token.length > 0) {
   
   bot.start((ctx) => {
     console.log(`[BOT] /start command received from user: ${ctx.from?.id} (${ctx.from?.username || ctx.from?.first_name})`);
-    const welcomeMessage = "👋 Welcome to TG Mining Sim!\n\nClick the button below to launch the mining app and start earning.";
-    ctx.reply(welcomeMessage, {
+    ctx.reply("Click the button below to launch the mining app.", {
       reply_markup: {
         inline_keyboard: [
           [{ text: '🚀 Launch App', web_app: { url: frontendUrl } }]
         ]
       }
     }).then(() => {
-      console.log(`[BOT] Welcome message sent to user: ${ctx.from?.id}`);
+      console.log(`[BOT] Launch message sent to user: ${ctx.from?.id}`);
     }).catch(err => {
-      console.error(`[BOT] Failed to send welcome message to user ${ctx.from?.id}:`, err);
+      console.error(`[BOT] Failed to send launch message to user ${ctx.from?.id}:`, err);
     });
   });
   

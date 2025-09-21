@@ -14,12 +14,6 @@ interface HomePageHeaderProps {
   user: AuthenticatedUser;
 }
 
-const getGreeting = (t: (key: string) => string) => {
-  const hour = new Date().getHours();
-  if (hour < 12) return t('greeting.morning');
-  if (hour < 18) return t('greeting.afternoon');
-  return t('greeting.evening');
-};
 
 export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
   const { t } = useTranslation();
@@ -27,12 +21,23 @@ export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
 
   const displayName = user.firstName || user.username || "User";
   const fallbackInitial = displayName.charAt(0).toUpperCase();
-  const greeting = getGreeting(t);
+  
+  // Check if we're in development mode
+  const isDevelopment = import.meta.env.DEV;
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const devModeEnabled = localStorage.getItem('dev_mode') === 'true';
+  const showDevIndicator = isDevelopment && isLocalhost;
 
   return (
     <header className="flex items-center justify-between w-full mb-6">
       <div>
-        <h1 className="text-xl font-bold">{greeting}</h1>
+        <div className="flex items-center gap-2">
+          {showDevIndicator && (
+            <span className="px-2 py-1 text-xs bg-red-500 text-white rounded-full font-bold">
+              ADMIN
+            </span>
+          )}
+        </div>
         <p className="text-lg font-semibold text-gray-300">{displayName}</p>
         {/* Fictitious User Stats */}
         <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">

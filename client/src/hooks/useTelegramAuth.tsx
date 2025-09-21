@@ -15,6 +15,42 @@ export const useTelegramAuth = () => {
       console.log('[useTelegramAuth] initData:', tg?.initData);
       console.log('[useTelegramAuth] initDataUnsafe:', tg?.initDataUnsafe);
       
+      // Check if we're in development mode and no Telegram WebApp is available
+      const isDevelopment = import.meta.env.DEV;
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const devModeEnabled = localStorage.getItem('dev_mode') === 'true';
+      
+      if ((isDevelopment && isLocalhost && !tg?.initData) || devModeEnabled) {
+        console.log('[useTelegramAuth] Development mode detected - using mock user');
+        
+        // Create a mock admin user for development
+        const mockUser: AuthenticatedUser = {
+          id: 'dev-admin-123',
+          telegramId: '6760298907', // Admin Telegram ID from env.example
+          firstName: 'Admin',
+          lastName: 'User',
+          username: 'admin_user',
+          avatarUrl: undefined,
+          role: 'ADMIN',
+          referralCode: 'ADMIN123',
+          referredById: null,
+          wallets: [{ currency: 'CFM', balance: 10000 }],
+          miningSlots: [],
+          captchaValidated: true,
+          isSuspicious: false,
+          lastSuspiciousPenaltyAppliedAt: null,
+          lastSeenAt: new Date(),
+          lastInvestmentGrowthBonusClaimedAt: null,
+          lastReferralZeroPenaltyAppliedAt: null,
+          rank: 'Diamond',
+          photoUrl: undefined
+        };
+        
+        setUser(mockUser);
+        setLoading(false);
+        return;
+      }
+      
       let initDataForValidation = tg?.initData;
 
       // Fallback authentication for Telegram WebApp when initData is not available
@@ -52,6 +88,35 @@ export const useTelegramAuth = () => {
         }
       } catch (err: any) {
         console.error('[useTelegramAuth] Full auth validation error object:', err); 
+        
+        // In development mode, if server is not available, use mock user
+        if ((isDevelopment && isLocalhost && (err.request || err.code === 'ECONNABORTED')) || devModeEnabled) {
+          console.log('[useTelegramAuth] Server not available in development - using mock admin user');
+          const mockUser: AuthenticatedUser = {
+            id: 'dev-admin-123',
+            telegramId: '6760298907', // Admin Telegram ID from env.example
+            firstName: 'Admin',
+            lastName: 'User',
+            username: 'admin_user',
+            avatarUrl: undefined,
+            role: 'ADMIN',
+            referralCode: 'ADMIN123',
+            referredById: null,
+            wallets: [{ currency: 'CFM', balance: 10000 }],
+            miningSlots: [],
+            captchaValidated: true,
+            isSuspicious: false,
+            lastSuspiciousPenaltyAppliedAt: null,
+            lastSeenAt: new Date(),
+            lastInvestmentGrowthBonusClaimedAt: null,
+            lastReferralZeroPenaltyAppliedAt: null,
+            rank: 'Diamond',
+            photoUrl: undefined
+          };
+          setUser(mockUser);
+          setLoading(false);
+          return;
+        }
         
         if (err.response) {
           console.error('[useTelegramAuth] Server responded with error:', err.response.data);

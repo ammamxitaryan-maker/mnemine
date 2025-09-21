@@ -2,15 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useUserData } from '@/hooks/useUserData'; // Still needed for classic view, but useRealTimeUserData for professional
 import { useClaimEarnings } from '@/hooks/useClaimEarnings';
 import { useReinvest } from '@/hooks/useReinvest';
-import { useTasksData } from '@/hooks/useTasksData';
-import { useSlotsData } from '@/hooks/useSlotsData';
-import { useAchievements } from '@/hooks/useAchievements';
-import { useLotteryData } from '@/hooks/useLotteryData';
-import { useBonusesSummary } from '@/hooks/useBonusesSummary';
-import { useRealTimeUserData, useRealTimeMarketData } from '@/hooks/useRealTimeData'; // Import real-time hooks
+import { useOptimizedDashboard, useBackgroundSync } from '@/hooks/useOptimizedData';
 
 import { AuthWrapper } from '@/components/AuthWrapper';
 import { FlippableCard } from '@/components/FlippableCard';
@@ -21,46 +15,44 @@ import { DashboardLinkCard } from '@/components/DashboardLinkCard';
 import { ProfessionalDashboard } from '@/components/ProfessionalDashboard';
 import { ExchangeRateChart } from '@/components/ExchangeRateChart';
 import Earth from '@/components/Earth';
-import { GreetingOverlay } from '@/components/GreetingOverlay';
+import { CacheStats } from '@/components/CacheStats';
 import { AuthenticatedUser } from '@/types/telegram';
 
-import { Zap, Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2 } from 'lucide-react';
+import { Zap, Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Import Button for Pro View
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
   
-  // Data for Classic View
-  const { data: classicUserData, isLoading: classicUserDataLoading, error: classicUserDataError } = useUserData(user.telegramId);
-  const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
+  // Use optimized dashboard hook for all data
+  const {
+    userData: classicUserData,
+    slotsData,
+    tasksData,
+    lotteryData,
+    bonusesData,
+    achievementsData,
+    marketData,
+    isLoading: overallLoading,
+    hasError: anyError,
+    refetchAll,
+    loadingStates
+  } = useOptimizedDashboard(user.telegramId);
 
-  // Data for Professional View (real-time)
-  const { userData: realTimeUserData, isLoading: realTimeUserDataLoading, error: realTimeUserDataError } = useRealTimeUserData(user.telegramId);
-  const { marketData, isLoading: realTimeMarketDataLoading, error: realTimeMarketDataError } = useRealTimeMarketData();
+  // Enable background sync
+  useBackgroundSync(user.telegramId);
 
   const { claim, isClaiming } = useClaimEarnings();
   const { reinvest, isReinvesting } = useReinvest();
 
-  // Data hooks for DashboardLinkCards
-  const { isLoading: tasksLoading } = useTasksData(user.telegramId);
-  const { isLoading: lotteryLoading } = useLotteryData();
-  const { isLoading: bonusesSummaryLoading } = useBonusesSummary();
-  const { isLoading: achievementsLoading } = useAchievements();
-
-  const [showGreetingOverlay, setShowGreetingOverlay] = useState(true);
   const [viewMode, setViewMode] = useState<'classic' | 'professional'>('classic'); // Default to classic
 
-  // Combine all loading states
-  const overallLoading = classicUserDataLoading || slotsLoading || tasksLoading || lotteryLoading || bonusesSummaryLoading || achievementsLoading || realTimeUserDataLoading || realTimeMarketDataLoading;
-  const anyError = classicUserDataError || realTimeUserDataError || realTimeMarketDataError;
+  // For professional view, use the same data but with different presentation
+  const realTimeUserData = classicUserData;
+  const realTimeMarketData = marketData;
 
-  // Effect to show greeting only once when component mounts
-  useEffect(() => {
-    const hasShownGreeting = sessionStorage.getItem('greetingShown');
-    if (hasShownGreeting) {
-      setShowGreetingOverlay(false);
-    }
-  }, []);
 
   if (anyError) {
     return (
@@ -79,18 +71,6 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     );
   }
 
-  // Show greeting overlay if enabled and user data is loaded
-  if (showGreetingOverlay && classicUserData) {
-    return (
-      <GreetingOverlay 
-        user={user} 
-        onFadeOutComplete={() => {
-          setShowGreetingOverlay(false);
-          sessionStorage.setItem('greetingShown', 'true');
-        }} 
-      />
-    );
-  }
 
   if (overallLoading || !classicUserData || !realTimeUserData || !marketData) {
     return (
@@ -106,21 +86,25 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
       to: "/tasks", 
       icon: CheckSquare, 
       titleKey: "tasks", 
-      dataHook: () => useTasksData(user.telegramId), 
+      dataHook: () => ({ data: tasksData, isLoading: loadingStates.tasksData, error: null }), 
       processData: (data: any) => Array.isArray(data) ? data.filter((t: any) => !t.isCompleted).length ?? 0 : 0, 
       isNotification: true,
       unit: "available"
     },
-    { to: "/slots", icon: Server, titleKey: "slots", dataHook: () => useSlotsData(user.telegramId), processData: (data: any) => Array.isArray(data) ? data.filter((s: any) => s.isActive).length ?? 0 : 0, unit: "slots.active" },
+    { 
+      to: "/slots", 
+      icon: Server, 
+      titleKey: "slots", 
+      dataHook: () => ({ data: slotsData, isLoading: loadingStates.slotsData, error: null }), 
+      processData: (data: any) => Array.isArray(data) ? data.filter((s: any) => s.isActive).length ?? 0 : 0, 
+      unit: "slots.active" 
+    },
     { to: "/boosters", icon: Zap, titleKey: "boosters" },
     { 
       to: "/lottery", 
       icon: Ticket, 
       titleKey: "lottery.title", 
-      dataHook: () => {
-        const { lottery, isLoading, error } = useLotteryData();
-        return { data: lottery, isLoading, error };
-      }, 
+      dataHook: () => ({ data: lotteryData, isLoading: loadingStates.lotteryData, error: null }), 
       processData: (data: any) => data?.jackpot?.toFixed(4), 
       unit: "CFM"
     },
@@ -129,7 +113,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
       to: "/bonuses", 
       icon: Gift, 
       titleKey: "bonuses",
-      dataHook: useBonusesSummary,
+      dataHook: () => ({ data: bonusesData, isLoading: loadingStates.bonusesData, error: null }),
       processData: (data: any) => data?.claimableCount ?? 0,
       isNotification: true
     },
@@ -137,10 +121,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
       to: "/achievements", 
       icon: Award, 
       titleKey: "achievements", 
-      dataHook: () => {
-        const { achievements, isLoading, error } = useAchievements();
-        return { data: achievements, isLoading, error };
-      }, 
+      dataHook: () => ({ data: achievementsData, isLoading: loadingStates.achievementsData, error: null }), 
       processData: (data: any) => Array.isArray(data) ? data.filter((a: any) => a.isCompleted && !a.isClaimed).length ?? 0 : 0, 
       isNotification: true,
       unit: "available"
@@ -183,7 +164,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
               totalVolume: marketData.totalVolume
             }}
             displayEarnings={realTimeUserData.accruedEarnings} // Pass real-time accrued earnings
-            isLoading={realTimeUserDataLoading || realTimeMarketDataLoading}
+            isLoading={loadingStates.userData || loadingStates.marketData}
           />
 
           {/* Exchange Rate Chart */}
@@ -195,59 +176,207 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     );
   }
 
-  // Classic View
+  // Enhanced Classic View with better content visibility
   return (
-    <div className="flex flex-col min-h-screen text-gray-800 p-4">
-      <div className="w-full max-w-md mx-auto z-10">
-        <div className="flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="w-full max-w-6xl mx-auto p-4">
+        {/* Header Section */}
+        <div className="flex items-center justify-between mb-6">
           <HomePageHeader user={user} />
-          <Button
-            onClick={() => setViewMode('professional')}
-            className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-          >
-            Pro View
-          </Button>
-        </div>
-        <main className="flex flex-col items-center gap-4 w-full px-2 sm:px-4">
-          
-          <section className="w-full h-[250px] sm:h-[280px]">
-            <FlippableCard
-              id="main-card"
-              frontContent={
-                <MainCardFront 
-                  userData={classicUserData} 
-                  slotsData={slotsData}
-                  displayEarnings={classicUserData?.accruedEarnings ?? 0} // Use classicUserData's accrued earnings
-                  onClaim={claim}
-                  isClaiming={isClaiming}
-                  onReinvest={reinvest}
-                  isReinvesting={isReinvesting}
-                />
-              }
-              backContent={<MainCardBack user={user} slots={slotsData} isLoading={slotsLoading} />}
-            />
-          </section>
-
-          <section className="w-full">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
-              {navItems.map((item) => (
-                <div key={item.to} className="h-28">
-                  <DashboardLinkCard
-                    to={item.to}
-                    icon={item.icon}
-                    title={t(item.titleKey)}
-                    dataHook={item.dataHook as any}
-                    processData={item.processData}
-                    unit={item.isNotification && item.processData && item.processData({} as any) > 0 ? t(item.unit!) : undefined}
-                    isNotification={item.isNotification}
-                  />
-                </div>
-              ))}
+          <div className="flex items-center gap-3">
+            {/* Sync Status Indicator */}
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              {overallLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Syncing...</span>
+                </>
+              ) : (
+                <>
+                  <Wifi className="w-4 h-4 text-green-500" />
+                  <span>Synced</span>
+                </>
+              )}
             </div>
-          </section>
-        </main>
+            {/* Manual Refresh Button */}
+            <Button
+              onClick={refetchAll}
+              size="sm"
+              variant="outline"
+              className="px-3 py-1 text-xs"
+              disabled={overallLoading}
+            >
+              <RefreshCw className={`w-3 h-3 mr-1 ${overallLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button
+              onClick={() => setViewMode('professional')}
+              className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              Pro View
+            </Button>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column - Main Card */}
+          <div className="lg:col-span-1">
+            <div className="h-[300px] mb-6">
+              <FlippableCard
+                id="main-card"
+                frontContent={
+                  <MainCardFront 
+                    userData={classicUserData} 
+                    slotsData={slotsData}
+                    displayEarnings={classicUserData?.accruedEarnings ?? 0}
+                    onClaim={claim}
+                    isClaiming={isClaiming}
+                    onReinvest={reinvest}
+                    isReinvesting={isReinvesting}
+                  />
+                }
+                backContent={<MainCardBack user={user} slots={slotsData} isLoading={loadingStates.slotsData} />}
+              />
+            </div>
+
+            {/* Quick Stats Card */}
+            <Card className="bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg text-gray-800 dark:text-white">Quick Stats</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Mining Power</span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">
+                    {((classicUserData?.miningPower ?? 0) * 100).toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Active Slots</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">
+                    {slotsData?.filter(s => s.isActive).length || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Referrals</span>
+                  <span className="font-semibold text-purple-600 dark:text-purple-400">
+                    {classicUserData?.referralCount || 0}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Navigation and Content */}
+          <div className="lg:col-span-2">
+            {/* Navigation Grid */}
+            <Card className="mb-6 bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg text-gray-800 dark:text-white">Quick Access</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {navItems.map((item) => (
+                    <div key={item.to} className="h-24">
+                      <DashboardLinkCard
+                        to={item.to}
+                        icon={item.icon}
+                        title={t(item.titleKey)}
+                        dataHook={item.dataHook as any}
+                        processData={item.processData}
+                        unit={item.isNotification && item.processData && item.processData({} as any) > 0 ? t(item.unit!) : undefined}
+                        isNotification={item.isNotification}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Additional Content Section - Always Visible */}
+            <div className="space-y-6">
+              {/* Market Overview */}
+              <Card className="bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-gray-800 dark:text-white">Market Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {marketData?.totalUsers?.toLocaleString() || '0'}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Users</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {marketData?.dailyChange > 0 ? '+' : ''}{marketData?.dailyChange?.toFixed(2) || '0'}%
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">24h Change</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        ${(marketData?.totalVolume / 1000000)?.toFixed(1) || '0'}M
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Volume</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Exchange Rate Chart */}
+              <Card className="bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-gray-800 dark:text-white">Exchange Rate</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ExchangeRateChart />
+                </CardContent>
+              </Card>
+
+              {/* Recent Activity */}
+              <Card className="bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-gray-800 dark:text-white">Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-48">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Earnings updated</span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">2 min ago</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Mining slot active</span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">5 min ago</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Referral bonus earned</span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">1 hour ago</span>
+                      </div>
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
       <Earth />
+      
+      {/* Cache Stats - Only show in development */}
+      <CacheStats isVisible={import.meta.env.DEV} />
     </div>
   );
 };

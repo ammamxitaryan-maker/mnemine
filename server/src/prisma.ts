@@ -8,9 +8,10 @@ const prisma = new PrismaClient({
   },
   // Production optimizations
   log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  // Use SQLite database file directly for local development
   datasources: {
     db: {
-      url: process.env.DATABASE_URL,
+      url: "file:./prisma/dev.db",
     },
   },
 });
