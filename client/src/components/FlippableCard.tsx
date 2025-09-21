@@ -2,6 +2,7 @@
 
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { cn } from '@/lib/utils';
+import { useCallback } from 'react';
 
 interface FlippableCardProps {
   id: string;
@@ -13,9 +14,16 @@ interface FlippableCardProps {
 export const FlippableCard = ({ id, frontContent, backContent, className }: FlippableCardProps) => {
   const [isFlipped, setIsFlipped] = usePersistentState(`flippable-card-${id}`, false);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     setIsFlipped(!isFlipped);
-  };
+  }, [isFlipped, setIsFlipped]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  }, [handleClick]);
 
   return (
     <div
@@ -23,12 +31,7 @@ export const FlippableCard = ({ id, frontContent, backContent, className }: Flip
       onClick={handleClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick();
-        }
-      }}
+      onKeyDown={handleKeyDown}
       aria-label={`Flip card ${isFlipped ? 'to front' : 'to back'}`}
     >
       <div

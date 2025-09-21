@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, RefreshCw, DollarSign } from 'lucide-react';
@@ -16,13 +16,13 @@ interface ExchangeRateChartProps {
   className?: string;
 }
 
-export const ExchangeRateChart: React.FC<ExchangeRateChartProps> = ({ className = '' }) => {
+export const ExchangeRateChart: React.FC<ExchangeRateChartProps> = memo(({ className = '' }) => {
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
   const [currentRate, setCurrentRate] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  const fetchExchangeData = async () => {
+  const fetchExchangeData = useCallback(async () => {
     try {
       const [rateResponse, historyResponse] = await Promise.all([
         fetch('/api/exchange/rate'),
@@ -44,7 +44,7 @@ export const ExchangeRateChart: React.FC<ExchangeRateChartProps> = ({ className 
       setIsLoading(false);
       setLastUpdate(new Date());
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchExchangeData();
@@ -52,7 +52,7 @@ export const ExchangeRateChart: React.FC<ExchangeRateChartProps> = ({ className 
     // Refresh every 30 seconds
     const interval = setInterval(fetchExchangeData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchExchangeData]);
 
   // Prepare chart data
   const chartData = exchangeRates.map((rate, index) => ({
@@ -186,4 +186,4 @@ export const ExchangeRateChart: React.FC<ExchangeRateChartProps> = ({ className 
       </Card>
     </motion.div>
   );
-};
+});

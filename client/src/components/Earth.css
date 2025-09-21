@@ -31,6 +31,11 @@
   will-change: transform, box-shadow;
   backface-visibility: hidden;
   transform: translateZ(0);
+  /* Performance optimizations */
+  contain: layout style paint;
+  transform-origin: center;
+  /* Reduce animation complexity on mobile */
+  animation-duration: 40s, 3s;
 }
 
 .earth:before,
@@ -89,5 +94,31 @@
   }
   to {
     --r: 180deg;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .earth {
+    /* Reduce animation complexity on mobile */
+    animation: earth 60s linear infinite, pulse 4s linear infinite alternate-reverse;
+  }
+  
+  .earth:before,
+  .earth:after {
+    /* Simplify mobile animations */
+    animation: rotation 15s linear infinite;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .earth {
+    animation: none;
+  }
+  
+  .earth:before,
+  .earth:after {
+    animation: none;
   }
 }

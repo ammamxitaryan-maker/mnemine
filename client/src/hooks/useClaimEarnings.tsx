@@ -20,7 +20,10 @@ export const useClaimEarnings = () => {
     },
     onSuccess: (data, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
-      showSuccess(`Claimed ${data.claimedAmount.toFixed(6)} CFM!`); // Changed to CFM
+      showSuccess(`Claimed ${data.claimedAmount.toFixed(6)} CFM!`);
+      
+      // Invalidate optimized queries for better performance
+      queryClient.invalidateQueries({ queryKey: ['optimized-user', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['userData', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['activity', user?.telegramId] });
     },

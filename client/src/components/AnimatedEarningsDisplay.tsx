@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { Coins } from 'lucide-react';
 
 interface AnimatedEarningsDisplayProps {
@@ -8,7 +8,7 @@ interface AnimatedEarningsDisplayProps {
   isAnimating?: boolean;
 }
 
-export const AnimatedEarningsDisplay = ({ earnings, isAnimating = true }: AnimatedEarningsDisplayProps) => {
+export const AnimatedEarningsDisplay = memo(({ earnings, isAnimating = true }: AnimatedEarningsDisplayProps) => {
   const [displayValue, setDisplayValue] = useState(earnings);
   const [isIncreasing, setIsIncreasing] = useState(false);
 
@@ -42,4 +42,4 @@ export const AnimatedEarningsDisplay = ({ earnings, isAnimating = true }: Animat
       )}
     </div>
   );
-};
+});

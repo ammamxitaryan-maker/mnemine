@@ -79,7 +79,7 @@ export const useOptimizedUserData = (telegramId: string | undefined) => {
     staleTime: 5000, // 5 seconds
     gcTime: 60000, // 1 minute
     initialData: cachedData || undefined,
-    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : undefined,
+    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : 0,
   });
 
   return {
@@ -110,7 +110,7 @@ export const useOptimizedSlotsData = (telegramId: string | undefined) => {
     staleTime: 5000,
     gcTime: 60000,
     initialData: cachedData || undefined,
-    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : undefined,
+    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : 0,
   });
 
   return {
@@ -140,7 +140,7 @@ export const useOptimizedTasksData = (telegramId: string | undefined) => {
     staleTime: 15000,
     gcTime: 120000, // 2 minutes
     initialData: cachedData || undefined,
-    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : undefined,
+    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : 0,
   });
 
   return {
@@ -168,7 +168,7 @@ export const useOptimizedLotteryData = () => {
     staleTime: 15000,
     gcTime: 120000,
     initialData: cachedData || undefined,
-    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : undefined,
+    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : 0,
   });
 
   return {
@@ -198,7 +198,7 @@ export const useOptimizedBonusesSummary = (telegramId: string | undefined) => {
     staleTime: 15000,
     gcTime: 120000,
     initialData: cachedData || undefined,
-    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : undefined,
+    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : 0,
   });
 
   return {
@@ -228,7 +228,7 @@ export const useOptimizedAchievements = (telegramId: string | undefined) => {
     staleTime: 30000,
     gcTime: 300000, // 5 minutes
     initialData: cachedData || undefined,
-    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : undefined,
+    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : 0,
   });
 
   return {
@@ -256,7 +256,7 @@ export const useOptimizedMarketData = () => {
     staleTime: 5000,
     gcTime: 60000,
     initialData: cachedData || undefined,
-    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : undefined,
+    initialDataUpdatedAt: cachedData ? Date.now() - 1000 : 0,
   });
 
   return {
@@ -323,16 +323,26 @@ export const useOptimizedDashboard = (telegramId: string | undefined) => {
   };
 };
 
-// Background sync hook for periodic updates
+// Background sync hook for periodic updates - Optimized
 export const useBackgroundSync = (telegramId: string | undefined) => {
   const queryClient = useQueryClient();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isPageVisible = useRef(true);
 
   useEffect(() => {
     if (!telegramId) return;
 
-    // Start background sync every 10 seconds
+    // Handle page visibility changes
+    const handleVisibilityChange = () => {
+      isPageVisible.current = !document.hidden;
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Start background sync every 10 seconds, but only when page is visible
     intervalRef.current = setInterval(() => {
+      if (!isPageVisible.current) return; // Skip sync when page is hidden
+      
       // Invalidate and refetch all queries
       queryClient.invalidateQueries({ queryKey: ['optimized-user', telegramId] });
       queryClient.invalidateQueries({ queryKey: ['optimized-slots', telegramId] });
@@ -347,6 +357,7 @@ export const useBackgroundSync = (telegramId: string | undefined) => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [telegramId, queryClient]);
 };

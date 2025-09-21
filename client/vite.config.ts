@@ -44,7 +44,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: (id) => {
-            // Vendor chunks
+            // Vendor chunks - optimized for better caching
             if (id.includes('node_modules')) {
               if (id.includes('react') || id.includes('react-dom')) {
                 return 'vendor-react';
@@ -64,11 +64,21 @@ export default defineConfig(({ mode }) => {
               if (id.includes('i18next')) {
                 return 'vendor-i18n';
               }
+              if (id.includes('framer-motion')) {
+                return 'vendor-animations';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-icons';
+              }
               return 'vendor';
+            }
+            // Page-specific chunks for better code splitting
+            if (id.includes('/pages/')) {
+              const pageName = id.split('/pages/')[1].split('/')[0];
+              return `page-${pageName}`;
             }
           },
           chunkFileNames: (chunkInfo) => {
-            const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
             return `js/[name]-[hash].js`;
           },
           entryFileNames: 'js/[name]-[hash].js',
@@ -87,12 +97,10 @@ export default defineConfig(({ mode }) => {
       },
       chunkSizeWarningLimit: 1000,
       reportCompressedSize: isProduction,
-      // Add build optimizations
-      terserOptions: isProduction ? {
-        compress: {
-          drop_console: true,
-          drop_debugger: true,
-        },
+      // Enhanced build optimizations
+      esbuild: isProduction ? {
+        drop: ['console', 'debugger'],
+        legalComments: 'none',
       } : undefined,
     },
     optimizeDeps: {

@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:prod": "NODE_ENV=production vite build --mode production",
+    "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
+    "preview:prod": "vite preview --mode production",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
@@ -14,7 +17,11 @@
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report",
     "type-check": "tsc --noEmit",
-    "build:analyze": "vite build --mode analyze"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "clean": "rm -rf dist node_modules/.vite",
+    "prebuild": "npm run type-check && npm run lint",
+    "postbuild": "echo 'Build completed successfully!'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

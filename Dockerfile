@@ -1,11 +1,13 @@
-# Multi-stage build for production
+# Multi-stage build for production - Optimized
 FROM node:20-alpine AS base
 
-# Install system dependencies
+# Install system dependencies with security updates
 RUN apk add --no-cache \
     dumb-init \
     curl \
-    && rm -rf /var/cache/apk/*
+    ca-certificates \
+    && rm -rf /var/cache/apk/* \
+    && update-ca-certificates
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -49,11 +51,15 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/server/node_modules ./server/node_modules
 COPY --from=deps /app/client/node_modules ./client/node_modules
 
-# Set build environment
+# Set build environment with optimizations
 ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 # These will be overridden by Render's environment variables
 ENV VITE_BACKEND_URL=https://mnemine-backend.onrender.com
 ENV VITE_WS_URL=wss://mnemine-backend.onrender.com/ws
+# Production optimizations
+ENV VITE_APP_VERSION=1.0.0
+ENV VITE_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # Build shared package first
 RUN pnpm run build:shared

@@ -21,6 +21,10 @@ export const useReinvest = () => {
     onSuccess: (data, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
       showSuccess(data.message || 'Reinvestment successful!');
+      
+      // Invalidate optimized queries for better performance
+      queryClient.invalidateQueries({ queryKey: ['optimized-user', user?.telegramId] });
+      queryClient.invalidateQueries({ queryKey: ['optimized-slots', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['userData', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['activity', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['slotsData', user?.telegramId] });
