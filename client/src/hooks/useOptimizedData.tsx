@@ -23,7 +23,7 @@ interface CacheItem<T> {
 }
 
 // Cache utilities
-const getCachedData = <T>(key: string): T | null => {
+const getCachedData = <T,>(key: string): T | null => {
   try {
     const cached = localStorage.getItem(key);
     if (!cached) return null;
@@ -45,7 +45,7 @@ const getCachedData = <T>(key: string): T | null => {
   }
 };
 
-const setCachedData = <T>(key: string, data: T): void => {
+const setCachedData = <T,>(key: string, data: T): void => {
   try {
     const item: CacheItem<T> = {
       data,
