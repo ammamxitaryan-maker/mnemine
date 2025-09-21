@@ -11,10 +11,20 @@
     "build": "rm -rf dist && pnpm dlx prisma generate && tsc && pnpm run postbuild",
     "postbuild": "node -e \"const fs = require('fs'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.copyFileSync('dist-package.json', 'dist/package.json');\"",
     "start": "node dist/index.js",
+    "start:prod": "NODE_ENV=production node dist/index.js",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "prisma:seed": "tsx src/seed.ts",
+    "clean": "rm -rf dist",
+    "precommit": "npm run type-check && npm run test",
+    "validate": "npm run type-check"
   },
   "dependencies": {
     "@prisma/client": "^6.16.1",

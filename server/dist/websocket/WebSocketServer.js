@@ -285,6 +285,34 @@ class WebSocketServer {
                 console.error('[WebSocket] Error broadcasting earnings:', error);
             }
         }, 30000));
+        // Broadcast price data every minute for real-time price chart
+        this.broadcastIntervals.set('price', setInterval(async () => {
+            try {
+                const priceData = await this.getPriceData();
+                this.broadcastToAll({
+                    type: 'price_update',
+                    data: priceData,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            catch (error) {
+                console.error('[WebSocket] Error broadcasting price data:', error);
+            }
+        }, 60000));
+        // Broadcast user statistics every 5 minutes
+        this.broadcastIntervals.set('user_stats', setInterval(async () => {
+            try {
+                const userStats = await this.getUserStatistics();
+                this.broadcastToAll({
+                    type: 'user_stats_update',
+                    data: userStats,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            catch (error) {
+                console.error('[WebSocket] Error broadcasting user statistics:', error);
+            }
+        }, 5 * 60 * 1000));
     }
     async getMarketData() {
         const [totalUsers, totalVolume, activeSlots] = await Promise.all([
@@ -309,6 +337,56 @@ class WebSocketServer {
             dailyChange: Math.random() * 10 - 5,
             weeklyChange: Math.random() * 20 - 10,
             monthlyChange: Math.random() * 30 - 15
+        };
+    }
+    async getPriceData() {
+        // Get current exchange rate
+        const exchangeRate = await prisma_1.default.exchangeRate.findFirst({
+            where: { isActive: true },
+            orderBy: { createdAt: 'desc' }
+        });
+        const basePrice = exchangeRate?.rate || 1.0;
+        // Simulate realistic price movements (0.8x to 1.2x of base price)
+        const volatility = 0.02; // 2% volatility
+        const change = (Math.random() - 0.5) * 2 * volatility;
+        const currentPrice = basePrice * (1 + change);
+        // Ensure price stays within reasonable bounds
+        const minPrice = basePrice * 0.8;
+        const maxPrice = basePrice * 1.2;
+        const adjustedPrice = Math.max(minPrice, Math.min(maxPrice, currentPrice));
+        return {
+            price: adjustedPrice,
+            change: ((adjustedPrice - basePrice) / basePrice) * 100,
+            volume: Math.random() * 1000000 + 500000,
+            timestamp: new Date().toISOString()
+        };
+    }
+    async getUserStatistics() {
+        const [totalUsers, newUsersToday, activeUsers] = await Promise.all([
+            prisma_1.default.user.count(),
+            prisma_1.default.user.count({
+                where: {
+                    createdAt: {
+                        gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
+                    }
+                }
+            }),
+            prisma_1.default.user.count({
+                where: {
+                    lastActiveAt: {
+                        gte: new Date(Date.now() - 60 * 60 * 1000) // Active in last hour
+                    }
+                }
+            })
+        ]);
+        // 13.3% of total users are online
+        const onlineUsers = Math.floor(totalUsers * 0.133);
+        return {
+            totalUsers,
+            onlineUsers,
+            newUsersToday,
+            activeUsers,
+            lastUpdate: new Date().toISOString()
         };
     }
     broadcastToAll(message) {

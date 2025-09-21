@@ -158,6 +158,14 @@ export const useRealTimeWebSocket = (telegramId: string) => {
       case 'earnings_update':
         setUserData(prev => prev ? { ...prev, accruedEarnings: message.data.earnings } : null);
         break;
+      case 'price_update':
+        // Handle price updates for real-time price chart
+        setMarketData(prev => prev ? { ...prev, priceData: message.data } : { priceData: message.data });
+        break;
+      case 'user_stats_update':
+        // Handle user statistics updates
+        setMarketData(prev => prev ? { ...prev, userStats: message.data } : { userStats: message.data });
+        break;
     }
   }, []);
 

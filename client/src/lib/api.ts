@@ -58,12 +58,22 @@ export const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add timestamp to prevent caching
-    config.params = { ...config.params, _t: Date.now() };
+    // Add timestamp to prevent caching only for non-GET requests
+    if (config.method !== 'get') {
+      config.params = { ...config.params, _t: Date.now() };
+    }
     
     // Start performance monitoring
     if (config.url) {
       performanceMonitor.startRequest(config.url);
+    }
+    
+    // Add request ID for tracking
+    config.headers['X-Request-ID'] = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Add retry count header
+    if (!config.headers['X-Retry-Count']) {
+      config.headers['X-Retry-Count'] = '0';
     }
     
     return config;

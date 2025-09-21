@@ -1,15 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Loader2, Ticket, History } from 'lucide-react';
-import { PageHeader } from '@/components/PageHeader';
+import { Loader2, Ticket, History, Trophy, Clock, Gift } from 'lucide-react';
+import { PageLayout } from '@/components/PageLayout';
+import { ModernCard } from '@/components/ModernCard';
 import { useLotteryData } from '@/hooks/useLotteryData';
 import { useCountdown } from '@/hooks/useCountdown';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BuyTicketCard } from '@/components/BuyTicketCard';
 import { LotteryTicketCard } from '@/components/LotteryTicketCard';
 import { LastDrawResults } from '@/components/LastDrawResults';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth'; // Import useTelegramAuth
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { motion } from 'framer-motion';
 
 const Lottery = () => {
   const { t } = useTranslation();
@@ -18,25 +19,110 @@ const Lottery = () => {
   const timeLeft = useCountdown(lottery?.drawDate || null);
 
   return (
-    <div className="flex flex-col text-white p-4">
-      <PageHeader titleKey="lottery.title" />
-
+    <PageLayout
+      title={t('lottery.title')}
+      subtitle={t('lottery.subtitle')}
+      icon={Ticket}
+      iconColor="from-purple-500 to-pink-600"
+    >
       {isLoading ? (
-        <div className="flex justify-center pt-10">
-          <Loader2 className="w-8 h-8 animate-spin" />
-        </div>
+        <motion.div 
+          className="flex justify-center items-center py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-gray-400">{t('common.loading')}...</p>
+          </div>
+        </motion.div>
       ) : error ? (
-        <p className="text-red-500 text-center">Could not load lottery data.</p>
+        <motion.div 
+          className="flex justify-center items-center py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <p className="text-red-500 text-center">{t('common.error')}</p>
+        </motion.div>
       ) : (
-        <div className="space-y-6">
-          <div className="flex justify-end">
+        <div className="space-y-8">
+          {/* Lottery Stats */}
+          <motion.section 
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <ModernCard
+              title="Current Jackpot"
+              icon={Trophy}
+              iconColor="from-yellow-500 to-orange-600"
+              delay={0.1}
+            >
+              <div className="text-center">
+                <motion.p 
+                  className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {lottery?.jackpot.toFixed(2) || '0.00'} CFM
+                </motion.p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Prize pool
+                </p>
+              </div>
+            </ModernCard>
+
+            <ModernCard
+              title="Time Remaining"
+              icon={Clock}
+              iconColor="from-blue-500 to-indigo-600"
+              delay={0.2}
+            >
+              <div className="text-center">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  {timeLeft}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Until next draw
+                </p>
+              </div>
+            </ModernCard>
+
+            <ModernCard
+              title="Your Tickets"
+              icon={Gift}
+              iconColor="from-green-500 to-emerald-600"
+              delay={0.3}
+            >
+              <div className="text-center">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  {tickets?.length || 0}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Active tickets
+                </p>
+              </div>
+            </ModernCard>
+          </motion.section>
+
+          {/* History Button */}
+          <motion.div 
+            className="flex justify-end"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
             <Link to="/lottery-history">
-              <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 hover:text-accent/80">
+              <Button 
+                variant="outline" 
+                className="border-purple-500 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
                 <History className="w-4 h-4 mr-2" />
                 {t('lottery.history.link')}
               </Button>
             </Link>
-          </div>
+          </motion.div>
 
           {lottery && (
             <Card className="bg-gray-900/80 backdrop-blur-sm border-gold text-center">

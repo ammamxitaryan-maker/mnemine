@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Modern Design System Variables */
     --background: 210 40% 98%; /* #f9fafb */
     --foreground: 222 47% 11%; /* #111827 */
 
@@ -33,6 +34,16 @@
     --ring: 223 65% 32%; /* primary */
 
     --radius: 0.5rem;
+
+    /* Enhanced Design System */
+    --glass-bg: 255 255 255 / 0.9;
+    --glass-border: 255 255 255 / 0.2;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    --shadow-3xl: 0 35px 60px -12px rgb(0 0 0 / 0.35);
   }
 
   .dark {
@@ -195,6 +206,87 @@
     background: linear-gradient(90deg, #1e3a8a, #fbbf24, #059669, #06b6d4, #1e3a8a);
     background-size: 400% 400%;
     animation: gradient-flow 8s ease infinite, spin 2s linear infinite;
+  }
+
+  /* Modern UI Utilities */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .dark .glass-card {
+    background: rgba(17, 24, 39, 0.9);
+    border: 1px solid rgba(75, 85, 99, 0.2);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+    to { box-shadow: 0 0 30px rgba(59, 130, 246, 0.8); }
+  }
+
+  /* Perfect Grid System */
+  .grid-perfect {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .grid-symmetric {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    .grid-symmetric {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Enhanced Shadows */
+  .shadow-glass {
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .shadow-modern {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Smooth Transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-bounce {
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 }
 
@@ -412,5 +504,134 @@
   .min-h-screen {
     min-height: 100vh;
     min-height: 100dvh;
+  }
+}
+
+/* Enhanced Accordion Animations */
+@layer components {
+  .accordion-enhanced {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .accordion-enhanced [data-state="open"] {
+    @apply shadow-lg;
+  }
+  
+  .accordion-enhanced [data-state="closed"] {
+    @apply shadow-sm;
+  }
+  
+  /* Smooth accordion content animations */
+  .accordion-content-enhanced {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Enhanced accordion trigger hover effects */
+  .accordion-trigger-enhanced {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .accordion-trigger-enhanced:hover {
+    @apply bg-gray-50 dark:bg-gray-700/50;
+  }
+  
+  /* Custom accordion chevron animation */
+  .accordion-chevron {
+    @apply transition-transform duration-200 ease-in-out;
+  }
+  
+  .accordion-chevron[data-state="open"] {
+    @apply rotate-180;
+  }
+  
+  /* Compact grid animations */
+  .compact-grid-item {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .compact-grid-item:hover {
+    @apply scale-105 shadow-md;
+  }
+  
+  /* Smooth section transitions */
+  .section-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Enhanced card hover effects for accordion */
+  .accordion-card {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .accordion-card:hover {
+    @apply shadow-xl border-blue-300 dark:border-blue-600;
+  }
+}
+
+/* Custom keyframes for accordion animations */
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+/* Enhanced mobile accordion behavior */
+@media (max-width: 768px) {
+  .accordion-enhanced {
+    @apply space-y-2;
+  }
+  
+  .accordion-trigger-enhanced {
+    @apply py-3 px-4;
+  }
+  
+  .accordion-content-enhanced {
+    @apply px-4 pb-3;
+  }
+}
+
+/* Tablet accordion optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .accordion-enhanced {
+    @apply space-y-3;
+  }
+  
+  .accordion-trigger-enhanced {
+    @apply py-4 px-6;
+  }
+  
+  .accordion-content-enhanced {
+    @apply px-6 pb-4;
+  }
+}
+
+/* Desktop accordion enhancements */
+@media (min-width: 1025px) {
+  .accordion-enhanced {
+    @apply space-y-4;
+  }
+  
+  .accordion-trigger-enhanced {
+    @apply py-4 px-6;
+  }
+  
+  .accordion-content-enhanced {
+    @apply px-6 pb-4;
   }
 }

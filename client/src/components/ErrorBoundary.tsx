@@ -63,13 +63,23 @@ export class ErrorBoundary extends Component<Props, State> {
           body: JSON.stringify({
             ...errorData,
             environment: import.meta.env.MODE,
-            version: import.meta.env.VITE_APP_VERSION || '1.0.0'
+            version: import.meta.env.VITE_APP_VERSION || '1.0.0',
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            url: window.location.href,
           }),
         }).catch(() => {
           // Fallback: store in localStorage for later reporting
-          const errors = JSON.parse(localStorage.getItem('pendingErrors') || '[]');
-          errors.push(errorData);
-          localStorage.setItem('pendingErrors', JSON.stringify(errors.slice(-10))); // Keep only last 10
+          try {
+            const errors = JSON.parse(localStorage.getItem('pendingErrors') || '[]');
+            errors.push({
+              ...errorData,
+              timestamp: new Date().toISOString(),
+            });
+            localStorage.setItem('pendingErrors', JSON.stringify(errors.slice(-5))); // Keep only last 5
+          } catch (storageError) {
+            console.error('Failed to store error in localStorage:', storageError);
+          }
         });
       } else {
         console.error('Error reported:', errorData);

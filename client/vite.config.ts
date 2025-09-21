@@ -94,14 +94,29 @@ export default defineConfig(({ mode }) => {
             return `assets/[name]-[hash][extname]`;
           },
         },
+        external: isProduction ? [] : undefined, // No externals for production
+        treeshake: {
+          moduleSideEffects: false,
+          propertyReadSideEffects: false,
+          unknownGlobalSideEffects: false,
+        },
       },
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: isProduction ? 500 : 1000,
       reportCompressedSize: isProduction,
       // Enhanced build optimizations
       esbuild: isProduction ? {
         drop: ['console', 'debugger'],
         legalComments: 'none',
+        minifyIdentifiers: true,
+        minifySyntax: true,
+        minifyWhitespace: true,
       } : undefined,
+      // Performance optimizations
+      assetsInlineLimit: isProduction ? 4096 : 0,
+      cssMinify: isProduction,
+      modulePreload: {
+        polyfill: false,
+      },
     },
     optimizeDeps: {
       include: [

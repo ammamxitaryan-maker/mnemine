@@ -19,9 +19,13 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
+    "lint:check": "eslint . --ext ts,tsx --max-warnings 0",
     "clean": "rm -rf dist node_modules/.vite",
-    "prebuild": "npm run type-check && npm run lint",
-    "postbuild": "echo 'Build completed successfully!'"
+    "prebuild": "npm run type-check && npm run lint:check",
+    "postbuild": "echo 'Build completed successfully!'",
+    "precommit": "npm run lint:check && npm run type-check && npm run test",
+    "validate": "npm run lint:check && npm run type-check",
+    "analyze": "npm run build:analyze && npx vite-bundle-analyzer dist/stats.html"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

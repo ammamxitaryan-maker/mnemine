@@ -2,19 +2,19 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
-import { Loader2, Server, Info, PlusCircle } from 'lucide-react';
+import { Loader2, Server, Info, PlusCircle, ArrowLeft, Zap, TrendingUp } from 'lucide-react';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useSlotsData, MiningSlot } from '@/hooks/useSlotsData';
 import SlotCard from '@/components/SlotCard';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 import { useUserData } from '@/hooks/useUserData';
-import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import AnimatedProfitDisplay from '@/components/AnimatedProfitDisplay';
 import { UpgradeSlotDialog } from '@/components/UpgradeSlotDialog';
+import { TouchButton } from '@/components/FullscreenSection';
+import { motion } from 'framer-motion';
 
 const buyNewSlot = async ({ telegramId, amount }: { telegramId: string, amount: number }) => {
   const { data } = await api.post(`/user/${telegramId}/slots/buy`, { amount });
@@ -73,27 +73,96 @@ const Slots = () => {
   const inactiveSlots = slotsData?.filter(slot => !slot.isActive || new Date(slot.expiresAt) <= new Date()) ?? [];
 
   return (
-    <div className="flex flex-col text-white p-4">
-      <PageHeader titleKey="slots.title" />
+    <motion.div 
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/30"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      {/* Design System Container */}
+      <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header Section - Perfectly Centered */}
+        <motion.header 
+          className="flex items-center justify-between py-6 mb-8"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+        >
+          <TouchButton
+            onClick={() => window.history.back()}
+            className="group relative px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200/50 dark:border-gray-700/50"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
+            <span className="font-medium">Back</span>
+          </TouchButton>
+          
+          <div className="text-center">
+            <motion.div 
+              className="flex items-center justify-center space-x-3 mb-2"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <motion.div 
+                className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <Server className="w-8 h-8 text-white" />
+              </motion.div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Mining Slots</h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Invest in mining slots to earn 30% returns over 7 days
+                </p>
+              </div>
+            </motion.div>
+          </div>
+          
+          <div className="w-24"></div> {/* Spacer for perfect centering */}
+        </motion.header>
 
-      <Card className="bg-gray-900/80 backdrop-blur-sm border-primary mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>{t('slots.currentProfit')}</span>
-            <Info className="w-4 h-4 text-gray-400" />
-          </CardTitle>
-          <CardDescription className="text-gray-400 mb-4">
-            {t('slots.profitProjectionDescription')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AnimatedProfitDisplay
-            baseValue={currentBalance}
-            weeklyGrowthRate={userData?.miningPower ?? 0}
-            currencySymbol="CFM"
-          />
-        </CardContent>
-      </Card>
+        {/* Main Content Grid - Perfectly Symmetric */}
+        <div className="space-y-8">
+          
+          {/* Profit Overview */}
+          <motion.section 
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            {/* Current Profit Card */}
+            <motion.div
+              whileHover={{ y: -4 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              <Card className="h-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center text-xl">
+                    <motion.div 
+                      className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl mr-3"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <TrendingUp className="w-6 h-6 text-white" />
+                    </motion.div>
+                    {t('slots.currentProfit')}
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    {t('slots.profitProjectionDescription')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AnimatedProfitDisplay
+                    baseValue={currentBalance}
+                    weeklyGrowthRate={userData?.miningPower ?? 0}
+                    currencySymbol="CFM"
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
 
       <Card className="bg-gray-900/80 backdrop-blur-sm border-primary mb-6">
         <CardHeader>
