@@ -18,7 +18,7 @@ import Earth from '@/components/Earth';
 import { CacheStats } from '@/components/CacheStats';
 import { AuthenticatedUser } from '@/types/telegram';
 
-import { Zap, Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Zap, Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Import Button for Pro View
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -179,51 +179,25 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   // Enhanced Classic View with better content visibility
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="w-full max-w-6xl mx-auto p-4">
-        {/* Header Section */}
-        <div className="flex items-center justify-between mb-6">
+      <div className="w-full max-w-6xl mx-auto p-2 sm:p-4">
+        {/* Header Section - Mobile Optimized */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <HomePageHeader user={user} />
-          <div className="flex items-center gap-3">
-            {/* Sync Status Indicator */}
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-              {overallLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Syncing...</span>
-                </>
-              ) : (
-                <>
-                  <Wifi className="w-4 h-4 text-green-500" />
-                  <span>Synced</span>
-                </>
-              )}
-            </div>
-            {/* Manual Refresh Button */}
-            <Button
-              onClick={refetchAll}
-              size="sm"
-              variant="outline"
-              className="px-3 py-1 text-xs"
-              disabled={overallLoading}
-            >
-              <RefreshCw className={`w-3 h-3 mr-1 ${overallLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button
-              onClick={() => setViewMode('professional')}
-              className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-            >
-              Pro View
-            </Button>
-          </div>
+          <Button
+            onClick={() => setViewMode('professional')}
+            className="px-2 py-1 sm:px-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm"
+          >
+            <span className="hidden sm:inline">Pro View</span>
+            <span className="sm:hidden">Pro</span>
+          </Button>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content Grid - Mobile Optimized */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
           
           {/* Left Column - Main Card */}
           <div className="lg:col-span-1">
-            <div className="h-[300px] mb-6">
+            <div className="h-[250px] sm:h-[300px] mb-4 sm:mb-6">
               <FlippableCard
                 id="main-card"
                 frontContent={
@@ -241,12 +215,12 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
               />
             </div>
 
-            {/* Quick Stats Card */}
+            {/* Quick Stats Card - Mobile Optimized */}
             <Card className="bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-gray-800 dark:text-white">Quick Stats</CardTitle>
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-base sm:text-lg text-gray-800 dark:text-white">Quick Stats</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 sm:space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Mining Power</span>
                   <span className="font-semibold text-blue-600 dark:text-blue-400">
@@ -271,15 +245,15 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
 
           {/* Right Column - Navigation and Content */}
           <div className="lg:col-span-2">
-            {/* Navigation Grid */}
-            <Card className="mb-6 bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-gray-800 dark:text-white">Quick Access</CardTitle>
+            {/* Navigation Grid - Mobile Optimized */}
+            <Card className="mb-4 sm:mb-6 bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-base sm:text-lg text-gray-800 dark:text-white">Quick Access</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                   {navItems.map((item) => (
-                    <div key={item.to} className="h-24">
+                    <div key={item.to} className="h-20 sm:h-24">
                       <DashboardLinkCard
                         to={item.to}
                         icon={item.icon}
@@ -296,72 +270,72 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
             </Card>
 
             {/* Additional Content Section - Always Visible */}
-            <div className="space-y-6">
-              {/* Market Overview */}
+            <div className="space-y-4 sm:space-y-6">
+              {/* Market Overview - Mobile Optimized */}
               <Card className="bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-gray-800 dark:text-white">Market Overview</CardTitle>
+                <CardHeader className="pb-2 sm:pb-3">
+                  <CardTitle className="text-base sm:text-lg text-gray-800 dark:text-white">Market Overview</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                    <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
                         {marketData?.totalUsers?.toLocaleString() || '0'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Users</div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Total Users</div>
                     </div>
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
                         {marketData?.dailyChange > 0 ? '+' : ''}{marketData?.dailyChange?.toFixed(2) || '0'}%
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">24h Change</div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">24h Change</div>
                     </div>
-                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
                         ${(marketData?.totalVolume / 1000000)?.toFixed(1) || '0'}M
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Volume</div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Volume</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Exchange Rate Chart */}
+              {/* Exchange Rate Chart - Mobile Optimized */}
               <Card className="bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-gray-800 dark:text-white">Exchange Rate</CardTitle>
+                <CardHeader className="pb-2 sm:pb-3">
+                  <CardTitle className="text-base sm:text-lg text-gray-800 dark:text-white">Exchange Rate</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ExchangeRateChart />
                 </CardContent>
               </Card>
 
-              {/* Recent Activity */}
+              {/* Recent Activity - Mobile Optimized */}
               <Card className="bg-white/90 backdrop-blur-sm border-blue-200 dark:bg-gray-800/90 dark:border-gray-600">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-gray-800 dark:text-white">Recent Activity</CardTitle>
+                <CardHeader className="pb-2 sm:pb-3">
+                  <CardTitle className="text-base sm:text-lg text-gray-800 dark:text-white">Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-48">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center gap-3">
+                  <ScrollArea className="h-40 sm:h-48">
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Earnings updated</span>
+                          <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Earnings updated</span>
                         </div>
                         <span className="text-xs text-gray-500 dark:text-gray-400">2 min ago</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Mining slot active</span>
+                          <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Mining slot active</span>
                         </div>
                         <span className="text-xs text-gray-500 dark:text-gray-400">5 min ago</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Referral bonus earned</span>
+                          <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Referral bonus earned</span>
                         </div>
                         <span className="text-xs text-gray-500 dark:text-gray-400">1 hour ago</span>
                       </div>

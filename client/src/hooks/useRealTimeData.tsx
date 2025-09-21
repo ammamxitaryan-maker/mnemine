@@ -1,10 +1,8 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { useRealTimeSync } from '@/components/RealTimeSync';
 
 // Real-time user data hook
 export const useRealTimeUserData = (telegramId: string) => {
-  const queryClient = useQueryClient();
   
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['realtime-user', telegramId],
@@ -19,8 +17,6 @@ export const useRealTimeUserData = (telegramId: string) => {
     refetchOnWindowFocus: true, // Refetch when user returns to tab
   });
 
-  // Use real-time sync hook for additional synchronization
-  useRealTimeSync(['realtime-user', telegramId], 15000);
 
   return {
     userData: data,
@@ -46,7 +42,6 @@ export const useRealTimeMarketData = () => {
     gcTime: 60000, // Keep in cache for 1 minute
   });
 
-  useRealTimeSync(['realtime-market'], 30000);
 
   return {
     marketData: data,
@@ -72,7 +67,6 @@ export const useRealTimeSlotsData = (telegramId: string) => {
     gcTime: 20000, // Keep in cache for 20 seconds
   });
 
-  useRealTimeSync(['realtime-slots', telegramId], 10000);
 
   return {
     slotsData: data?.slots || [],
@@ -98,7 +92,6 @@ export const useRealTimeActivityFeed = (telegramId: string, limit = 20) => {
     gcTime: 30000, // Keep in cache for 30 seconds
   });
 
-  useRealTimeSync(['realtime-activity', telegramId, String(limit)], 20000); // Fixed: Convert limit to string
 
   return {
     activities: data?.activities || [],

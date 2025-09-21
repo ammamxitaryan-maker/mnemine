@@ -7,7 +7,6 @@ import { User, CircleDot } from 'lucide-react';
 import { AuthenticatedUser } from '@/types/telegram';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeSwitcher } from './ThemeSwitcher';
-import { NotificationSystem } from './NotificationSystem'; // Import NotificationSystem
 import { useFictitiousUsers } from '@/hooks/useFictitiousUsers';
 
 interface HomePageHeaderProps {
@@ -49,7 +48,6 @@ export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <NotificationSystem /> {/* Add NotificationSystem here */}
         <LanguageSwitcher />
         <ThemeSwitcher />
         <Link to="/profile">
