@@ -35,16 +35,16 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      target: 'esnext',
-      minify: isProduction ? 'esbuild' : false,
+      target: 'es2015', // More compatible target
+      minify: isProduction ? 'terser' : false, // Use terser instead of esbuild for better compatibility
       sourcemap: !isProduction,
-      cssCodeSplit: true,
+      cssCodeSplit: false, // Disable CSS code splitting to avoid issues
       outDir: 'dist',
       assetsDir: 'assets',
       rollupOptions: {
         output: {
-          manualChunks: (id) => {
-            // Vendor chunks - optimized for better caching
+          manualChunks: isProduction ? (id) => {
+            // Simplified chunking strategy for production
             if (id.includes('node_modules')) {
               if (id.includes('react') || id.includes('react-dom')) {
                 return 'vendor-react';
@@ -55,32 +55,13 @@ export default defineConfig(({ mode }) => {
               if (id.includes('@tanstack/react-query')) {
                 return 'vendor-query';
               }
-              if (id.includes('axios')) {
-                return 'vendor-http';
-              }
-              if (id.includes('recharts')) {
-                return 'vendor-charts';
-              }
-              if (id.includes('i18next')) {
-                return 'vendor-i18n';
-              }
               if (id.includes('framer-motion')) {
                 return 'vendor-animations';
               }
-              if (id.includes('lucide-react')) {
-                return 'vendor-icons';
-              }
               return 'vendor';
             }
-            // Page-specific chunks for better code splitting
-            if (id.includes('/pages/')) {
-              const pageName = id.split('/pages/')[1].split('/')[0];
-              return `page-${pageName}`;
-            }
-          },
-          chunkFileNames: (chunkInfo) => {
-            return `js/[name]-[hash].js`;
-          },
+          } : undefined,
+          chunkFileNames: 'js/[name]-[hash].js',
           entryFileNames: 'js/[name]-[hash].js',
           assetFileNames: (assetInfo) => {
             const info = assetInfo.name.split('.');
@@ -94,22 +75,22 @@ export default defineConfig(({ mode }) => {
             return `assets/[name]-[hash][extname]`;
           },
         },
-        external: isProduction ? [] : undefined, // No externals for production
+        external: [], // No externals
         treeshake: {
           moduleSideEffects: false,
           propertyReadSideEffects: false,
           unknownGlobalSideEffects: false,
         },
       },
-      chunkSizeWarningLimit: isProduction ? 500 : 1000,
+      chunkSizeWarningLimit: isProduction ? 1000 : 1000,
       reportCompressedSize: isProduction,
-      // Enhanced build optimizations
-      esbuild: isProduction ? {
-        drop: ['console', 'debugger'],
-        legalComments: 'none',
-        minifyIdentifiers: true,
-        minifySyntax: true,
-        minifyWhitespace: true,
+      // Simplified build optimizations
+      terserOptions: isProduction ? {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+        mangle: true,
       } : undefined,
       // Performance optimizations
       assetsInlineLimit: isProduction ? 4096 : 0,
