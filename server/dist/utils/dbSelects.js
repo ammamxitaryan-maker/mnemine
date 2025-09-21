@@ -68,7 +68,9 @@ exports.userSelectForAdminList = client_1.Prisma.validator()({
     telegramId: true,
     firstName: true,
     username: true,
+    role: true,
     createdAt: true,
+    lastSeenAt: true,
     totalInvested: true,
     wallets: {
         select: {

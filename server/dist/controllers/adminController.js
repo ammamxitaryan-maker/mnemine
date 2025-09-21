@@ -8,10 +8,30 @@ const prisma_1 = __importDefault(require("../prisma"));
 const dbSelects_1 = require("../utils/dbSelects");
 const getAllUsers = async (req, res) => {
     try {
-        const users = await prisma_1.default.user.findMany({
-            orderBy: { createdAt: 'desc' },
-            select: dbSelects_1.userSelectForAdminList,
-        });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const search = req.query.search;
+        const sortBy = req.query.sortBy || 'createdAt';
+        const sortOrder = req.query.sortOrder || 'desc';
+        const skip = (page - 1) * limit;
+        // Build where clause for search
+        const where = search ? {
+            OR: [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { username: { contains: search, mode: 'insensitive' } },
+                { telegramId: { contains: search } }
+            ]
+        } : {};
+        const [users, totalCount] = await Promise.all([
+            prisma_1.default.user.findMany({
+                where,
+                orderBy: { [sortBy]: sortOrder },
+                select: dbSelects_1.userSelectForAdminList,
+                skip,
+                take: limit,
+            }),
+            prisma_1.default.user.count({ where })
+        ]);
         res.status(200).json(users);
     }
     catch (error) {

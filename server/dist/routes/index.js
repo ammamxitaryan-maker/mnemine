@@ -12,6 +12,8 @@ const boosters_1 = __importDefault(require("./boosters"));
 const lottery_1 = __importDefault(require("./lottery"));
 const admin_1 = __importDefault(require("./admin")); // Import admin routes
 const realTime_1 = __importDefault(require("./realTime")); // Import real-time routes
+const exchange_1 = __importDefault(require("./exchange")); // Import exchange routes
+const adminLottery_1 = __importDefault(require("./adminLottery")); // Import admin lottery routes
 const router = (0, express_1.Router)();
 // Health check route
 router.get('/health', (req, res) => {
@@ -25,4 +27,6 @@ router.use('/boosters', boosters_1.default);
 router.use('/lottery', lottery_1.default);
 router.use('/admin', admin_1.default); // Add admin routes
 router.use('/realtime', realTime_1.default); // Add real-time routes
+router.use('/exchange', exchange_1.default); // Add exchange routes
+router.use('/admin/lottery', adminLottery_1.default); // Add admin lottery routes
 exports.default = router;

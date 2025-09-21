@@ -23,6 +23,7 @@ import Stats from "./pages/Stats";
 import Settings from "./pages/Settings";
 import AdvancedTradingPage from "./pages/AdvancedTradingPage";
 import AnalyticsPage from "./pages/AnalyticsPage"; // Import new page
+import Swap from "./pages/Swap";
 import { MainLayout } from "./components/layout/MainLayout";
 import { AdminRoute } from "./components/layout/AdminRoute";
 import WaveBackground from "./components/WaveBackground";
@@ -95,6 +96,7 @@ const App = () => {
               <Route path="/stats" element={<Stats />} />
               <Route path="/advanced-trading" element={<AdvancedTradingPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} /> {/* New route */}
+              <Route path="/swap" element={<Swap />} />
             </Route>
             
             <Route path="/deposit" element={<Deposit />} />

@@ -19,6 +19,7 @@ import { MainCardBack } from '@/components/MainCardBack';
 import { HomePageHeader } from '@/components/HomePageHeader';
 import { DashboardLinkCard } from '@/components/DashboardLinkCard';
 import { ProfessionalDashboard } from '@/components/ProfessionalDashboard';
+import { ExchangeRateChart } from '@/components/ExchangeRateChart';
 import Earth from '@/components/Earth';
 import { GreetingOverlay } from '@/components/GreetingOverlay';
 import { AuthenticatedUser } from '@/types/telegram';
@@ -184,6 +185,11 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
             displayEarnings={realTimeUserData.accruedEarnings} // Pass real-time accrued earnings
             isLoading={realTimeUserDataLoading || realTimeMarketDataLoading}
           />
+
+          {/* Exchange Rate Chart */}
+          <div className="mt-6">
+            <ExchangeRateChart />
+          </div>
         </div>
       </div>
     );

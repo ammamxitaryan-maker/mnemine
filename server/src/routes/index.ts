@@ -7,6 +7,8 @@ import boosterRoutes from './boosters';
 import lotteryRoutes from './lottery';
 import adminRoutes from './admin'; // Import admin routes
 import realTimeRoutes from './realTime'; // Import real-time routes
+import exchangeRoutes from './exchange'; // Import exchange routes
+import adminLotteryRoutes from './adminLottery'; // Import admin lottery routes
 
 const router = Router();
 
@@ -23,5 +25,7 @@ router.use('/boosters', boosterRoutes);
 router.use('/lottery', lotteryRoutes);
 router.use('/admin', adminRoutes); // Add admin routes
 router.use('/realtime', realTimeRoutes); // Add real-time routes
+router.use('/exchange', exchangeRoutes); // Add exchange routes
+router.use('/admin/lottery', adminLotteryRoutes); // Add admin lottery routes
 
 export default router;

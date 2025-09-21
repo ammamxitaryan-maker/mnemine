@@ -124,3 +124,11 @@ export const RANK_BENEFITS = {
 
 // Base commissions for comparison, from backend/src/constants.ts
 export const BASE_REFERRAL_COMMISSIONS = [0.20, 0.10, 0.05];
+
+// Exchange Rate Constants
+export const MIN_EXCHANGE_RATE = 0.001; // 0.1%
+export const MAX_EXCHANGE_RATE = 0.03;  // 3%
+export const DEFAULT_EXCHANGE_RATE = 0.01; // 1%
+
+// CFMT Currency Support
+export const CFMT_CURRENCY = 'CFMT';

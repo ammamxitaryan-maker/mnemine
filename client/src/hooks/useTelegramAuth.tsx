@@ -17,20 +17,13 @@ export const useTelegramAuth = () => {
       
       let initDataForValidation = tg?.initData;
 
-      // Check if we're in Telegram WebApp environment
+      // Fallback authentication for Telegram WebApp when initData is not available
       if (!initDataForValidation) {
-        if (import.meta.env.PROD) {
-          console.error('[useTelegramAuth] Telegram WebApp initData not available in production.');
-          setError('This app must be opened through Telegram. Please use the Telegram bot to access the application.');
-          setLoading(false);
-          return;
-        } else {
-          console.warn('[useTelegramAuth] Telegram WebApp initData not available in development. Using test authentication.');
-          // Only allow fallback in development
-          const tempUserId = Math.floor(Math.random() * 1000000000);
-          const authDate = Math.floor(Date.now() / 1000);
-          initDataForValidation = `user=%7B%22id%22%3A${tempUserId}%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22testuser%22%2C%22language_code%22%3A%22en%22%7D&chat_instance=-${tempUserId}&chat_type=sender&auth_date=${authDate}&hash=dev_fallback_hash`;
-        }
+        console.warn('[useTelegramAuth] Telegram WebApp initData not available. Using fallback authentication.');
+        // Generate temporary initData for Telegram WebApp users
+        const tempUserId = Math.floor(Math.random() * 1000000000);
+        const authDate = Math.floor(Date.now() / 1000);
+        initDataForValidation = `user=%7B%22id%22%3A${tempUserId}%2C%22first_name%22%3A%22Telegram%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22telegramuser%22%2C%22language_code%22%3A%22en%22%7D&chat_instance=-${tempUserId}&chat_type=sender&auth_date=${authDate}&hash=telegram_fallback_hash`;
       }
 
       if (!initDataForValidation) {

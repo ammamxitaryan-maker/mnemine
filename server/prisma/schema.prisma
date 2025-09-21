@@ -31,6 +31,7 @@ model User {
   completedTasks                    CompletedTask[]
   activityLogs                      ActivityLog[]
   lotteryTickets                    LotteryTicket[]
+  swapTransactions                  SwapTransaction[]
   captchaValidated                  Boolean         @default(false)
   lastReferralZeroPenaltyAppliedAt  DateTime?
   isSuspicious                      Boolean         @default(false)
@@ -133,10 +134,32 @@ model LotteryTicket {
   numbers     String
   isWinner    Boolean  @default(false)
   prizeAmount Float?
+  isAdminSelected Boolean @default(false) // New field for admin-selected winners
   createdAt   DateTime @default(now())
 
   @@index([userId])
   @@index([lotteryId])
+}
+
+model ExchangeRate {
+  id          String   @id @default(cuid())
+  rate        Float    // Exchange rate CFM -> CFMT (0.001 to 0.03)
+  isActive    Boolean  @default(true)
+  createdBy   String   // Admin user ID who set this rate
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SwapTransaction {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  cfmAmount   Float    // Amount of CFM swapped
+  cfmtAmount  Float    // Amount of CFMT received
+  exchangeRate Float   // Rate used for this swap
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
 }
 
 enum UserRole {
@@ -165,4 +188,7 @@ enum ActivityLogType {
   BALANCE_ZEROED_PENALTY
   LOTTERY_TICKET_PURCHASE
   LOTTERY_WIN
+  SWAP_CFM_TO_CFMT
+  EXCHANGE_RATE_CHANGE
+  ADMIN_LOTTERY_WIN
 }

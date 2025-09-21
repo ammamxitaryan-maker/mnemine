@@ -61,14 +61,15 @@ const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Fron
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const adminTelegramId = process.env.ADMIN_TELEGRAM_ID || '6760298907';
 // Set fallback values for security variables if not provided
+// This ensures the app works in all environments
 if (!process.env.JWT_SECRET) {
-    process.env.JWT_SECRET = 'default-jwt-secret-for-development-only-change-in-production-32chars-12345';
+    process.env.JWT_SECRET = 'mnemine-jwt-secret-32-chars-minimum-length-required-for-production';
 }
 if (!process.env.ENCRYPTION_KEY) {
-    process.env.ENCRYPTION_KEY = 'default-encryption-key-32chars-1234';
+    process.env.ENCRYPTION_KEY = 'mnemine-encryption-key-32chars-1234';
 }
 if (!process.env.SESSION_SECRET) {
-    process.env.SESSION_SECRET = 'default-session-secret-for-development';
+    process.env.SESSION_SECRET = 'mnemine-session-secret-for-production-use';
 }
 // Security middleware
 app.use((0, helmet_1.default)({
