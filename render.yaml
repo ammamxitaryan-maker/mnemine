@@ -1,49 +1,43 @@
 services:
   - type: web
-    name: mnemine-app
+    name: mnemine-backend
     env: node
     plan: free
-    buildCommand: pnpm install --frozen-lockfile && pnpm run build && pnpm run copy:frontend
-    startCommand: node server/dist/index.js
-    healthCheckPath: /health
+    buildCommand: |
+      pnpm install --frozen-lockfile
+      pnpm run build:prod
+      pnpm run copy:frontend
+    startCommand: pnpm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        value: "postgresql://mnemine_xkuj_user:irymdAVCiporQMQUYPOzVTjnqWe93mOF@dpg-d33rt0vdiees739qhfog-a.frankfurt-postgres.render.com/mnemine_xkuj"
       - key: PORT
         value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mnemine-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
-      - key: TELEGRAM_BOT_TOKEN
-        value: "8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE"
-      - key: ADMIN_TELEGRAM_ID
-        value: "6760298907"
       - key: ENCRYPTION_KEY
-        value: "mnemine-encryption-key-32chars-1234"
+        generateValue: true
       - key: SESSION_SECRET
         generateValue: true
-      - key: BACKEND_URL
-        value: https://mnemine-app.onrender.com
-      - key: TELEGRAM_WEBHOOK_URL
-        value: https://mnemine-app.onrender.com/api/webhook/8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE
-      - key: CORS_ORIGIN
-        value: https://mnemine-app.onrender.com
-      - key: FRONTEND_URL
-        value: https://mnemine-app.onrender.com
-      - key: ALLOWED_ORIGINS
-        value: https://mnemine-app.onrender.com
-      - key: VITE_BACKEND_URL
-        value: https://mnemine-app.onrender.com
-      - key: VITE_WS_URL
-        value: wss://mnemine-app.onrender.com/ws
-      - key: VITE_APP_NAME
-        value: Mnemine
+      - key: ADMIN_TELEGRAM_ID
+        value: "6760298907"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
       - key: RATE_LIMIT_WINDOW_MS
         value: "900000"
       - key: RATE_LIMIT_MAX_REQUESTS
-        value: "100"
+        value: "50"
       - key: LOG_LEVEL
-        value: info
-    autoDeploy: true
-    branch: main
+        value: warn
+
+databases:
+  - name: mnemine-db
+    plan: free
+    databaseName: mnemine
+    user: mnemine_user
