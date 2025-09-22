@@ -1,96 +1,96 @@
-# 🎉 Blueprint Error Исправлен - Готово к Деплою!
+# 🎉 Blueprint Error Fixed - Ready for Deployment!
 
-## ✅ **Проблема Решена!**
+## ✅ **Problem Solved!**
 
-**Ошибка**: `databaseName: mnemine user: mnemine_user deployment blueprint error`
+**Error**: `databaseName: mnemine user: mnemine_user deployment blueprint error`
 
-**Решение**: ✅ **ИСПРАВЛЕНО** - упростил конфигурацию базы данных в render.yaml
+**Solution**: ✅ **FIXED** - simplified database configuration in render.yaml
 
-## 🚀 **Что Было Исправлено:**
+## 🚀 **What Was Fixed:**
 
-### 1. **Убрал проблемные параметры базы данных**
+### 1. **Removed problematic database parameters**
 ```yaml
-# БЫЛО (вызывало ошибку):
+# BEFORE (causing error):
 - type: pserv
   name: mnemine-db
   plan: starter
-  databaseName: mnemine    # ❌ Убрано
-  user: mnemine_user       # ❌ Убрано
+  databaseName: mnemine    # ❌ Removed
+  user: mnemine_user       # ❌ Removed
 
-# СТАЛО (работает):
+# NOW (working):
 - type: pserv
   name: mnemine-db
-  plan: starter            # ✅ Только необходимые параметры
+  plan: starter            # ✅ Only necessary parameters
 ```
 
-### 2. **Упростил environment variables**
-- Убрал `DB_SSL_MODE` который мог вызывать конфликты
-- Оставил только необходимые переменные
+### 2. **Simplified environment variables**
+- Removed `DB_SSL_MODE` which could cause conflicts
+- Left only necessary variables
 
-### 3. **Создал резервную версию**
-- `render-simple.yaml` - минимальная конфигурация на случай проблем
+### 3. **Created backup version**
+- `render-simple.yaml` - minimal configuration in case of issues
 
-## 🎯 **Сейчас Можете Деплоить:**
+## 🎯 **You Can Deploy Now:**
 
-### **Шаг 1: Создать Blueprint (5 минут)**
-1. Идите на [https://dashboard.render.com](https://dashboard.render.com)
+### **Step 1: Create Blueprint (5 minutes)**
+1. Go to [https://dashboard.render.com](https://dashboard.render.com)
 2. **"New +"** → **"Blueprint"**
-3. Подключите репозиторий: `ammamxitaryan-maker/mnemine`
-4. Выберите ветку `main`
-5. Нажмите **"Apply"**
+3. Connect repository: `ammamxitaryan-maker/mnemine`
+4. Select `main` branch
+5. Click **"Apply"**
 
-### **Шаг 2: Настроить Environment Variables (3 минуты)**
-После создания сервиса добавьте:
+### **Step 2: Configure Environment Variables (3 minutes)**
+After creating the service, add:
 ```
-TELEGRAM_BOT_TOKEN=ваш_токен_бота
-ADMIN_TELEGRAM_ID=ваш_telegram_id
+TELEGRAM_BOT_TOKEN=your_bot_token
+ADMIN_TELEGRAM_ID=your_telegram_id
 ```
 
-### **Шаг 3: Получить Telegram Bot Token (5 минут)**
-1. Напишите [@BotFather](https://t.me/BotFather)
-2. Создайте бота: `/newbot`
-3. Скопируйте токен
-4. Добавьте в Render Dashboard
+### **Step 3: Get Telegram Bot Token (5 minutes)**
+1. Message [@BotFather](https://t.me/BotFather)
+2. Create bot: `/newbot`
+3. Copy the token
+4. Add to Render Dashboard
 
-## 🔧 **Если Blueprint Все Еще Не Работает:**
+## 🔧 **If Blueprint Still Doesn't Work:**
 
-### Альтернатива 1: Использовать простую версию
+### Alternative 1: Use simple version
 ```bash
-# Переименовать файлы
+# Rename files
 git mv render.yaml render-old.yaml
 git mv render-simple.yaml render.yaml
 git add . && git commit -m "Use simple render config" && git push
 ```
 
-### Альтернатива 2: Ручное создание сервисов
+### Alternative 2: Manual service creation
 1. **PostgreSQL Database**: New → PostgreSQL → Name: `mnemine-db`
 2. **Web Service**: New → Web Service → Connect GitHub
-3. **Environment Variables**: Добавить вручную
+3. **Environment Variables**: Add manually
 
-## ✅ **Проверка Готовности**
+## ✅ **Readiness Check**
 
-Все файлы обновлены и закоммичены:
-- ✅ `render.yaml` - исправлен
-- ✅ `render-simple.yaml` - резервная версия
-- ✅ `BLUEPRINT-ERROR-FIX.md` - инструкция по исправлению
-- ✅ Все изменения в GitHub
+All files updated and committed:
+- ✅ `render.yaml` - fixed
+- ✅ `render-simple.yaml` - backup version
+- ✅ `BLUEPRINT-ERROR-FIX.md` - fix instructions
+- ✅ All changes in GitHub
 
-## 🎉 **Результат**
+## 🎉 **Result**
 
-После успешного деплоя ваше приложение будет доступно по адресу:
+After successful deployment, your application will be available at:
 ```
 https://mnemine-app.onrender.com
 ```
 
-## 📞 **Поддержка**
+## 📞 **Support**
 
-Если что-то не работает:
-1. Проверьте логи в Render Dashboard
-2. Убедитесь, что environment variables добавлены
-3. Проверьте health endpoint: `/health`
+If something doesn't work:
+1. Check logs in Render Dashboard
+2. Make sure environment variables are added
+3. Check health endpoint: `/health`
 
 ---
 
-## 🚀 **Начинайте Деплой Сейчас!**
+## 🚀 **Start Deployment Now!**
 
-**Blueprint deployment error исправлен! Попробуйте создать Blueprint снова - теперь должно работать! 🎉**
+**Blueprint deployment error fixed! Try creating the Blueprint again - it should work now! 🎉**

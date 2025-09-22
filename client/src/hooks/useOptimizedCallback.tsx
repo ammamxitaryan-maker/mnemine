@@ -1,3 +1,6 @@
+/**
+ * BUG FIX: Added null check for firstKey to prevent undefined parameter error
+ */
 import { useCallback, useRef, useMemo } from 'react';
 
 // Optimized callback hook with dependency comparison
@@ -107,7 +110,9 @@ export function useExpensiveComputation<T>(
     // Limit cache size
     if (cacheRef.current.size > 100) {
       const firstKey = cacheRef.current.keys().next().value;
-      cacheRef.current.delete(firstKey);
+      if (firstKey) {
+        cacheRef.current.delete(firstKey);
+      }
     }
     
     return result;

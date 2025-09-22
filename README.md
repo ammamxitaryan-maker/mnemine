@@ -1,4 +1,4 @@
-# Mneminee - Professional Telegram Financial Simulator
+# Mnemine - Professional Telegram Financial Simulator
 
 A sophisticated, professional-grade Telegram-based financial simulation platform with real-time synchronization, advanced analytics, and enterprise-level security features.
 
@@ -160,7 +160,7 @@ pnpm --prefix server run dev
 ## 🏗 Project Architecture
 
 ```
-mneminee/
+mnemine/
 ├── src/                           # Frontend source
 │   ├── components/                # React components
 │   │   ├── ProfessionalTheme.tsx  # Professional design system
@@ -296,13 +296,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- 📧 Email: support@mneminee.com
-- 💬 Telegram: @mneminee_support
-- 📖 Documentation: [docs.mneminee.com](https://docs.mneminee.com)
-- 🐛 Issues: [GitHub Issues](https://github.com/mneminee/issues)
+- 📧 Email: support@mnemine.com
+- 💬 Telegram: @mnemine_support
+- 📖 Documentation: [docs.mnemine.com](https://docs.mnemine.com)
+- 🐛 Issues: [GitHub Issues](https://github.com/mnemine/issues)
 
 ---
 
-**Built with ❤️ for the Telegram community**#   m n e m i n e 
- 
- 
+**Built with ❤️ for the Telegram community**
+
+---
+
+## 📚 Additional Documentation
+
+For detailed setup instructions and troubleshooting, see:
+- [Development Guide](DEVELOPMENT.md) - Local development setup
+- [QA Documentation](QA_README.md) - Quality assurance and testing
+- [Deployment Guide](DEPLOYMENT-READY-NOW.md) - Production deployment

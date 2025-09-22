@@ -27,7 +27,8 @@ const SlotCountdown = ({ expiresAt }: { expiresAt: string }) => {
   );
 };
 
-export const MainCardBack = ({ user, slots, isLoading }: MainCardBackProps) => {
+export const MainCardBack = ({ slots, isLoading }: MainCardBackProps) => {
+  // BUG FIX: Removed unused user parameter to fix TypeScript warning
   const { t } = useTranslation();
   const activeSlots = slots?.filter(s => s.isActive && new Date(s.expiresAt) > new Date());
 

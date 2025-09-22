@@ -1,3 +1,7 @@
+/**
+ * BUG FIX: Removed unused className prop and marketData variable
+ * to fix TypeScript warnings about unused variables
+ */
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,13 +20,11 @@ interface ExchangeRate {
 interface ExchangeRateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  className?: string;
 }
 
 export const ExchangeRateModal: React.FC<ExchangeRateModalProps> = memo(({ 
   isOpen, 
-  onClose, 
-  className = '' 
+  onClose
 }) => {
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
   const [currentRate, setCurrentRate] = useState<number>(0);
@@ -30,7 +32,7 @@ export const ExchangeRateModal: React.FC<ExchangeRateModalProps> = memo(({
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Get real-time data from WebSocket
-  const { marketData } = useRealTimeWebSocket('global');
+  useRealTimeWebSocket('global');
 
   const fetchExchangeData = useCallback(async () => {
     try {
@@ -211,7 +213,7 @@ export const ExchangeRateModal: React.FC<ExchangeRateModalProps> = memo(({
                     </ResponsiveContainer>
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-500">
-                      <p className="text-xs">No history</p>
+                      <p className="text-xs">No exchange history available</p>
                     </div>
                   )}
                 </div>
@@ -219,7 +221,7 @@ export const ExchangeRateModal: React.FC<ExchangeRateModalProps> = memo(({
                 {/* Footer */}
                 <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>Updated: {lastUpdate.toLocaleTimeString()}</span>
+                    <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
                     <span className="text-green-500">● Live</span>
                   </div>
                 </div>

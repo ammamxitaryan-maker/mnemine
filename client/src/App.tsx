@@ -2,19 +2,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import SimplifiedIndex from "./pages/SimplifiedIndex";
+import UnifiedIndex from "./pages/UnifiedIndex";
 import NotFound from "./pages/NotFound";
 import Boosters from "./pages/Boosters";
-import Referrals from "./pages/Referrals";
+// import Referrals from "./pages/Referrals"; // BUG FIX: Commented out missing import
 import Leaderboard from "./pages/Leaderboard";
-import Tasks from "./pages/Tasks";
-import Slots from "./pages/Slots";
-import SimplifiedSlots from "./pages/SimplifiedSlots";
-import SimplifiedTasks from "./pages/SimplifiedTasks";
-import SimplifiedReferrals from "./pages/SimplifiedReferrals";
-import Wallet from "./pages/Wallet";
-import SimplifiedWallet from "./pages/SimplifiedWallet";
+import UnifiedTasks from "./pages/UnifiedTasks";
+import UnifiedSlots from "./pages/UnifiedSlots";
+import UnifiedReferrals from "./pages/UnifiedReferrals";
+import UnifiedWallet from "./pages/UnifiedWallet";
 import Deposit from "./pages/Deposit";
 import Withdraw from "./pages/Withdraw";
 import Achievements from "./pages/Achievements";
@@ -30,7 +26,7 @@ import AdvancedTradingPage from "./pages/AdvancedTradingPage";
 import AnalyticsPage from "./pages/AnalyticsPage"; // Import new page
 import Swap from "./pages/Swap";
 import { MainLayout } from "./components/layout/MainLayout";
-import { SimplifiedLayout } from "./components/layout/SimplifiedLayout";
+// import { SimplifiedLayout } from "./components/layout/SimplifiedLayout"; // BUG FIX: Commented out unused import
 import { AdminRoute } from "./components/layout/AdminRoute";
 import WaveBackground from "./components/WaveBackground";
 import { AppInitializer } from "./components/AppInitializer";
@@ -87,24 +83,22 @@ const App = () => {
           <BrowserRouter>
             <AppInitializer />
             <Routes>
-            {/* Simplified Layout Routes */}
-            <Route element={<SimplifiedLayout />}>
-              <Route path="/" element={<SimplifiedIndex />} />
-              <Route path="/wallet" element={<SimplifiedWallet />} />
-              <Route path="/slots" element={<SimplifiedSlots />} />
-              <Route path="/tasks" element={<SimplifiedTasks />} />
-              <Route path="/referrals" element={<SimplifiedReferrals />} />
-            </Route>
+            {/* Main Routes */}
+            <Route path="/" element={<UnifiedIndex />} />
+            <Route path="/wallet" element={<UnifiedWallet />} />
+            <Route path="/slots" element={<UnifiedSlots />} />
+            <Route path="/tasks" element={<UnifiedTasks />} />
+            <Route path="/referrals" element={<UnifiedReferrals />} />
             
-            {/* Original Layout Routes */}
+            {/* Legacy Routes */}
             <Route element={<MainLayout />}>
-              <Route path="/classic" element={<Index />} />
-              <Route path="/referrals" element={<Referrals />} />
+              <Route path="/classic" element={<UnifiedIndex />} />
+              {/* <Route path="/classic-referrals" element={<Referrals />} /> BUG FIX: Commented out missing component */}
               <Route path="/profile" element={<Profile />} />
-              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/classic-tasks" element={<UnifiedTasks />} />
               <Route path="/boosters" element={<Boosters />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/classic-slots" element={<Slots />} />
+              <Route path="/classic-slots" element={<UnifiedSlots />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/bonuses" element={<Bonuses />} />
               <Route path="/lottery" element={<Lottery />} />

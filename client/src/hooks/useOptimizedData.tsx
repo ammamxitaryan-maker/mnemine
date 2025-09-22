@@ -60,7 +60,7 @@ const setCachedData = <T,>(key: string, data: T): void => {
 
 // Optimized user data hook with instant cache loading
 export const useOptimizedUserData = (telegramId: string | undefined) => {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient(); // BUG FIX: Commented out unused variable
   const cacheKey = `${CACHE_KEYS.USER_DATA}_${telegramId}`;
   
   // Get cached data immediately

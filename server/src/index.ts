@@ -1,22 +1,24 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables - try multiple paths
+// Load environment variables - try multiple paths for flexibility
 const envPaths = [
-  path.resolve(__dirname, '../../../.env'),  // Root .env (development)
+  path.resolve(__dirname, '../../../.env'),  // Root .env (development mode)
   path.resolve(__dirname, '../../.env'),     // Server .env (fallback)
   path.resolve(process.cwd(), '.env'),       // Current working directory
   path.resolve(process.cwd(), '../.env'),    // Parent directory
 ];
 
-// Try to load .env from multiple possible locations
+// Attempt to load .env from multiple possible locations
+// This ensures compatibility across different deployment scenarios
 for (const envPath of envPaths) {
   try {
     dotenv.config({ path: envPath });
-    console.log(`[ENV] Loaded environment from: ${envPath}`);
+    console.log(`[ENV] Successfully loaded environment from: ${envPath}`);
     break;
   } catch (error) {
-    // Continue to next path
+    // Continue to next path if current one fails
+    console.log(`[ENV] Failed to load from ${envPath}, trying next...`);
   }
 }
 
@@ -24,6 +26,7 @@ for (const envPath of envPaths) {
 dotenv.config();
 
 // Set fallback values for environment variables BEFORE validation
+// These defaults are used when environment variables are not provided
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = 'file:./prisma/dev.db';
 }
@@ -37,7 +40,7 @@ if (!process.env.SESSION_SECRET) {
   process.env.SESSION_SECRET = 'mnemine-session-secret-for-production-use';
 }
 
-// Log environment status for debugging
+// Log environment status for debugging and troubleshooting
 console.log('[ENV] NODE_ENV:', process.env.NODE_ENV);
 console.log('[ENV] DATABASE_URL exists:', !!process.env.DATABASE_URL);
 console.log('[ENV] TELEGRAM_BOT_TOKEN exists:', !!process.env.TELEGRAM_BOT_TOKEN);
@@ -50,21 +53,25 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import { 
+  requestLogger, 
+  errorHandler, 
+  securityHeaders, 
+  sanitizeRequest,
+  performanceMonitor,
+  corsOptions 
+} from './middleware/commonMiddleware.js';
 import prisma from './prisma';
-import { tasks, boosters } from './constants'; // Only import tasks, boosters are now defined here
+import { tasks, boosters } from './constants';
 import apiRoutes from './routes';
 import { Telegraf } from 'telegraf';
 import { generateUniqueReferralCode } from './utils/helpers';
-import { BASE_STANDARD_SLOT_WEEKLY_RATE, WELCOME_BONUS_AMOUNT } from './constants'; // Import new slot rate
+import { BASE_STANDARD_SLOT_WEEKLY_RATE, WELCOME_BONUS_AMOUNT } from './constants';
 import { WebSocketServer } from './websocket/WebSocketServer';
 import { validateEnvironment } from './utils/validation';
-import { errorHandler } from './middleware/errorHandler';
-import { requestLogger } from './middleware/requestLogger';
-import { performanceMonitor, memoryMonitor, getHealthData } from './middleware/monitoring';
+import { memoryMonitor, getHealthData } from './middleware/monitoring';
 import { 
-  securityHeaders, 
   requestSizeLimiter, 
-  sanitizeRequest, 
   securityLogger 
 } from './middleware/security';
 
@@ -80,11 +87,11 @@ app.set('trust proxy', 1);
 
 // Use environment variables for URLs, fallback to localhost for development
 const backendUrl = process.env.BACKEND_URL || `http://localhost:${port}`;
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Frontend URL for Telegram bot
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Frontend URL for Telegram bot integration
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const adminTelegramId = process.env.ADMIN_TELEGRAM_ID || '6760298907';
 
-// Environment variables are already set above before validation
+// Environment variables are already configured above before validation
 
 // Production-ready security middleware
 app.use(helmet({
@@ -129,10 +136,10 @@ if (process.env.NODE_ENV === 'production') {
   app.use(morgan('dev'));
 }
 
-// Production-ready rate limiting
+// Production-ready rate limiting configuration
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10), // Reasonable limit for production
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute window
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10), // Reasonable limit for production use
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: Math.ceil(parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10) / 1000)
@@ -167,46 +174,7 @@ const authLimiter = rateLimit({
 // Commented out for production testing
 // app.use('/api/auth', authLimiter);
 
-// Production-ready CORS configuration
-const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow specific origins in production
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'https://localhost:5173',
-      'https://localhost:3000'
-    ].filter(Boolean);
-    
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) {
-      console.log(`[CORS] Allowing request with no origin`);
-      return callback(null, true);
-    }
-    
-    if (process.env.NODE_ENV === 'production') {
-      if (allowedOrigins.includes(origin)) {
-        console.log(`[CORS] Allowing request from origin: ${origin}`);
-        callback(null, true);
-      } else {
-        console.warn(`[CORS] Blocking request from origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'), false);
-      }
-    } else {
-      // Allow all origins in development
-      console.log(`[CORS] Development mode - allowing request from origin: ${origin}`);
-      callback(null, true);
-    }
-  },
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-  credentials: true,
-  maxAge: process.env.NODE_ENV === 'production' ? 86400 : 0, // 24 hours in production
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key', 'X-Request-ID', 'X-Retry-Count'],
-  exposedHeaders: ['X-Request-ID', 'X-Retry-Count'],
-};
+// Use CORS configuration from middleware
 app.use(cors(corsOptions));
 
 // Body parsing middleware

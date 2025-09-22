@@ -33,7 +33,7 @@ interface BackendUser {
 
 // The user object returned by useTelegramAuth
 export type AuthenticatedUser = BackendUser & {
-  photoUrl?: string; // This seems to be from TelegramWebAppUser, but our backend also stores avatarUrl
+  photoUrl?: string | null; // BUG FIX: Made photoUrl nullable to match backend data
 };
 
 interface TelegramWebApp {

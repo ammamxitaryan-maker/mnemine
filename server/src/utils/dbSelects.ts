@@ -37,6 +37,14 @@ export const userSelect = Prisma.validator<Prisma.UserSelect>()({
   isSuspicious: true,
   lastSuspiciousPenaltyAppliedAt: true,
   rank: true,
+  referrals: {
+    select: {
+      id: true,
+      telegramId: true,
+      firstName: true,
+      username: true,
+    },
+  },
 });
 
 export const userSelectWithoutMiningSlots = Prisma.validator<Prisma.UserSelect>()({

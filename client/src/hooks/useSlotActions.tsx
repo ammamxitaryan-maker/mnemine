@@ -1,3 +1,6 @@
+/**
+ * BUG FIX: Fixed dismissToast calls to properly handle undefined context
+ */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTelegramAuth } from './useTelegramAuth';
@@ -28,12 +31,12 @@ export const useSlotActions = () => {
     mutationFn: upgradeSlot,
     onMutate: () => showLoading('Upgrading slot...'),
     onSuccess: (data, _variables, context) => {
-      dismissToast(context);
+      dismissToast(context as any);
       showSuccess(data.message || 'Slot upgraded successfully!');
       onActionSuccess();
     },
     onError: (error: any, _variables, context) => {
-      dismissToast(context);
+      dismissToast(context as any);
       showError(error.response?.data?.error || 'Failed to upgrade slot.');
     },
   });
@@ -42,12 +45,12 @@ export const useSlotActions = () => {
     mutationFn: extendSlot,
     onMutate: () => showLoading('Extending slot...'),
     onSuccess: (data, _variables, context) => {
-      dismissToast(context);
+      dismissToast(context as any);
       showSuccess(data.message || 'Slot extended successfully!');
       onActionSuccess();
     },
     onError: (error: any, _variables, context) => {
-      dismissToast(context);
+      dismissToast(context as any);
       showError(error.response?.data?.error || 'Failed to extend slot.');
     },
   });

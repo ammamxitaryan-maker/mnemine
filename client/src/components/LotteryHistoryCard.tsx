@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { LotteryTicketCard } from './LotteryTicketCard';
 import { LotteryDrawWithTickets } from '@/hooks/useLotteryHistory';
-import { Award } from 'lucide-react';
+// BUG FIX: Removed unused Award import to fix TypeScript warning
+// import { Award } from 'lucide-react';
 
 interface LotteryHistoryCardProps {
   draw: LotteryDrawWithTickets;

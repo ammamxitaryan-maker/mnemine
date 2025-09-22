@@ -38,7 +38,7 @@ export const useUserData = (telegramId: string | undefined) => {
     refetchInterval: 60000, // Refetch every 60 seconds (1 minute)
     retry: (failureCount, error) => {
       // Don't retry on 4xx errors
-      if (error instanceof AxiosError && error.response?.status >= 400 && error.response?.status < 500) {
+      if (error instanceof AxiosError && error.response?.status && error.response.status >= 400 && error.response.status < 500) {
         return false;
       }
       return failureCount < 3;

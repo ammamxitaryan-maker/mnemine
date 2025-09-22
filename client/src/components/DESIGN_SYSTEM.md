@@ -1,12 +1,12 @@
 # 🎨 Modern Design System
 
-## Обзор
-Унифицированная система дизайна для всех страниц приложения, обеспечивающая симметрию, баланс и современный внешний вид.
+## Overview
+A unified design system for all application pages, ensuring symmetry, balance, and a modern appearance.
 
-## Основные Компоненты
+## Core Components
 
 ### 1. PageLayout
-Универсальный компонент для всех страниц с единообразным заголовком и навигацией.
+Universal component for all pages with consistent header and navigation.
 
 ```tsx
 import { PageLayout } from '@/components/PageLayout';
@@ -16,14 +16,14 @@ import { SomeIcon } from 'lucide-react';
   title="Page Title"
   subtitle="Optional subtitle"
   icon={SomeIcon}
-  iconColor="from-blue-500 to-indigo-600" // или любой другой градиент
+  iconColor="from-blue-500 to-indigo-600" // or any other gradient
 >
-  {/* Контент страницы */}
+  {/* Page content */}
 </PageLayout>
 ```
 
 ### 2. ModernCard
-Современная карточка с анимациями и hover эффектами.
+Modern card with animations and hover effects.
 
 ```tsx
 import { ModernCard } from '@/components/ModernCard';
@@ -33,37 +33,37 @@ import { SomeIcon } from 'lucide-react';
   title="Card Title"
   icon={SomeIcon}
   iconColor="from-green-500 to-emerald-600"
-  delay={0.1} // задержка анимации
+  delay={0.1} // animation delay
   hoverEffect={true}
 >
-  {/* Содержимое карточки */}
+  {/* Card content */}
 </ModernCard>
 ```
 
-## Цветовая Палитра
+## Color Palette
 
-### Градиенты для иконок:
+### Icon gradients:
 - **Blue**: `from-blue-500 to-indigo-600`
 - **Green**: `from-green-500 to-emerald-600`
 - **Purple**: `from-purple-500 to-pink-600`
 - **Yellow**: `from-yellow-500 to-orange-600`
 - **Red**: `from-red-500 to-rose-600`
 
-### Фоны страниц:
+### Page backgrounds:
 ```css
 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/30
 ```
 
-## Сетка и Отступы
+## Grid and Spacing
 
-### Основная сетка:
+### Main grid:
 ```tsx
 <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-  {/* Контент */}
+  {/* Content */}
 </div>
 ```
 
-### Секции:
+### Sections:
 ```tsx
 <motion.section 
   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -71,28 +71,28 @@ bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-9
   animate={{ y: 0, opacity: 1 }}
   transition={{ delay: 0.2, duration: 0.5 }}
 >
-  {/* Элементы */}
+  {/* Elements */}
 </motion.section>
 ```
 
-## Анимации
+## Animations
 
-### Базовые анимации:
+### Basic animations:
 ```tsx
-// Появление
+// Appearance
 initial={{ opacity: 0, y: 20 }}
 animate={{ opacity: 1, y: 0 }}
 transition={{ duration: 0.5 }}
 
-// Hover эффект
+// Hover effect
 whileHover={{ y: -4 }}
 transition={{ type: "spring", stiffness: 300, damping: 20 }}
 
-// Задержки для последовательных элементов
+// Delays for sequential elements
 transition={{ delay: 0.1 + index * 0.1 }}
 ```
 
-## Пример Полной Страницы
+## Complete Page Example
 
 ```tsx
 import React from 'react';
@@ -110,7 +110,7 @@ const MyPage = () => {
       iconColor="from-blue-500 to-indigo-600"
     >
       <div className="space-y-8">
-        {/* Статистика */}
+        {/* Statistics */}
         <motion.section 
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
           initial={{ y: 20, opacity: 0 }}
@@ -130,13 +130,13 @@ const MyPage = () => {
           </ModernCard>
         </motion.section>
 
-        {/* Основной контент */}
+        {/* Main content */}
         <motion.section
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          {/* Ваш контент */}
+          {/* Your content */}
         </motion.section>
       </div>
     </PageLayout>
@@ -144,9 +144,9 @@ const MyPage = () => {
 };
 ```
 
-## CSS Утилиты
+## CSS Utilities
 
-### Glass эффекты:
+### Glass effects:
 ```css
 .glass-card {
   background: rgba(255, 255, 255, 0.9);
@@ -156,7 +156,7 @@ const MyPage = () => {
 }
 ```
 
-### Градиентный текст:
+### Gradient text:
 ```css
 .gradient-text {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -165,11 +165,11 @@ const MyPage = () => {
 }
 ```
 
-## Принципы
+## Principles
 
-1. **Симметрия**: Все элементы выровнены по сетке
-2. **Баланс**: Равномерное распределение контента
-3. **Консистентность**: Единые отступы, размеры, цвета
-4. **Анимации**: Плавные переходы и микро-взаимодействия
-5. **Адаптивность**: Работа на всех устройствах
-6. **Современность**: Glass эффекты, градиенты, тени
+1. **Symmetry**: All elements aligned to grid
+2. **Balance**: Even content distribution
+3. **Consistency**: Uniform spacing, sizes, colors
+4. **Animations**: Smooth transitions and micro-interactions
+5. **Responsiveness**: Works on all devices
+6. **Modernity**: Glass effects, gradients, shadows

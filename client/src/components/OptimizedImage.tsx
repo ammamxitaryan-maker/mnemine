@@ -1,4 +1,7 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'; // Import useMemo
+/**
+ * BUG FIX: Removed unused React import and quality parameter
+ */
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface OptimizedImageProps {
@@ -25,7 +28,7 @@ export function OptimizedImage({
   placeholder,
   blurDataURL,
   priority = false,
-  quality = 75,
+  // quality = 75, // BUG FIX: Commented out unused parameter
   sizes,
   onLoad,
   onError,

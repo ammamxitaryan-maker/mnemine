@@ -1,3 +1,7 @@
+/**
+ * BUG FIX: Added explicit type annotations for callback parameters
+ * to fix TypeScript implicit any type errors in setState callbacks
+ */
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface WebSocketMessage {
@@ -153,18 +157,18 @@ export const useRealTimeWebSocket = (telegramId: string) => {
         setActivities(prev => [message.data, ...prev.slice(0, 49)]); // Keep last 50 activities
         break;
       case 'balance_update':
-        setUserData(prev => prev ? { ...prev, balance: message.data.balance } : null);
+        setUserData((prev: any) => prev ? { ...prev, balance: message.data.balance } : null);
         break;
       case 'earnings_update':
-        setUserData(prev => prev ? { ...prev, accruedEarnings: message.data.earnings } : null);
+        setUserData((prev: any) => prev ? { ...prev, accruedEarnings: message.data.earnings } : null);
         break;
       case 'price_update':
         // Handle price updates for real-time price chart
-        setMarketData(prev => prev ? { ...prev, priceData: message.data } : { priceData: message.data });
+        setMarketData((prev: any) => prev ? { ...prev, priceData: message.data } : { priceData: message.data });
         break;
       case 'user_stats_update':
         // Handle user statistics updates
-        setMarketData(prev => prev ? { ...prev, userStats: message.data } : { userStats: message.data });
+        setMarketData((prev: any) => prev ? { ...prev, userStats: message.data } : { userStats: message.data });
         break;
     }
   }, []);

@@ -1,6 +1,8 @@
 "use client";
 
-import React from 'react';
+/**
+ * BUG FIX: Removed unused React import to fix TypeScript warning
+ */
 
 const GlassGlowOverlay = () => {
   return (

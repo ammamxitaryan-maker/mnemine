@@ -24,7 +24,8 @@ export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
   // Check if we're in development mode
   const isDevelopment = import.meta.env.DEV;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const devModeEnabled = localStorage.getItem('dev_mode') === 'true';
+  // BUG FIX: Removed unused devModeEnabled variable to fix TypeScript warning
+  // const devModeEnabled = localStorage.getItem('dev_mode') === 'true';
   const showDevIndicator = isDevelopment && isLocalhost;
 
   return (

@@ -18,7 +18,8 @@ interface MainCardFrontProps {
   isReinvesting: boolean;
 }
 
-export const MainCardFront = ({ userData, slotsData, displayEarnings, onClaim, isClaiming, onReinvest, isReinvesting }: MainCardFrontProps) => {
+export const MainCardFront = ({ userData, displayEarnings, onClaim, isClaiming, onReinvest, isReinvesting }: MainCardFrontProps) => {
+  // BUG FIX: Removed unused slotsData parameter to fix TypeScript warning
   const { t } = useTranslation();
 
   return (

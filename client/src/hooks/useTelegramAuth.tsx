@@ -1,3 +1,7 @@
+/**
+ * BUG FIX: Fixed TypeScript error where avatarUrl was set to undefined
+ * but the type requires string | null. Changed to null for consistency.
+ */
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { AuthenticatedUser } from '@/types/telegram';
@@ -30,7 +34,7 @@ export const useTelegramAuth = () => {
           firstName: 'Admin',
           lastName: 'User',
           username: 'admin_user',
-          avatarUrl: undefined,
+          avatarUrl: null,
           role: 'ADMIN',
           referralCode: 'ADMIN123',
           referredById: null,
@@ -43,7 +47,7 @@ export const useTelegramAuth = () => {
           lastInvestmentGrowthBonusClaimedAt: null,
           lastReferralZeroPenaltyAppliedAt: null,
           rank: 'Diamond',
-          photoUrl: undefined
+          photoUrl: null
         };
         
         setUser(mockUser);
@@ -98,7 +102,7 @@ export const useTelegramAuth = () => {
             firstName: 'Admin',
             lastName: 'User',
             username: 'admin_user',
-            avatarUrl: undefined,
+            avatarUrl: null,
             role: 'ADMIN',
             referralCode: 'ADMIN123',
             referredById: null,
@@ -111,7 +115,7 @@ export const useTelegramAuth = () => {
             lastInvestmentGrowthBonusClaimedAt: null,
             lastReferralZeroPenaltyAppliedAt: null,
             rank: 'Diamond',
-            photoUrl: undefined
+            photoUrl: null
           };
           setUser(mockUser);
           setLoading(false);

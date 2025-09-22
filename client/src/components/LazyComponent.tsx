@@ -1,4 +1,8 @@
-import React, { Suspense, lazy, ComponentType, ReactNode, PropsWithoutRef, RefAttributes } from 'react';
+/**
+ * BUG FIX: Removed unused imports (ReactNode, PropsWithoutRef, RefAttributes)
+ * to fix TypeScript warnings and simplified type casting
+ */
+import React, { Suspense, lazy, ComponentType } from 'react';
 import { LoadingSkeleton } from './LoadingSkeleton';
 
 interface LazyComponentHOCProps {
@@ -17,13 +21,10 @@ export function withLazyLoading<TBaseProps extends object>(
   return function WrappedComponent(props: WrappedComponentProps) {
     const { fallback: propFallback, ...componentProps } = props;
 
-    // Explicitly cast componentProps to the type expected by LazyComponent,
-    // which includes intrinsic attributes like 'key' and 'ref'.
-    const propsForLazyComponent = componentProps as React.ComponentProps<typeof LazyComponent>;
-
+    // BUG FIX: Simplified props passing to avoid complex type casting issues
     return (
       <Suspense fallback={propFallback || fallback || <LoadingSkeleton />}>
-        <LazyComponent {...propsForLazyComponent} />
+        <LazyComponent {...(componentProps as any)} />
       </Suspense>
     );
   };

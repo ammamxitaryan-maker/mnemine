@@ -1,4 +1,7 @@
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
+/**
+ * BUG FIX: Removed unused AxiosRequestConfig import to fix TypeScript warning
+ */
+import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.PROD ? `https://${window.location.hostname}` : 'http://localhost:10112');
 
@@ -155,7 +158,7 @@ export const retryRequest = async <T>(
       lastError = error;
       
       // Don't retry on 4xx errors (client errors)
-      if (error instanceof AxiosError && error.response?.status >= 400 && error.response?.status < 500) {
+      if (error instanceof AxiosError && error.response?.status && error.response.status >= 400 && error.response.status < 500) {
         throw error;
       }
       

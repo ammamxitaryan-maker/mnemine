@@ -1,58 +1,58 @@
 # 🚀 Development Mode
 
-## Локальная разработка без Telegram
+## Local Development without Telegram
 
-Приложение теперь поддерживает режим разработки, который позволяет работать в браузере без необходимости запуска Telegram бота.
+The application now supports a development mode that allows you to work in the browser without needing to run the Telegram bot.
 
-### 🎯 Как запустить в режиме разработки:
+### 🎯 How to run in development mode:
 
-1. **Запустите только frontend:**
+1. **Start only the frontend:**
    ```bash
    cd client
    pnpm run dev
    ```
 
-2. **Откройте браузер:** http://localhost:5173
+2. **Open your browser:** http://localhost:5173
 
-3. **Если сервер не запущен**, вы увидите сообщение "Development Mode" с кнопкой "Continue as Admin"
+3. **If the server is not running**, you will see a "Development Mode" message with a "Continue as Admin" button
 
-4. **Нажмите "Continue as Admin"** - приложение будет работать с правами администратора
+4. **Click "Continue as Admin"** - the application will work with administrator privileges
 
-5. **Доступ к админ-панели:** Перейдите по адресу http://localhost:5173/admin
+5. **Access admin panel:** Navigate to http://localhost:5173/admin
 
-### 🔧 Особенности режима разработки:
+### 🔧 Development mode features:
 
-- **Mock пользователь:** Admin User (ID: 6760298907)
-- **Индикатор ADMIN:** Красный бейдж "ADMIN" в заголовке
-- **Права администратора:** Полный доступ ко всем функциям
-- **Баланс:** 10,000 CFM для тестирования
-- **Ранг:** Diamond
-- **Доступ к админ-панели:** /admin
-- **Автоматическое определение:** Работает только на localhost в режиме разработки
-- **Fallback данные:** Все функции работают с тестовыми данными
+- **Mock user:** Admin User (ID: 6760298907)
+- **ADMIN indicator:** Red "ADMIN" badge in the header
+- **Administrator privileges:** Full access to all functions
+- **Balance:** 10,000 CFM for testing
+- **Rank:** Diamond
+- **Admin panel access:** /admin
+- **Automatic detection:** Works only on localhost in development mode
+- **Fallback data:** All functions work with test data
 
-### 📱 Полный режим (с сервером):
+### 📱 Full mode (with server):
 
-Если хотите запустить с полным функционалом:
+If you want to run with full functionality:
 
 ```bash
-# Терминал 1 - Backend
+# Terminal 1 - Backend
 cd server
 pnpm run dev
 
-# Терминал 2 - Frontend  
+# Terminal 2 - Frontend  
 cd client
 pnpm run dev
 ```
 
-### 🛠️ Управление режимом разработки:
+### 🛠️ Development mode management:
 
-- **Включить:** `localStorage.setItem('dev_mode', 'true')`
-- **Выключить:** `localStorage.removeItem('dev_mode')`
-- **Перезагрузить страницу** для применения изменений
+- **Enable:** `localStorage.setItem('dev_mode', 'true')`
+- **Disable:** `localStorage.removeItem('dev_mode')`
+- **Reload the page** to apply changes
 
-### ⚠️ Важно:
+### ⚠️ Important:
 
-- Режим разработки работает только на `localhost` и `127.0.0.1`
-- В продакшене все проверки аутентификации остаются строгими
-- Mock данные не сохраняются в базе данных
+- Development mode works only on `localhost` and `127.0.0.1`
+- In production, all authentication checks remain strict
+- Mock data is not saved to the database

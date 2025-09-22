@@ -5,27 +5,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
-// Load environment variables - try multiple paths
+// Load environment variables - try multiple paths for flexibility
 const envPaths = [
-    path_1.default.resolve(__dirname, '../../../.env'), // Root .env (development)
+    path_1.default.resolve(__dirname, '../../../.env'), // Root .env (development mode)
     path_1.default.resolve(__dirname, '../../.env'), // Server .env (fallback)
     path_1.default.resolve(process.cwd(), '.env'), // Current working directory
     path_1.default.resolve(process.cwd(), '../.env'), // Parent directory
 ];
-// Try to load .env from multiple possible locations
+// Attempt to load .env from multiple possible locations
+// This ensures compatibility across different deployment scenarios
 for (const envPath of envPaths) {
     try {
         dotenv_1.default.config({ path: envPath });
-        console.log(`[ENV] Loaded environment from: ${envPath}`);
+        console.log(`[ENV] Successfully loaded environment from: ${envPath}`);
         break;
     }
     catch (error) {
-        // Continue to next path
+        // Continue to next path if current one fails
+        console.log(`[ENV] Failed to load from ${envPath}, trying next...`);
     }
 }
 // Also load from process.env (for production deployments)
 dotenv_1.default.config();
 // Set fallback values for environment variables BEFORE validation
+// These defaults are used when environment variables are not provided
 if (!process.env.DATABASE_URL) {
     process.env.DATABASE_URL = 'file:./prisma/dev.db';
 }
@@ -38,7 +41,7 @@ if (!process.env.ENCRYPTION_KEY) {
 if (!process.env.SESSION_SECRET) {
     process.env.SESSION_SECRET = 'mnemine-session-secret-for-production-use';
 }
-// Log environment status for debugging
+// Log environment status for debugging and troubleshooting
 console.log('[ENV] NODE_ENV:', process.env.NODE_ENV);
 console.log('[ENV] DATABASE_URL exists:', !!process.env.DATABASE_URL);
 console.log('[ENV] TELEGRAM_BOT_TOKEN exists:', !!process.env.TELEGRAM_BOT_TOKEN);
@@ -50,16 +53,15 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
 const morgan_1 = __importDefault(require("morgan"));
+const commonMiddleware_js_1 = require("./middleware/commonMiddleware.js");
 const prisma_1 = __importDefault(require("./prisma"));
-const constants_1 = require("./constants"); // Only import tasks, boosters are now defined here
+const constants_1 = require("./constants");
 const routes_1 = __importDefault(require("./routes"));
 const telegraf_1 = require("telegraf");
 const helpers_1 = require("./utils/helpers");
-const constants_2 = require("./constants"); // Import new slot rate
+const constants_2 = require("./constants");
 const WebSocketServer_1 = require("./websocket/WebSocketServer");
 const validation_1 = require("./utils/validation");
-const errorHandler_1 = require("./middleware/errorHandler");
-const requestLogger_1 = require("./middleware/requestLogger");
 const monitoring_1 = require("./middleware/monitoring");
 const security_1 = require("./middleware/security");
 // Validate environment variables
@@ -71,10 +73,10 @@ const port = parseInt(process.env.PORT || '10112', 10);
 app.set('trust proxy', 1);
 // Use environment variables for URLs, fallback to localhost for development
 const backendUrl = process.env.BACKEND_URL || `http://localhost:${port}`;
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Frontend URL for Telegram bot
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Frontend URL for Telegram bot integration
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const adminTelegramId = process.env.ADMIN_TELEGRAM_ID || '6760298907';
-// Environment variables are already set above before validation
+// Environment variables are already configured above before validation
 // Production-ready security middleware
 app.use((0, helmet_1.default)({
     contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
@@ -100,25 +102,25 @@ app.use((0, helmet_1.default)({
     } : false
 }));
 // Additional security middleware
-app.use(security_1.securityHeaders);
+app.use(commonMiddleware_js_1.securityHeaders);
 app.use(security_1.requestSizeLimiter);
-app.use(security_1.sanitizeRequest);
+app.use(commonMiddleware_js_1.sanitizeRequest);
 app.use(security_1.securityLogger);
 // Compression middleware
 app.use((0, compression_1.default)());
 // Monitoring and logging middleware
-app.use(monitoring_1.performanceMonitor);
-app.use(requestLogger_1.requestLogger);
+app.use(commonMiddleware_js_1.performanceMonitor);
+app.use(commonMiddleware_js_1.requestLogger);
 if (process.env.NODE_ENV === 'production') {
     app.use((0, morgan_1.default)('combined'));
 }
 else {
     app.use((0, morgan_1.default)('dev'));
 }
-// Production-ready rate limiting
+// Production-ready rate limiting configuration
 const limiter = (0, express_rate_limit_1.default)({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10), // Reasonable limit for production
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute window
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10), // Reasonable limit for production use
     message: {
         error: 'Too many requests from this IP, please try again later.',
         retryAfter: Math.ceil(parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10) / 1000)
@@ -151,47 +153,8 @@ const authLimiter = (0, express_rate_limit_1.default)({
 });
 // Commented out for production testing
 // app.use('/api/auth', authLimiter);
-// Production-ready CORS configuration
-const corsOptions = {
-    origin: (origin, callback) => {
-        // Allow specific origins in production
-        const allowedOrigins = [
-            process.env.FRONTEND_URL,
-            'http://localhost:5173',
-            'http://localhost:3000',
-            'https://localhost:5173',
-            'https://localhost:3000'
-        ].filter(Boolean);
-        // Allow requests with no origin (mobile apps, Postman, etc.)
-        if (!origin) {
-            console.log(`[CORS] Allowing request with no origin`);
-            return callback(null, true);
-        }
-        if (process.env.NODE_ENV === 'production') {
-            if (allowedOrigins.includes(origin)) {
-                console.log(`[CORS] Allowing request from origin: ${origin}`);
-                callback(null, true);
-            }
-            else {
-                console.warn(`[CORS] Blocking request from origin: ${origin}`);
-                callback(new Error('Not allowed by CORS'), false);
-            }
-        }
-        else {
-            // Allow all origins in development
-            console.log(`[CORS] Development mode - allowing request from origin: ${origin}`);
-            callback(null, true);
-        }
-    },
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    credentials: true,
-    maxAge: process.env.NODE_ENV === 'production' ? 86400 : 0, // 24 hours in production
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key', 'X-Request-ID', 'X-Retry-Count'],
-    exposedHeaders: ['X-Request-ID', 'X-Retry-Count'],
-};
-app.use((0, cors_1.default)(corsOptions));
+// Use CORS configuration from middleware
+app.use((0, cors_1.default)(commonMiddleware_js_1.corsOptions));
 // Body parsing middleware
 app.use(express_1.default.json({
     limit: '10mb',
@@ -280,7 +243,7 @@ else {
 // API routes
 app.use('/api', routes_1.default);
 // Error handling middleware
-app.use(errorHandler_1.errorHandler);
+app.use(commonMiddleware_js_1.errorHandler);
 // SPA fallback - serve index.html for all non-API routes (GET only to avoid interfering with webhooks)
 app.get('*', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../public/index.html'));

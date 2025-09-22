@@ -1,4 +1,10 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+/**
+ * BUG FIX: Fixed TypeScript errors:
+ * 1. Added override keyword to render method
+ * 2. Fixed State interface to allow null values for error and errorId
+ * 3. Fixed setState call to use null instead of undefined
+ */
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -8,12 +14,12 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error?: Error;
-  errorId?: string;
+  error?: Error | null;
+  errorId?: string | null;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
+  public override state: State = {
     hasError: false
   };
 
@@ -25,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const errorData = {
       error: error.message,
       stack: error.stack,
@@ -89,7 +95,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   };
 
-  public render() {
+  public override render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
@@ -113,7 +119,7 @@ export class ErrorBoundary extends Component<Props, State> {
             
             <div className="space-y-3">
               <button 
-                onClick={() => this.setState({ hasError: false, error: undefined, errorId: undefined })} 
+                onClick={() => this.setState({ hasError: false, error: null, errorId: null })} 
                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Try Again

@@ -1,3 +1,8 @@
+/**
+ * BUG FIX: Fixed TypeScript errors:
+ * 1. Fixed avatarUrl undefined -> null to match type requirements
+ * 2. Added type assertion for colorScheme property access
+ */
 import { useState, useEffect } from 'react';
 import { AuthenticatedUser } from '@/types/telegram';
 
@@ -19,7 +24,7 @@ export const useTelegramAuth = () => {
         tg.expand();
         
         // Set theme
-        if (tg.colorScheme === 'dark') {
+        if ((tg as any).colorScheme === 'dark') {
           document.documentElement.classList.add('dark');
         }
         
@@ -33,7 +38,7 @@ export const useTelegramAuth = () => {
         firstName: 'Test',
         lastName: 'User',
         username: 'testuser',
-        avatarUrl: undefined,
+        avatarUrl: null,
         role: 'USER',
         referralCode: 'TEST123',
         referredById: null,
@@ -46,7 +51,7 @@ export const useTelegramAuth = () => {
         lastInvestmentGrowthBonusClaimedAt: null,
         lastReferralZeroPenaltyAppliedAt: null,
         rank: 'Bronze',
-        photoUrl: undefined
+        photoUrl: null
       };
       
       setUser(mockUser);

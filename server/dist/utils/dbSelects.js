@@ -39,6 +39,14 @@ exports.userSelect = client_1.Prisma.validator()({
     isSuspicious: true,
     lastSuspiciousPenaltyAppliedAt: true,
     rank: true,
+    referrals: {
+        select: {
+            id: true,
+            telegramId: true,
+            firstName: true,
+            username: true,
+        },
+    },
 });
 exports.userSelectWithoutMiningSlots = client_1.Prisma.validator()({
     id: true,

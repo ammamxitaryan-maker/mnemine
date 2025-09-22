@@ -1,3 +1,7 @@
+/**
+ * BUG FIX: Fixed TypeScript error where nextRank was assigned null
+ * but the type didn't allow null. Changed to undefined and updated type declaration.
+ */
 "use client";
 
 import { useTranslation } from 'react-i18next';
@@ -24,7 +28,7 @@ export const RankCard = ({ stats }: RankCardProps) => {
   const { totalInvested } = stats;
 
   let currentRank = null;
-  let nextRank = rankTiers[0];
+  let nextRank: typeof rankTiers[0] | undefined = rankTiers[0];
   let progress = 0;
   let lowerBound = 0;
 
@@ -35,7 +39,7 @@ export const RankCard = ({ stats }: RankCardProps) => {
       if (i + 1 < rankTiers.length) {
         nextRank = rankTiers[i + 1];
       } else {
-        nextRank = null; // Max rank
+        nextRank = undefined; // Max rank
       }
     } else {
       nextRank = rankTiers[i];

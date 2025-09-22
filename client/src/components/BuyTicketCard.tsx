@@ -1,3 +1,6 @@
+/**
+ * BUG FIX: Fixed dismissToast calls to handle undefined toastId properly
+ */
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +34,7 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       return { toastId };
     },
     onSuccess: () => {
-      dismissToast(mutation.context?.toastId);
+      dismissToast(mutation.context?.toastId || '');
       showSuccess('Ticket purchased successfully!');
       setSelectedNumbers([]);
       queryClient.invalidateQueries({ queryKey: ['userLotteryTickets', telegramId] }); // Use prop telegramId
@@ -39,7 +42,7 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       queryClient.invalidateQueries({ queryKey: ['lotteryStatus'] });
     },
     onError: (error: any) => {
-      dismissToast(mutation.context?.toastId);
+      dismissToast(mutation.context?.toastId || '');
       showError(error.response?.data?.error || 'Failed to purchase ticket.');
     },
   });
