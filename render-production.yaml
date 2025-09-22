@@ -16,7 +16,12 @@ services:
       echo "Copying frontend..."
       pnpm run copy:frontend
       echo "Setting up database..."
-      cd server && npx prisma generate && npx prisma db push --force-reset
+      cd server
+      echo "Generating Prisma client..."
+      npx prisma generate
+      echo "Pushing database schema..."
+      npx prisma db push --force-reset --accept-data-loss
+      echo "Database setup completed"
       cd ..
       echo "Verifying deployment..."
       pnpm run verify:deployment

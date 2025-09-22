@@ -174,8 +174,21 @@ const authLimiter = rateLimit({
 // Commented out for production testing
 // app.use('/api/auth', authLimiter);
 
-// Use CORS configuration from middleware
-app.use(cors(corsOptions));
+// Use CORS configuration from middleware - exclude static files
+app.use((req, res, next) => {
+  // Skip CORS for static files (JS, CSS, images, etc.)
+  if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+    return next();
+  }
+  
+  // Skip CORS for health checks
+  if (req.path === '/health') {
+    return next();
+  }
+  
+  // Apply CORS for all other requests
+  cors(corsOptions)(req, res, next);
+});
 
 // Body parsing middleware
 app.use(express.json({ 
