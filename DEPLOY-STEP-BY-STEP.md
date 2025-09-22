@@ -74,7 +74,7 @@ DATABASE_URL=автоматически_из_базы_данных
 # Замените YOUR_BOT_TOKEN и YOUR_APP_URL
 curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook" \
      -H "Content-Type: application/json" \
-     -d '{"url": "https://mnemine-app.onrender.com/webhook"}'
+     -d '{"url": "https://mnemine-backend-7b4y.onrender.com/webhook"}'
 ```
 
 ## 🎯 **Шаг 5: Мониторинг Деплоя**
@@ -86,9 +86,9 @@ curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook" \
 
 ### 5.2 Проверка Health
 После деплоя проверьте:
-- **Health Check**: `https://mnemine-app.onrender.com/health`
-- **Frontend**: `https://mnemine-app.onrender.com`
-- **API**: `https://mnemine-app.onrender.com/api/health`
+- **Health Check**: `https://mnemine-backend-7b4y.onrender.com/health`
+- **Frontend**: `https://mnemine-backend-7b4y.onrender.com`
+- **API**: `https://mnemine-backend-7b4y.onrender.com/api/health`
 
 ## 🚨 **Возможные Проблемы и Решения**
 
@@ -131,7 +131,7 @@ pnpm run verify:production
 
 ### URL Вашего Приложения
 ```
-https://mnemine-app.onrender.com
+https://mnemine-backend-7b4y.onrender.com
 ```
 
 ## 📞 **Поддержка**

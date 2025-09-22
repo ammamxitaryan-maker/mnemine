@@ -44,9 +44,9 @@ services:
 ```
 
 ### Результат:
-- **URL**: `https://mnemine-app.onrender.com`
-- **API**: `https://mnemine-app.onrender.com/api/*`
-- **Frontend**: `https://mnemine-app.onrender.com/` (из server/public/)
+- **URL**: `https://mnemine-backend-7b4y.onrender.com`
+- **API**: `https://mnemine-backend-7b4y.onrender.com/api/*`
+- **Frontend**: `https://mnemine-backend-7b4y.onrender.com/` (из server/public/)
 
 ---
 
@@ -121,7 +121,7 @@ services:
 ### Шаг 2: Настройте переменные окружения
 В Render Dashboard добавьте:
 - `TELEGRAM_BOT_TOKEN` = ваш токен бота
-- `TELEGRAM_WEBHOOK_URL` = `https://mnemine-app.onrender.com/webhook`
+- `TELEGRAM_WEBHOOK_URL` = `https://mnemine-backend-7b4y.onrender.com/webhook`
 
 ### Шаг 3: Выполните миграции
 ```bash
@@ -129,7 +129,7 @@ npx prisma db push
 ```
 
 ### Шаг 4: Проверьте деплой
-- **Единый сервис**: `https://mnemine-app.onrender.com`
+- **Единый сервис**: `https://mnemine-backend-7b4y.onrender.com`
 - **Раздельный**: `https://mnemine-backend.onrender.com/health`
 
 ---

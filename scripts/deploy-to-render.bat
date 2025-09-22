@@ -139,7 +139,7 @@ echo    - TELEGRAM_BOT_TOKEN: Your Telegram bot token
 echo    - ADMIN_TELEGRAM_ID: Your Telegram user ID
 echo 6. Click 'Apply' to deploy
 echo.
-echo [INFO] Your application will be available at: https://mnemine-app.onrender.com
+echo [INFO] Your application will be available at: https://mnemine-backend-7b4y.onrender.com
 echo.
 echo [WARNING] Remember to:
 echo - Set up your Telegram bot webhook

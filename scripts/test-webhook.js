@@ -2,7 +2,7 @@
 
 const https = require('https');
 
-const WEBHOOK_URL = 'https://mnemine-app.onrender.com/api/webhook/8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE';
+const WEBHOOK_URL = 'https://mnemine-backend-7b4y.onrender.com/api/webhook/8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE';
 
 async function testWebhookEndpoint() {
   try {
@@ -73,7 +73,7 @@ async function testWebhookEndpoint() {
 async function testServerHealth() {
   try {
     console.log('🏥 Testing server health...');
-    const response = await fetch('https://mnemine-app.onrender.com/health');
+    const response = await fetch('https://mnemine-backend-7b4y.onrender.com/health');
     const data = await response.json();
     
     console.log(`   Status: ${response.status}`);

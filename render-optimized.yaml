@@ -26,15 +26,15 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://mnemine-app.onrender.com
+        value: https://mnemine-backend-7b4y.onrender.com
       - key: FRONTEND_URL
-        value: https://mnemine-app.onrender.com
+        value: https://mnemine-backend-7b4y.onrender.com
       - key: ALLOWED_ORIGINS
-        value: https://mnemine-app.onrender.com
+        value: https://mnemine-backend-7b4y.onrender.com
       - key: VITE_BACKEND_URL
-        value: https://mnemine-app.onrender.com
+        value: https://mnemine-backend-7b4y.onrender.com
       - key: VITE_WS_URL
-        value: wss://mnemine-app.onrender.com/ws
+        value: wss://mnemine-backend-7b4y.onrender.com/ws
       - key: VITE_APP_NAME
         value: Mnemine
       - key: RATE_LIMIT_WINDOW_MS

@@ -90,8 +90,8 @@ ADMIN_TELEGRAM_ID=ваш_telegram_id
 ## 🎉 **Результат**
 
 После успешного деплоя:
-- **Приложение**: `https://mnemine-app.onrender.com`
-- **Health Check**: `https://mnemine-app.onrender.com/health`
+- **Приложение**: `https://mnemine-backend-7b4y.onrender.com`
+- **Health Check**: `https://mnemine-backend-7b4y.onrender.com/health`
 - **Database**: Автоматически подключена через `DATABASE_URL`
 
 ## 📞 **Если Все Еще Ошибки**

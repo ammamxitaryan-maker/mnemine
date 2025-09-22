@@ -45,7 +45,7 @@ ADMIN_TELEGRAM_ID=ваш_telegram_id
 
 После выполнения всех шагов ваше приложение будет доступно по адресу:
 ```
-https://mnemine-app.onrender.com
+https://mnemine-backend-7b4y.onrender.com
 ```
 
 ## 📋 **Чек-лист Готовности**

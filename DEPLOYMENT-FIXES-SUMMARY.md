@@ -113,7 +113,7 @@ server/
 2. **Настроить Environment Variables**:
    - `TELEGRAM_BOT_TOKEN` - токен вашего бота
    - `ADMIN_TELEGRAM_ID` - ваш Telegram ID
-3. **Приложение будет доступно**: `https://mnemine-app.onrender.com`
+3. **Приложение будет доступно**: `https://mnemine-backend-7b4y.onrender.com`
 
 ### Преимущества Текущей Конфигурации
 - ✅ **Простота**: Один сервис вместо двух

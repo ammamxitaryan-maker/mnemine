@@ -79,7 +79,7 @@ All files updated and committed:
 
 After successful deployment, your application will be available at:
 ```
-https://mnemine-app.onrender.com
+https://mnemine-backend-7b4y.onrender.com
 ```
 
 ## 📞 **Support**

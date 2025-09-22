@@ -3,7 +3,7 @@
 const https = require('https');
 
 const BOT_TOKEN = '8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE';
-const WEBHOOK_URL = 'https://mnemine-app.onrender.com/api/webhook/8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE';
+const WEBHOOK_URL = 'https://mnemine-backend-7b4y.onrender.com/api/webhook/8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE';
 
 async function checkWebhookInfo() {
   try {
