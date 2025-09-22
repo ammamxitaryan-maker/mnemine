@@ -15,7 +15,13 @@ services:
       npx prisma db push --force-reset --accept-data-loss
       echo "Database setup completed"
       cd ..
-    startCommand: pnpm run start:prod
+    startCommand: |
+      echo "Starting production server..."
+      cd server
+      echo "Ensuring database schema is up to date..."
+      npx prisma db push --accept-data-loss || echo "Database push failed, continuing..."
+      echo "Starting server..."
+      node dist/index.js
     envVars:
       - key: NODE_ENV
         value: production

@@ -341,6 +341,21 @@ async function seedBoosters() {
 
 async function seedExchangeRate() {
   try {
+    // First, try to create the table if it doesn't exist
+    try {
+      await prisma.$executeRaw`CREATE TABLE IF NOT EXISTS "ExchangeRate" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "rate" REAL NOT NULL,
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "createdBy" TEXT NOT NULL,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );`;
+      console.log('[SEED] ExchangeRate table created/verified');
+    } catch (tableError) {
+      console.warn('[SEED] Could not create ExchangeRate table:', tableError);
+    }
+
     // Check if any exchange rate exists
     const existingRate = await prisma.exchangeRate.findFirst();
     
@@ -354,6 +369,8 @@ async function seedExchangeRate() {
         }
       });
       console.log('[SEED] Default exchange rate created');
+    } else {
+      console.log('[SEED] Exchange rate already exists');
     }
   } catch (error) {
     console.warn('[SEED] Could not seed exchange rate:', error);

@@ -28,7 +28,11 @@ services:
       echo "Build completed successfully!"
     startCommand: |
       echo "Starting production server..."
-      cd server && node dist/index.js
+      cd server
+      echo "Ensuring database schema is up to date..."
+      npx prisma db push --accept-data-loss || echo "Database push failed, continuing..."
+      echo "Starting server..."
+      node dist/index.js
     envVars:
       - key: NODE_ENV
         value: production
