@@ -339,21 +339,44 @@ async function seedBoosters() {
   }
 }
 
-async function seedExchangeRate() {
+async function ensureDatabaseSchema() {
   try {
-    // First, try to create the table if it doesn't exist
+    console.log('[SEED] Ensuring database schema is complete...');
+    
+    // Create ExchangeRate table (PostgreSQL syntax)
     try {
-      await prisma.$executeRaw`CREATE TABLE IF NOT EXISTS "ExchangeRate" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "rate" REAL NOT NULL,
-        "isActive" BOOLEAN NOT NULL DEFAULT true,
-        "createdBy" TEXT NOT NULL,
-        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );`;
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "ExchangeRate" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "rate" DOUBLE PRECISION NOT NULL,
+          "isActive" BOOLEAN NOT NULL DEFAULT true,
+          "createdBy" TEXT NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
       console.log('[SEED] ExchangeRate table created/verified');
     } catch (tableError) {
       console.warn('[SEED] Could not create ExchangeRate table:', tableError);
+    }
+
+    // Ensure LotteryTicket table has all required columns (PostgreSQL syntax)
+    try {
+      await prisma.$executeRaw`
+        DO $$ 
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'LotteryTicket' 
+            AND column_name = 'isAdminSelected'
+          ) THEN
+            ALTER TABLE "LotteryTicket" ADD COLUMN "isAdminSelected" BOOLEAN NOT NULL DEFAULT false;
+          END IF;
+        END $$;
+      `;
+      console.log('[SEED] LotteryTicket.isAdminSelected column added/verified');
+    } catch (columnError) {
+      console.warn('[SEED] Could not add isAdminSelected column:', columnError);
     }
 
     // Check if any exchange rate exists
@@ -372,8 +395,10 @@ async function seedExchangeRate() {
     } else {
       console.log('[SEED] Exchange rate already exists');
     }
+    
+    console.log('[SEED] Database schema verification completed');
   } catch (error) {
-    console.warn('[SEED] Could not seed exchange rate:', error);
+    console.warn('[SEED] Could not ensure database schema:', error);
   }
 }
 
@@ -479,7 +504,7 @@ async function startServer() {
     await prisma.$connect();
     console.log('[SERVER] Database connection successful');
 
-    await Promise.all([seedTasks(), seedBoosters(), seedAdmin(), seedExchangeRate()]);
+    await Promise.all([seedTasks(), seedBoosters(), seedAdmin(), ensureDatabaseSchema()]);
 
     // Initialize WebSocket server
     const wsServer = new WebSocketServer(server);
