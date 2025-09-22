@@ -8,7 +8,7 @@ services:
       pnpm run build:prod
       pnpm run copy:frontend
       echo "Setting up database..."
-      cd server && npx prisma db push
+      cd server && npx prisma generate && npx prisma db push --force-reset
       cd ..
     startCommand: pnpm run start:prod
     envVars:
