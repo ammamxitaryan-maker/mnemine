@@ -50,13 +50,13 @@ const UnifiedTasks: React.FC = () => {
   const tabs = [
     {
       value: "overview",
-      label: "Overview",
+      label: t('tasks.overview'),
       content: (
         <div className="space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SmartCard
-              title="Active Tasks"
+              title={t('tasks.active')}
               icon={Target}
               iconColor="from-blue-500 to-indigo-600"
               variant="minimal"
@@ -66,12 +66,12 @@ const UnifiedTasks: React.FC = () => {
                 {activeTasks.length}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Available to complete
+                {t('tasks.available')}
               </p>
             </SmartCard>
 
             <SmartCard
-              title="Completed Tasks"
+              title={t('tasks.completed')}
               icon={CheckSquare}
               iconColor="from-green-500 to-emerald-600"
               variant="minimal"
@@ -81,12 +81,12 @@ const UnifiedTasks: React.FC = () => {
                 {completedTasks.length}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Finished today
+                {t('tasks.finish')}
               </p>
             </SmartCard>
 
             <SmartCard
-              title="Total Rewards"
+              title={t('tasks.reward')}
               icon={Award}
               iconColor="from-purple-500 to-pink-600"
               variant="minimal"
@@ -96,14 +96,14 @@ const UnifiedTasks: React.FC = () => {
                 {totalRewards.toFixed(2)}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                CFM available
+                CFM {t('common.available')}
               </p>
             </SmartCard>
           </div>
 
           {/* Quick Actions */}
           <SmartCard
-            title="Quick Actions"
+            title={t('common.more')}
             icon={Star}
             iconColor="from-orange-500 to-red-600"
             variant="glass"
@@ -115,7 +115,7 @@ const UnifiedTasks: React.FC = () => {
                 variant="primary"
                 fullWidth
               >
-                Start Mining
+                {t('mining.start')}
               </CTAButton>
               <CTAButton
                 onClick={() => window.location.href = '/referrals'}
@@ -123,7 +123,7 @@ const UnifiedTasks: React.FC = () => {
                 variant="secondary"
                 fullWidth
               >
-                Invite Friends
+                {t('referrals.invite')}
               </CTAButton>
             </div>
           </SmartCard>
@@ -132,7 +132,7 @@ const UnifiedTasks: React.FC = () => {
     },
     {
       value: "active",
-      label: "Active Tasks",
+      label: t('tasks.active'),
       content: isLoading ? (
         <div className="flex justify-center py-10">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -143,7 +143,7 @@ const UnifiedTasks: React.FC = () => {
             <EnhancedAccordionTrigger>
               <div className="flex items-center gap-3">
                 <Target className="w-5 h-5 text-blue-600" />
-                <span>Active Tasks ({activeTasks.length})</span>
+                <span>{t('tasks.active')} ({activeTasks.length})</span>
               </div>
             </EnhancedAccordionTrigger>
             <EnhancedAccordionContent>
@@ -165,16 +165,16 @@ const UnifiedTasks: React.FC = () => {
       ) : (
         <div className="text-center py-10">
           <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-500 dark:text-gray-400 mb-4">No active tasks available</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">{t('tasks.available')}</p>
           <CTAButton onClick={() => window.location.href = '/slots'}>
-            Start Your First Investment
+            {t('mining.start')}
           </CTAButton>
         </div>
       )
     },
     {
       value: "completed",
-      label: "Completed",
+      label: t('tasks.completed'),
       content: isLoading ? (
         <div className="flex justify-center py-10">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -185,7 +185,7 @@ const UnifiedTasks: React.FC = () => {
             <EnhancedAccordionTrigger>
               <div className="flex items-center gap-3">
                 <CheckSquare className="w-5 h-5 text-green-600" />
-                <span>Completed Tasks ({completedTasks.length})</span>
+                <span>{t('tasks.completed')} ({completedTasks.length})</span>
               </div>
             </EnhancedAccordionTrigger>
             <EnhancedAccordionContent>
@@ -207,7 +207,7 @@ const UnifiedTasks: React.FC = () => {
       ) : (
         <div className="text-center py-10">
           <CheckSquare className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-500 dark:text-gray-400">No completed tasks yet</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('tasks.completed')}</p>
         </div>
       )
     }
@@ -217,15 +217,15 @@ const UnifiedTasks: React.FC = () => {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen text-white p-4">
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
-        <p className="text-gray-400 text-center">Loading tasks...</p>
+        <p className="text-gray-400 text-center">{t('common.loading')}</p>
       </div>
     );
   }
 
   return (
     <TabbedPageLayout
-      title="Tasks"
-      subtitle="Complete tasks to earn CFM rewards"
+      title={t('tasks.title')}
+      subtitle={t('tasks.subtitle')}
       icon={CheckSquare}
       iconColor="from-green-500 to-emerald-600"
       onBack={handleBack}

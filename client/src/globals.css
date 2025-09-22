@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import enhanced typography and RTL support */
+@import './styles/typography.css';
+@import './styles/rtl.css';
+
 @layer base {
   :root {
     /* Modern Design System Variables */
