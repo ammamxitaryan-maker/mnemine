@@ -362,21 +362,11 @@ async function ensureDatabaseSchema() {
 
     // Ensure LotteryTicket table has all required columns (PostgreSQL syntax)
     try {
-      await prisma.$executeRaw`
-        DO $$ 
-        BEGIN
-          IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'LotteryTicket' 
-            AND column_name = 'isAdminSelected'
-          ) THEN
-            ALTER TABLE "LotteryTicket" ADD COLUMN "isAdminSelected" BOOLEAN NOT NULL DEFAULT false;
-          END IF;
-        END $$;
-      `;
+      // Simple approach - just try to add the column, ignore if it already exists
+      await prisma.$executeRaw`ALTER TABLE "LotteryTicket" ADD COLUMN IF NOT EXISTS "isAdminSelected" BOOLEAN NOT NULL DEFAULT false;`;
       console.log('[SEED] LotteryTicket.isAdminSelected column added/verified');
     } catch (columnError) {
-      console.warn('[SEED] Could not add isAdminSelected column:', columnError);
+      console.warn('[SEED] Could not add isAdminSelected column (may already exist):', columnError);
     }
 
     // Check if any exchange rate exists

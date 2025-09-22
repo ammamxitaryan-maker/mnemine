@@ -31,7 +31,7 @@ export const getLotteryParticipants = async (req: Request, res: Response) => {
             numbers: true,
             isWinner: true,
             prizeAmount: true,
-            isAdminSelected: true,
+            // isAdminSelected: true, // Temporarily disabled until database schema is fixed
             createdAt: true,
           }
         },
@@ -110,7 +110,7 @@ export const selectLotteryWinner = async (req: Request, res: Response) => {
         data: {
           isWinner: true,
           prizeAmount,
-          isAdminSelected: true,
+          // isAdminSelected: true, // Temporarily disabled until database schema is fixed
         },
       });
 
@@ -189,7 +189,7 @@ export const removeLotteryWinner = async (req: Request, res: Response) => {
         data: {
           isWinner: false,
           prizeAmount: null,
-          isAdminSelected: false,
+          // isAdminSelected: false, // Temporarily disabled until database schema is fixed
         },
       });
 
@@ -299,7 +299,8 @@ export const getLotteryStats = async (req: Request, res: Response) => {
       totalRevenue,
       winnersCount: winners.length,
       totalPrizes,
-      adminSelectedWinners: winners.filter(w => w.isAdminSelected).length,
+      // adminSelectedWinners: winners.filter(w => w.isAdminSelected).length, // Temporarily disabled until database schema is fixed
+      adminSelectedWinners: 0, // Temporary fallback
       remainingJackpot: currentLottery.jackpot - totalPrizes,
     };
 
