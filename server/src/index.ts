@@ -326,6 +326,27 @@ async function seedBoosters() {
   }
 }
 
+async function seedExchangeRate() {
+  try {
+    // Check if any exchange rate exists
+    const existingRate = await prisma.exchangeRate.findFirst();
+    
+    if (!existingRate) {
+      // Create default exchange rate
+      await prisma.exchangeRate.create({
+        data: {
+          rate: 1.0,
+          isActive: true,
+          createdBy: 'system'
+        }
+      });
+      console.log('[SEED] Default exchange rate created');
+    }
+  } catch (error) {
+    console.warn('[SEED] Could not seed exchange rate:', error);
+  }
+}
+
 async function seedAdmin() {
   const ADMIN_TELEGRAM_ID = adminTelegramId;
 
@@ -428,7 +449,7 @@ async function startServer() {
     await prisma.$connect();
     console.log('[SERVER] Database connection successful');
 
-    await Promise.all([seedTasks(), seedBoosters(), seedAdmin()]);
+    await Promise.all([seedTasks(), seedBoosters(), seedAdmin(), seedExchangeRate()]);
 
     // Initialize WebSocket server
     const wsServer = new WebSocketServer(server);

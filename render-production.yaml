@@ -11,6 +11,9 @@ services:
       pnpm run build:client
       pnpm run build:server
       pnpm run copy:frontend
+      echo "Setting up database..."
+      cd server && npx prisma db push
+      cd ..
       pnpm run verify:deployment
     startCommand: |
       echo "Starting production server..."

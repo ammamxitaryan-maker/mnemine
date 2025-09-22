@@ -397,13 +397,20 @@ export class WebSocketServer {
   }
 
   private async getPriceData() {
-    // Get current exchange rate
-    const exchangeRate = await prisma.exchangeRate.findFirst({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' }
-    });
+    let basePrice = 1.0;
+    
+    try {
+      // Get current exchange rate
+      const exchangeRate = await prisma.exchangeRate.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: 'desc' }
+      });
 
-    const basePrice = exchangeRate?.rate || 1.0;
+      basePrice = exchangeRate?.rate || 1.0;
+    } catch (error) {
+      console.warn('[WebSocket] ExchangeRate table not available, using default price');
+      basePrice = 1.0;
+    }
     
     // Simulate realistic price movements (0.8x to 1.2x of base price)
     const volatility = 0.02; // 2% volatility

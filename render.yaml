@@ -7,6 +7,9 @@ services:
       pnpm install --frozen-lockfile
       pnpm run build:prod
       pnpm run copy:frontend
+      echo "Setting up database..."
+      cd server && npx prisma db push
+      cd ..
     startCommand: pnpm run start:prod
     envVars:
       - key: NODE_ENV
