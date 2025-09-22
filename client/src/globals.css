@@ -473,6 +473,64 @@
   .space-y-6 > * + * {
     margin-top: 1.5rem;
   }
+
+  /* Simplified mobile navigation */
+  .simplified-nav {
+    height: 80px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Mobile-optimized cards */
+  .mobile-card {
+    margin: 0.5rem;
+    border-radius: 1rem;
+  }
+
+  /* Better mobile typography */
+  .mobile-text {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  /* Mobile grid adjustments */
+  .mobile-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Mobile tabs */
+  .mobile-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .mobile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile accordion */
+  .mobile-accordion {
+    margin: 0 -1rem;
+  }
+
+  /* Mobile button groups */
+  .mobile-button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Mobile spacing */
+  .mobile-padding {
+    padding: 1rem;
+  }
+
+  /* Mobile header */
+  .mobile-header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
 }
 
 /* Tablet optimizations */

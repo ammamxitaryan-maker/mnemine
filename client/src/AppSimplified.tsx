@@ -2,19 +2,20 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import SimplifiedIndex from "./pages/SimplifiedIndex";
+
+// Simplified imports - only essential pages
+import IndexSimplified from "./pages/IndexSimplified";
 import NotFound from "./pages/NotFound";
+import Menu from "./pages/Menu";
+import WalletSimplified from "./pages/WalletSimplified";
+import TasksSimplified from "./pages/TasksSimplified";
+import Swap from "./pages/Swap";
+
+// Keep some original pages for now
 import Boosters from "./pages/Boosters";
 import Referrals from "./pages/Referrals";
 import Leaderboard from "./pages/Leaderboard";
-import Tasks from "./pages/Tasks";
 import Slots from "./pages/Slots";
-import SimplifiedSlots from "./pages/SimplifiedSlots";
-import SimplifiedTasks from "./pages/SimplifiedTasks";
-import SimplifiedReferrals from "./pages/SimplifiedReferrals";
-import Wallet from "./pages/Wallet";
-import SimplifiedWallet from "./pages/SimplifiedWallet";
 import Deposit from "./pages/Deposit";
 import Withdraw from "./pages/Withdraw";
 import Achievements from "./pages/Achievements";
@@ -26,11 +27,8 @@ import Admin from "./pages/Admin";
 import AdminUserDetail from "./pages/AdminUserDetail";
 import Stats from "./pages/Stats";
 import Settings from "./pages/Settings";
-import AdvancedTradingPage from "./pages/AdvancedTradingPage";
-import AnalyticsPage from "./pages/AnalyticsPage"; // Import new page
-import Swap from "./pages/Swap";
-import { MainLayout } from "./components/layout/MainLayout";
-import { SimplifiedLayout } from "./components/layout/SimplifiedLayout";
+
+import { MainLayoutSimplified } from "./components/layout/MainLayoutSimplified";
 import { AdminRoute } from "./components/layout/AdminRoute";
 import WaveBackground from "./components/WaveBackground";
 import { AppInitializer } from "./components/AppInitializer";
@@ -77,7 +75,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => {
+const AppSimplified = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -87,38 +85,33 @@ const App = () => {
           <BrowserRouter>
             <AppInitializer />
             <Routes>
-            {/* Simplified Layout Routes */}
-            <Route element={<SimplifiedLayout />}>
-              <Route path="/" element={<SimplifiedIndex />} />
-              <Route path="/wallet" element={<SimplifiedWallet />} />
-              <Route path="/slots" element={<SimplifiedSlots />} />
-              <Route path="/tasks" element={<SimplifiedTasks />} />
-              <Route path="/referrals" element={<SimplifiedReferrals />} />
-            </Route>
-            
-            {/* Original Layout Routes */}
-            <Route element={<MainLayout />}>
-              <Route path="/classic" element={<Index />} />
-              <Route path="/referrals" element={<Referrals />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/tasks" element={<Tasks />} />
+            <Route element={<MainLayoutSimplified />}>
+              {/* Main simplified routes */}
+              <Route path="/" element={<IndexSimplified />} />
+              <Route path="/wallet" element={<WalletSimplified />} />
+              <Route path="/tasks" element={<TasksSimplified />} />
+              <Route path="/swap" element={<Swap />} />
+              <Route path="/menu" element={<Menu />} />
+              
+              {/* Keep original pages for now - accessible through menu */}
+              <Route path="/slots" element={<Slots />} />
               <Route path="/boosters" element={<Boosters />} />
+              <Route path="/referrals" element={<Referrals />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/classic-slots" element={<Slots />} />
               <Route path="/achievements" element={<Achievements />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/bonuses" element={<Bonuses />} />
               <Route path="/lottery" element={<Lottery />} />
               <Route path="/stats" element={<Stats />} />
-              <Route path="/advanced-trading" element={<AdvancedTradingPage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} /> {/* New route */}
-              <Route path="/swap" element={<Swap />} />
             </Route>
             
+            {/* Standalone pages */}
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/lottery-history" element={<LotteryHistory />} />
             <Route path="/settings" element={<Settings />} />
             
+            {/* Admin routes */}
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/user/:userId" element={<AdminUserDetail />} />
@@ -133,4 +126,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default AppSimplified;

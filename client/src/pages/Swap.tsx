@@ -7,23 +7,26 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRightLeft, TrendingUp, DollarSign, ArrowLeft, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useUserData } from '@/hooks/useUserData';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { TouchButton } from '@/components/FullscreenSection';
 
 const Swap: React.FC = () => {
   const { t } = useTranslation();
-  const { data: userData, refetch } = useUserData('mock-user-id');
+  const { user, loading: authLoading } = useTelegramAuth();
+  const { data: userData, refetch } = useUserData(user?.telegramId);
   const [cfmBalance, setCfmBalance] = useState(0);
   const [cfmtBalance, setCfmtBalance] = useState(0);
 
   useEffect(() => {
     if (userData) {
-      // For now, use mock data until proper wallet structure is implemented
-      setCfmBalance(1000); // Mock CFM balance
+      // Use actual user data from the API
+      setCfmBalance(userData.balance || 0);
+      // For now, CFMT balance is mock data until CFMT wallet is implemented
       setCfmtBalance(500);  // Mock CFMT balance
     }
   }, [userData]);
 
-  if (!userData) {
+  if (authLoading || !userData) {
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -175,7 +178,7 @@ const Swap: React.FC = () => {
               className="lg:col-span-2"
             >
               <SwapInterface
-                telegramId={'mock-user-id'}
+                telegramId={user?.telegramId || ''}
                 cfmBalance={cfmBalance}
                 cfmtBalance={cfmtBalance}
                 onSwapSuccess={refetch}
