@@ -1,0 +1,30 @@
+{
+  "debug.allowBreakpointsEverywhere": true,
+  "debug.inlineValues": true,
+  "debug.showSubSessionsInToolBar": true,
+  "debug.console.acceptSuggestionOnEnter": "on",
+  "firefox.launchArgs": [
+    "-devtools",
+    "-start-debugger-server",
+    "6000"
+  ],
+  "firefox.tmpDirs": [
+    "C:\\temp\\firefox-debug",
+    "C:\\Users\\n3m3616\\AppData\\Local\\Temp\\firefox-debug"
+  ],
+  "firefox.webRoot": "${workspaceFolder}/client/src",
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "emmet.includeLanguages": {
+    "typescript": "html",
+    "typescriptreact": "html"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.associations": {
+    "*.tsx": "typescriptreact",
+    "*.ts": "typescript"
+  }
+}

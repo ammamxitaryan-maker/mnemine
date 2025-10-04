@@ -1,0 +1,133 @@
+﻿import { Router } from 'express';
+import prisma from '../prisma.js';
+
+const router = Router();
+
+// Простой endpoint для входа через Telegram
+router.post('/login', async (req, res) => {
+  try {
+    const { id, username, first_name, last_name } = req.body;
+
+    if (!id) {
+      console.log('[LOGIN] Missing user ID in request');
+      return res.status(400).json({ 
+        success: false, 
+        message: "Нет user.id" 
+      });
+    }
+
+    // В продакшене проверяем, что это не testuser
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction && (String(id) === '123456789' || username === 'testuser')) {
+      console.log('[LOGIN] Rejecting test user in production:', { id, username });
+      return res.status(403).json({ 
+        success: false, 
+        message: "Test users not allowed in production" 
+      });
+    }
+
+    console.log('[LOGIN] Telegram user login:', { id, username, first_name, last_name });
+
+    // Ищем пользователя в базе данных
+    let user = await prisma.user.findUnique({
+      where: { telegramId: String(id) },
+      include: {
+        wallets: true,
+        miningSlots: true,
+        referrals: true,
+        activityLogs: {
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }
+      }
+    });
+
+    if (!user) {
+      // Создаем нового пользователя
+      user = await prisma.user.create({
+        data: {
+          telegramId: String(id),
+          username: username || null,
+          firstName: first_name || null,
+          lastName: last_name || null,
+          referralCode: `user_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+          wallets: {
+            create: {
+              currency: 'USD',
+              balance: 1.0
+            }
+          },
+          miningSlots: {
+            create: {
+              principal: 1.0,
+              startAt: new Date(),
+              lastAccruedAt: new Date(),
+              effectiveWeeklyRate: 0.1,
+              expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+              isActive: true
+            }
+          }
+        },
+        include: {
+          wallets: true,
+          miningSlots: true,
+          referrals: true,
+          activityLogs: {
+            orderBy: { createdAt: 'desc' },
+            take: 10
+          }
+        }
+      });
+      console.log('[LOGIN] Created new user:', user.id);
+    } else {
+      // Обновляем данные существующего пользователя
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          username: username || user.username,
+          firstName: first_name || user.firstName,
+          lastName: last_name || user.lastName,
+          lastSeenAt: new Date()
+        },
+        include: {
+          wallets: true,
+          miningSlots: true,
+          referrals: true,
+          activityLogs: {
+            orderBy: { createdAt: 'desc' },
+            take: 10
+          }
+        }
+      });
+      console.log('[LOGIN] Updated existing user:', user.id);
+    }
+
+    const responseData = {
+      success: true,
+      telegramId: id,
+      username: username || null,
+      user: user
+    };
+
+    console.log('[LOGIN] Sending response:', { 
+      success: responseData.success, 
+      telegramId: responseData.telegramId,
+      username: responseData.username,
+      userId: user?.id 
+    });
+
+    res.json(responseData);
+
+  } catch (error) {
+    console.error('[LOGIN] Error:', error);
+    const errorResponse = {
+      success: false,
+      message: 'Internal server error'
+    };
+    console.log('[LOGIN] Sending error response:', errorResponse);
+    res.status(500).json(errorResponse);
+  }
+});
+
+export default router;
+

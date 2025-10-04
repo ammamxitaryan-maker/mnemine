@@ -1,0 +1,244 @@
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+import { AuthenticatedUser } from '@/types/telegram';
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
+
+export const useTelegramAuth = () => {
+  const [user, setUser] = useState<AuthenticatedUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [initData, setInitData] = useState<string | null>(null);
+  const [authAttempted, setAuthAttempted] = useState(false);
+
+  // Fallback authentication for local development
+  const fallbackAuth = async () => {
+    console.log('[AUTH] Using fallback authentication for local development');
+    
+    // Check if we're in local development mode
+    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    // Check if we're in local development mode
+    console.log('[AUTH] Fallback auth check - isLocalDev:', isLocalDev, 'hostname:', window.location.hostname);
+    
+    if (!isLocalDev) {
+      setError('Fallback auth only available in local development');
+      setLoading(false);
+      return;
+    }
+
+    // Try to get stored test user or create a default one
+    const storedUser = localStorage.getItem('testUser');
+    let testUser;
+    
+    if (storedUser) {
+      try {
+        testUser = JSON.parse(storedUser);
+      } catch (parseError) {
+        console.warn('[AUTH] Failed to parse stored user, creating new one');
+        testUser = null;
+      }
+    }
+    
+    if (!testUser) {
+      // Create a default test user
+      testUser = {
+        id: 123456789,
+        telegramId: '123456789',
+        first_name: 'Test',
+        last_name: 'User',
+        username: 'testuser',
+        language_code: 'en'
+      };
+      localStorage.setItem('testUser', JSON.stringify(testUser));
+    }
+
+    try {
+      const response = await fetch(`${backendUrl}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          id: testUser.id, 
+          username: testUser.username,
+          first_name: testUser.first_name,
+          last_name: testUser.last_name
+        })
+      });
+      
+      // Check if response is ok and has content
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      // Check if response has content
+      const text = await response.text();
+      if (!text) {
+        console.log('[AUTH] Empty response, using fallback user');
+        setUser(testUser);
+        return;
+      }
+      
+      // Try to parse JSON
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.warn('[AUTH] Failed to parse JSON, using fallback user:', parseError);
+        setUser(testUser);
+        return;
+      }
+      
+      console.log('[AUTH] Fallback login OK:', data);
+      
+      if (data.success) {
+        setUser(testUser);
+      } else {
+        setError(data.message || 'Fallback login failed');
+      }
+    } catch (err) {
+      console.error('[AUTH] Fallback login failed:', err);
+      // Even if request fails, use fallback user for local development
+      console.log('[AUTH] Using fallback user despite error');
+      setUser(testUser);
+    }
+    
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    const validateAuth = async () => {
+      if (authAttempted) {
+        console.log('[AUTH] Authentication already attempted, skipping');
+        return;
+      }
+      
+      setAuthAttempted(true);
+      
+      const tg = window.Telegram?.WebApp;
+      
+      console.log('[TELEGRAM_AUTH] Telegram WebApp object:', tg);
+      console.log('[TELEGRAM_AUTH] initDataUnsafe:', tg?.initDataUnsafe);
+      console.log('[TELEGRAM_AUTH] initData:', tg?.initData);
+      console.log('[TELEGRAM_AUTH] window.Telegram:', window.Telegram);
+      console.log('[TELEGRAM_AUTH] window.location:', window.location);
+      console.log('[TELEGRAM_AUTH] User agent:', navigator.userAgent);
+
+      // Check if we have valid Telegram WebApp data
+      if (tg && tg.initData && tg.initDataUnsafe?.user?.id) {
+        // Real Telegram WebApp environment
+        tg.expand();
+        
+        const user = tg.initDataUnsafe.user;
+        console.log('[AUTH] Telegram user:', user);
+        
+        // Store initData for API calls
+        setInitData(tg.initData);
+        
+        try {
+          const response = await fetch(`${backendUrl}/api/auth/validate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              initData: tg.initData,
+              startParam: tg.initDataUnsafe.start_param
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          console.log('[AUTH] Telegram auth OK:', data);
+          
+          if (data.user) {
+            setUser({
+              id: String(user.id),
+              telegramId: String(user.id),
+              first_name: user.first_name || 'User',
+              last_name: user.last_name || '',
+              username: user.username || '',
+              language_code: user.language_code || 'en'
+            });
+          } else {
+            setError('Authentication failed');
+          }
+        } catch (err) {
+          console.error('[AUTH] Telegram auth failed:', err);
+          // For now, use the Telegram user data directly without server validation
+          console.log('[AUTH] Using Telegram user data directly due to server error');
+          setUser({
+            id: String(user.id),
+            telegramId: String(user.id),
+            first_name: user.first_name || 'User',
+            last_name: user.last_name || '',
+            username: user.username || '',
+            language_code: user.language_code || 'en'
+          });
+        }
+        
+        setLoading(false);
+      } else if (tg && tg.initDataUnsafe?.user?.id) {
+        // Telegram WebApp is available but initData is missing
+        // This can happen in some cases, try to use the user data directly
+        console.log('[AUTH] Telegram WebApp available but initData missing, using user data directly');
+        const user = tg.initDataUnsafe.user;
+        
+        try {
+          const response = await fetch(`${backendUrl}/api/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              id: user.id,
+              username: user.username,
+              first_name: user.first_name,
+              last_name: user.last_name
+            })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('[AUTH] Direct Telegram login OK:', data);
+            
+            if (data.success) {
+              setUser({
+                id: String(user.id),
+                telegramId: String(user.id),
+                first_name: user.first_name || 'User',
+                last_name: user.last_name || '',
+                username: user.username || '',
+                language_code: user.language_code || 'en'
+              });
+            } else {
+              setError(data.message || 'Direct Telegram login failed');
+            }
+          } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+        } catch (err) {
+          console.error('[AUTH] Direct Telegram login failed:', err);
+          // Use Telegram user data directly if server fails
+          console.log('[AUTH] Using Telegram user data directly due to server error');
+          setUser({
+            id: String(user.id),
+            telegramId: String(user.id),
+            first_name: user.first_name || 'User',
+            last_name: user.last_name || '',
+            username: user.username || '',
+            language_code: user.language_code || 'en'
+          });
+        }
+        
+        setLoading(false);
+      } else {
+        // Fallback to local development mode
+        console.log('[AUTH] No Telegram WebApp detected, using fallback auth');
+        await fallbackAuth();
+      }
+    };
+
+    validateAuth();
+  }, [authAttempted]);
+
+  return { user, loading, error, initData };
+};
