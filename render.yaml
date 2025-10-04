@@ -4,6 +4,8 @@ services:
     env: node
     plan: free
     buildCommand: |
+      echo "Clearing pnpm cache..." && 
+      pnpm store prune && 
       echo "Installing dependencies..." && 
       pnpm install && 
       echo "Building application..." && 
