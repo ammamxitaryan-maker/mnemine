@@ -4,10 +4,11 @@ services:
     env: node
     plan: free
     buildCommand: |
-      echo "Clearing pnpm cache..." && 
+      echo "Clearing all pnpm cache and node_modules..." && 
+      rm -rf node_modules client/node_modules server/node_modules && 
       pnpm store prune && 
-      echo "Installing dependencies..." && 
-      pnpm install && 
+      echo "Installing dependencies with no cache..." && 
+      pnpm install --no-cache --force && 
       echo "Building application..." && 
       pnpm run build:prod && 
       echo "Copying frontend files..." && 
