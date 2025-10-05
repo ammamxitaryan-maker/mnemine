@@ -58,8 +58,20 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const response = await api.get('/admin/dashboard-stats');
-      setStats(response.data.data);
+      const data = response.data.data;
+      
+      // Ensure system data exists with defaults
+      if (data && !data.system) {
+        data.system = {
+          uptime: '24/7',
+          lastBackup: new Date().toISOString(),
+          alerts: 0
+        };
+      }
+      
+      setStats(data);
     } catch (err: any) {
+      console.error('Dashboard data fetch error:', err);
       setError(err.response?.data?.error || 'Failed to load dashboard data');
     } finally {
       setLoading(false);

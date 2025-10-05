@@ -97,13 +97,17 @@ const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void) => {
     }
     
     // Fallback to test user
-    setUser(createTelegramUser(testUserData));
+    setUserAndCache(createTelegramUser(testUserData));
   } catch (err) {
     console.error('[AUTH] Fallback login failed:', err);
     // Use fallback user for local development even if request fails
-    setUser(createTelegramUser(testUserData));
+    setUserAndCache(createTelegramUser(testUserData));
   }
 };
+
+// Cache for authentication to prevent multiple calls
+let authCache: { user: AuthenticatedUser | null; timestamp: number } | null = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const useTelegramAuth = () => {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
@@ -112,10 +116,25 @@ export const useTelegramAuth = () => {
   const [authAttempted, setAuthAttempted] = useState(false);
   const [initData, setInitData] = useState<string | null>(null);
 
+  // Helper function to set user and cache
+  const setUserAndCache = (userData: AuthenticatedUser | null) => {
+    setUser(userData);
+    authCache = { user: userData, timestamp: Date.now() };
+  };
+
   useEffect(() => {
     if (authAttempted) return;
 
     const validateAuth = async () => {
+      // Check cache first
+      if (authCache && Date.now() - authCache.timestamp < CACHE_DURATION) {
+        console.log('[AUTH] Using cached authentication');
+        setUserAndCache(authCache.user);
+        setLoading(false);
+        setAuthAttempted(true);
+        return;
+      }
+
       console.log('[AUTH] Starting authentication validation...');
       setLoading(true);
       setError(null);
@@ -209,7 +228,7 @@ export const useTelegramAuth = () => {
           
           if (data.user) {
             // Use the user data from backend
-            setUser(createTelegramUser(data.user));
+            setUserAndCache(createTelegramUser(data.user));
           } else {
             setError('Authentication failed');
           }
@@ -248,9 +267,9 @@ export const useTelegramAuth = () => {
           console.log('[AUTH] Direct Telegram login response:', data);
           
           if (data.user) {
-            setUser(createTelegramUser(data.user));
+            setUserAndCache(createTelegramUser(data.user));
           } else if (data.success) {
-            setUser(createTelegramUser(user));
+            setUserAndCache(createTelegramUser(user));
           } else {
             setError(data.message || 'Direct Telegram login failed');
           }
