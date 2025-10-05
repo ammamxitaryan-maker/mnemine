@@ -41,14 +41,26 @@ const Admin = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  // Admin access check
+  // Admin access check - only allow user with Telegram ID '6760298907'
   const ADMIN_TELEGRAM_ID = '6760298907';
-  const isAdmin = user?.telegramId === ADMIN_TELEGRAM_ID;
-
-  if (!isAdmin) {
-    console.log('[ADMIN] Access denied for user:', user?.telegramId);
+  
+  // Check if user exists
+  if (!user) {
+    console.log('[ADMIN] No user data, redirecting to main app');
     return <Navigate to="/" replace />;
   }
+
+  // Check if user is admin
+  const isAdmin = user.telegramId === ADMIN_TELEGRAM_ID;
+
+  // If user is NOT admin, redirect to main app
+  if (!isAdmin) {
+    console.log('[ADMIN] Access denied for user:', user.telegramId, '- not admin');
+    return <Navigate to="/" replace />;
+  }
+
+  // Only admin users can see this component
+  console.log('[ADMIN] Admin access granted for user:', user.telegramId);
 
   const users = adminData?.users || [];
   const onlineCount = adminData?.onlineCount || 0;

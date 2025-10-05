@@ -86,7 +86,8 @@ const App = () => {
             <Route path="/lottery-history" element={<LotteryHistory />} />
             <Route path="/settings" element={<Settings />} />
             
-            {/* Admin Routes - No password required, only Telegram ID check */}
+            {/* Admin Routes - Protected by AdminRoute component */}
+            {/* Only user with Telegram ID '6760298907' can access these routes */}
             <Route element={<AdminRoute />}>
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />
