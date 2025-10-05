@@ -137,7 +137,9 @@ router.get('/custom-reports', isAdmin, async (req, res) => {
           acc[date] = { total: 0, uniqueUsers: new Set() };
         }
         acc[date].total++;
-        acc[date].uniqueUsers.add(log.userId);
+        if (acc[date].uniqueUsers instanceof Set) {
+          acc[date].uniqueUsers.add(log.userId);
+        }
         return acc;
       }, {} as Record<string, { total: number; uniqueUsers: Set<string> | number }>);
 
