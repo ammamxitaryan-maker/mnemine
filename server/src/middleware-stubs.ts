@@ -25,7 +25,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   try {
     // Check Telegram init data for admin access
     const telegramInitData = req.headers['x-telegram-init-data'];
-    const ADMIN_TELEGRAM_ID = '6760298907'; // Admin Telegram ID
+    const ADMIN_TELEGRAM_IDS = ['6760298907', '987654321']; // Admin Telegram IDs
     
     if (!telegramInitData) {
       return res.status(401).json({
@@ -48,8 +48,8 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     const user = JSON.parse(userStr);
     const userTelegramId = user.id?.toString();
 
-    // Check if the user's Telegram ID matches the admin ID
-    if (userTelegramId !== ADMIN_TELEGRAM_ID) {
+    // Check if the user's Telegram ID is in the admin list
+    if (!ADMIN_TELEGRAM_IDS.includes(userTelegramId)) {
       return res.status(403).json({
         success: false,
         error: 'Access denied. Admin privileges required.'

@@ -41,8 +41,8 @@ const Admin = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  // Admin access check - only allow user with Telegram ID '6760298907'
-  const ADMIN_TELEGRAM_ID = '6760298907';
+  // Admin access check - allow users with Telegram IDs in admin list
+  const ADMIN_TELEGRAM_IDS = ['6760298907', '987654321'];
   
   // Check if user exists
   if (!user) {
@@ -51,7 +51,7 @@ const Admin = () => {
   }
 
   // Check if user is admin
-  const isAdmin = user.telegramId === ADMIN_TELEGRAM_ID;
+  const isAdmin = ADMIN_TELEGRAM_IDS.includes(user.telegramId);
 
   // If user is NOT admin, redirect to main app
   if (!isAdmin) {

@@ -12,7 +12,7 @@ export const AdminRoute = () => {
   }
 
   // Check if user is admin based on Telegram ID
-  const ADMIN_TELEGRAM_ID = '6760298907'; // Admin Telegram ID
+  const ADMIN_TELEGRAM_IDS = ['6760298907', '987654321']; // Admin Telegram IDs
   
   // First check if user exists
   if (!user) {
@@ -21,15 +21,15 @@ export const AdminRoute = () => {
   }
 
   // Check if user is admin
-  const isAdmin = user.telegramId === ADMIN_TELEGRAM_ID;
+  const isAdmin = ADMIN_TELEGRAM_IDS.includes(user.telegramId);
 
   // Debug logging
   console.log('[ADMIN_ROUTE] User:', user);
   console.log('[ADMIN_ROUTE] User Telegram ID:', user.telegramId);
-  console.log('[ADMIN_ROUTE] Admin Telegram ID:', ADMIN_TELEGRAM_ID);
+  console.log('[ADMIN_ROUTE] Admin Telegram IDs:', ADMIN_TELEGRAM_IDS);
   console.log('[ADMIN_ROUTE] Is Admin:', isAdmin);
 
-  // If user is NOT admin (telegramId !== '6760298907'), redirect to main app
+  // If user is NOT admin, redirect to main app
   if (!isAdmin) {
     if (!hasRedirected) {
       console.log('[ADMIN_ROUTE] User is not admin, redirecting to main app');
