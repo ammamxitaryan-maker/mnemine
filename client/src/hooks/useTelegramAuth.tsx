@@ -38,9 +38,12 @@ const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void) => {
   
   // Check if we're in local development mode
   const isLocalDev = window.location.hostname === 'localhost' || 
-                     window.location.hostname === '127.0.0.1';
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname.includes('192.168.') ||
+                     window.location.hostname.includes('10.0.');
   
   if (!isLocalDev) {
+    console.warn('[AUTH] Fallback auth only available in local development');
     throw new Error('Fallback auth only available in local development');
   }
 
@@ -101,7 +104,12 @@ const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void) => {
   } catch (err) {
     console.error('[AUTH] Fallback login failed:', err);
     // Use fallback user for local development even if request fails
-    setUserAndCache(createTelegramUser(testUserData));
+    if (testUserData) {
+      setUserAndCache(createTelegramUser(testUserData));
+    } else {
+      console.error('[AUTH] No test user data available');
+      throw new Error('No test user data available for fallback auth');
+    }
   }
 };
 
@@ -171,10 +179,11 @@ export const useTelegramAuth = () => {
 
       // Check if we're in a Telegram WebApp environment (even without user data)
       const isTelegramWebApp = tg && tg.initDataUnsafe;
-      const hasTelegramUser = tg && tg.initDataUnsafe?.user?.id;
+      const hasTelegramUser = !!(tg && tg.initDataUnsafe?.user?.id);
       
       console.log('[AUTH] Telegram WebApp detected:', isTelegramWebApp);
       console.log('[AUTH] Has Telegram user data:', hasTelegramUser);
+      console.log('[AUTH] User ID from Telegram:', tg?.initDataUnsafe?.user?.id);
       
       // Check if we have URL parameters that might contain Telegram data
       const urlParams = new URLSearchParams(window.location.search);
@@ -290,12 +299,13 @@ export const useTelegramAuth = () => {
           // Fallback to local development mode
           console.log('[AUTH] No Telegram WebApp detected, using fallback auth (development only)');
           try {
-            await fallbackAuth(setUser);
+            await fallbackAuth(setUserAndCache);
           } catch (err) {
             console.error('[AUTH] Fallback auth failed:', err);
             setError(`Fallback auth failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          } finally {
+            setLoading(false);
           }
-          setLoading(false);
         }
       }
     };

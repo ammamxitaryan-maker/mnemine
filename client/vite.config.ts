@@ -24,7 +24,7 @@ export default defineConfig(() => {
       },
     },
     build: {
-      sourcemap: true, // Enable source maps for debugging
+      sourcemap: process.env.NODE_ENV === 'production', // Only enable source maps in production
       rollupOptions: {
         output: {
           manualChunks: {
