@@ -7,7 +7,8 @@ import {
   getInactiveUsers,
   freezeAccounts,
   getDashboardStats,
-  deleteUser
+  deleteUser,
+  bulkUserActions
 } from '../controllers/adminController.js';
 import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
@@ -29,6 +30,181 @@ router.get('/dashboard-stats', isAdmin, getDashboardStats);
 
 // Удаление пользователя
 router.delete('/delete-user/:userId', isAdmin, deleteUser);
+
+// Bulk user operations
+router.post('/users/bulk-actions', isAdmin, bulkUserActions);
+
+// Custom reports endpoints
+router.get('/custom-reports', isAdmin, async (req, res) => {
+  try {
+    const { 
+      metrics = 'earnings,activity,referrals', 
+      timeframe = '7d',
+      startDate,
+      endDate 
+    } = req.query;
+
+    const metricsArray = (metrics as string).split(',');
+    const now = new Date();
+    let start, end;
+
+    // Parse timeframe
+    if (startDate && endDate) {
+      start = new Date(startDate as string);
+      end = new Date(endDate as string);
+    } else {
+      switch (timeframe) {
+        case '1d':
+          start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          end = now;
+          break;
+        case '7d':
+          start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          end = now;
+          break;
+        case '30d':
+          start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          end = now;
+          break;
+        case '90d':
+          start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          end = now;
+          break;
+        default:
+          start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          end = now;
+      }
+    }
+
+    const reportData: any = {
+      timeframe: {
+        start: start.toISOString(),
+        end: end.toISOString(),
+        days: Math.ceil((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000))
+      },
+      metrics: {}
+    };
+
+    // Earnings metrics
+    if (metricsArray.includes('earnings')) {
+      const earningsData = await prisma.activityLog.findMany({
+        where: {
+          type: { in: ['EARNINGS', 'REFERRAL', 'BONUS'] },
+          createdAt: { gte: start, lte: end }
+        },
+        select: {
+          amount: true,
+          createdAt: true,
+          type: true
+        }
+      });
+
+      const totalEarnings = earningsData.reduce((sum, log) => sum + log.amount, 0);
+      const dailyEarnings = earningsData.reduce((acc, log) => {
+        const date = log.createdAt.toISOString().split('T')[0];
+        acc[date] = (acc[date] || 0) + log.amount;
+        return acc;
+      }, {} as Record<string, number>);
+
+      reportData.metrics.earnings = {
+        total: totalEarnings,
+        daily: dailyEarnings,
+        average: totalEarnings / reportData.timeframe.days,
+        breakdown: {
+          slotEarnings: earningsData.filter(log => log.type === 'EARNINGS').reduce((sum, log) => sum + log.amount, 0),
+          referralEarnings: earningsData.filter(log => log.type === 'REFERRAL').reduce((sum, log) => sum + log.amount, 0),
+          bonusEarnings: earningsData.filter(log => log.type === 'BONUS').reduce((sum, log) => sum + log.amount, 0)
+        }
+      };
+    }
+
+    // Activity metrics
+    if (metricsArray.includes('activity')) {
+      const activityData = await prisma.activityLog.findMany({
+        where: {
+          createdAt: { gte: start, lte: end }
+        },
+        select: {
+          type: true,
+          createdAt: true,
+          userId: true
+        }
+      });
+
+      const dailyActivity = activityData.reduce((acc, log) => {
+        const date = log.createdAt.toISOString().split('T')[0];
+        if (!acc[date]) {
+          acc[date] = { total: 0, uniqueUsers: new Set() };
+        }
+        acc[date].total++;
+        acc[date].uniqueUsers.add(log.userId);
+        return acc;
+      }, {} as Record<string, { total: number; uniqueUsers: Set<string> }>);
+
+      // Convert Set to count
+      Object.keys(dailyActivity).forEach(date => {
+        dailyActivity[date].uniqueUsers = dailyActivity[date].uniqueUsers.size;
+      });
+
+      const totalActivity = activityData.length;
+      const uniqueUsers = new Set(activityData.map(log => log.userId)).size;
+
+      reportData.metrics.activity = {
+        total: totalActivity,
+        uniqueUsers: uniqueUsers,
+        daily: dailyActivity,
+        average: totalActivity / reportData.timeframe.days,
+        breakdown: {
+          byType: activityData.reduce((acc, log) => {
+            acc[log.type] = (acc[log.type] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)
+        }
+      };
+    }
+
+    // Referral metrics
+    if (metricsArray.includes('referrals')) {
+      const referralData = await prisma.user.findMany({
+        where: {
+          createdAt: { gte: start, lte: end },
+          referredById: { not: null }
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          referredById: true,
+          totalInvested: true,
+          hasMadeDeposit: true
+        }
+      });
+
+      const dailyReferrals = referralData.reduce((acc, user) => {
+        const date = user.createdAt.toISOString().split('T')[0];
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const totalReferrals = referralData.length;
+      const activeReferrals = referralData.filter(user => user.hasMadeDeposit).length;
+      const referralRevenue = referralData.reduce((sum, user) => sum + user.totalInvested, 0);
+
+      reportData.metrics.referrals = {
+        total: totalReferrals,
+        active: activeReferrals,
+        revenue: referralRevenue,
+        daily: dailyReferrals,
+        average: totalReferrals / reportData.timeframe.days,
+        conversionRate: totalReferrals > 0 ? (activeReferrals / totalReferrals) * 100 : 0
+      };
+    }
+
+    res.json({ success: true, data: reportData });
+  } catch (error) {
+    console.error('Error generating custom report:', error);
+    res.status(500).json({ success: false, error: 'Failed to generate custom report' });
+  }
+});
 
 // Analytics endpoints
 router.get('/analytics', isAdmin, async (req, res) => {

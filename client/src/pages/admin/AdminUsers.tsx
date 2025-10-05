@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
   Download
 } from 'lucide-react';
+import BulkActions from '@/components/admin/BulkActions';
 
 interface User {
   id: string;
@@ -45,6 +46,7 @@ const AdminUsers = () => {
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -216,10 +218,10 @@ const AdminUsers = () => {
                 variant="outline"
                 size="sm"
                 disabled={selectedUsers.length === 0}
-                onClick={() => handleUserAction(selectedUsers[0], 'freeze')}
+                onClick={() => setShowBulkActions(true)}
               >
-                <UserX className="h-4 w-4 mr-2" />
-                Freeze Selected
+                <Users className="h-4 w-4 mr-2" />
+                Bulk Actions ({selectedUsers.length})
               </Button>
             </div>
           </CardTitle>
@@ -368,6 +370,19 @@ const AdminUsers = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Bulk Actions Modal */}
+      {showBulkActions && (
+        <BulkActions
+          selectedUsers={selectedUsers}
+          onClose={() => setShowBulkActions(false)}
+          onSuccess={() => {
+            setShowBulkActions(false);
+            setSelectedUsers([]);
+            fetchUsers();
+          }}
+        />
+      )}
     </div>
   );
 };

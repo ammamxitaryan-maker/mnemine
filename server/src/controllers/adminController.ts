@@ -589,6 +589,202 @@ export const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
+// POST /api/admin/users/bulk-actions - Bulk user operations
+export const bulkUserActions = async (req: Request, res: Response) => {
+  try {
+    const { userIds, action, reason, adminId } = req.body;
+    
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'User IDs are required'
+      });
+    }
+
+    if (!action) {
+      return res.status(400).json({
+        success: false,
+        error: 'Action is required'
+      });
+    }
+
+    const results = [];
+    const errors = [];
+
+    for (const userId of userIds) {
+      try {
+        let result = null;
+        
+        switch (action) {
+          case 'freeze':
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                isFrozen: true,
+                frozenAt: new Date(),
+                isActive: false
+              }
+            });
+            
+            await prisma.accountFreeze.create({
+              data: {
+                userId: userId,
+                reason: reason || 'BULK_FREEZE',
+                adminId: adminId,
+                description: `Account frozen in bulk operation: ${reason || 'No reason provided'}`
+              }
+            });
+            
+            result = { userId, action: 'frozen', success: true };
+            break;
+            
+          case 'unfreeze':
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                isFrozen: false,
+                frozenAt: null,
+                isActive: true
+              }
+            });
+            
+            result = { userId, action: 'unfrozen', success: true };
+            break;
+            
+          case 'ban':
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                isActive: false,
+                isFrozen: true,
+                isSuspicious: true
+              }
+            });
+            
+            result = { userId, action: 'banned', success: true };
+            break;
+            
+          case 'unban':
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                isActive: true,
+                isFrozen: false,
+                isSuspicious: false
+              }
+            });
+            
+            result = { userId, action: 'unbanned', success: true };
+            break;
+            
+          case 'delete':
+            // Get user info before deletion
+            const user = await prisma.user.findUnique({
+              where: { id: userId },
+              select: {
+                id: true,
+                telegramId: true,
+                firstName: true,
+                username: true,
+                totalInvested: true,
+                totalEarnings: true
+              }
+            });
+            
+            if (user) {
+              // Log deletion before actual deletion
+              await prisma.activityLog.create({
+                data: {
+                  userId: 'SYSTEM',
+                  type: 'PROFILE_UPDATED',
+                  amount: 0,
+                  description: `User ${user.telegramId} (${user.firstName || user.username}) deleted in bulk operation by admin ${adminId || 'UNKNOWN'}. Reason: ${reason || 'No reason provided'}. Total invested: ${user.totalInvested}, Total earnings: ${user.totalEarnings}`
+                }
+              });
+              
+              // Delete all related data
+              await prisma.$transaction(async (tx) => {
+                await tx.activityLog.deleteMany({ where: { userId: userId } });
+                await tx.notification.deleteMany({ where: { userId: userId } });
+                await tx.wallet.deleteMany({ where: { userId: userId } });
+                await tx.miningSlot.deleteMany({ where: { userId: userId } });
+                await tx.investment.deleteMany({ where: { userId: userId } });
+                await tx.withdrawal.deleteMany({ where: { userId: userId } });
+                await tx.referralEarning.deleteMany({ where: { userId: userId } });
+                await tx.accountFreeze.deleteMany({ where: { userId: userId } });
+                await tx.lotteryTicket.deleteMany({ where: { userId: userId } });
+                await tx.completedTask.deleteMany({ where: { userId: userId } });
+                await tx.swapTransaction.deleteMany({ where: { userId: userId } });
+                await tx.user.updateMany({ where: { referredById: userId }, data: { referredById: null } });
+                await tx.user.delete({ where: { id: userId } });
+              });
+              
+              result = { userId, action: 'deleted', success: true, userInfo: user };
+            }
+            break;
+            
+          case 'changeRole':
+            const { newRole } = req.body;
+            if (!newRole) {
+              throw new Error('New role is required for role change');
+            }
+            
+            await prisma.user.update({
+              where: { id: userId },
+              data: { role: newRole }
+            });
+            
+            result = { userId, action: 'role_changed', success: true, newRole };
+            break;
+            
+          default:
+            throw new Error(`Unknown action: ${action}`);
+        }
+        
+        // Log the bulk action
+        await prisma.activityLog.create({
+          data: {
+            userId: userId,
+            type: 'PROFILE_UPDATED',
+            amount: 0,
+            description: `Bulk ${action} operation performed by admin ${adminId || 'UNKNOWN'}. Reason: ${reason || 'No reason provided'}`,
+            sourceUserId: adminId
+          }
+        });
+        
+        results.push(result);
+        
+      } catch (error: any) {
+        errors.push({
+          userId,
+          error: error.message,
+          success: false
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Bulk operation completed. ${results.length} successful, ${errors.length} failed.`,
+      data: {
+        results,
+        errors,
+        summary: {
+          total: userIds.length,
+          successful: results.length,
+          failed: errors.length
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error in bulk user actions:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to perform bulk user actions' 
+    });
+  }
+};
+
 // GET /api/admin/dashboard-stats - Статистика для админ панели
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
