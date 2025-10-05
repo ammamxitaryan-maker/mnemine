@@ -22,7 +22,14 @@ api.interceptors.request.use((config) => {
     console.log('[CLIENT_API] Adding Telegram initData to request');
     config.headers['x-telegram-init-data'] = tg.initData;
   } else {
-    console.log('[CLIENT_API] No Telegram data available, proceeding without it');
+    // Try to get initData from localStorage (fallback mode)
+    const storedInitData = localStorage.getItem('telegram_init_data');
+    if (storedInitData) {
+      console.log('[CLIENT_API] Using stored Telegram initData');
+      config.headers['x-telegram-init-data'] = storedInitData;
+    } else {
+      console.log('[CLIENT_API] No Telegram data available, proceeding without it');
+    }
   }
 
   // Add admin token for admin routes

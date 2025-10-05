@@ -71,6 +71,10 @@ const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void) => {
     localStorage.setItem('testUser', JSON.stringify(testUserData));
   }
 
+  // Create mock initData for fallback mode
+  const mockInitData = `user=${encodeURIComponent(JSON.stringify(testUserData))}&auth_date=${Math.floor(Date.now() / 1000)}`;
+  localStorage.setItem('telegram_init_data', mockInitData);
+
   try {
     // Call backend login endpoint to create user in database
     const response = await fetch(`${backendUrl}/api/login`, {
@@ -128,6 +132,12 @@ export const useTelegramAuth = () => {
   const setUserAndCache = (userData: AuthenticatedUser | null) => {
     setUser(userData);
     authCache = { user: userData, timestamp: Date.now() };
+    
+    // Clear cache if user changes
+    if (userData && authCache.user && authCache.user.telegramId !== userData.telegramId) {
+      console.log('[AUTH] User changed, clearing cache');
+      authCache = null;
+    }
   };
 
   useEffect(() => {
