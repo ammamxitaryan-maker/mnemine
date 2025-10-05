@@ -34,11 +34,39 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    // For now, allow admin access based on Telegram ID
-    // In production, you should properly verify the Telegram init data
-    req.user = { adminId: 'ADMIN_PANEL', permissions: ['all'] };
+    // Parse Telegram init data to get user information
+    const urlParams = new URLSearchParams(telegramInitData as string);
+    const userStr = urlParams.get('user');
+    
+    if (!userStr) {
+      return res.status(401).json({
+        success: false,
+        error: 'No user data in Telegram init data'
+      });
+    }
+
+    const user = JSON.parse(userStr);
+    const userTelegramId = user.id?.toString();
+
+    // Check if the user's Telegram ID matches the admin ID
+    if (userTelegramId !== ADMIN_TELEGRAM_ID) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    // Set admin user data
+    req.user = { 
+      adminId: userTelegramId, 
+      permissions: ['all'],
+      telegramId: userTelegramId,
+      firstName: user.first_name,
+      username: user.username
+    };
     next();
   } catch (error) {
+    console.error('Admin authentication error:', error);
     return res.status(500).json({
       success: false,
       error: 'Admin authentication error'
