@@ -104,9 +104,11 @@ const App = () => {
               </Route>
             </Route>
             
-            {/* Legacy Admin Panel Route */}
-            <Route path="/admin-panel" element={<AdminPanel />} />
-            <Route path="/admin/dashboard" element={<AdminDashboardCompact />} />
+            {/* Legacy Admin Panel Route - Now protected */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin-panel" element={<AdminPanel />} />
+              <Route path="/admin/dashboard" element={<AdminDashboardCompact />} />
+            </Route>
 
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

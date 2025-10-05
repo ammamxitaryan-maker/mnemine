@@ -7,6 +7,8 @@ import { api } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Users, DollarSign, TrendingUp, Ticket, Settings } from 'lucide-react';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { Navigate } from 'react-router-dom';
 
 interface DashboardStats {
   users: {
@@ -33,10 +35,20 @@ interface DashboardStats {
 
 const Admin = () => {
   const { t } = useTranslation();
+  const { user } = useTelegramAuth();
   const { data: adminData, isLoading: usersLoading, error: usersError } = useAdminData();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+
+  // Admin access check
+  const ADMIN_TELEGRAM_ID = '6760298907';
+  const isAdmin = user?.telegramId === ADMIN_TELEGRAM_ID;
+
+  if (!isAdmin) {
+    console.log('[ADMIN] Access denied for user:', user?.telegramId);
+    return <Navigate to="/" replace />;
+  }
 
   const users = adminData?.users || [];
   const onlineCount = adminData?.onlineCount || 0;
