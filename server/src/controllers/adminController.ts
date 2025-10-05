@@ -856,6 +856,11 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         },
         activity: {
           weeklyLogs: weeklyActivity
+        },
+        system: {
+          uptime: '24/7',
+          lastBackup: new Date().toISOString(),
+          alerts: 0
         }
       }
     });

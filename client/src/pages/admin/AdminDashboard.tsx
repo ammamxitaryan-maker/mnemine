@@ -226,12 +226,12 @@ const AdminDashboard = () => {
                 <span className="text-xs text-gray-400">Status</span>
               </div>
               <div className="text-xs text-gray-400">
-                Uptime: {stats?.system.uptime || 'N/A'}
+                Uptime: {stats?.system?.uptime || 'N/A'}
               </div>
               <div className="text-xs text-gray-400">
-                Last Backup: {stats?.system.lastBackup || 'N/A'}
+                Last Backup: {stats?.system?.lastBackup || 'N/A'}
               </div>
-              {stats?.system.alerts && stats.system.alerts > 0 && (
+              {stats?.system?.alerts && stats.system.alerts > 0 && (
                 <div className="text-xs text-red-400">
                   {stats.system.alerts} Alerts
                 </div>
