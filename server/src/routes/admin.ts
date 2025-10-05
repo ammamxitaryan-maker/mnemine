@@ -139,11 +139,11 @@ router.get('/custom-reports', isAdmin, async (req, res) => {
         acc[date].total++;
         acc[date].uniqueUsers.add(log.userId);
         return acc;
-      }, {} as Record<string, { total: number; uniqueUsers: Set<string> }>);
+      }, {} as Record<string, { total: number; uniqueUsers: Set<string> | number }>);
 
       // Convert Set to count
       Object.keys(dailyActivity).forEach(date => {
-        dailyActivity[date].uniqueUsers = dailyActivity[date].uniqueUsers.size;
+        dailyActivity[date].uniqueUsers = (dailyActivity[date].uniqueUsers as Set<string>).size;
       });
 
       const totalActivity = activityData.length;
