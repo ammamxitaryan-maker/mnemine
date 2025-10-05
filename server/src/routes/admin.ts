@@ -206,6 +206,282 @@ router.get('/custom-reports', isAdmin, async (req, res) => {
   }
 });
 
+// Admin notifications endpoints
+router.get('/notifications', isAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 50, type, status } = req.query;
+    
+    const whereClause: any = {};
+    
+    if (type && type !== 'all') {
+      whereClause.type = type;
+    }
+    
+    if (status && status !== 'all') {
+      whereClause.status = status;
+    }
+    
+    const notifications = await prisma.notification.findMany({
+      where: whereClause,
+      include: {
+        user: {
+          select: {
+            id: true,
+            telegramId: true,
+            firstName: true,
+            username: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip: (parseInt(page as string) - 1) * parseInt(limit as string),
+      take: parseInt(limit as string)
+    });
+    
+    const totalNotifications = await prisma.notification.count({
+      where: whereClause
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        notifications,
+        totalNotifications,
+        totalPages: Math.ceil(totalNotifications / parseInt(limit as string))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching admin notifications:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch notifications' });
+  }
+});
+
+router.post('/notifications/send', isAdmin, async (req, res) => {
+  try {
+    const { 
+      userIds, 
+      type, 
+      title, 
+      message, 
+      priority = 'normal',
+      scheduledFor,
+      adminId 
+    } = req.body;
+    
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'User IDs are required'
+      });
+    }
+    
+    if (!type || !title || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Type, title, and message are required'
+      });
+    }
+    
+    const notifications = [];
+    
+    for (const userId of userIds) {
+      const notification = await prisma.notification.create({
+        data: {
+          userId,
+          type,
+          title,
+          message,
+          priority,
+          status: scheduledFor ? 'SCHEDULED' : 'PENDING',
+          scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+          metadata: {
+            sentBy: adminId || 'ADMIN',
+            sentAt: new Date().toISOString()
+          }
+        }
+      });
+      
+      notifications.push(notification);
+    }
+    
+    // Log the admin action
+    await prisma.activityLog.create({
+      data: {
+        userId: 'SYSTEM',
+        type: 'ADMIN_ACTION',
+        amount: 0,
+        description: `Admin ${adminId || 'UNKNOWN'} sent ${notifications.length} notifications of type ${type}`,
+        sourceUserId: adminId
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: `Sent ${notifications.length} notifications successfully`,
+      data: notifications
+    });
+  } catch (error) {
+    console.error('Error sending admin notifications:', error);
+    res.status(500).json({ success: false, error: 'Failed to send notifications' });
+  }
+});
+
+router.post('/notifications/broadcast', isAdmin, async (req, res) => {
+  try {
+    const { 
+      type, 
+      title, 
+      message, 
+      priority = 'normal',
+      targetUsers = 'all',
+      filters = {},
+      adminId 
+    } = req.body;
+    
+    if (!type || !title || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Type, title, and message are required'
+      });
+    }
+    
+    // Build user filter based on targetUsers and filters
+    let userWhereClause: any = {};
+    
+    if (targetUsers === 'active') {
+      userWhereClause.isActive = true;
+      userWhereClause.isFrozen = false;
+    } else if (targetUsers === 'investors') {
+      userWhereClause.totalInvested = { gt: 0 };
+    } else if (targetUsers === 'new') {
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      userWhereClause.createdAt = { gte: weekAgo };
+    }
+    
+    // Apply additional filters
+    if (filters.minInvestment) {
+      userWhereClause.totalInvested = { gte: filters.minInvestment };
+    }
+    if (filters.maxInvestment) {
+      userWhereClause.totalInvested = { ...userWhereClause.totalInvested, lte: filters.maxInvestment };
+    }
+    if (filters.role) {
+      userWhereClause.role = filters.role;
+    }
+    
+    // Get target users
+    const targetUsersList = await prisma.user.findMany({
+      where: userWhereClause,
+      select: { id: true }
+    });
+    
+    if (targetUsersList.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No users match the specified criteria'
+      });
+    }
+    
+    const notifications = [];
+    
+    for (const user of targetUsersList) {
+      const notification = await prisma.notification.create({
+        data: {
+          userId: user.id,
+          type,
+          title,
+          message,
+          priority,
+          status: 'PENDING',
+          metadata: {
+            sentBy: adminId || 'ADMIN',
+            sentAt: new Date().toISOString(),
+            broadcast: true
+          }
+        }
+      });
+      
+      notifications.push(notification);
+    }
+    
+    // Log the broadcast action
+    await prisma.activityLog.create({
+      data: {
+        userId: 'SYSTEM',
+        type: 'ADMIN_ACTION',
+        amount: 0,
+        description: `Admin ${adminId || 'UNKNOWN'} broadcast ${notifications.length} notifications to ${targetUsers} users`,
+        sourceUserId: adminId
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: `Broadcast sent to ${notifications.length} users successfully`,
+      data: {
+        notificationsSent: notifications.length,
+        targetUsers: targetUsersList.length
+      }
+    });
+  } catch (error) {
+    console.error('Error broadcasting notifications:', error);
+    res.status(500).json({ success: false, error: 'Failed to broadcast notifications' });
+  }
+});
+
+router.post('/notifications/:notificationId/retry', isAdmin, async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    
+    const notification = await prisma.notification.findUnique({
+      where: { id: notificationId }
+    });
+    
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        error: 'Notification not found'
+      });
+    }
+    
+    await prisma.notification.update({
+      where: { id: notificationId },
+      data: {
+        status: 'PENDING',
+        attempts: 0,
+        lastAttemptAt: null,
+        error: null
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'Notification queued for retry'
+    });
+  } catch (error) {
+    console.error('Error retrying notification:', error);
+    res.status(500).json({ success: false, error: 'Failed to retry notification' });
+  }
+});
+
+router.delete('/notifications/:notificationId', isAdmin, async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    
+    await prisma.notification.delete({
+      where: { id: notificationId }
+    });
+    
+    res.json({
+      success: true,
+      message: 'Notification deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete notification' });
+  }
+});
+
 // Analytics endpoints
 router.get('/analytics', isAdmin, async (req, res) => {
   try {

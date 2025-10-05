@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Bell, 
@@ -18,7 +19,14 @@ import {
   CheckCircle,
   Clock,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Plus,
+  Eye,
+  Calendar,
+  Target,
+  Zap,
+  Filter,
+  Search
 } from 'lucide-react';
 
 interface NotificationStats {
@@ -37,12 +45,32 @@ interface QueueStats {
   lastProcessed: string;
 }
 
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  status: string;
+  priority: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    telegramId: string;
+    firstName: string;
+    username: string;
+  };
+}
+
 const AdminNotifications = () => {
   const [stats, setStats] = useState<NotificationStats | null>(null);
   const [queueStats, setQueueStats] = useState<QueueStats | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   // Form states
   const [notificationType, setNotificationType] = useState('INFO');
@@ -53,6 +81,7 @@ const AdminNotifications = () => {
   useEffect(() => {
     fetchStats();
     fetchQueueStats();
+    fetchNotifications();
   }, []);
 
   const fetchStats = async () => {
@@ -72,6 +101,15 @@ const AdminNotifications = () => {
       console.error('Error fetching queue stats:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get('/admin/notifications');
+      setNotifications(response.data.data.notifications || []);
+    } catch (err: any) {
+      console.error('Error fetching notifications:', err);
     }
   };
 
@@ -224,8 +262,9 @@ const AdminNotifications = () => {
       </div>
 
       <Tabs defaultValue="send" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 bg-gray-800">
+        <TabsList className="grid w-full grid-cols-4 bg-gray-800">
           <TabsTrigger value="send">Send Notification</TabsTrigger>
+          <TabsTrigger value="history">Notification History</TabsTrigger>
           <TabsTrigger value="stats">Statistics</TabsTrigger>
           <TabsTrigger value="queue">Queue Management</TabsTrigger>
         </TabsList>
@@ -305,6 +344,122 @@ const AdminNotifications = () => {
                   {sending ? 'Sending...' : 'Send Notification'}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Notification History */}
+        <TabsContent value="history">
+          <Card className="bg-gray-900 border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <Bell className="h-4 w-4 mr-2 text-blue-400" />
+                  Notification History
+                </div>
+                <Button variant="outline" size="sm" onClick={fetchNotifications}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search notifications..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-gray-800 border-gray-600"
+                  />
+                </div>
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
+                >
+                  <option value="all">All Types</option>
+                  <option value="INFO">Information</option>
+                  <option value="WARNING">Warning</option>
+                  <option value="SUCCESS">Success</option>
+                  <option value="ERROR">Error</option>
+                  <option value="PROMOTION">Promotion</option>
+                </select>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
+                >
+                  <option value="all">All Status</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="SENT">Sent</option>
+                  <option value="DELIVERED">Delivered</option>
+                  <option value="FAILED">Failed</option>
+                </select>
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  More Filters
+                </Button>
+              </div>
+
+              {/* Notifications List */}
+              <div className="space-y-3">
+                {notifications
+                  .filter(notification => {
+                    const matchesSearch = searchTerm === '' || 
+                      notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      notification.message.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesType = filterType === 'all' || notification.type === filterType;
+                    const matchesStatus = filterStatus === 'all' || notification.status === filterStatus;
+                    return matchesSearch && matchesType && matchesStatus;
+                  })
+                  .map((notification) => (
+                    <div key={notification.id} className="bg-gray-800 p-4 rounded-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h3 className="text-white font-medium">{notification.title}</h3>
+                            <Badge variant="outline" className="text-xs">
+                              {notification.type}
+                            </Badge>
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${
+                                notification.status === 'SENT' ? 'text-green-400 border-green-400' :
+                                notification.status === 'FAILED' ? 'text-red-400 border-red-400' :
+                                notification.status === 'PENDING' ? 'text-yellow-400 border-yellow-400' :
+                                'text-blue-400 border-blue-400'
+                              }`}
+                            >
+                              {notification.status}
+                            </Badge>
+                          </div>
+                          <p className="text-gray-300 text-sm mb-2">{notification.message}</p>
+                          <div className="flex items-center space-x-4 text-xs text-gray-400">
+                            <span>Created: {new Date(notification.createdAt).toLocaleString()}</span>
+                            {notification.user && (
+                              <span>User: {notification.user.firstName || notification.user.username}</span>
+                            )}
+                            <span>Priority: {notification.priority}</span>
+                          </div>
+                        </div>
+                        <div className="flex space-x-1 ml-4">
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-400 border-red-600 hover:bg-red-600/10">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
