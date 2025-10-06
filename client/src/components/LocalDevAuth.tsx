@@ -81,7 +81,7 @@ export const LocalDevAuth: React.FC = () => {
       </button>
       
       {isOpen && (
-        <div className="absolute top-12 right-0 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-4 min-w-[250px]">
+        <div className="absolute top-12 right-0 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-4 min-w-[250px] max-w-[300px]">
           <h3 className="text-white font-semibold mb-3">Switch Test User</h3>
           
           <div className="space-y-2">

@@ -29,12 +29,12 @@ export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
   const greeting = getGreeting(t);
 
   return (
-    <header className="flex items-center justify-between w-full mb-8">
-      <div className="flex-1">
-        <h1 className="text-2xl font-bold text-white mb-1">{greeting}</h1>
-        <p className="text-xl font-semibold text-white mb-3">{displayName}</p>
+    <header className="flex items-center justify-between w-full mb-6 sm:mb-8">
+      <div className="flex-1 min-w-0">
+        <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">{greeting}</h1>
+        <p className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 truncate">{displayName}</p>
         {/* Enhanced User Stats */}
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
             <span className="text-gray-300">{t('fictitiousUsers.users')}: <span className="font-bold text-white">{totalUsers.toLocaleString()}</span></span>
@@ -45,14 +45,14 @@ export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
         <LanguageSwitcher />
         <ThemeSwitcher />
         <Link to="/profile" className="group">
-          <Avatar className="h-12 w-12 border-2 border-purple-400 group-hover:border-purple-300 transition-colors duration-200 shadow-lg">
+          <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-purple-400 group-hover:border-purple-300 transition-colors duration-200 shadow-lg">
             {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName} />}
             <AvatarFallback className="bg-gradient-to-br from-slate-700 to-slate-800 text-white font-semibold">
-              {fallbackInitial ? fallbackInitial : <User className="w-6 h-6" />}
+              {fallbackInitial ? fallbackInitial : <User className="w-5 h-5 sm:w-6 sm:h-6" />}
             </AvatarFallback>
           </Avatar>
         </Link>

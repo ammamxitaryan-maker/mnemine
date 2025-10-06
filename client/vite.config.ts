@@ -24,17 +24,21 @@ export default defineConfig(() => {
       },
     },
     build: {
-      sourcemap: process.env.NODE_ENV === 'production', // Only enable source maps in production
+      sourcemap: false, // Disable source maps for production
+      minify: 'terser',
       rollupOptions: {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
             router: ['react-router-dom'],
             ui: ['@tanstack/react-query'],
+            icons: ['lucide-react'],
           },
         },
       },
       chunkSizeWarningLimit: 1000,
+      target: 'esnext',
+      cssCodeSplit: true,
     },
     define: {
       // Ensure proper debugging environment

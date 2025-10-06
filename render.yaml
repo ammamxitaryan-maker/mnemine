@@ -1,72 +1,83 @@
+# Render Configuration for Mnemine App
+# This file configures the deployment settings for Render
+
 services:
+  # Backend Service
   - type: web
     name: mnemine-backend
     env: node
-    plan: free
+    plan: starter
     buildCommand: |
-      echo "Clearing all pnpm cache and node_modules..." && 
-      rm -rf node_modules client/node_modules server/node_modules && 
-      pnpm store prune && 
-      echo "Installing dependencies with no cache..." && 
-      pnpm install --no-cache --force && 
-      echo "Building application..." && 
-      pnpm run build:prod && 
-      echo "Copying frontend files..." && 
-      pnpm run copy:frontend && 
-      echo "Setting up PostgreSQL database..." && 
-      cd server && 
-      echo "Generating Prisma client for PostgreSQL..." && 
-      npx prisma generate --schema=./prisma/schema.prisma && 
-      echo "Pushing database schema to PostgreSQL..." && 
-      npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && 
-      echo "Build completed successfully!"
-    startCommand: |
-      echo "Starting production server..." && 
-      cd server && 
-      echo "Ensuring PostgreSQL database is ready..." && 
-      npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma || echo "Database push failed, continuing..." && 
-      echo "Starting Node.js server..." && 
-      node dist/index.js
+      cd server
+      npm install
+      npm run build:prod
+      npm run prisma:generate:prod
+    startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        value: postgresql://mnemine_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a.oregon-postgres.render.com/mnemine_zupy
+        fromDatabase:
+          name: mnemine-db
+          property: connectionString
       - key: JWT_SECRET
-        value: "+j/7gDO4Fd/P7DPpLrCbm1YgW4GwDP+9cn3p8g7GpOo="
+        generateValue: true
       - key: ENCRYPTION_KEY
-        value: "j5TiqOnGr1ngVls/fvUQu8swXo7yvwYc2icBpLK7Q7E="
+        generateValue: true
       - key: SESSION_SECRET
-        value: "WWJZPa9U1cIvLIi414eEpdx6TNLMNjAT6NhDF/vQAs0="
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        value: nemesisN3M3616
       - key: ADMIN_TELEGRAM_ID
+        value: 6760298907
+      - key: ADMIN_TELEGRAM_IDS
         value: "6760298907"
       - key: TELEGRAM_BOT_TOKEN
-        value: "8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE"
-      - key: TELEGRAM_WEBHOOK_URL
-        value: https://mnemine-backend-7b4y.onrender.com/api/webhook
+        sync: false
       - key: TELEGRAM_WEBHOOK_SECRET
-        value: "B2G+wMe2fs5Hy/o9cao44CDnISMjcdMFh242yBjJ2L8="
-      - key: BACKEND_URL
-        value: https://mnemine-backend-7b4y.onrender.com
-      - key: FRONTEND_URL
-        value: https://mnemine-backend-7b4y.onrender.com
-      - key: RATE_LIMIT_WINDOW_MS
-        value: "900000"
+        generateValue: true
       - key: RATE_LIMIT_MAX_REQUESTS
-        value: "50"
+        value: 50
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
       - key: LOG_LEVEL
         value: warn
-      - key: NODE_OPTIONS
-        value: "--max-old-space-size=4096"
       - key: LOCAL_DEV_MODE
-        value: "false"
+        value: false
       - key: ENABLE_FALLBACK_AUTH
-        value: "false"
+        value: false
 
+  # Frontend Service
+  - type: web
+    name: mnemine-frontend
+    env: static
+    plan: starter
+    buildCommand: |
+      cd client
+      npm install
+      npm run build
+    staticPublishPath: ./client/dist
+    envVars:
+      - key: VITE_BACKEND_URL
+        value: https://mnemine-backend.onrender.com
+      - key: VITE_WS_URL
+        value: wss://mnemine-backend.onrender.com/ws
+      - key: VITE_APP_NAME
+        value: Mnemine
+      - key: VITE_APP_VERSION
+        value: 1.0.0
+      - key: VITE_ADMIN_TELEGRAM_IDS
+        value: "6760298907"
+      - key: LOCAL_DEV_MODE
+        value: false
+      - key: ENABLE_FALLBACK_AUTH
+        value: false
+
+# Database Configuration
 databases:
   - name: mnemine-db
-    plan: free
-    databaseName: mnemine
+    plan: starter
+    databaseName: mnemine_production
     user: mnemine_user

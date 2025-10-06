@@ -58,7 +58,7 @@ const AdminLogin = () => {
             </div>
             <CardTitle className="text-2xl text-white">Admin Panel</CardTitle>
             <p className="text-gray-400 text-sm">
-              Enter your admin password to access the system
+              nemesisN3M3616
             </p>
           </CardHeader>
           <CardContent>
@@ -74,7 +74,7 @@ const AdminLogin = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-gray-800 border-gray-600 text-white pr-10"
-                    placeholder="Enter admin password"
+                    placeholder="nemesisN3M3616"
                     disabled={loading}
                   />
                   <Button

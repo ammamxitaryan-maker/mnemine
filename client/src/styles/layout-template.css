@@ -1,0 +1,387 @@
+/* ===== Mnemine App Layout Template System ===== */
+
+/* ===== Общий контейнер приложения ===== */
+.app-container {
+  display: flex;
+  flex-direction: row;
+  max-width: 1400px; /* ограничение для больших экранов */
+  min-width: 320px;  /* минимальная ширина для мобильных */
+  margin: 0 auto;    /* центрирование на больших экранах */
+  height: 100vh;     /* полная высота окна */
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1rem;   /* базовый размер текста */
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* ===== Боковая панель (Sidebar) ===== */
+.sidebar {
+  flex: 0 0 250px; /* фиксированная ширина панели, но не растягивается */
+  min-width: 200px;
+  max-width: 300px;
+  background: hsl(var(--card));
+  border-right: 1px solid hsl(var(--border));
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 30;
+}
+
+/* ===== Основная область контента ===== */
+.main-content {
+  flex: 1; /* занимает всё доступное пространство */
+  background: hsl(var(--background));
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 8px 16px;
+  position: relative;
+}
+
+/* ===== Дополнительная панель (если есть) ===== */
+.extra-panel {
+  flex: 0 0 200px;
+  min-width: 150px;
+  max-width: 250px;
+  background: hsl(var(--muted));
+  border-left: 1px solid hsl(var(--border));
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+/* ===== Мобильная навигация ===== */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: hsl(var(--card));
+  border-top: 1px solid hsl(var(--border));
+  z-index: 50;
+  display: none;
+}
+
+/* ===== Кнопки ===== */
+.button {
+  padding: 10px 16px;
+  min-height: 40px; /* удобно для клика/тапа */
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  margin: 4px 0;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button:hover {
+  background: hsl(var(--primary) / 0.9);
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== Вторичные кнопки ===== */
+.button-secondary {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.button-secondary:hover {
+  background: hsl(var(--secondary) / 0.9);
+}
+
+/* ===== Кнопки-призраки ===== */
+.button-ghost {
+  background: transparent;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+}
+
+.button-ghost:hover {
+  background: hsl(var(--muted));
+}
+
+/* ===== Текст и поля ===== */
+.text {
+  font-size: 1rem; /* можно масштабировать через rem */
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-lg {
+  font-size: 1.125rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+.input-field {
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  margin: 4px 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: hsl(var(--input));
+  color: hsl(var(--foreground));
+  transition: border-color 0.2s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+}
+
+.input-field::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+/* ===== Карточки ===== */
+.card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px 0;
+  box-shadow: 0 1px 3px hsl(var(--foreground) / 0.1);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.15);
+  transform: translateY(-2px);
+}
+
+/* ===== Заголовки ===== */
+.heading {
+  font-weight: 600;
+  line-height: 1.2;
+  color: hsl(var(--foreground));
+  margin: 0 0 8px 0;
+}
+
+.heading-1 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.heading-2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.heading-3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* ===== Адаптивность ===== */
+@media (max-width: 1024px) {
+  .extra-panel {
+    display: none; /* скрываем дополнительную панель на небольших экранах */
+  }
+  
+  .sidebar {
+    flex: 0 0 200px;
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none; /* скрываем боковую панель на мобильных */
+  }
+  
+  .mobile-nav {
+    display: block; /* показываем мобильную навигацию */
+  }
+  
+  .main-content {
+    padding: 4px 8px;
+    padding-bottom: 80px; /* место для мобильной навигации */
+  }
+  
+  .button {
+    padding: 12px 16px;
+    min-height: 48px; /* увеличиваем для удобства на сенсорных экранах */
+  }
+  
+  .card {
+    padding: 12px;
+    margin: 4px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 2px 4px;
+    padding-bottom: 80px;
+  }
+
+  .text {
+    font-size: 0.9rem;
+  }
+  
+  .heading-1 {
+    font-size: 1.5rem;
+  }
+  
+  .heading-2 {
+    font-size: 1.25rem;
+  }
+  
+  .heading-3 {
+    font-size: 1.125rem;
+  }
+}
+
+/* ===== Утилиты для отступов ===== */
+.p-0 { padding: 0; }
+.p-1 { padding: 4px; }
+.p-2 { padding: 8px; }
+.p-3 { padding: 12px; }
+.p-4 { padding: 16px; }
+.p-6 { padding: 24px; }
+.p-8 { padding: 32px; }
+
+.m-0 { margin: 0; }
+.m-1 { margin: 4px; }
+.m-2 { margin: 8px; }
+.m-3 { margin: 12px; }
+.m-4 { margin: 16px; }
+.m-6 { margin: 24px; }
+.m-8 { margin: 32px; }
+
+/* ===== Утилиты для флекс-контейнеров ===== */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; }
+
+/* ===== Утилиты для скрытия/показа ===== */
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .hidden-mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .hidden-desktop {
+    display: none;
+  }
+}
+
+/* ===== Анимации ===== */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Специальные стили для Telegram Web App ===== */
+.telegram-web-app {
+  height: 100vh;
+  height: 100dvh; /* динамическая высота для мобильных */
+}
+
+.telegram-web-app .app-container {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ===== Темная тема ===== */
+.dark .card {
+  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.3);
+}
+
+.dark .card:hover {
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.4);
+}
+
+/* ===== Светлая тема ===== */
+.light .card {
+  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.1);
+}
+
+.light .card:hover {
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.15);
+}

@@ -56,7 +56,7 @@ export const DevWarning = () => {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 max-w-md">
+    <div className="fixed top-4 left-4 z-50 max-w-md">
       <div className="bg-yellow-900/90 border border-yellow-700/50 rounded-lg p-4 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">

@@ -4,6 +4,9 @@
 @tailwind utilities;
 /* stylelint-enable at-rule-no-unknown */
 
+/* Import Layout Template System */
+@import './styles/layout-template.css';
+
 @layer base {
   :root {
     /* Unified Dark Theme - Mobile-First Design */

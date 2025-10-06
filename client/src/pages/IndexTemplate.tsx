@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,19 +11,15 @@ import { useLotteryData } from '@/hooks/useLotteryData';
 import { useBonusesSummary } from '@/hooks/useBonusesSummary';
 
 import { AuthWrapper } from '@/components/AuthWrapper';
-import { FlippableCard } from '@/components/FlippableCard';
-import { MainCardFront } from '@/components/MainCardFront';
-import { MainCardBack } from '@/components/MainCardBack';
-import { HomePageHeader } from '@/components/HomePageHeader';
-import { DashboardLinkCard } from '@/components/DashboardLinkCard';
-import { SwapCard } from '@/components/SwapCard';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { TemplateCard } from '@/components/ui/TemplateCard';
+import { TemplateButton } from '@/components/ui/TemplateButton';
 import { AuthenticatedUser } from '@/types/telegram';
 import { showError } from '@/utils/toast';
 
-import { Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, Settings, Wallet, Coins, TrendingUp } from 'lucide-react';
 
-const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
+const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
   
   // Data fetching hooks - all called at top level for consistency
@@ -31,7 +27,6 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
   const { claim: originalClaim, isClaiming } = useClaimEarnings();
   const tasksDataResult = useTasksData(user.telegramId);
-  // Note: slotsData already fetched above, no need to call useSlotsData again
   const lotteryDataResult = useLotteryData();
   const bonusesSummaryResult = useBonusesSummary();
   const achievementsResult = useAchievements();
@@ -81,7 +76,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     }
   }, [userData, userData?.accruedEarnings]);
 
-  // Memoized navigation data calculations - moved before early returns
+  // Memoized navigation data calculations
   const navigationData = useMemo(() => {
     const tasksCount = Array.isArray(tasksDataResult.data) ? tasksDataResult.data.filter((t: { isCompleted: boolean }) => !t.isCompleted).length : 0;
     const slotsCount = Array.isArray(slotsData) ? slotsData.filter((s: { isActive: boolean }) => s.isActive).length : 0;
@@ -105,7 +100,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   
   const isAdmin = user && ADMIN_TELEGRAM_IDS.includes(user.telegramId);
 
-  // Memoized navigation items - moved before early returns
+  // Memoized navigation items
   const navItems = useMemo(() => {
     const baseItems = [
       { 
@@ -168,6 +163,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
         to: "/admin", 
         icon: Settings, 
         titleKey: "admin.panel", 
+ 
         isNotification: false
       });
     }
@@ -194,8 +190,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     );
   }
 
-  // Затем, если не загружается и данные пользователя доступны, отображаем контент
-  if (overallLoading || !userData) { // Явно проверяем наличие userData
+  if (overallLoading || !userData) {
     return (
       <div className="flex justify-center items-center min-h-screen text-white p-4">
         <Loader2 className="w-12 h-12 animate-spin" />
@@ -203,84 +198,120 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     );
   }
 
+  const displayName = user.firstName || user.username || "User";
+  const greeting = t('greeting.morning'); // Simplified for template
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
-      {/* Background Layer */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-sm pointer-events-none" />
-      
-      {/* Main Content Container - Fully Responsive with Better Spacing */}
-      <div className="relative w-full max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 z-10">
-        <div className="space-y-6 sm:space-y-8">
-          {/* Header Section */}
-          <header className="relative">
-            <HomePageHeader user={user} />
-          </header>
-          
-          {/* Main Content - Responsive Grid Layout */}
-          <main className="space-y-6 sm:space-y-8">
-            {/* Primary Dashboard Section */}
-            <section className="w-full max-w-4xl mx-auto">
-              <FlippableCard
-                id="main-card"
-                frontContent={
-                  <MainCardFront 
-                    userData={userData} 
-                    slotsData={slotsData}
-                    displayEarnings={displayEarnings}
-                    onClaim={claim}
-                    isClaiming={isClaiming}
-                  />
-                }
-                backContent={<MainCardBack user={user} slots={slotsData} isLoading={slotsLoading} />}
-                enableAccordion={false}
-                showFlipIndicator={true}
-              />
-            </section>
-
-            {/* Secondary Features Section */}
-            <section className="w-full max-w-4xl mx-auto">
-              <SwapCard
-                telegramId={user.telegramId}
-                USDBalance={userData?.balance || 0}
-              />
-            </section>
-
-            {/* Navigation Grid Section */}
-            <section className="w-full max-w-4xl mx-auto">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-                {navItems.map((item) => (
-                  <div key={item.to} className="h-20 sm:h-24 lg:h-28">
-                    <DashboardLinkCard
-                      to={item.to}
-                      icon={item.icon}
-                      title={t(item.titleKey)}
-                      displayData={item.data}
-                      isLoading={item.isLoading}
-                      error={item.error}
-                      unit={item.unit ? t(item.unit) : undefined}
-                      isNotification={item.isNotification}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Bottom Spacing for Mobile Navigation - Reduced */}
-            <div className="h-20 sm:h-24" />
-          </main>
+    <PageLayout 
+      hasSidebar={false}
+      hasExtraPanel={false}
+      mainContentPadding="md"
+    >
+      {/* Header Section */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="heading heading-1">{greeting}</h1>
+          <p className="text-lg text-muted-foreground">{displayName}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <TemplateButton variant="ghost" size="sm">
+            <Settings className="w-4 h-4" />
+          </TemplateButton>
         </div>
       </div>
-    </div>
+
+      {/* Main Dashboard Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Balance Card */}
+        <TemplateCard>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="heading heading-3">{t('balance')}</h2>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm text-emerald-400">+0.02%</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-yellow-400/20 rounded-full">
+              <Wallet className="w-6 h-6 text-yellow-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">
+                {(userData?.balance ?? 0).toFixed(4)} <span className="text-sm text-gray-300">USD</span>
+              </p>
+            </div>
+          </div>
+        </TemplateCard>
+
+        {/* Earnings Card */}
+        <TemplateCard>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="heading heading-3">{t('accruedEarnings')}</h2>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-purple-400">Live</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-yellow-400/20 rounded-full">
+              <Coins className="w-6 h-6 text-yellow-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white animate-pulse">
+                {displayEarnings.toFixed(8)} <span className="text-sm text-gray-300">USD</span>
+              </p>
+            </div>
+          </div>
+        </TemplateCard>
+      </div>
+
+      {/* Action Button */}
+      <div className="mb-6">
+        <TemplateButton
+          onClick={claim}
+          disabled={isClaiming || displayEarnings < 0.000001}
+          className="w-full"
+          size="lg"
+        >
+          {isClaiming ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              {t('claim.processing')}
+            </>
+          ) : (
+            t('claim')
+          )}
+        </TemplateButton>
+      </div>
+
+      {/* Navigation Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {navItems.map((item) => (
+          <TemplateCard key={item.to} className="cursor-pointer hover:scale-105 transition-transform">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-emerald-400/20 rounded-full mb-2">
+                <item.icon className="w-5 h-5 text-emerald-400" />
+              </div>
+              <p className="text-sm font-semibold text-white mb-1">{t(item.titleKey)}</p>
+              {item.data && (
+                <p className="text-xs text-gray-300">
+                  {item.data} {item.unit ? t(item.unit) : ''}
+                </p>
+              )}
+            </div>
+          </TemplateCard>
+        ))}
+      </div>
+    </PageLayout>
   );
 };
 
-const Index = () => {
+const IndexTemplate = () => {
   return (
     <AuthWrapper>
-      {(user) => <IndexContent user={user} />}
+      {(user) => <IndexTemplateContent user={user} />}
     </AuthWrapper>
   );
 };
 
-export default Index;
+export default IndexTemplate;

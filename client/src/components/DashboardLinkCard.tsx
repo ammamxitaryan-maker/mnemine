@@ -26,11 +26,11 @@ export const DashboardLinkCard = ({ to, icon: Icon, title, displayData, isLoadin
             {displayData}
           </Badge>
         )}
-        <CardContent className="p-2 flex flex-col items-center justify-center text-center h-full relative z-10">
-          <div className="p-1.5 bg-emerald-400/20 rounded-full mb-1.5 group-hover:bg-emerald-400/30 transition-colors duration-200">
-            <Icon className="w-4 h-4 text-emerald-400" />
+        <CardContent className="p-2 sm:p-3 flex flex-col items-center justify-center text-center h-full relative z-10">
+          <div className="p-1 sm:p-1.5 bg-emerald-400/20 rounded-full mb-1 sm:mb-1.5 group-hover:bg-emerald-400/30 transition-colors duration-200">
+            <Icon className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400" />
           </div>
-          <p className="font-semibold text-white text-xs mb-1 leading-tight">{title}</p>
+          <p className="font-semibold text-white text-xs sm:text-sm mb-1 leading-tight">{title}</p>
           {isLoading ? (
             <div className="flex items-center gap-1">
               <Loader2 className="w-2.5 h-2.5 animate-spin text-emerald-400" />

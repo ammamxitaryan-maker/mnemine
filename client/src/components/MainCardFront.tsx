@@ -24,9 +24,9 @@ export const MainCardFront = ({
 
   return (
     <Card
-      className="w-full max-w-[95vw] min-h-[16rem] max-h-[24rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col justify-between backdrop-blur-sm relative overflow-hidden box-border"
+      className="w-full max-w-[95vw] min-h-[14rem] max-h-[20rem] sm:min-h-[16rem] sm:max-h-[24rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col justify-between backdrop-blur-sm relative overflow-hidden box-border"
     >
-      <CardContent className="p-8 flex flex-col items-center justify-center gap-6 text-center relative z-10 overflow-hidden">
+      <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center gap-4 sm:gap-6 text-center relative z-10 overflow-hidden">
         {/* Balance Section */}
         <div className="w-full flex-grow">
           <div className="flex items-center justify-between mb-3">
@@ -40,8 +40,8 @@ export const MainCardFront = ({
             <div className="p-3 bg-yellow-400/20 rounded-full">
               <Wallet className="w-6 h-6 text-yellow-400" />
             </div>
-            <p className="text-3xl font-bold text-white line-clamp-1">
-              {(userData?.balance ?? 0).toFixed(4)} <span className="text-base text-gray-300">USD</span>
+            <p className="text-2xl sm:text-3xl font-bold text-white line-clamp-1">
+              {(userData?.balance ?? 0).toFixed(4)} <span className="text-sm sm:text-base text-gray-300">USD</span>
             </p>
           </div>
         </div>
@@ -59,8 +59,8 @@ export const MainCardFront = ({
             <div className="p-3 bg-yellow-400/20 rounded-full">
               <Coins className="w-6 h-6 text-yellow-400" />
             </div>
-            <p className="text-3xl font-bold text-white animate-pulse line-clamp-1">
-              {displayEarnings.toFixed(8)} <span className="text-base text-gray-300">USD</span>
+            <p className="text-2xl sm:text-3xl font-bold text-white animate-pulse line-clamp-1">
+              {displayEarnings.toFixed(8)} <span className="text-sm sm:text-base text-gray-300">USD</span>
             </p>
           </div>
         </div>
