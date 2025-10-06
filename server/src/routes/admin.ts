@@ -306,16 +306,18 @@ router.post('/notifications/send', isAdmin, async (req, res) => {
       notifications.push(notification);
     }
     
-    // Log the admin action
-    await prisma.activityLog.create({
-      data: {
-        userId: 'SYSTEM',
-        type: 'ADMIN_ACTION',
-        amount: 0,
-        description: `Admin ${adminId || 'UNKNOWN'} sent ${notifications.length} notifications of type ${type}`,
-        sourceUserId: adminId
-      }
-    });
+    // Log the admin action - using first user's ID since we need a valid userId
+    if (userIds.length > 0) {
+      await prisma.activityLog.create({
+        data: {
+          userId: userIds[0],
+          type: 'ADMIN_ACTION',
+          amount: 0,
+          description: `Admin ${adminId || 'UNKNOWN'} sent ${notifications.length} notifications of type ${type} to ${userIds.length} users`,
+          sourceUserId: adminId
+        }
+      });
+    }
     
     res.json({
       success: true,
@@ -406,16 +408,18 @@ router.post('/notifications/broadcast', isAdmin, async (req, res) => {
       notifications.push(notification);
     }
     
-    // Log the broadcast action
-    await prisma.activityLog.create({
-      data: {
-        userId: 'SYSTEM',
-        type: 'ADMIN_ACTION',
-        amount: 0,
-        description: `Admin ${adminId || 'UNKNOWN'} broadcast ${notifications.length} notifications to ${targetUsers} users`,
-        sourceUserId: adminId
-      }
-    });
+    // Log the broadcast action - using first target user's ID since we need a valid userId
+    if (targetUsersList.length > 0) {
+      await prisma.activityLog.create({
+        data: {
+          userId: targetUsersList[0].id,
+          type: 'ADMIN_ACTION',
+          amount: 0,
+          description: `Admin ${adminId || 'UNKNOWN'} broadcast ${notifications.length} notifications to ${targetUsers} users (${targetUsersList.length} recipients)`,
+          sourceUserId: adminId
+        }
+      });
+    }
     
     res.json({
       success: true,
@@ -932,7 +936,7 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
     await prisma.activityLog.create({
       data: {
         userId: userId,
-        type: 'LOGIN',
+        type: 'ACCOUNT_FROZEN',
         amount: 0,
         description: `Account frozen by admin. Reason: ${reason || 'No reason provided'}`,
         sourceUserId: (req as any).user?.adminId
@@ -963,7 +967,7 @@ router.post('/users/:userId/unfreeze', isAdmin, async (req, res) => {
     await prisma.activityLog.create({
       data: {
         userId: userId,
-        type: 'LOGIN',
+        type: 'ACCOUNT_UNFROZEN',
         amount: 0,
         description: 'Account unfrozen by admin',
         sourceUserId: (req as any).user?.adminId
@@ -995,7 +999,7 @@ router.post('/users/:userId/ban', isAdmin, async (req, res) => {
     await prisma.activityLog.create({
       data: {
         userId: userId,
-        type: 'LOGIN',
+        type: 'ADMIN_ACTION',
         amount: 0,
         description: `Account banned by admin. Reason: ${reason || 'No reason provided'}`,
         sourceUserId: (req as any).user?.adminId
@@ -1026,7 +1030,7 @@ router.post('/users/:userId/unban', isAdmin, async (req, res) => {
     await prisma.activityLog.create({
       data: {
         userId: userId,
-        type: 'LOGIN',
+        type: 'ADMIN_ACTION',
         amount: 0,
         description: 'Account unbanned by admin',
         sourceUserId: (req as any).user?.adminId

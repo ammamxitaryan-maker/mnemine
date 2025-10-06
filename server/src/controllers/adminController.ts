@@ -308,7 +308,9 @@ export const getActiveUsers = async (req: Request, res: Response) => {
       data: {
         totalActiveUsers: activeUsers.length,
         usersWithGoodReferrals: usersWithGoodReferrals.length,
-        averageActivityScore: activeUsers.reduce((sum, u) => sum + u.activityScore, 0) / activeUsers.length,
+        averageActivityScore: activeUsers.length > 0 
+          ? activeUsers.reduce((sum, u) => sum + u.activityScore, 0) / activeUsers.length 
+          : 0,
         users: activeUsers,
         topUsers: activeUsers.slice(0, 10)
       }
@@ -487,12 +489,14 @@ export const deleteUser = async (req: Request, res: Response) => {
     }
 
     // Логируем удаление перед удалением данных
+    // Note: We log to userId being deleted since SYSTEM is not a valid user ID
     await prisma.activityLog.create({
       data: {
-        userId: 'SYSTEM',
-        type: 'PROFILE_UPDATED',
+        userId: userId,
+        type: 'ADMIN_ACTION',
         amount: 0,
-        description: `User ${user.telegramId} (${user.firstName || user.username}) completely deleted by admin ${adminId || 'UNKNOWN'}. Reason: ${reason || 'No reason provided'}. Total invested: ${user.totalInvested}, Total earnings: ${user.totalEarnings}`
+        description: `User ${user.telegramId} (${user.firstName || user.username}) completely deleted by admin ${adminId || 'UNKNOWN'}. Reason: ${reason || 'No reason provided'}. Total invested: ${user.totalInvested}, Total earnings: ${user.totalEarnings}`,
+        sourceUserId: adminId
       }
     });
 
@@ -693,12 +697,14 @@ export const bulkUserActions = async (req: Request, res: Response) => {
             
             if (user) {
               // Log deletion before actual deletion
+              // Note: We log to userId being deleted since SYSTEM is not a valid user ID
               await prisma.activityLog.create({
                 data: {
-                  userId: 'SYSTEM',
-                  type: 'PROFILE_UPDATED',
+                  userId: userId,
+                  type: 'ADMIN_ACTION',
                   amount: 0,
-                  description: `User ${user.telegramId} (${user.firstName || user.username}) deleted in bulk operation by admin ${adminId || 'UNKNOWN'}. Reason: ${reason || 'No reason provided'}. Total invested: ${user.totalInvested}, Total earnings: ${user.totalEarnings}`
+                  description: `User ${user.telegramId} (${user.firstName || user.username}) deleted in bulk operation by admin ${adminId || 'UNKNOWN'}. Reason: ${reason || 'No reason provided'}. Total invested: ${user.totalInvested}, Total earnings: ${user.totalEarnings}`,
+                  sourceUserId: adminId
                 }
               });
               

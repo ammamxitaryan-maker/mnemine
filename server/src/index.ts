@@ -33,30 +33,37 @@ for (const envPath of envPaths) {
 dotenv.config();
 
 // Set fallback values for environment variables BEFORE validation
-// Always use PostgreSQL database
+// SECURITY WARNING: In production, these MUST be set via environment variables
 if (!process.env.DATABASE_URL) {
-  // Always use PostgreSQL - no SQLite fallback
-  process.env.DATABASE_URL = 'postgresql://mnemine_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a.oregon-postgres.render.com/mnemine_zupy';
+  if (process.env.NODE_ENV === 'production') {
+    console.error('[ENV] CRITICAL: DATABASE_URL not set in production!');
+    throw new Error('DATABASE_URL must be set in production environment');
+  }
+  // Development fallback only
+  process.env.DATABASE_URL = 'postgresql://localhost:5432/mnemine_dev';
 }
 if (!process.env.JWT_SECRET) {
   if (process.env.NODE_ENV === 'production') {
-    process.env.JWT_SECRET = '+j/7gDO4Fd/P7DPpLrCbm1YgW4GwDP+9cn3p8g7GpOo=';
+    console.error('[ENV] CRITICAL: JWT_SECRET not set in production!');
+    throw new Error('JWT_SECRET must be set in production environment');
   } else {
-    process.env.JWT_SECRET = 'local-jwt-secret-32-chars-minimum-length';
+    process.env.JWT_SECRET = 'local-jwt-secret-32-chars-minimum-length-dev-only';
   }
 }
 if (!process.env.ENCRYPTION_KEY) {
   if (process.env.NODE_ENV === 'production') {
-    process.env.ENCRYPTION_KEY = 'j5TiqOnGr1ngVls/fvUQu8swXo7yvwYc2icBpLK7Q7E=';
+    console.error('[ENV] CRITICAL: ENCRYPTION_KEY not set in production!');
+    throw new Error('ENCRYPTION_KEY must be set in production environment');
   } else {
-    process.env.ENCRYPTION_KEY = 'local-encryption-key-32chars-1234';
+    process.env.ENCRYPTION_KEY = 'local-encryption-key-32chars-dev-only-1234';
   }
 }
 if (!process.env.SESSION_SECRET) {
   if (process.env.NODE_ENV === 'production') {
-    process.env.SESSION_SECRET = 'WWJZPa9U1cIvLIi414eEpdx6TNLMNjAT6NhDF/vQAs0=';
+    console.error('[ENV] CRITICAL: SESSION_SECRET not set in production!');
+    throw new Error('SESSION_SECRET must be set in production environment');
   } else {
-    process.env.SESSION_SECRET = 'local-session-secret-for-development';
+    process.env.SESSION_SECRET = 'local-session-secret-for-development-only';
   }
 }
 

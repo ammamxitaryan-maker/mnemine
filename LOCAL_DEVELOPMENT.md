@@ -1,175 +1,152 @@
-# Локальная разработка
+# Local Development Setup
 
-Этот документ описывает, как настроить и запустить проект локально для разработки.
+This guide will help you set up the Mnemine application for local development.
 
-## Быстрый старт
+## Quick Start
 
-1. **Установка зависимостей:**
+1. **Run the setup script:**
    ```bash
-   pnpm install
+   setup-local.bat
    ```
 
-2. **Настройка окружения:**
+2. **Start the development server:**
    ```bash
-   # Скопируйте файл с примером переменных окружения
-   cp env.example .env.local
-   
-   # Отредактируйте .env.local под ваши нужды
-   # Минимально необходимые переменные:
-   # - DATABASE_URL (для SQLite локально)
-   # - JWT_SECRET (любая строка 32+ символов)
+   pnpm run dev
    ```
 
-3. **Запуск в режиме разработки:**
-   ```bash
-   pnpm dev
-   ```
-
-4. **Откройте приложение:**
+3. **Access the application:**
    - Frontend: http://localhost:5173
-   - Backend API: http://localhost:10112
+   - Backend: http://localhost:10112
 
-## Fallback авторизация
+## Environment Configuration
 
-В локальном режиме приложение автоматически использует fallback авторизацию, если Telegram WebApp недоступен:
+The application uses the following environment files:
 
-- **Автоматический вход:** Приложение создает тестового пользователя с ID `123456789`
-- **Переключение пользователей:** Используйте кнопку "🔧 Dev Auth" в правом верхнем углу
-- **Кастомный пользователь:** Можно создать пользователя с произвольным Telegram ID
+- `env.local` - Local development template
+- `env.example` - General template with your production values
+- `env.production` - Production configuration
 
-## Структура команд
+### Local Development Features
 
-### Основные команды разработки
+✅ **Fallback Authentication** - No Telegram required for local testing  
+✅ **Test User Creation** - Automatic test user creation  
+✅ **Mock Telegram Data** - Simulated Telegram WebApp data  
+✅ **Relaxed Rate Limiting** - Higher limits for development  
+✅ **Debug Logging** - Detailed logs for troubleshooting  
+
+## Environment Variables
+
+### Required for Local Development
+
 ```bash
-pnpm dev              # Запуск клиента и сервера одновременно
-pnpm dev:client       # Только клиент (http://localhost:5173)
-pnpm dev:server       # Только сервер (http://localhost:10112)
-```
+# Database (using production database for testing)
+DATABASE_URL="postgresql://mnemine_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a/mnemine_zupy"
 
-### Команды сборки
-```bash
-pnpm build            # Сборка для разработки
-pnpm build:prod       # Сборка для продакшена
-pnpm start            # Запуск собранного приложения
-pnpm start:prod       # Запуск в продакшн режиме
-```
+# Security Keys
+JWT_SECRET="+j/7gDO4Fd/P7DPpLrCbm1YgW4GwDP+9cn3p8g7GpOo="
+ENCRYPTION_KEY="zfKOacMk2xRvNhLQjHRmzF3j+ApmNvkQ3g8bBeScl0k="
+SESSION_SECRET="WWJZPa9U1cIvLIi414eEpdx6TNLMNjAT6NhDF/vQAs0="
 
-### Команды тестирования
-```bash
-pnpm test             # Запуск всех тестов
-pnpm test:watch       # Тесты в режиме наблюдения
-pnpm test:coverage    # Тесты с покрытием
-```
-
-## Переменные окружения
-
-### Локальная разработка (.env.local)
-```env
-# База данных
-DATABASE_URL="file:./prisma/dev.db"
-
-# Безопасность
-JWT_SECRET="local-jwt-secret-32-chars-minimum-length"
-ENCRYPTION_KEY="local-encryption-key-32chars-1234"
-SESSION_SECRET="local-session-secret-for-development"
-
-# Telegram Bot (опционально для локальной разработки)
-TELEGRAM_BOT_TOKEN=""
-ADMIN_TELEGRAM_ID="6760298907"
-
-# Сервер
-PORT=10112
-NODE_ENV=development
-
-# URL-ы
-BACKEND_URL="http://localhost:10112"
-FRONTEND_URL="http://localhost:5173"
-
-# Флаги разработки
+# Development Flags
 LOCAL_DEV_MODE=true
 ENABLE_FALLBACK_AUTH=true
+NODE_ENV=development
 ```
 
-## Особенности локальной разработки
-
-### 1. Автоматическое проксирование API
-- Клиент автоматически проксирует запросы `/api/*` на сервер
-- Не нужно настраивать CORS для локальной разработки
-
-### 2. Hot Module Replacement (HMR)
-- Клиент автоматически перезагружается при изменении файлов
-- Сервер перезапускается при изменении TypeScript файлов
-
-### 3. Fallback авторизация
-- Работает только на localhost/127.0.0.1
-- Автоматически создает тестовых пользователей
-- Позволяет переключаться между разными пользователями
-
-### 4. База данных
-- Использует SQLite для локальной разработки
-- Автоматически создает схему при первом запуске
-- Данные сохраняются в `server/prisma/dev.db`
-
-## Отладка
-
-### Логи сервера
-Сервер выводит подробные логи:
-- `[ENV]` - Загрузка переменных окружения
-- `[REQUEST]` - Входящие HTTP запросы
-- `[AUTH]` - Процесс авторизации
-- `[TELEGRAM_MIDDLEWARE]` - Telegram WebApp middleware
-
-### Логи клиента
-Клиент выводит логи в консоль браузера:
-- `[TELEGRAM_AUTH]` - Процесс авторизации
-- `[AUTH]` - Результаты авторизации
-
-### Проверка здоровья
-- Backend: http://localhost:10112/health
-- Frontend: http://localhost:5173
-
-## Проблемы и решения
-
-### Порт уже занят
-```bash
-# Найти процесс, использующий порт
-lsof -i :10112  # для сервера
-lsof -i :5173   # для клиента
-
-# Убить процесс
-kill -9 <PID>
-```
-
-### Проблемы с базой данных
-```bash
-# Пересоздать базу данных
-rm server/prisma/dev.db
-pnpm run prisma:push
-```
-
-### Проблемы с зависимостями
-```bash
-# Очистить и переустановить
-pnpm clean:all
-pnpm install
-```
-
-## Интеграция с Telegram
-
-Для тестирования с реальным Telegram WebApp:
-
-1. Создайте бота через @BotFather
-2. Добавьте токен в `.env.local`
-3. Настройте webhook (опционально для локальной разработки)
-4. Используйте ngrok или аналогичный сервис для туннелирования
+### Frontend Configuration
 
 ```bash
-# Установка ngrok
-npm install -g ngrok
+# Backend URLs
+VITE_BACKEND_URL=http://localhost:10112
+VITE_WS_URL=ws://localhost:10112/ws
 
-# Создание туннеля
-ngrok http 10112
-
-# Используйте HTTPS URL для webhook
+# App Information
+VITE_APP_NAME=Mnemine
+VITE_APP_VERSION=1.0.0
+VITE_ADMIN_TELEGRAM_IDS="6760298907"
 ```
 
+## Local Development Features
+
+### 1. Fallback Authentication
+
+The application automatically detects when running locally and provides fallback authentication:
+
+- **No Telegram required** - Works in any browser
+- **Test user creation** - Automatic test user setup
+- **Mock Telegram data** - Simulated WebApp environment
+
+### 2. Test Users
+
+The application includes several test users for development:
+
+- **Admin User** (ID: 6760298907) - Full admin access
+- **Test User** (ID: 123456789) - Regular user
+- **Custom Users** - Create your own test users
+
+### 3. Development Tools
+
+- **Local Dev Auth Component** - User switching interface
+- **Debug Logging** - Detailed console output
+- **Hot Reload** - Automatic code updates
+- **WebSocket Support** - Real-time features
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Failed**
+   - Check if the production database is accessible
+   - Verify DATABASE_URL is correct
+
+2. **Authentication Issues**
+   - Ensure LOCAL_DEV_MODE=true
+   - Check browser console for errors
+   - Try clearing localStorage
+
+3. **Port Conflicts**
+   - Backend runs on port 10112
+   - Frontend runs on port 5173
+   - Check if ports are available
+
+### Debug Mode
+
+Enable debug logging by setting:
+```bash
+LOG_LEVEL=debug
+```
+
+This will show detailed logs for:
+- Database queries
+- Authentication flow
+- WebSocket connections
+- API requests
+
+## Production vs Development
+
+| Feature | Development | Production |
+|---------|-------------|------------|
+| Authentication | Fallback + Telegram | Telegram only |
+| Database | Production DB | Production DB |
+| Rate Limiting | Relaxed | Strict |
+| Logging | Debug | Error only |
+| HTTPS | Not required | Required |
+| Telegram Bot | Optional | Required |
+
+## Next Steps
+
+1. **Test the application** - Verify all features work
+2. **Create test users** - Use the LocalDevAuth component
+3. **Test admin features** - Use admin user (ID: 6760298907)
+4. **Check WebSocket** - Verify real-time updates
+5. **Test API endpoints** - Use the test-admin-api.js script
+
+## Support
+
+If you encounter issues:
+
+1. Check the console logs
+2. Verify environment variables
+3. Ensure database connectivity
+4. Try clearing browser cache
+5. Restart the development server

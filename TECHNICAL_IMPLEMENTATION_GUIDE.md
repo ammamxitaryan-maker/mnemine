@@ -683,7 +683,7 @@ npx prisma migrate deploy
 ### 2. Переменные окружения для продакшена:
 
 ```bash
-# .env.production
+# .env (based on env.example)
 DATABASE_URL="postgresql://user:password@prod-db:5432/mnemine"
 NODE_ENV=production
 PORT=10112

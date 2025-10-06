@@ -1,8 +1,20 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// Validate required environment variables
+if (!ADMIN_PASSWORD && process.env.NODE_ENV === 'production') {
+  throw new Error('ADMIN_PASSWORD must be set in production environment');
+}
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET must be set in production environment');
+}
+
+// Development fallbacks only
+const ADMIN_PASSWORD_DEV = ADMIN_PASSWORD || 'admin-dev-password-change-me';
+const JWT_SECRET_DEV = JWT_SECRET || 'jwt-secret-dev-only';
 
 // POST /api/admin/login - Аутентификация админа
 export const adminLogin = async (req: Request, res: Response) => {
@@ -16,7 +28,7 @@ export const adminLogin = async (req: Request, res: Response) => {
       });
     }
 
-    if (password !== ADMIN_PASSWORD) {
+    if (password !== ADMIN_PASSWORD_DEV) {
       return res.status(401).json({
         success: false,
         error: 'Invalid password'
@@ -30,7 +42,7 @@ export const adminLogin = async (req: Request, res: Response) => {
         permissions: ['all'],
         iat: Math.floor(Date.now() / 1000)
       },
-      JWT_SECRET,
+      JWT_SECRET_DEV,
       { expiresIn: '24h' }
     );
 
@@ -67,7 +79,7 @@ export const verifyToken = async (req: Request, res: Response) => {
     const token = authHeader.substring(7);
     
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, JWT_SECRET_DEV) as any;
       
       res.status(200).json({
         success: true,

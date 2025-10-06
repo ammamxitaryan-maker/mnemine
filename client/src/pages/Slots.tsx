@@ -59,11 +59,29 @@ const Slots = () => {
 
   const handleBuySlot = () => {
     const investmentAmount = parseFloat(amount);
-    if (user && investmentAmount > 0) {
-      mutation.mutate({ telegramId: user.telegramId, amount: investmentAmount });
-    } else {
-      showError('Please enter a valid amount.');
+    
+    // Validate input
+    if (!amount || isNaN(investmentAmount)) {
+      showError('Please enter a valid number.');
+      return;
     }
+    
+    if (investmentAmount <= 0) {
+      showError('Amount must be greater than zero.');
+      return;
+    }
+    
+    if (investmentAmount > currentBalance) {
+      showError(`Insufficient balance. You have ${currentBalance.toFixed(4)} USD available.`);
+      return;
+    }
+    
+    if (!user) {
+      showError('User not authenticated.');
+      return;
+    }
+    
+    mutation.mutate({ telegramId: user.telegramId, amount: investmentAmount });
   };
 
   const currentBalance = userData?.balance ?? 0;

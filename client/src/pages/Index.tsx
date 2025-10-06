@@ -31,7 +31,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
   const { claim: originalClaim, isClaiming } = useClaimEarnings();
   const tasksDataResult = useTasksData(user.telegramId);
-  const slotsDataResult = useSlotsData(user.telegramId);
+  // Note: slotsData already fetched above, no need to call useSlotsData again
   const lotteryDataResult = useLotteryData();
   const bonusesSummaryResult = useBonusesSummary();
   const achievementsResult = useAchievements();
@@ -84,7 +84,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   // Memoized navigation data calculations - moved before early returns
   const navigationData = useMemo(() => {
     const tasksCount = Array.isArray(tasksDataResult.data) ? tasksDataResult.data.filter((t: { isCompleted: boolean }) => !t.isCompleted).length : 0;
-    const slotsCount = Array.isArray(slotsDataResult.data) ? slotsDataResult.data.filter((s: { isActive: boolean }) => s.isActive).length : 0;
+    const slotsCount = Array.isArray(slotsData) ? slotsData.filter((s: { isActive: boolean }) => s.isActive).length : 0;
     const lotteryJackpot = lotteryDataResult.lottery?.jackpot?.toFixed(4);
     const bonusesCount = bonusesSummaryResult.data?.claimableCount ?? 0;
     const achievementsCount = Array.isArray(achievementsResult.achievements) ? achievementsResult.achievements.filter((a: { isCompleted: boolean; isClaimed: boolean }) => a.isCompleted && !a.isClaimed).length : 0;
@@ -96,69 +96,84 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
       bonusesCount,
       achievementsCount
     };
-  }, [tasksDataResult.data, slotsDataResult.data, lotteryDataResult.lottery?.jackpot, bonusesSummaryResult.data?.claimableCount, achievementsResult.achievements]);
+  }, [tasksDataResult.data, slotsData, lotteryDataResult.lottery?.jackpot, bonusesSummaryResult.data?.claimableCount, achievementsResult.achievements]);
+
+  // Check if user is admin
+  const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+    ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
+    : ['6760298907'];
+  
+  const isAdmin = user && ADMIN_TELEGRAM_IDS.includes(user.telegramId);
 
   // Memoized navigation items - moved before early returns
-  const navItems = useMemo(() => [
-    { 
-      to: "/tasks", 
-      icon: CheckSquare, 
-      titleKey: "tasks", 
-      data: navigationData.tasksCount,
-      isLoading: tasksDataResult.isLoading,
-      error: tasksDataResult.error,
-      isNotification: true,
-      unit: "available"
-    },
-    { 
-      to: "/slots", 
-      icon: Server, 
-      titleKey: "slots", 
-      data: navigationData.slotsCount,
-      isLoading: slotsDataResult.isLoading,
-      error: slotsDataResult.error,
-      unit: "slots.active"
-    },
-    { 
-      to: "/lottery", 
-      icon: Ticket, 
-      titleKey: "lottery.title", 
-      data: navigationData.lotteryJackpot,
-      isLoading: lotteryDataResult.isLoading,
-      error: lotteryDataResult.error,
-      unit: "USD"
-    },
-    { 
-      to: "/leaderboard", 
-      icon: Trophy, 
-      titleKey: "leaderboard" 
-    },
-    { 
-      to: "/bonuses", 
-      icon: Gift, 
-      titleKey: "bonuses",
-      data: navigationData.bonusesCount,
-      isLoading: bonusesSummaryResult.isLoading,
-      error: bonusesSummaryResult.error,
-      isNotification: true
-    },
-    { 
-      to: "/achievements", 
-      icon: Award, 
-      titleKey: "achievements", 
-      data: navigationData.achievementsCount,
-      isLoading: achievementsResult.isLoading,
-      error: achievementsResult.error,
-      isNotification: true,
-      unit: "available"
-    },
-    { 
-      to: "/admin", 
-      icon: Settings, 
-      titleKey: "admin.panel", 
-      isNotification: false
-    },
-  ], [navigationData, tasksDataResult.isLoading, tasksDataResult.error, slotsDataResult.isLoading, slotsDataResult.error, lotteryDataResult.isLoading, lotteryDataResult.error, bonusesSummaryResult.isLoading, bonusesSummaryResult.error, achievementsResult.isLoading, achievementsResult.error]);
+  const navItems = useMemo(() => {
+    const baseItems = [
+      { 
+        to: "/tasks", 
+        icon: CheckSquare, 
+        titleKey: "tasks", 
+        data: navigationData.tasksCount,
+        isLoading: tasksDataResult.isLoading,
+        error: tasksDataResult.error,
+        isNotification: true,
+        unit: "available"
+      },
+      { 
+        to: "/slots", 
+        icon: Server, 
+        titleKey: "slots", 
+        data: navigationData.slotsCount,
+        isLoading: slotsLoading,
+        error: undefined,
+        unit: "slots.active"
+      },
+      { 
+        to: "/lottery", 
+        icon: Ticket, 
+        titleKey: "lottery.title", 
+        data: navigationData.lotteryJackpot,
+        isLoading: lotteryDataResult.isLoading,
+        error: lotteryDataResult.error,
+        unit: "USD"
+      },
+      { 
+        to: "/leaderboard", 
+        icon: Trophy, 
+        titleKey: "leaderboard" 
+      },
+      { 
+        to: "/bonuses", 
+        icon: Gift, 
+        titleKey: "bonuses",
+        data: navigationData.bonusesCount,
+        isLoading: bonusesSummaryResult.isLoading,
+        error: bonusesSummaryResult.error,
+        isNotification: true
+      },
+      { 
+        to: "/achievements", 
+        icon: Award, 
+        titleKey: "achievements", 
+        data: navigationData.achievementsCount,
+        isLoading: achievementsResult.isLoading,
+        error: achievementsResult.error,
+        isNotification: true,
+        unit: "available"
+      }
+    ];
+
+    // Only add admin panel link if user is admin
+    if (isAdmin) {
+      baseItems.push({
+        to: "/admin", 
+        icon: Settings, 
+        titleKey: "admin.panel", 
+        isNotification: false
+      });
+    }
+
+    return baseItems;
+  }, [navigationData, tasksDataResult.isLoading, tasksDataResult.error, slotsLoading, lotteryDataResult.isLoading, lotteryDataResult.error, bonusesSummaryResult.isLoading, bonusesSummaryResult.error, achievementsResult.isLoading, achievementsResult.error, isAdmin]);
 
   // Dynamic earnings update effect
   useEffect(() => {

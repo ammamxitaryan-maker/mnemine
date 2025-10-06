@@ -33,7 +33,7 @@ const createTelegramUser = (user: any): AuthenticatedUser => {
 };
 
 // Fallback authentication for development
-const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void) => {
+const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void, setUserAndCache: (user: AuthenticatedUser) => void) => {
   console.log('[AUTH] Using fallback authentication (development mode)');
   
   // Check if we're in local development mode
@@ -309,7 +309,7 @@ export const useTelegramAuth = () => {
           // Fallback to local development mode
           console.log('[AUTH] No Telegram WebApp detected, using fallback auth (development only)');
           try {
-            await fallbackAuth(setUserAndCache);
+            await fallbackAuth(setUser, setUserAndCache);
           } catch (err) {
             console.error('[AUTH] Fallback auth failed:', err);
             setError(`Fallback auth failed: ${err instanceof Error ? err.message : 'Unknown error'}`);

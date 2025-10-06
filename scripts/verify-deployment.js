@@ -38,19 +38,14 @@ function main() {
   
   // Check environment files
   console.log('=== Environment Configuration ===');
+  allChecksPassed &= checkFileExists(
+    path.join(basePath, 'env.example'),
+    'Environment template'
+  );
   if (isProduction) {
     allChecksPassed &= checkFileExists(
       path.join(basePath, 'render.yaml'),
       'Render configuration'
-    );
-    allChecksPassed &= checkFileExists(
-      path.join(basePath, 'env.production.example'),
-      'Production env example'
-    );
-  } else {
-    allChecksPassed &= checkFileExists(
-      path.join(basePath, 'env.example'),
-      'Local env example'
     );
   }
   

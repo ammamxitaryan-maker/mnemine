@@ -2,7 +2,10 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { SplashScreen } from '@/components/SplashScreen';
 
-const ADMIN_TELEGRAM_IDS = ['6760298907', '987654321']; // Admin Telegram IDs
+// Get admin IDs from environment variable, fallback to default for development
+const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+  ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
+  : ['6760298907'];
 
 export const AdminRoute = () => {
   const { user, loading } = useTelegramAuth();
