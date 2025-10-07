@@ -348,7 +348,7 @@ export class WebSocketServer {
       }
     }, 10000));
 
-    // Broadcast user earnings every 30 seconds (optimized for better performance)
+    // Broadcast user earnings every 10 seconds for real-time updates
     this.broadcastIntervals.set('earnings', setInterval(async () => {
       try {
         // Only broadcast to users with active connections
@@ -360,9 +360,22 @@ export class WebSocketServer {
           try {
             const userData = await this.getUserData(telegramId);
             if (userData) {
+              // Send comprehensive earnings data
               this.broadcastToUser(telegramId, {
                 type: 'earnings_update',
-                data: { earnings: userData.accruedEarnings },
+                data: { 
+                  earnings: userData.accruedEarnings,
+                  balance: userData.balance,
+                  lastUpdate: userData.lastUpdate
+                },
+                timestamp: new Date().toISOString()
+              });
+
+              // Also send slots data for real-time slot earnings
+              const slotsData = await this.getSlotsData(telegramId);
+              this.broadcastToUser(telegramId, {
+                type: 'slots_data_update',
+                data: slotsData,
                 timestamp: new Date().toISOString()
               });
             }
@@ -375,7 +388,7 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting earnings:', error);
       }
-    }, 30000));
+    }, 10000));
 
     // Broadcast price data every minute for real-time price chart
     this.broadcastIntervals.set('price', setInterval(async () => {
