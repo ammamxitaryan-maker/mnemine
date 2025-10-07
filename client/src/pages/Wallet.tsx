@@ -7,6 +7,8 @@ import { useActivityData, Activity } from '@/hooks/useActivityData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ActivityCard } from '@/components/ActivityCard';
 import { useUserData, UserData } from '@/hooks/useUserData';
+import { useSlotsData } from '@/hooks/useSlotsData';
+import { useExchangeRate } from '@/hooks/useSwap';
 import { PageHeader } from '@/components/PageHeader';
 import { EarningsChart } from '@/components/EarningsChart';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'; // Import Accordion components
@@ -15,10 +17,17 @@ const Wallet = () => {
   const { user, loading: authLoading } = useTelegramAuth();
   const { data: activities, isLoading: activityLoading, error: activityError } = useActivityData(user?.telegramId);
   const { data: userData, isLoading: userDataLoading, error: userDataError } = useUserData(user?.telegramId);
+  const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user?.telegramId);
+  const { data: rateData } = useExchangeRate(user?.telegramId || '');
   const { t } = useTranslation();
 
-  const isLoading = authLoading || activityLoading || userDataLoading;
+  const isLoading = authLoading || activityLoading || userDataLoading || slotsLoading;
   const error = activityError || userDataError;
+
+  // Calculate total available balance (wallet balance + accrued earnings)
+  const totalBalance = (userData?.balance || 0) + (userData?.accruedEarnings || 0);
+  const mneBalance = userData?.mneBalance || 0;
+  const usdEquivalent = rateData && mneBalance ? mneBalance * rateData.rate : 0;
 
   if (error) {
     console.error(`[Wallet] Error fetching data for user ${user?.telegramId}:`, error);
@@ -35,9 +44,15 @@ const Wallet = () => {
           <CardTitle className="text-gray-400 text-center text-sm font-medium">Current Balance</CardTitle>
         </CardHeader>
         <CardContent className="p-3">
-          <p className="text-2xl font-bold text-center text-gold mb-3">
-            {isLoading ? <Loader2 className="w-6 h-6 mx-auto animate-spin" /> : `${(userData as UserData)?.balance.toFixed(4) || '0.0000'} USD`}
+          <p className="text-2xl font-bold text-center text-purple-400 mb-2">
+            {isLoading ? <Loader2 className="w-6 h-6 mx-auto animate-spin" /> : `${mneBalance.toFixed(2)} MNE`}
           </p>
+          {/* USD Equivalent Display */}
+          {usdEquivalent > 0 && (
+            <p className="text-lg font-semibold text-center text-yellow-400 mb-3">
+              {usdEquivalent.toFixed(4)} USD
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <Link to="/deposit">
               <Button className="w-full bg-emerald hover:bg-emerald/90 h-8 text-sm">

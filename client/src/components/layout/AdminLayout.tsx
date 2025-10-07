@@ -208,7 +208,7 @@ export const AdminLayout = () => {
 
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-40 lg:hidden">
-        <div className="flex overflow-x-auto">
+        <div className="flex overflow-x-auto pb-safe">
           {adminNavItems.slice(0, 5).map((item) => {
             const Icon = item.icon;
             const isActive = currentPath === item.path || 
@@ -219,15 +219,16 @@ export const AdminLayout = () => {
                 key={item.path}
                 onClick={() => handleNavigation(item.path)}
                 className={`
-                  flex flex-col items-center justify-center px-3 py-2 min-w-0 flex-1 touch-manipulation
+                  flex flex-col items-center justify-center px-2 py-3 min-w-0 flex-1 touch-manipulation
+                  transition-colors duration-200
                   ${isActive 
-                    ? 'text-purple-400 bg-purple-900/20' 
+                    ? 'text-purple-400 bg-purple-900/30 border-t-2 border-purple-400' 
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
                   }
                 `}
               >
                 <Icon className="h-5 w-5 mb-1" />
-                <span className="text-xs truncate">{item.label}</span>
+                <span className="text-xs truncate font-medium">{item.label}</span>
               </button>
             );
           })}

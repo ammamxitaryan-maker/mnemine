@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 // Define the shape of the user data to fix TypeScript errors
 export interface UserData {
   balance: number;
+  mneBalance: number; // Add MNE balance
   miningPower: number;
   accruedEarnings: number;
   totalInvested: number; // New field

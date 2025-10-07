@@ -804,6 +804,10 @@ async function startServer() {
       // Start slot expiration processor for automatic slot handling
       const { slotExpirationProcessor } = await import('./utils/slotExpirationProcessor.js');
       await slotExpirationProcessor.start();
+      
+      // Start auto-claim processor for automatic MNE transfers after 7 days
+      const { autoClaimProcessor } = await import('./utils/autoClaimProcessor.js');
+      await autoClaimProcessor.start();
     });
   } catch (error) {
     console.error('[SERVER] Failed to start server:', error);

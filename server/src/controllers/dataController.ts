@@ -55,12 +55,15 @@ export const getUserData = async (req: Request, res: Response) => {
     const totalEarnings = await continuousEarningsProcessor.getUserEarnings(telegramId);
 
     const USDWallet = user.wallets.find(w => w.currency === 'USD');
+    const MNEWallet = user.wallets.find(w => w.currency === 'MNE');
     const currentBalance = USDWallet?.balance || 0;
+    const mneBalance = MNEWallet?.balance || 0;
     
     const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
     const responseData = { 
       balance: currentBalance, 
+      mneBalance: mneBalance, // Add MNE balance to response
       miningPower: totalMiningPower,
       accruedEarnings: totalEarnings,
       totalInvested: user.totalInvested,

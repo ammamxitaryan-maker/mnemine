@@ -20,6 +20,7 @@ import {
   Download
 } from 'lucide-react';
 import BulkActions from '@/components/admin/BulkActions';
+import { MobileUserCard } from '@/components/admin/MobileUserCard';
 
 interface User {
   id: string;
@@ -139,7 +140,10 @@ const AdminUsers = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
+          <p className="text-gray-400 text-sm">Loading users...</p>
+        </div>
       </div>
     );
   }
@@ -147,17 +151,17 @@ const AdminUsers = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-white">User Management</h1>
-          <p className="text-gray-400">Manage users, roles, and permissions</p>
+          <h1 className="text-xl md:text-2xl font-bold text-white">User Management</h1>
+          <p className="text-gray-400 text-sm">Manage users, roles, and permissions</p>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button size="sm">
+          <Button size="sm" className="w-full sm:w-auto">
             <UserPlus className="h-4 w-4 mr-2" />
             Add User
           </Button>
@@ -227,7 +231,8 @@ const AdminUsers = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-700">

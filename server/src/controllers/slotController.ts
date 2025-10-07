@@ -35,7 +35,7 @@ export const buyNewSlot = async (req: Request, res: Response) => {
   const ipAddress = req.ip;
 
   if (!amount || typeof amount !== 'number' || amount < MINIMUM_SLOT_INVESTMENT) {
-    return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} USD` });
+    return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} MNE` });
   }
 
   try {
@@ -48,9 +48,9 @@ export const buyNewSlot = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-    if (!USDWallet || USDWallet.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient funds' });
+    const MNEWallet = user.wallets.find((w: Wallet) => w.currency === 'MNE');
+    if (!MNEWallet || MNEWallet.balance < amount) {
+      return res.status(400).json({ error: 'Insufficient MNE funds' });
     }
 
     // REMOVED: Daily slot purchase limit - users can buy unlimited slots

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getUserData, getUserStats, getUserActivity } from '../controllers/dataController.js';
-import { depositFunds, withdrawFunds, claimEarnings } from '../controllers/walletController.js';
+import { depositFunds, withdrawFunds } from '../controllers/walletController.js';
 import { getUserSlots, buyNewSlot, extendSlot, upgradeSlot, getRealTimeIncome } from '../controllers/slotController.js'; // Import upgradeSlot
 import { getReferralData, getReferralList, getReferralStreakBonusStatus, claimReferralStreakBonus, getReferralStats } from '../controllers/referralController.js'; // Import new functions
 import { claimTaskReward } from '../controllers/taskController.js';
@@ -18,7 +18,7 @@ router.get('/:telegramId/activity', authenticateUser, extractUserIdFromParams, g
 // Wallet routes - with authentication
 router.post('/:telegramId/deposit', authenticateUser, extractUserIdFromParams, depositFunds);
 router.post('/:telegramId/withdraw', authenticateUser, extractUserIdFromParams, withdrawFunds);
-router.post('/:telegramId/claim', authenticateUser, extractUserIdFromParams, claimEarnings);
+// Claim route removed - earnings are now automatically transferred to MNE balance after 7 days
 
 // Slot & Booster routes - with authentication
 router.get('/:telegramId/slots', authenticateUser, extractUserIdFromParams, getUserSlots);

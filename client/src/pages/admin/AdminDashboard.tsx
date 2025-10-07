@@ -109,58 +109,58 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Button
           onClick={() => navigate('/admin/users')}
-          className="h-20 flex-col space-y-2 bg-blue-600 hover:bg-blue-700"
+          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <Users className="h-6 w-6" />
-          <span className="text-sm">Manage Users</span>
+          <Users className="h-5 w-5 md:h-6 md:w-6" />
+          <span className="text-xs md:text-sm font-medium">Manage Users</span>
         </Button>
         <Button
           onClick={() => navigate('/admin/transactions')}
-          className="h-20 flex-col space-y-2 bg-green-600 hover:bg-green-700"
+          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <DollarSign className="h-6 w-6" />
-          <span className="text-sm">Transactions</span>
+          <DollarSign className="h-5 w-5 md:h-6 md:w-6" />
+          <span className="text-xs md:text-sm font-medium">Transactions</span>
         </Button>
         <Button
           onClick={() => navigate('/admin/lottery')}
-          className="h-20 flex-col space-y-2 bg-purple-600 hover:bg-purple-700"
+          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-purple-600 hover:bg-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <Ticket className="h-6 w-6" />
-          <span className="text-sm">Lottery</span>
+          <Ticket className="h-5 w-5 md:h-6 md:w-6" />
+          <span className="text-xs md:text-sm font-medium">Lottery</span>
         </Button>
         <Button
           onClick={() => navigate('/admin/settings')}
-          className="h-20 flex-col space-y-2 bg-gray-600 hover:bg-gray-700"
+          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-gray-600 hover:bg-gray-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <BarChart3 className="h-6 w-6" />
-          <span className="text-sm">Settings</span>
+          <BarChart3 className="h-5 w-5 md:h-6 md:w-6" />
+          <span className="text-xs md:text-sm font-medium">Settings</span>
         </Button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Users Stats */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-gray-900 border-gray-700 shadow-lg hover:shadow-xl transition-shadow duration-200">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm">
+            <CardTitle className="flex items-center text-sm font-semibold">
               <Users className="h-4 w-4 mr-2 text-blue-400" />
               Users
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-2xl font-bold text-white">{stats?.users.total || 0}</span>
-                <span className="text-xs text-gray-400">Total</span>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-2xl md:text-3xl font-bold text-white">{stats?.users.total || 0}</span>
+                <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">Total</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-green-400">{stats?.users.active || 0} Active</span>
-                <span className="text-red-400">{stats?.users.frozen || 0} Frozen</span>
+                <span className="text-green-400 font-medium">{stats?.users.active || 0} Active</span>
+                <span className="text-red-400 font-medium">{stats?.users.frozen || 0} Frozen</span>
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-400 bg-blue-900/20 px-2 py-1 rounded">
                 +{stats?.users.newThisWeek || 0} this week
               </div>
             </div>

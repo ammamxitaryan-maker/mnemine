@@ -9,6 +9,7 @@ import { useSlotsData } from '@/hooks/useSlotsData';
 import { useAchievements } from '@/hooks/useAchievements';
 import { useLotteryData } from '@/hooks/useLotteryData';
 import { useBonusesSummary } from '@/hooks/useBonusesSummary';
+import { useExchangeRate } from '@/hooks/useSwap';
 
 import { AuthWrapper } from '@/components/AuthWrapper';
 import { PageLayout } from '@/components/layout/PageLayout';
@@ -17,7 +18,7 @@ import { TemplateButton } from '@/components/ui/TemplateButton';
 import { AuthenticatedUser } from '@/types/telegram';
 import { showError } from '@/utils/toast';
 
-import { Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, Settings, Wallet, Coins, TrendingUp } from 'lucide-react';
+import { Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, Settings, Wallet, Coins, TrendingUp, DollarSign } from 'lucide-react';
 
 const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
@@ -30,9 +31,13 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
   const lotteryDataResult = useLotteryData();
   const bonusesSummaryResult = useBonusesSummary();
   const achievementsResult = useAchievements();
+  const { data: rateData } = useExchangeRate(user.telegramId);
 
   // Local state
   const [displayEarnings, setDisplayEarnings] = useState(0);
+  
+  // Calculate USD equivalent of MNE balance
+  const usdEquivalent = rateData && userData?.mneBalance ? userData.mneBalance * rateData.rate : 0;
 
   // Memoized loading state
   const overallLoading = useMemo(() => 
@@ -250,13 +255,19 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-yellow-400/20 rounded-full">
-              <Wallet className="w-6 h-6 text-yellow-400" />
+            <div className="p-3 bg-purple-400/20 rounded-full">
+              <Coins className="w-6 h-6 text-purple-400" />
             </div>
             <div>
               <p className="text-2xl font-bold text-white">
-                {(userData?.balance ?? 0).toFixed(4)} <span className="text-sm text-gray-300">USD</span>
+                {(userData?.mneBalance ?? 0).toFixed(2)} <span className="text-sm text-gray-300">MNE</span>
               </p>
+              {/* USD Equivalent Display */}
+              {usdEquivalent > 0 && (
+                <p className="text-lg font-semibold text-yellow-400 mt-1">
+                  {usdEquivalent.toFixed(4)} <span className="text-sm text-yellow-300">USD</span>
+                </p>
+              )}
             </div>
           </div>
         </TemplateCard>

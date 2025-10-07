@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUserData } from '@/hooks/useUserData';
-import { useClaimEarnings } from '@/hooks/useClaimEarnings';
 import { useTasksData } from '@/hooks/useTasksData';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useAchievements } from '@/hooks/useAchievements';
@@ -31,7 +30,6 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   // Data fetching hooks - all called at top level for consistency
   const { data: userData, isLoading: userDataLoading, error: userDataError } = useUserData(user.telegramId);
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
-  const { claim: originalClaim, isClaiming } = useClaimEarnings();
   const tasksDataResult = useTasksData(user.telegramId);
   // Note: slotsData already fetched above, no need to call useSlotsData again
   const lotteryDataResult = useLotteryData();
@@ -61,14 +59,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     [userDataLoading, slotsLoading, tasksDataResult.isLoading, lotteryDataResult.isLoading, bonusesSummaryResult.isLoading, achievementsResult.isLoading]
   );
 
-  // Optimized claim function with useCallback
-  const claim = useCallback(() => {
-    if (userData && userData.balance < 3) {
-      showError(t('claim.minBalanceError'));
-      return;
-    }
-    originalClaim();
-  }, [userData, t, originalClaim]);
+  // Auto-claim functionality - earnings will be automatically added to MNE balance after 7 days
 
   // Memoized active slots calculation
   const activeSlots = useMemo(() => {
@@ -220,8 +211,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                     userData={userData}
                     slotsData={slotsData}
                     displayEarnings={displayEarnings}
-                    onClaim={claim}
-                    isClaiming={isClaiming}
+                    telegramId={user.telegramId}
                   />
                 }
                 backContent={<MainCardBack user={user} slots={slotsData} isLoading={slotsLoading} />}
