@@ -7,6 +7,7 @@ import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast
 import { getErrorMessage } from '@/types/errors';
 import { Task } from '@/hooks/useTasksData';
 import { FlippableCard } from './FlippableCard';
+import { useTranslation } from 'react-i18next';
 
 interface TaskCardProps {
   task: Task;
@@ -19,6 +20,7 @@ const claimTask = async ({ telegramId, taskId }: { telegramId: string, taskId: s
 };
 
 export const TaskCard = ({ task, telegramId }: TaskCardProps) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({

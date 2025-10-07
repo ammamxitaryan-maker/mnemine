@@ -19,15 +19,15 @@ interface FriendCardProps {
 
 export const FriendCard = ({ friend }: FriendCardProps) => {
   const { t } = useTranslation();
-  const displayName = friend.firstName || friend.username || "Anonymous";
-  const fallbackInitial = displayName.charAt(0).toUpperCase();
+  const displayName = friend.firstName || friend.username || t('referrals.anonymous');
+  const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'A';
   const joinedAgo = formatDistanceToNow(new Date(friend.createdAt), { addSuffix: true });
 
   return (
     <div className="flex items-center p-3 bg-gray-800 rounded-lg">
       <div className="relative">
         <Avatar className="h-10 w-10 mr-4">
-          {friend.avatarUrl && <AvatarImage src={friend.avatarUrl} alt={displayName} />}
+          {friend.avatarUrl && <AvatarImage src={friend.avatarUrl} alt={displayName || 'Friend'} />}
           <AvatarFallback className="bg-gray-700 text-gray-400">
             {fallbackInitial ? fallbackInitial : <User className="w-5 h-5" />}
           </AvatarFallback>

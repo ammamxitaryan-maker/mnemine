@@ -261,7 +261,7 @@ export class WebSocketServer {
     const wallet = user.wallets.find(w => w.currency === 'USD');
     const balance = wallet ? wallet.balance : 0;
 
-    // Calculate real-time earnings
+    // Calculate real-time earnings (this is for display only, actual earnings are persisted by the processor)
     const activeSlots = user.miningSlots.filter(slot => 
       slot.isActive && new Date(slot.expiresAt) > new Date()
     );
@@ -282,7 +282,8 @@ export class WebSocketServer {
     return {
       ...user,
       balance,
-      accruedEarnings: totalEarnings
+      accruedEarnings: totalEarnings,
+      lastUpdate: currentTime.toISOString()
     };
   }
 

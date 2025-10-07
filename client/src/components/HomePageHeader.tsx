@@ -25,7 +25,7 @@ export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
   const { totalUsers, onlineUsers } = useWebSocketUserStats();
 
   const displayName = user.firstName || user.username || t('profile.user');
-  const fallbackInitial = displayName.charAt(0).toUpperCase();
+  const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'U';
   const greeting = getGreeting(t);
 
   return (
@@ -50,7 +50,7 @@ export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
         <ThemeSwitcher />
         <Link to="/profile" className="group">
           <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-purple-400 group-hover:border-purple-300 transition-colors duration-200 shadow-lg">
-            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName} />}
+            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName || 'User'} />}
             <AvatarFallback className="bg-gradient-to-br from-slate-700 to-slate-800 text-white font-semibold">
               {fallbackInitial ? fallbackInitial : <User className="w-5 h-5 sm:w-6 sm:h-6" />}
             </AvatarFallback>

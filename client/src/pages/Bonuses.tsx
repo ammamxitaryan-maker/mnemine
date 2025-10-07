@@ -68,7 +68,7 @@ const Bonuses = () => {
       getTimerText: () => `${String(dailyBonusTimeLeft.hours).padStart(2, '0')}:${String(dailyBonusTimeLeft.minutes).padStart(2, '0')}:${String(dailyBonusTimeLeft.seconds).padStart(2, '0')}`,
       backContent: {
         icon: CalendarCheck,
-        title: "Daily Rewards",
+        title: t('bonuses.dailyRewards'),
         description: "Check in every day to maximize your earnings!",
       },
     },
@@ -78,13 +78,13 @@ const Bonuses = () => {
       icon: PiggyBank,
       iconColorClass: 'text-emerald',
       buttonClassName: 'bg-emerald hover:bg-emerald/90 text-white',
-      title: "Dividends",
+      title: t('bonuses.dividends'),
       getStatusText: () => dividendsBonus.status?.canClaim ? `Claim your estimated ${dividendsBonus.status.estimatedAmount} USD!` : `Next claim in:`,
       getButtonText: () => `Claim Dividends`,
       getTimerText: () => `${String(dividendsTimeLeft.hours).padStart(2, '0')}:${String(dividendsTimeLeft.minutes).padStart(2, '0')}:${String(dividendsTimeLeft.seconds).padStart(2, '0')}`,
       backContent: {
         icon: TrendingUp,
-        title: "Investment Dividends",
+        title: t('bonuses.investmentDividends'),
         description: "Receive periodic dividends based on your total investments. The more you invest, the more you earn!",
       },
     },
@@ -100,7 +100,7 @@ const Bonuses = () => {
       getTimerText: () => leaderboardBonus.status?.isInTop10 ? `${String(leaderboardTimeLeft.hours).padStart(2, '0')}:${String(leaderboardTimeLeft.minutes).padStart(2, '0')}:${String(leaderboardTimeLeft.seconds).padStart(2, '0')}` : <Crown className="w-6 h-6 text-gray-500" />,
       backContent: {
         icon: Crown,
-        title: "Top Miner Rewards",
+        title: t('bonuses.topMinerRewards'),
         description: "Be among the top 10 on the leaderboard to claim a daily bonus!",
       },
     },
@@ -116,7 +116,7 @@ const Bonuses = () => {
       getTimerText: () => investmentGrowthBonus.status?.hasRecentInvestmentActivity ? `${String(investmentGrowthTimeLeft.hours).padStart(2, '0')}:${String(investmentGrowthTimeLeft.minutes).padStart(2, '0')}:${String(investmentGrowthTimeLeft.seconds).padStart(2, '0')}` : <DollarSign className="w-6 h-6 text-gray-500" />,
       backContent: {
         icon: DollarSign,
-        title: "Grow Your Portfolio",
+        title: t('bonuses.growPortfolio'),
         description: "Make new investments (deposits, slots, boosters) to earn a weekly bonus!",
       },
     },
@@ -132,7 +132,7 @@ const Bonuses = () => {
       getTimerText: () => `${referralStreakBonus.status?.referralCountIn3Days ?? 0}/3`,
       backContent: {
         icon: Award,
-        title: "Referral Streaks",
+        title: t('bonuses.referralStreaks'),
         description: "Invite 3 friends within a 3-day period to earn an extra bonus!",
       },
     },

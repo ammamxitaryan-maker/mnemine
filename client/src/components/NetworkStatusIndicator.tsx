@@ -1,7 +1,9 @@
 import { useNetworkErrorHandler } from '@/hooks/useNetworkErrorHandler';
 import { AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const NetworkStatusIndicator = () => {
+  const { t } = useTranslation();
   const { networkState, clearNetworkError } = useNetworkErrorHandler();
 
   if (!networkState.hasNetworkError) {

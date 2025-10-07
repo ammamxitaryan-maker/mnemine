@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { CheckCircle, Lock, Trophy, Info } from 'lucide-react';
 import { Achievement } from '@/hooks/useAchievements';
 import { FlippableCard } from './FlippableCard';
+import { useTranslation } from 'react-i18next';
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -11,6 +12,7 @@ interface AchievementCardProps {
 }
 
 export const AchievementCard = ({ achievement, onClaim, isClaiming }: AchievementCardProps) => {
+  const { t } = useTranslation();
   const { id, title, description, reward, isCompleted, isClaimed } = achievement;
 
   const Front = (
@@ -25,7 +27,7 @@ export const AchievementCard = ({ achievement, onClaim, isClaiming }: Achievemen
       <div className="text-right">
         <p className="text-gold font-bold text-sm">{reward.toFixed(2)} USD</p>
         <p className="text-xs text-gray-400">
-          {isClaimed ? "Claimed" : isCompleted ? "Ready" : "Locked"}
+          {isClaimed ? t('achievements.claimed') : isCompleted ? t('achievements.ready') : t('achievements.locked')}
         </p>
       </div>
     </Card>

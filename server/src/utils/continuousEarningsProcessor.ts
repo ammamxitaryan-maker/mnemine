@@ -97,8 +97,43 @@ export class ContinuousEarningsProcessor {
         }
       }
 
-      // Persist earnings by updating lastAccruedAt timestamps
+      // Persist earnings by updating lastAccruedAt timestamps and user balances
       if (slotsToUpdate.length > 0) {
+        // Group earnings by user
+        const userEarnings = new Map<string, number>();
+        for (const slot of slotEarnings) {
+          const current = userEarnings.get(slot.userId) || 0;
+          userEarnings.set(slot.userId, current + slot.earnings);
+        }
+
+        // Update user balances with earned amounts
+        for (const [userId, totalEarnings] of userEarnings) {
+          if (totalEarnings > 0) {
+            await prisma.wallet.updateMany({
+              where: {
+                userId: userId,
+                currency: 'USD'
+              },
+              data: {
+                balance: {
+                  increment: totalEarnings
+                }
+              }
+            });
+
+            // Log the earnings activity
+            await prisma.activityLog.create({
+              data: {
+                userId: userId,
+                type: 'EARNINGS',
+                amount: totalEarnings,
+                description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} USD`
+              }
+            });
+          }
+        }
+
+        // Update slot timestamps
         await Promise.all(slotsToUpdate.map(update => 
           prisma.miningSlot.update({
             where: { id: update.id },
@@ -107,7 +142,7 @@ export class ContinuousEarningsProcessor {
         ));
 
         const totalEarnings = slotEarnings.reduce((sum, slot) => sum + slot.earnings, 0);
-        console.log(`[EARNINGS] Processed earnings for ${slotsToUpdate.length} slots, total: ${totalEarnings.toFixed(6)} USD`);
+        console.log(`[EARNINGS] Processed and persisted earnings for ${slotsToUpdate.length} slots, total: ${totalEarnings.toFixed(6)} USD`);
       }
 
       // Additional persistence every 5 minutes for safety

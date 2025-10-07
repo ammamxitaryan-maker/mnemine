@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Info } from 'lucide-react';
 import { FlippableCard } from './FlippableCard';
+import { useTranslation } from 'react-i18next';
 
 interface BonusCardProps {
   id: string;
@@ -36,6 +37,7 @@ const BonusFront = ({
   iconColorClass = 'text-yellow-400',
   buttonClassName = 'bg-yellow-500 hover:bg-yellow-600 text-black',
 }: Omit<BonusCardProps, 'id' | 'backContent'>) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <Card className="bg-gray-900 border-primary h-full">
@@ -61,7 +63,7 @@ const BonusFront = ({
             {timerText}
           </div>
           <p className="text-xs text-gray-400">
-            {canClaim ? "Ready" : "Wait"}
+            {canClaim ? t('bonuses.ready') : t('bonuses.wait')}
           </p>
         </div>
       </CardContent>
@@ -117,6 +119,7 @@ const BonusBack = ({
 };
 
 export const BonusCard = (props: BonusCardProps) => {
+  const { t } = useTranslation();
   const { id, backContent, ...frontProps } = props;
   
   const accordionContent = (
@@ -124,7 +127,7 @@ export const BonusCard = (props: BonusCardProps) => {
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-400">Status</span>
         <span className={`text-sm font-semibold ${frontProps.canClaim ? 'text-emerald-400' : 'text-gray-400'}`}>
-          {frontProps.canClaim ? "Ready to Claim" : "Not Available"}
+          {frontProps.canClaim ? t('bonuses.readyToClaim') : t('bonuses.notAvailable')}
         </span>
       </div>
       <div className="text-xs text-gray-400">
