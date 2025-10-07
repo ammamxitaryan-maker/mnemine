@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTelegramAuth } from './useTelegramAuth';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { getErrorMessage } from '@/types/errors';
 
 interface DividendsStatus {
   canClaim: boolean;
@@ -47,9 +48,9 @@ export const useDividendsBonus = () => {
       queryClient.invalidateQueries({ queryKey: ['userData', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['activity', user?.telegramId] });
     },
-    onError: (err: any, _variables, context) => {
+    onError: (err: unknown, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
-      const errorMessage = err.response?.data?.error || 'Failed to claim dividends.';
+      const errorMessage = getErrorMessage(err, 'Failed to claim dividends.');
       showError(errorMessage);
       console.error(`[useDividendsBonus] Error claiming dividends for ${user?.telegramId}:`, err);
     },

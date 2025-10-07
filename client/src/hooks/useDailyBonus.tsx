@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTelegramAuth } from './useTelegramAuth';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { getErrorMessage } from '@/types/errors';
 
 interface DailyBonusStatus {
   canClaim: boolean;
@@ -48,9 +49,9 @@ export const useDailyBonus = () => {
       queryClient.invalidateQueries({ queryKey: ['userData', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['activity', user?.telegramId] });
     },
-    onError: (err: any, _variables, context) => {
+    onError: (err: unknown, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
-      const errorMessage = err.response?.data?.error || 'Failed to claim bonus.';
+      const errorMessage = getErrorMessage(err, 'Failed to claim bonus.');
       showError(errorMessage);
       console.error(`[useDailyBonus] Error claiming bonus for ${user?.telegramId}:`, err); // Добавлено логирование ошибок
     },

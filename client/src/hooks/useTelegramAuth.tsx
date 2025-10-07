@@ -287,7 +287,7 @@ export const useTelegramAuth = () => {
           if (data.user) {
             setUserAndCache(createTelegramUser(data.user));
           } else if (data.success) {
-            setUserAndCache(createTelegramUser(user));
+            setUserAndCache(createTelegramUser(user as unknown as Record<string, unknown>));
           } else {
             setError(data.message || 'Direct Telegram login failed');
           }

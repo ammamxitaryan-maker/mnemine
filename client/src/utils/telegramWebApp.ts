@@ -3,25 +3,9 @@
  * Handles version compatibility and feature detection
  */
 
-export interface TelegramWebApp {
-  version: string;
-  ready(): void;
-  expand(): void;
-  enableClosingConfirmation?(): void;
-  disableVerticalSwipes?(): void;
-  enableVerticalSwipes?(): void;
-  headerColor?: string;
-  backgroundColor?: string;
-  isClosingConfirmationEnabled?: boolean;
-}
+// Use the TelegramWebApp type from types/telegram.d.ts
 
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: TelegramWebApp;
-    };
-  }
-}
+// Telegram types are already declared in types/telegram.d.ts
 
 /**
  * Check if a feature is supported in the current Telegram WebApp version
@@ -40,17 +24,11 @@ export const isFeatureSupported = (feature: string, version: string = '6.0'): bo
 /**
  * Get the current Telegram WebApp instance with version checking
  */
-export const getTelegramWebApp = (): TelegramWebApp | null => {
+export const getTelegramWebApp = (): any | null => {
   const tg = window.Telegram?.WebApp;
   if (!tg) {
     console.warn('[TelegramWebApp] Telegram WebApp not found');
     return null;
-  }
-
-  // Ensure version is set
-  if (!tg.version) {
-    tg.version = '6.0';
-    console.warn('[TelegramWebApp] Version not detected, defaulting to 6.0');
   }
 
   return tg;
@@ -63,28 +41,26 @@ export const initializeTelegramWebApp = (): void => {
   const tg = getTelegramWebApp();
   if (!tg) return;
 
-  const version = tg.version;
-
   // Always available features
   tg.ready();
   tg.expand();
 
-  // Version-dependent features
-  if (isFeatureSupported('closingConfirmation', version)) {
+  // Version-dependent features (using default version)
+  if (isFeatureSupported('closingConfirmation', '6.0')) {
     tg.enableClosingConfirmation?.();
     tg.isClosingConfirmationEnabled = true;
   } else {
-    console.log(`[TelegramWebApp] Closing confirmation not supported in version ${version}`);
+    console.log(`[TelegramWebApp] Closing confirmation not supported in version 6.0`);
   }
 
-  if (isFeatureSupported('verticalSwipes', version)) {
+  if (isFeatureSupported('verticalSwipes', '6.0')) {
     // Enable vertical swipes for scrolling
     tg.enableVerticalSwipes?.();
   } else {
-    console.log(`[TelegramWebApp] Vertical swipes control not supported in version ${version}`);
+    console.log(`[TelegramWebApp] Vertical swipes control not supported in version 6.0`);
   }
 
-  console.log(`[TelegramWebApp] Initialized with version ${version}`);
+  console.log(`[TelegramWebApp] Initialized with version 6.0`);
 };
 
 /**

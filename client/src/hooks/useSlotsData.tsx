@@ -11,6 +11,8 @@ export interface MiningSlot {
   isActive: boolean;
   type: string; // Type of slot (e.g., 'standard')
   lastAccruedAt: string; // Last time earnings were accrued
+  earningsPerSecond: number; // Earnings per second for compatibility
+  [key: string]: unknown; // Index signature for compatibility
 }
 
 const fetchSlotsData = async (telegramId?: string): Promise<MiningSlot[]> => {

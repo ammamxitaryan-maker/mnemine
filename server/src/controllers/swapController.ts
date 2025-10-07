@@ -141,6 +141,18 @@ export const swapMNEToUSD = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Проверяем, есть ли у пользователя активные слоты
+    const userWithSlots = await prisma.user.findUnique({
+      where: { telegramId },
+      include: { miningSlots: { where: { isActive: true } } }
+    });
+
+    if (!userWithSlots || userWithSlots.miningSlots.length === 0) {
+      return res.status(400).json({ 
+        error: 'You must invest in mining slots before converting MNE tokens. This prevents immediate withdrawal of welcome bonus tokens.' 
+      });
+    }
+
     const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
     const MNEWallet = user.wallets.find((w: Wallet) => w.currency === MNE_CURRENCY);
 

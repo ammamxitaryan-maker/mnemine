@@ -163,7 +163,9 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
         to: "/admin", 
         icon: Settings, 
         titleKey: "admin.panel", 
- 
+        data: 0,
+        isLoading: false,
+        error: null,
         isNotification: false
       });
     }

@@ -42,7 +42,7 @@ const Admin = () => {
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Admin access check - allow users with Telegram IDs in admin list
-  const ADMIN_TELEGRAM_IDS = ['6760298907', '987654321'];
+  const ADMIN_TELEGRAM_IDS = ['6760298907'];
   
   // Check if user is admin (moved before conditional returns)
   const isAdmin = user ? ADMIN_TELEGRAM_IDS.includes(user.telegramId) : false;

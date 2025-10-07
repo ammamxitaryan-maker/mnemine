@@ -44,10 +44,11 @@ export const useLocalEarningsCache = ({
     let totalEarningsPerSecond = 0;
     
     slots.forEach(slot => {
-      if (slot.isActive && new Date(slot.expiresAt) > now) {
+      if (slot.isActive && typeof slot.expiresAt === 'string' && new Date(slot.expiresAt) > now) {
         // All slots have 30% weekly rate (0.3)
         const weeklyRate = 0.3;
-        const earningsPerSecond = (slot.principal * weeklyRate) / (7 * 24 * 60 * 60);
+        const principal = typeof slot.principal === 'number' ? slot.principal : 0;
+        const earningsPerSecond = (principal * weeklyRate) / (7 * 24 * 60 * 60);
         totalEarningsPerSecond += earningsPerSecond;
       }
     });
@@ -134,7 +135,7 @@ export const useLocalEarningsCache = ({
   // Start/stop animation based on active slots
   useEffect(() => {
     const activeSlots = serverSlotsData?.filter(slot => 
-      slot.isActive && new Date(slot.expiresAt) > new Date()
+      slot.isActive && typeof slot.expiresAt === 'string' && new Date(slot.expiresAt) > new Date()
     ) || [];
     
     if (activeSlots.length > 0) {
@@ -165,7 +166,7 @@ export const useLocalEarningsCache = ({
     forceSync,
     earningsPerSecond: calculateEarningsPerSecond(serverSlotsData),
     activeSlotsCount: serverSlotsData?.filter(slot => 
-      slot.isActive && new Date(slot.expiresAt) > new Date()
+      slot.isActive && typeof slot.expiresAt === 'string' && new Date(slot.expiresAt) > new Date()
     ).length || 0
   };
 };

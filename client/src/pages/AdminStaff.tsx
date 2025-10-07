@@ -68,7 +68,12 @@ const AdminStaff = () => {
         <PageHeader titleKey="admin.staff" backTo="/admin" />
 
         {/* Add Admin Section (only for main admin) */}
-        {user?.role === 'ADMIN' && (
+        {(() => {
+          const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+            ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
+            : ['6760298907'];
+          return user ? ADMIN_TELEGRAM_IDS.includes(user.telegramId) : false;
+        })() && (
           <div className="bg-gray-900 border border-gray-700 p-4 mb-4">
             <h3 className="text-white font-bold mb-3">Add Admin</h3>
             <div className="space-y-3">

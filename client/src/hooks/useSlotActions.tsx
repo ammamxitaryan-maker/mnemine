@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTelegramAuth } from './useTelegramAuth';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { getErrorMessage } from '@/types/errors';
 
 const upgradeSlot = async ({ telegramId, slotId, amount }: { telegramId: string, slotId: string, amount: number }) => {
   const { data } = await api.post(`/user/${telegramId}/slots/${slotId}/upgrade`, { amount });
@@ -34,11 +35,12 @@ export const useSlotActions = () => {
       showSuccess(data.message || 'Slot upgraded successfully!');
       onActionSuccess();
     },
-    onError: (error: any, _variables, context) => {
+    onError: (error: unknown, _variables, context) => {
       if (context) {
         dismissToast(context);
       }
-      showError(error.response?.data?.error || 'Failed to upgrade slot.');
+      const errorMessage = getErrorMessage(error, 'Failed to upgrade slot.');
+      showError(errorMessage);
     },
   });
 
@@ -52,11 +54,12 @@ export const useSlotActions = () => {
       showSuccess(data.message || 'Slot extended successfully!');
       onActionSuccess();
     },
-    onError: (error: any, _variables, context) => {
+    onError: (error: unknown, _variables, context) => {
       if (context) {
         dismissToast(context);
       }
-      showError(error.response?.data?.error || 'Failed to extend slot.');
+      const errorMessage = getErrorMessage(error, 'Failed to extend slot.');
+      showError(errorMessage);
     },
   });
 

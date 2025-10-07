@@ -166,7 +166,7 @@ const AdminAnalytics = () => {
               {analytics?.users.active.toLocaleString() || 0}
             </div>
             <div className="text-xs text-gray-400 mt-1">
-              {analytics?.users.total > 0 ? 
+              {analytics?.users.total && analytics.users.total > 0 ? 
                 ((analytics.users.active / analytics.users.total) * 100).toFixed(1) : 0}% of total
             </div>
           </CardContent>

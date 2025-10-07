@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Loader2, Shuffle } from 'lucide-react';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { getErrorMessage } from '@/types/errors';
 import { LOTTERY_TICKET_COST } from '../../../shared/constants';
 
 interface BuyTicketCardProps {
@@ -40,11 +41,12 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] }); // Use prop telegramId
       queryClient.invalidateQueries({ queryKey: ['lotteryStatus'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       if (mutation.context?.toastId) {
         dismissToast(mutation.context.toastId);
       }
-      showError(error.response?.data?.error || 'Failed to purchase ticket.');
+      const errorMessage = getErrorMessage(error, 'Failed to purchase ticket.');
+      showError(errorMessage);
     },
   });
 

@@ -53,20 +53,10 @@ router.post('/login', async (req, res) => {
           lastName: last_name || null,
           referralCode: `user_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
           wallets: {
-            create: {
-              currency: 'USD',
-              balance: 1.0
-            }
-          },
-          miningSlots: {
-            create: {
-              principal: 1.0,
-              startAt: new Date(),
-              lastAccruedAt: new Date(),
-              effectiveWeeklyRate: SLOT_WEEKLY_RATE, // 30% как и все остальные слоты
-              expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
-              isActive: true
-            }
+            create: [
+              { currency: 'USD', balance: 0 }, // USD кошелек с 0 балансом
+              { currency: 'MNE', balance: 3.0 } // MNE кошелек с 3 токенами приветственного бонуса
+            ]
           }
         },
         include: {

@@ -107,18 +107,11 @@ router.post('/validate', async (req, res) => {
             avatarUrl: userData.photo_url,
             referralCode: await generateUniqueReferralCode(),
             referredById: referredByUser?.id,
-            wallets: { create: { currency: 'USD', balance: 0 } }, // Начинаем с 0, 3 USD автоматически инвестируются
-            miningSlots: { 
-              create: { 
-                principal: AUTO_INVEST_WELCOME_AMOUNT, // 3 USD автоматически инвестируется
-                startAt: new Date(), 
-                lastAccruedAt: new Date(), 
-                effectiveWeeklyRate: WELCOME_SLOT_RATE, // 30%
-                expiresAt: new Date(Date.now() + WELCOME_SLOT_DURATION_DAYS * 24 * 3600 * 1000), // 7 дней
-                isActive: true,
-                type: 'welcome', // Специальный тип приветственного слота
-                isLocked: true, // Заблокирован для клейма
-              } 
+            wallets: { 
+              create: [
+                { currency: 'USD', balance: 0 }, // USD кошелек с 0 балансом
+                { currency: 'MNE', balance: 3.0 } // MNE кошелек с 3 токенами приветственного бонуса
+              ]
             },
             captchaValidated: true,
             lastSeenAt: new Date(),
@@ -130,8 +123,8 @@ router.post('/validate', async (req, res) => {
           data: {
             userId: newUser.id,
             type: ActivityLogType.WELCOME_BONUS,
-            amount: WELCOME_BONUS_AMOUNT,
-            description: 'Welcome bonus automatically invested in locked slot for 7 days',
+            amount: 3.0,
+            description: 'Welcome bonus: 3 MNE tokens received. Invest in slots to unlock withdrawal.',
           },
         });
         // console.log(`[AUTH] Welcome bonus of ${WELCOME_BONUS_AMOUNT} USD applied to new user ${newUser.id}.`); // Removed log

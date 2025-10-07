@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTelegramAuth } from './useTelegramAuth';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { getErrorMessage } from '@/types/errors';
 
 interface InvestmentGrowthBonusStatus {
   canClaim: boolean;
@@ -61,9 +62,9 @@ export const useInvestmentGrowthBonus = () => {
       queryClient.invalidateQueries({ queryKey: ['activity', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['stats', user?.telegramId] }); // Invalidate stats to update lastInvestmentGrowthBonusClaimedAt
     },
-    onError: (err: any, _variables, context) => {
+    onError: (err: unknown, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
-      const errorMessage = err.response?.data?.error || 'Failed to claim investment growth bonus.';
+      const errorMessage = getErrorMessage(err, 'Failed to claim investment growth bonus.');
       showError(errorMessage);
       console.error(`[useInvestmentGrowthBonus] Error claiming bonus for ${user?.telegramId}:`, err);
     },

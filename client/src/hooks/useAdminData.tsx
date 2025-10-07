@@ -32,9 +32,16 @@ const fetchAllUsers = async (telegramId: string): Promise<AdminData> => {
 export const useAdminData = () => {
   const { user } = useTelegramAuth();
 
+  // Check if user is admin by Telegram ID
+  const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+    ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
+    : ['6760298907'];
+  
+  const isAdmin = user ? ADMIN_TELEGRAM_IDS.includes(user.telegramId) : false;
+
   return useQuery<AdminData, Error>({
     queryKey: ['allUsers', user?.telegramId],
     queryFn: () => fetchAllUsers(user?.telegramId || 'guest_fallback'),
-    enabled: !!user && user.role === 'ADMIN',
+    enabled: !!user && isAdmin,
   });
 };

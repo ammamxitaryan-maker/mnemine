@@ -4,6 +4,7 @@ import { LoadingButton } from './LoadingButton';
 import { Skeleton } from './SkeletonLoader';
 import { useSlotActions } from '../hooks/useSlotActions';
 import { useErrorHandler } from './ErrorBoundary';
+import { getErrorMessage } from '../types/errors';
 
 interface SlotPurchaseInterfaceProps {
   telegramId: string;
@@ -17,7 +18,7 @@ export const SlotPurchaseInterface: React.FC<SlotPurchaseInterfaceProps> = ({
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [lastPurchase, setLastPurchase] = useState<any>(null);
+  const [lastPurchase, setLastPurchase] = useState<{ amount: number; result: unknown } | null>(null);
   
   const { upgrade: buySlot, isUpgrading: slotLoading } = useSlotActions();
   const { captureError } = useErrorHandler();
@@ -68,10 +69,10 @@ export const SlotPurchaseInterface: React.FC<SlotPurchaseInterfaceProps> = ({
       alert(t('slotPurchase.success') + '\n\n' + t('slotPurchase.successDetails', { amount: slotAmount.toFixed(2) }));
       console.log('✅ Slot purchased successfully:', result);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Slot purchase failed:', error);
       // FIX: Show user-friendly error notification
-      const errorMessage = error.response?.data?.error || error.message || t('slotPurchase.error');
+      const errorMessage = getErrorMessage(error, t('slotPurchase.error'));
       alert(t('slotPurchase.error') + '\n\n' + t('slotPurchase.errorMessage', { message: errorMessage }));
       captureError(error as Error);
     } finally {
