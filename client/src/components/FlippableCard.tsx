@@ -137,7 +137,7 @@ export const FlippableCard = ({
         {/* Card Container - Optimized Height for Better Visibility */}
         <div
           className={cn(
-            "w-full h-40 sm:h-44 [perspective:1000px] cursor-pointer relative z-10",
+            "w-full h-80 sm:h-96 [perspective:1000px] cursor-pointer relative z-10",
             enableHoverFlip && "hover:scale-[1.02] transition-transform duration-200"
           )}
         onClick={handleClick}

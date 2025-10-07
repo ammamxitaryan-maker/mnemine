@@ -94,7 +94,7 @@ export const AdminLayout = () => {
           </Button>
         </div>
 
-        <nav className="mt-6 px-3">
+        <nav className="mt-6 px-3 overflow-y-auto max-h-[calc(100vh-200px)]">
           <div className="space-y-1">
             {adminNavItems.map((item) => {
               const Icon = item.icon;
@@ -106,18 +106,18 @@ export const AdminLayout = () => {
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
                   className={`
-                    w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                    w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors touch-manipulation
                     ${isActive 
                       ? 'bg-purple-600 text-white' 
                       : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                     }
                   `}
                 >
-                  <Icon className="h-5 w-5 mr-3" />
-                  <div className="flex-1 text-left">
-                    <div>{item.label}</div>
+                  <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="truncate">{item.label}</div>
                     {item.description && (
-                      <div className="text-xs text-gray-400 mt-0.5">{item.description}</div>
+                      <div className="text-xs text-gray-400 mt-0.5 truncate">{item.description}</div>
                     )}
                   </div>
                 </button>
@@ -148,24 +148,24 @@ export const AdminLayout = () => {
       <div className="lg:pl-64">
         {/* Top bar */}
         <div className="sticky top-0 z-30 bg-gray-900 border-b border-gray-700">
-          <div className="flex items-center justify-between h-16 px-6">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
+            <div className="flex items-center space-x-4 min-w-0 flex-1">
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden text-gray-400 hover:text-white"
+                className="lg:hidden text-gray-400 hover:text-white touch-manipulation"
                 onClick={() => setSidebarOpen(true)}
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <div>
-                <h2 className="text-lg font-semibold text-white">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg font-semibold text-white truncate">
                   {adminNavItems.find(item => 
                     currentPath === item.path || 
                     (item.path !== '/admin' && currentPath.startsWith(item.path))
                   )?.label || 'Admin Panel'}
                 </h2>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-400 truncate">
                   {adminNavItems.find(item => 
                     currentPath === item.path || 
                     (item.path !== '/admin' && currentPath.startsWith(item.path))
@@ -174,14 +174,15 @@ export const AdminLayout = () => {
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/')}
-                className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                className="border-gray-600 text-gray-300 hover:bg-gray-800 touch-manipulation text-xs sm:text-sm"
               >
-                Back to App
+                <span className="hidden sm:inline">Back to App</span>
+                <span className="sm:hidden">Back</span>
               </Button>
               <Button
                 variant="outline"
@@ -190,19 +191,47 @@ export const AdminLayout = () => {
                   localStorage.removeItem('admin_token');
                   navigate('/admin-login');
                 }}
-                className="border-red-600 text-red-400 hover:bg-red-600/10"
+                className="border-red-600 text-red-400 hover:bg-red-600/10 touch-manipulation text-xs sm:text-sm"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
         </div>
 
         {/* Page content */}
-        <main className="p-6">
+        <main className="p-4 sm:p-6 pb-20 sm:pb-6">
           <Outlet />
         </main>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-40 lg:hidden">
+        <div className="flex overflow-x-auto">
+          {adminNavItems.slice(0, 5).map((item) => {
+            const Icon = item.icon;
+            const isActive = currentPath === item.path || 
+              (item.path !== '/admin' && currentPath.startsWith(item.path));
+            
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleNavigation(item.path)}
+                className={`
+                  flex flex-col items-center justify-center px-3 py-2 min-w-0 flex-1 touch-manipulation
+                  ${isActive 
+                    ? 'text-purple-400 bg-purple-900/20' 
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  }
+                `}
+              >
+                <Icon className="h-5 w-5 mb-1" />
+                <span className="text-xs truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

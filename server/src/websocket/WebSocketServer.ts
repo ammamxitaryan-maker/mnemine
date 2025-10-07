@@ -266,17 +266,9 @@ export class WebSocketServer {
       slot.isActive && new Date(slot.expiresAt) > new Date()
     );
 
-    const totalEarnings = activeSlots.reduce((total, slot) => {
-      const now = new Date();
-      const lastAccrued = new Date(slot.lastAccruedAt);
-      const timeDiff = now.getTime() - lastAccrued.getTime();
-      const secondsDiff = timeDiff / 1000;
-      
-      const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-      const currentEarnings = earningsPerSecond * secondsDiff;
-      
-      return total + currentEarnings;
-    }, 0);
+    // Use continuous earnings processor for accurate 24/7 earnings
+    const { continuousEarningsProcessor } = await import('../utils/continuousEarningsProcessor.js');
+    const totalEarnings = await continuousEarningsProcessor.getUserEarnings(telegramId);
 
     return {
       ...user,

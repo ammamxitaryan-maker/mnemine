@@ -792,10 +792,18 @@ async function startServer() {
       }
     }
 
-    server.listen(port, '0.0.0.0', () => {
+    server.listen(port, '0.0.0.0', async () => {
       console.log(`[SERVER] Backend server listening on port ${port}`);
       console.log(`[WebSocket] WebSocket server available at ws://localhost:${port}/ws`);
       console.log(`[SERVER] Frontend URL for bot: ${frontendUrl}`);
+      
+      // Start continuous earnings processor for 24/7 earnings
+      const { continuousEarningsProcessor } = await import('./utils/continuousEarningsProcessor.js');
+      await continuousEarningsProcessor.start();
+      
+      // Start slot expiration processor for automatic slot handling
+      const { slotExpirationProcessor } = await import('./utils/slotExpirationProcessor.js');
+      await slotExpirationProcessor.start();
     });
   } catch (error) {
     console.error('[SERVER] Failed to start server:', error);

@@ -77,9 +77,6 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ telegramId }) => {
           <div className="swap-interface__rate">
             <span className="swap-interface__rate-label">Current Rate:</span>
             <span className="swap-interface__rate-value">{rateData.rate.toFixed(4)}</span>
-            <span className="swap-interface__rate-variation">
-              ({rateData.variation > 0 ? '+' : ''}{(rateData.variation * 100).toFixed(2)}%)
-            </span>
           </div>
         ) : (
           <div className="swap-interface__rate-error">Rate unavailable</div>
@@ -200,10 +197,6 @@ export const swapInterfaceStyles = `
   color: #28a745;
 }
 
-.swap-interface__rate-variation {
-  color: #6c757d;
-  font-size: 12px;
-}
 
 .swap-interface__rate-error {
   color: #dc3545;

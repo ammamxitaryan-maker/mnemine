@@ -50,16 +50,9 @@ export const getUserData = async (req: Request, res: Response) => {
       data: { lastSeenAt: new Date() },
     });
 
-    const currentTime = new Date();
-    let totalEarnings = 0;
-    
-    user.miningSlots.forEach(slot => {
-      const timeElapsedMs = currentTime.getTime() - slot.lastAccruedAt.getTime();
-      if (timeElapsedMs > 0) {
-        const earnings = slot.principal * slot.effectiveWeeklyRate * (timeElapsedMs / (7 * 24 * 60 * 60 * 1000));
-        totalEarnings += earnings;
-      }
-    });
+    // Use continuous earnings processor for accurate 24/7 earnings
+    const { continuousEarningsProcessor } = await import('../utils/continuousEarningsProcessor.js');
+    const totalEarnings = await continuousEarningsProcessor.getUserEarnings(telegramId);
 
     const USDWallet = user.wallets.find(w => w.currency === 'USD');
     const currentBalance = USDWallet?.balance || 0;

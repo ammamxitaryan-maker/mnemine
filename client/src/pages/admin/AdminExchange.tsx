@@ -117,14 +117,14 @@ const AdminExchange = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Exchange Rate Management</h1>
-          <p className="text-gray-400">Manage USD to MNE exchange rates</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white truncate">Exchange Rate Management</h1>
+          <p className="text-gray-400 text-sm sm:text-base">Manage USD to MNE exchange rates</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchExchangeData}>
+        <Button variant="outline" size="sm" onClick={fetchExchangeData} className="touch-manipulation self-start sm:self-auto">
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -153,16 +153,16 @@ const AdminExchange = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-3xl font-bold text-green-400">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="text-2xl sm:text-3xl font-bold text-green-400">
                 {currentRate?.rate.toFixed(4) || '0.0000'} MNE
               </div>
               <div className="text-sm text-gray-400">
                 per 1 USD
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <div className="text-sm text-gray-400">
                 Last updated
               </div>
@@ -187,14 +187,14 @@ const AdminExchange = () => {
         <CardContent>
           <form onSubmit={handleSetRate} className="space-y-4">
             <div>
-              <Label htmlFor="rate">New Rate (MNE per USD)</Label>
+              <Label htmlFor="rate" className="text-sm font-medium text-gray-300">New Rate (MNE per USD)</Label>
               <Input
                 id="rate"
                 type="number"
                 step="0.0001"
                 value={newRate}
                 onChange={(e) => setNewRate(e.target.value)}
-                className="bg-gray-800 border-gray-600"
+                className="bg-gray-800 border-gray-600 text-white placeholder-gray-500 touch-manipulation"
                 placeholder="Enter new exchange rate"
                 required
               />
@@ -206,7 +206,7 @@ const AdminExchange = () => {
             <Button 
               type="submit" 
               disabled={saving}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 touch-manipulation"
             >
               <Save className="h-4 w-4 mr-2" />
               {saving ? 'Updating...' : 'Update Exchange Rate'}
@@ -236,8 +236,8 @@ const AdminExchange = () => {
                 const change = calculateChange(entry.rate, previousRate);
                 
                 return (
-                  <div key={index} className="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                    <div>
+                  <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-gray-800 rounded-lg gap-2">
+                    <div className="min-w-0 flex-1">
                       <div className="font-mono text-lg font-bold text-white">
                         {entry.rate.toFixed(4)} MNE
                       </div>
@@ -245,7 +245,7 @@ const AdminExchange = () => {
                         {new Date(entry.timestamp).toLocaleString()}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <div className="text-sm text-gray-400">
                         by {entry.createdBy}
                       </div>

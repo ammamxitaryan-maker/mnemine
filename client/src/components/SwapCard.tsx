@@ -85,7 +85,7 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
 
   // Swap Card Front Content (Full Swap Interface)
   const SwapFront = () => (
-    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-hidden h-full">
+    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-y-auto h-full">
       <CardHeader className="py-3 px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -233,7 +233,7 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
 
   // Swap Card Back Content (Advanced Features)
   const SwapBack = () => (
-    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-hidden h-full">
+    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-y-auto h-full">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-bold flex items-center justify-center gap-2">
           <div className="p-1.5 bg-blue-400/20 rounded-full">
@@ -279,19 +279,6 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
   // Swap Card Accordion Content
   const accordionContent = (
     <div className="space-y-3">
-      {/* Quick Swap Actions */}
-      <div className="grid grid-cols-3 gap-2">
-        <button className="bg-gradient-to-r from-green-600/80 to-green-500/80 hover:from-green-500/90 hover:to-green-400/90 text-white font-semibold py-2 px-2 rounded-lg text-xs transition-all duration-200 flex items-center justify-center gap-1">
-          <span className="font-bold">25%</span>
-        </button>
-        <button className="bg-gradient-to-r from-blue-600/80 to-blue-500/80 hover:from-blue-500/90 hover:to-blue-400/90 text-white font-semibold py-2 px-2 rounded-lg text-xs transition-all duration-200 flex items-center justify-center gap-1">
-          <span className="font-bold">50%</span>
-        </button>
-        <button className="bg-gradient-to-r from-purple-600/80 to-purple-500/80 hover:from-purple-500/90 hover:to-purple-400/90 text-white font-semibold py-2 px-2 rounded-lg text-xs transition-all duration-200 flex items-center justify-center gap-1">
-          <span className="font-bold">100%</span>
-        </button>
-      </div>
-
       {/* Market Info */}
       <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 border border-gray-700/50 rounded-lg p-3">
         <div className="flex items-center justify-between mb-2">
