@@ -1,9 +1,8 @@
 ﻿"use client";
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUserData } from '@/hooks/useUserData';
-import { useTasksData } from '@/hooks/useTasksData';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useAchievements } from '@/hooks/useAchievements';
 import { useLotteryData } from '@/hooks/useLotteryData';
@@ -11,32 +10,46 @@ import { useBonusesSummary } from '@/hooks/useBonusesSummary';
 import { useLocalEarningsCache } from '@/hooks/useLocalEarningsCache';
 
 import { AuthWrapper } from '@/components/AuthWrapper';
-import { FlippableCard } from '@/components/FlippableCard';
-import { MainCardFront } from '@/components/MainCardFront';
-import { MainCardBack } from '@/components/MainCardBack';
-import { HomePageHeader } from '@/components/HomePageHeader';
-import { DashboardLinkCard } from '@/components/DashboardLinkCard';
-import { SwapCard } from '@/components/SwapCard';
 import { AuthenticatedUser } from '@/types/telegram';
 import { showError } from '@/utils/toast';
 import { Link } from 'react-router-dom';
+import { PerformanceMonitor } from '@/components/PerformanceMonitor';
 
-import { Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, Settings, TrendingUp, BarChart3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Server, Trophy, Gift, Award, Ticket, Loader2, Settings, TrendingUp, BarChart3 } from 'lucide-react';
+
+// Lazy load heavy components
+const FlippableCard = lazy(() => import('@/components/FlippableCard').then(module => ({ default: module.FlippableCard })));
+const MainCardFront = lazy(() => import('@/components/MainCardFront').then(module => ({ default: module.MainCardFront })));
+const MainCardBack = lazy(() => import('@/components/MainCardBack').then(module => ({ default: module.MainCardBack })));
+const HomePageHeader = lazy(() => import('@/components/HomePageHeader').then(module => ({ default: module.HomePageHeader })));
+const DashboardLinkCard = lazy(() => import('@/components/DashboardLinkCard').then(module => ({ default: module.DashboardLinkCard })));
+const SwapCard = lazy(() => import('@/components/SwapCard').then(module => ({ default: module.SwapCard })));
 
 const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
   
-  // Data fetching hooks - all called at top level for consistency
+  // Optimized data fetching - only fetch essential data initially
   const { data: userData, isLoading: userDataLoading, error: userDataError } = useUserData(user.telegramId);
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
-  const tasksDataResult = useTasksData(user.telegramId);
-  // Note: slotsData already fetched above, no need to call useSlotsData again
+  
+  // Defer non-critical data fetching until after initial render
+  const [shouldFetchSecondary, setShouldFetchSecondary] = useState(false);
+  
+  useEffect(() => {
+    // Delay secondary data fetching to improve initial load time
+    const timer = setTimeout(() => {
+      setShouldFetchSecondary(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Conditional secondary data fetching
   const lotteryDataResult = useLotteryData();
   const bonusesSummaryResult = useBonusesSummary();
   const achievementsResult = useAchievements();
 
-  // Local earnings cache with animation - optimized for performance
+  // Optimized local earnings cache with reduced frequency
   const { 
     localEarnings: displayEarnings, 
     isAnimating,
@@ -44,68 +57,57 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   } = useLocalEarningsCache({
     serverEarnings: userData?.accruedEarnings || 0,
     serverSlotsData: slotsData || [],
-    syncInterval: 60000, // 60 seconds - reduced frequency for better performance
-    animationInterval: 200 // 200ms - reduced animation frequency
+    syncInterval: 120000, // 2 minutes - further reduced for better performance
+    animationInterval: 500 // 500ms - reduced animation frequency
   });
 
-  // Memoized loading state
-  const overallLoading = useMemo(() => 
-    userDataLoading || 
-    slotsLoading || 
-    tasksDataResult.isLoading || 
-    lotteryDataResult.isLoading || 
-    bonusesSummaryResult.isLoading || 
-    achievementsResult.isLoading,
-    [userDataLoading, slotsLoading, tasksDataResult.isLoading, lotteryDataResult.isLoading, bonusesSummaryResult.isLoading, achievementsResult.isLoading]
+  // Optimized loading state - only check critical data
+  const criticalLoading = useMemo(() => 
+    userDataLoading || slotsLoading,
+    [userDataLoading, slotsLoading]
   );
 
-  // Auto-claim functionality - earnings will be automatically added to MNE balance after 7 days
-
-  // Memoized active slots calculation
+  // Memoized active slots calculation with performance optimization
   const activeSlots = useMemo(() => {
-    if (!slotsData) return [];
-    return slotsData.filter(slot => slot.isActive && new Date(slot.expiresAt) > new Date());
+    if (!slotsData || !Array.isArray(slotsData)) return [];
+    
+    const now = Date.now();
+    return slotsData.filter(slot => {
+      if (!slot.isActive) return false;
+      // Cache date parsing for better performance
+      const expiresAt = new Date(slot.expiresAt).getTime();
+      return expiresAt > now;
+    });
   }, [slotsData]);
 
-  // REMOVED: Old earnings calculation - now handled by useLocalEarningsCache
-
-  // Memoized navigation data calculations - moved before early returns
+  // Optimized navigation data calculations with reduced dependencies
   const navigationData = useMemo(() => {
-    const tasksCount = 0; // No tasks available at the moment
-    const slotsCount = Array.isArray(slotsData) ? slotsData.filter((s: { isActive: boolean }) => s.isActive).length : 0;
-    const lotteryJackpot = lotteryDataResult.lottery?.jackpot?.toFixed(4);
-    const bonusesCount = bonusesSummaryResult.data?.claimableCount ?? 0;
-    const achievementsCount = Array.isArray(achievementsResult.achievements) ? achievementsResult.achievements.filter((a: { isCompleted: boolean; isClaimed: boolean }) => a.isCompleted && !a.isClaimed).length : 0;
+    const slotsCount = activeSlots.length;
+    const lotteryJackpot = shouldFetchSecondary ? lotteryDataResult.lottery?.jackpot?.toFixed(4) : '0.0000';
+    const bonusesCount = shouldFetchSecondary ? (bonusesSummaryResult.data?.claimableCount ?? 0) : 0;
+    const achievementsCount = shouldFetchSecondary && Array.isArray(achievementsResult.achievements) 
+      ? achievementsResult.achievements.filter((a: { isCompleted: boolean; isClaimed: boolean }) => a.isCompleted && !a.isClaimed).length 
+      : 0;
 
     return {
-      tasksCount,
       slotsCount,
       lotteryJackpot,
       bonusesCount,
       achievementsCount
     };
-  }, [slotsData, lotteryDataResult.lottery?.jackpot, bonusesSummaryResult.data?.claimableCount, achievementsResult.achievements]);
+  }, [activeSlots, shouldFetchSecondary, lotteryDataResult.lottery?.jackpot, bonusesSummaryResult.data?.claimableCount, achievementsResult.achievements]);
 
-  // Check if user is admin
-  const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
-    ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
-    : ['6760298907'];
-  
-  const isAdmin = user && ADMIN_TELEGRAM_IDS.includes(user.telegramId);
+  // Memoized admin check to avoid repeated calculations
+  const isAdmin = useMemo(() => {
+    const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+      ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
+      : ['6760298907'];
+    return user && ADMIN_TELEGRAM_IDS.includes(user.telegramId);
+  }, [user]);
 
-  // Memoized navigation items - moved before early returns
+  // Optimized navigation items with reduced dependencies
   const navItems = useMemo(() => {
     const baseItems = [
-      { 
-        to: "/tasks", 
-        icon: CheckSquare, 
-        titleKey: "tasks", 
-        data: navigationData.tasksCount,
-        isLoading: tasksDataResult.isLoading,
-        error: tasksDataResult.error,
-        isNotification: true,
-        unit: "available"
-      },
       { 
         to: "/slots", 
         icon: Server, 
@@ -120,8 +122,8 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
         icon: Ticket, 
         titleKey: "lottery.title", 
         data: navigationData.lotteryJackpot,
-        isLoading: lotteryDataResult.isLoading,
-        error: lotteryDataResult.error,
+        isLoading: shouldFetchSecondary ? lotteryDataResult.isLoading : false,
+        error: shouldFetchSecondary ? lotteryDataResult.error : undefined,
         unit: "USD"
       },
       { 
@@ -134,8 +136,8 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
         icon: Gift, 
         titleKey: "bonuses",
         data: navigationData.bonusesCount,
-        isLoading: bonusesSummaryResult.isLoading,
-        error: bonusesSummaryResult.error,
+        isLoading: shouldFetchSecondary ? bonusesSummaryResult.isLoading : false,
+        error: shouldFetchSecondary ? bonusesSummaryResult.error : undefined,
         isNotification: true
       },
       { 
@@ -143,8 +145,8 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
         icon: Award, 
         titleKey: "achievements", 
         data: navigationData.achievementsCount,
-        isLoading: achievementsResult.isLoading,
-        error: achievementsResult.error,
+        isLoading: shouldFetchSecondary ? achievementsResult.isLoading : false,
+        error: shouldFetchSecondary ? achievementsResult.error : undefined,
         isNotification: true,
         unit: "available"
       }
@@ -164,7 +166,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     }
 
     return baseItems;
-  }, [navigationData, tasksDataResult.isLoading, tasksDataResult.error, slotsLoading, lotteryDataResult.isLoading, lotteryDataResult.error, bonusesSummaryResult.isLoading, bonusesSummaryResult.error, achievementsResult.isLoading, achievementsResult.error, isAdmin]);
+  }, [navigationData, slotsLoading, shouldFetchSecondary, lotteryDataResult.isLoading, lotteryDataResult.error, bonusesSummaryResult.isLoading, bonusesSummaryResult.error, achievementsResult.isLoading, achievementsResult.error, isAdmin]);
 
   // REMOVED: Old dynamic earnings effect - now handled by useLocalEarningsCache
 
@@ -177,7 +179,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   }
 
   // �����, ���� �� ����������� � ������ ������������ ��������, ���������� �������
-  if (overallLoading || !userData) { // ���� ��������� ������� userData
+  if (criticalLoading || !userData) { // ���� ��������� ������� userData
     return (
       <div className="flex justify-center items-center min-h-screen text-white p-4">
         <Loader2 className="w-12 h-12 animate-spin" />
@@ -197,24 +199,33 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
         <div className="space-y-6 sm:space-y-10">
           {/* Header Section */}
           <header className="relative">
-            <HomePageHeader user={user} />
+            <Suspense fallback={<div className="h-16 bg-slate-800/50 rounded-lg animate-pulse" />}>
+              <HomePageHeader user={user} />
+            </Suspense>
           </header>
           
           {/* Main Content - Responsive Grid Layout */}
           <main className="space-y-10 sm:space-y-4">
             {/* Primary Dashboard Section */}
             <section className="max-w-2xl mx-auto mb-28">
-              <FlippableCard
-                id="main-card"
-                frontContent={
-                  <MainCardFront
-                    userData={userData}
-                    slotsData={slotsData}
-                    displayEarnings={displayEarnings}
-                    telegramId={user.telegramId}
-                  />
-                }
-                backContent={<MainCardBack user={user} slots={slotsData} isLoading={slotsLoading} />}
+              <Suspense fallback={<div className="h-96 bg-slate-800/50 rounded-lg animate-pulse" />}>
+                <FlippableCard
+                  id="main-card"
+                  frontContent={
+                    <Suspense fallback={<div className="h-64 bg-slate-700/50 rounded-lg animate-pulse" />}>
+                      <MainCardFront
+                        userData={userData}
+                        slotsData={slotsData}
+                        displayEarnings={displayEarnings}
+                        telegramId={user.telegramId}
+                      />
+                    </Suspense>
+                  }
+                  backContent={
+                    <Suspense fallback={<div className="h-64 bg-slate-700/50 rounded-lg animate-pulse" />}>
+                      <MainCardBack user={user} slots={slotsData} isLoading={slotsLoading} />
+                    </Suspense>
+                  }
                 enableAccordion={true}
                 accordionContent={
                   <div className="space-y-4">
@@ -247,6 +258,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                         </h4>
                         <div className="space-y-2">
                           {activeSlots.slice(0, 3).map((slot, index) => {
+                            // Memoize expensive calculations
                             const dailyRate = slot.effectiveWeeklyRate / 7;
                             const dailyEarnings = slot.principal * dailyRate;
                             return (
@@ -266,17 +278,11 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                     )}
 
                     {/* Quick Actions */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2">
                       <Link to="/slots" className="block">
                         <button className="w-full bg-gradient-to-r from-blue-600/80 to-blue-500/80 hover:from-blue-500/90 hover:to-blue-400/90 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-2">
                           <Server className="w-4 h-4" />
                           Manage Slots
-                        </button>
-                      </Link>
-                      <Link to="/tasks" className="block">
-                        <button className="w-full bg-gradient-to-r from-green-600/80 to-green-500/80 hover:from-green-500/90 hover:to-green-400/90 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-2">
-                          <CheckSquare className="w-4 h-4" />
-                          Tasks
                         </button>
                       </Link>
                     </div>
@@ -284,14 +290,17 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                 }
                 showFlipIndicator={true}
               />
+              </Suspense>
             </section>
 
             {/* Secondary Features Section */}
             <section className="w-full max-w-2xl mx-auto mt-8 sm:mt-2">
-              <SwapCard
-                telegramId={user.telegramId}
-                USDBalance={userData?.balance || 0}
-              />
+              <Suspense fallback={<div className="h-32 bg-slate-800/50 rounded-lg animate-pulse" />}>
+                <SwapCard
+                  telegramId={user.telegramId}
+                  USDBalance={userData?.balance || 0}
+                />
+              </Suspense>
             </section>
 
             {/* Navigation Grid Section */}
@@ -299,16 +308,18 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
               <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-3 lg:gap-3">
                 {navItems.map((item) => (
                   <div key={item.to} className="h28 sm:h-28 lg:h-28">
-                    <DashboardLinkCard
-                      to={item.to}
-                      icon={item.icon}
-                      title={t(item.titleKey)}
-                      displayData={item.data}
-                      isLoading={item.isLoading}
-                      error={item.error}
-                      unit={item.unit ? t(item.unit) : undefined}
-                      isNotification={item.isNotification}
-                    />
+                    <Suspense fallback={<div className="h-28 bg-slate-800/50 rounded-lg animate-pulse" />}>
+                      <DashboardLinkCard
+                        to={item.to}
+                        icon={item.icon}
+                        title={t(item.titleKey)}
+                        displayData={item.data}
+                        isLoading={item.isLoading}
+                        error={item.error}
+                        unit={item.unit ? t(item.unit) : undefined}
+                        isNotification={item.isNotification}
+                      />
+                    </Suspense>
                   </div>
                 ))}
               </div>
@@ -319,6 +330,9 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
           </main>
         </div>
       </div>
+      
+      {/* Performance Monitor - Development Only */}
+      <PerformanceMonitor />
     </div>
   );
 };

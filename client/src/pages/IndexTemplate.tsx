@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUserData } from '@/hooks/useUserData';
-import { useClaimEarnings } from '@/hooks/useClaimEarnings';
+// import { useClaimEarnings } from '@/hooks/useClaimEarnings';
 import { useTasksData } from '@/hooks/useTasksData';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useAchievements } from '@/hooks/useAchievements';
@@ -18,7 +18,7 @@ import { TemplateButton } from '@/components/ui/TemplateButton';
 import { AuthenticatedUser } from '@/types/telegram';
 import { showError } from '@/utils/toast';
 
-import { Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, Settings, Wallet, Coins, TrendingUp, DollarSign } from 'lucide-react';
+import { Server, Trophy, Gift, Award, Ticket, Loader2, Settings, Wallet, Coins, TrendingUp, DollarSign } from 'lucide-react';
 
 const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
@@ -26,8 +26,10 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
   // Data fetching hooks - all called at top level for consistency
   const { data: userData, isLoading: userDataLoading, error: userDataError } = useUserData(user.telegramId);
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
-  const { claim: originalClaim, isClaiming } = useClaimEarnings();
-  const tasksDataResult = useTasksData(user.telegramId);
+  // const { claim: originalClaim, isClaiming } = useClaimEarnings();
+  const originalClaim = () => {}; // Placeholder function
+  const isClaiming = false; // Placeholder state
+  // const tasksDataResult = useTasksData(user.telegramId);
   const lotteryDataResult = useLotteryData();
   const bonusesSummaryResult = useBonusesSummary();
   const achievementsResult = useAchievements();
@@ -43,11 +45,10 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
   const overallLoading = useMemo(() => 
     userDataLoading || 
     slotsLoading || 
-    tasksDataResult.isLoading || 
     lotteryDataResult.isLoading || 
     bonusesSummaryResult.isLoading || 
     achievementsResult.isLoading,
-    [userDataLoading, slotsLoading, tasksDataResult.isLoading, lotteryDataResult.isLoading, bonusesSummaryResult.isLoading, achievementsResult.isLoading]
+    [userDataLoading, slotsLoading, lotteryDataResult.isLoading, bonusesSummaryResult.isLoading, achievementsResult.isLoading]
   );
 
   // Optimized claim function with useCallback
@@ -84,7 +85,7 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
       // Add earnings that have accumulated since the server calculation
       slotsData.forEach(slot => {
         if (slot.isActive && new Date(slot.expiresAt) > now) {
-          const timeElapsedMs = now.getTime() - new Date(slot.lastAccruedAt || slot.startAt).getTime();
+          const timeElapsedMs = now.getTime() - new Date(slot.lastAccruedAt || slot.createdAt).getTime();
           if (timeElapsedMs > 0) {
             const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
             const additionalEarnings = earningsPerSecond * (timeElapsedMs / 1000);
@@ -99,14 +100,12 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
 
   // Memoized navigation data calculations
   const navigationData = useMemo(() => {
-    const tasksCount = 0; // No tasks available at the moment
     const slotsCount = Array.isArray(slotsData) ? slotsData.filter((s: { isActive: boolean }) => s.isActive).length : 0;
     const lotteryJackpot = lotteryDataResult.lottery?.jackpot?.toFixed(4);
     const bonusesCount = bonusesSummaryResult.data?.claimableCount ?? 0;
     const achievementsCount = Array.isArray(achievementsResult.achievements) ? achievementsResult.achievements.filter((a: { isCompleted: boolean; isClaimed: boolean }) => a.isCompleted && !a.isClaimed).length : 0;
 
     return {
-      tasksCount,
       slotsCount,
       lotteryJackpot,
       bonusesCount,
@@ -124,16 +123,6 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
   // Memoized navigation items
   const navItems = useMemo(() => {
     const baseItems = [
-      { 
-        to: "/tasks", 
-        icon: CheckSquare, 
-        titleKey: "tasks", 
-        data: navigationData.tasksCount,
-        isLoading: tasksDataResult.isLoading,
-        error: tasksDataResult.error,
-        isNotification: true,
-        unit: "available"
-      },
       { 
         to: "/slots", 
         icon: Server, 
@@ -192,7 +181,7 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
     }
 
     return baseItems;
-  }, [navigationData, tasksDataResult.isLoading, tasksDataResult.error, slotsLoading, lotteryDataResult.isLoading, lotteryDataResult.error, bonusesSummaryResult.isLoading, bonusesSummaryResult.error, achievementsResult.isLoading, achievementsResult.error, isAdmin]);
+  }, [navigationData, slotsLoading, lotteryDataResult.isLoading, lotteryDataResult.error, bonusesSummaryResult.isLoading, bonusesSummaryResult.error, achievementsResult.isLoading, achievementsResult.error, isAdmin]);
 
   // Dynamic earnings update effect
   useEffect(() => {

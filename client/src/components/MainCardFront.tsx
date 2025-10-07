@@ -9,7 +9,7 @@ import { useDynamicMNEEarnings } from '@/hooks/useDynamicMNEEarnings';
 
 interface MainCardFrontProps {
   userData: { balance: number; mneBalance: number; miningPower: number } | undefined;
-  slotsData: { isActive: boolean; expiresAt: string; principal: number; effectiveWeeklyRate: number; lastAccruedAt: string }[] | undefined;
+  slotsData: { isActive: boolean; expiresAt: string; principal: number; effectiveWeeklyRate: number; lastAccruedAt: string; id: string; userId: string; createdAt: string; type: string; earningsPerSecond: number }[] | undefined;
   displayEarnings: number;
   telegramId: string;
 }

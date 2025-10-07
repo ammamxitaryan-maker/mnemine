@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Calendar, CheckCircle, XCircle, TrendingUp, Clock } from 'lucide-react';
+import { DollarSign, Calendar, CheckCircle, XCircle, TrendingUp, Clock, Coins } from 'lucide-react';
 import { MiningSlot } from '@/hooks/useSlotsData';
 import { formatExpirationDate, getRemainingTime } from '@/utils/date';
 import ProgressBar from './ProgressBar';
