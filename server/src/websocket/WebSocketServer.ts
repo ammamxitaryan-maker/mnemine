@@ -266,9 +266,18 @@ export class WebSocketServer {
       slot.isActive && new Date(slot.expiresAt) > new Date()
     );
 
-    // Use continuous earnings processor for accurate 24/7 earnings
-    const { continuousEarningsProcessor } = await import('../utils/continuousEarningsProcessor.js');
-    const totalEarnings = await continuousEarningsProcessor.getUserEarnings(telegramId);
+    // Calculate earnings directly from user data for better performance
+    const currentTime = new Date();
+    let totalEarnings = 0;
+    
+    for (const slot of activeSlots) {
+      const timeElapsedMs = currentTime.getTime() - slot.lastAccruedAt.getTime();
+      if (timeElapsedMs > 0) {
+        const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+        const earnings = earningsPerSecond * (timeElapsedMs / 1000);
+        totalEarnings += earnings;
+      }
+    }
 
     return {
       ...user,
@@ -290,9 +299,9 @@ export class WebSocketServer {
     });
 
     return slots.map(slot => {
-      const now = new Date();
+      const currentTime = new Date();
       const lastAccrued = new Date(slot.lastAccruedAt);
-      const timeDiff = now.getTime() - lastAccrued.getTime();
+      const timeDiff = currentTime.getTime() - lastAccrued.getTime();
       const secondsDiff = timeDiff / 1000;
       
       const weeklyRate = 0.3; // Always 30% for all slots
@@ -304,7 +313,7 @@ export class WebSocketServer {
         currentEarnings,
         earningsPerSecond,
         timeRemaining: slot.isActive ? 
-          Math.max(0, new Date(slot.expiresAt).getTime() - now.getTime()) : 0
+          Math.max(0, new Date(slot.expiresAt).getTime() - currentTime.getTime()) : 0
       };
     });
   }
@@ -504,6 +513,38 @@ export class WebSocketServer {
           ws.send(JSON.stringify(message));
         }
       });
+    }
+  }
+
+  // Public method to broadcast balance updates
+  public async broadcastBalanceUpdate(telegramId: string, balanceData: any) {
+    try {
+      const message: WebSocketMessage = {
+        type: 'BALANCE_UPDATE',
+        data: balanceData,
+        timestamp: new Date().toISOString()
+      };
+      
+      this.broadcastToUser(telegramId, message);
+      console.log(`[WebSocket] Balance update broadcasted to user ${telegramId}:`, balanceData);
+    } catch (error) {
+      console.error(`[WebSocket] Error broadcasting balance update to user ${telegramId}:`, error);
+    }
+  }
+
+  // Public method to broadcast slot updates
+  public async broadcastSlotUpdate(telegramId: string, slotData: any) {
+    try {
+      const message: WebSocketMessage = {
+        type: 'SLOT_UPDATE',
+        data: slotData,
+        timestamp: new Date().toISOString()
+      };
+      
+      this.broadcastToUser(telegramId, message);
+      console.log(`[WebSocket] Slot update broadcasted to user ${telegramId}:`, slotData);
+    } catch (error) {
+      console.error(`[WebSocket] Error broadcasting slot update to user ${telegramId}:`, error);
     }
   }
 

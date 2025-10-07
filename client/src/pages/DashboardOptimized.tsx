@@ -7,7 +7,7 @@ import { useUserData } from '../hooks/useUserData';
 
 // Ленивая загрузка компонентов для оптимизации
 // const RealTimeIncome = lazy(() => import('../components/RealTimeIncome').then(module => ({ default: module.RealTimeIncome })));
-const SwapInterface = lazy(() => import('../components/SwapInterface').then(module => ({ default: module.SwapInterface })));
+const SwapCard = lazy(() => import('../components/SwapCard').then(module => ({ default: module.SwapCard })));
 const SlotPurchaseInterface = lazy(() => import('../components/SlotPurchaseInterface').then(module => ({ default: module.SlotPurchaseInterface })));
 // const Notifications = lazy(() => import('../components/Notifications').then(module => ({ default: module.Notifications })));
 
@@ -48,7 +48,7 @@ export const DashboardOptimized: React.FC = () => {
   });
 
   // Fetch user data from API (including balance)
-  const { data: apiUserData, isLoading: userDataLoading, error: userDataError } = useUserData(user?.telegramId);
+  const { data: apiUserData, isLoading: userDataLoading, error: userDataError, refetch: refetchUserData } = useUserData(user?.telegramId);
 
   // Мемоизированные данные пользователя
   const userData = useMemo(() => {
@@ -78,10 +78,14 @@ export const DashboardOptimized: React.FC = () => {
         case 'BALANCE_UPDATE':
           // Обновляем баланс в реальном времени
           console.log('💰 Balance updated:', message.data);
+          // Refresh user data to get updated balance
+          refetchUserData();
           break;
         case 'SLOT_UPDATE':
           // Обновляем информацию о слотах
           console.log('⛏️ Slot updated:', message.data);
+          // Refresh user data to get updated slots
+          refetchUserData();
           break;
         case 'NOTIFICATION':
           // Показываем новое уведомление
@@ -189,7 +193,13 @@ export const DashboardOptimized: React.FC = () => {
         {/* Интерфейс конвертации валют */}
         <ErrorBoundary fallback={<SkeletonCard />}>
           <ComponentLoader>
-            <SwapInterface telegramId={userData.id} />
+            <SwapCard 
+              telegramId={userData.id} 
+              USDBalance={userData.balance || 0}
+              variant="simple"
+              showBackContent={false}
+              showAccordion={false}
+            />
           </ComponentLoader>
         </ErrorBoundary>
 

@@ -23,6 +23,7 @@ export const useDynamicMNEEarnings = (slots: MiningSlot[] | undefined) => {
 
   const earningsData = useMemo((): DynamicEarningsData => {
     if (!slots || slots.length === 0) {
+      console.log('[DynamicEarnings] No slots data provided');
       return {
         totalEarnings: 0,
         dailyEarnings: 0,
@@ -36,7 +37,10 @@ export const useDynamicMNEEarnings = (slots: MiningSlot[] | undefined) => {
       slot.isActive && new Date(slot.expiresAt) > new Date()
     );
 
+    console.log('[DynamicEarnings] Active slots:', activeSlots.length, 'out of', slots.length);
+
     if (activeSlots.length === 0) {
+      console.log('[DynamicEarnings] No active slots found');
       return {
         totalEarnings: 0,
         dailyEarnings: 0,
@@ -51,21 +55,47 @@ export const useDynamicMNEEarnings = (slots: MiningSlot[] | undefined) => {
     let totalHourlyEarnings = 0;
     let totalPerSecondEarnings = 0;
 
-    activeSlots.forEach(slot => {
+    activeSlots.forEach((slot, index) => {
       const now = new Date(currentTime);
-      const lastAccruedAt = new Date(slot.lastAccruedAt);
-      const timeElapsedMs = now.getTime() - lastAccruedAt.getTime();
+      const slotStartTime = new Date(slot.createdAt);
+      const timeElapsedMs = now.getTime() - slotStartTime.getTime();
+      
+      console.log(`[DynamicEarnings] Slot ${index}:`, {
+        principal: slot.principal,
+        effectiveWeeklyRate: slot.effectiveWeeklyRate,
+        createdAt: slot.createdAt,
+        timeElapsedMs: timeElapsedMs,
+        timeElapsedHours: timeElapsedMs / (1000 * 60 * 60)
+      });
       
       if (timeElapsedMs > 0) {
-        // Calculate earnings since last accrual
+        // Calculate earnings since slot creation
         const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
         const earnings = earningsPerSecond * (timeElapsedMs / 1000);
         
-        totalEarnings += earnings;
+        // Cap earnings at 30% of principal (the maximum possible earnings)
+        const maxEarnings = slot.principal * slot.effectiveWeeklyRate;
+        const cappedEarnings = Math.min(earnings, maxEarnings);
+        
+        console.log(`[DynamicEarnings] Slot ${index} earnings:`, {
+          earningsPerSecond,
+          earnings,
+          maxEarnings,
+          cappedEarnings
+        });
+        
+        totalEarnings += cappedEarnings;
         totalPerSecondEarnings += earningsPerSecond;
         totalHourlyEarnings += earningsPerSecond * 3600;
         totalDailyEarnings += earningsPerSecond * 86400;
       }
+    });
+
+    console.log('[DynamicEarnings] Final calculation:', {
+      totalEarnings,
+      perSecondEarnings: totalPerSecondEarnings,
+      hourlyEarnings: totalHourlyEarnings,
+      dailyEarnings: totalDailyEarnings
     });
 
     return {

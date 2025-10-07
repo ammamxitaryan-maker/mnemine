@@ -1,87 +1,42 @@
-﻿import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, ArrowLeftRight, ChevronDown, ChevronUp, Info, TrendingUp, DollarSign } from 'lucide-react';
 import { FlippableCard } from '@/components/FlippableCard';
-import { useSwapMNEoMNE, useSwapMNEToUSD, useExchangeRate } from '@/hooks/useSwap';
-import { showSuccess, showError } from '@/utils/toast';
-import { getErrorMessage } from '@/types/errors';
+import { useSwapLogic } from '@/hooks/useSwapLogic';
+import '@/styles/swap-interface.css';
 
 interface SwapCardProps {
   telegramId: string;
   USDBalance: number;
+  variant?: 'card' | 'simple';
+  showBackContent?: boolean;
+  showAccordion?: boolean;
 }
 
-export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
+export const SwapCard = ({ 
+  telegramId, 
+  USDBalance, 
+  variant = 'card',
+  showBackContent = true,
+  showAccordion = true 
+}: SwapCardProps) => {
   const { t } = useTranslation();
-  const [amount, setAmount] = useState('');
-  const [direction, setDirection] = useState<'USD-to-MNE' | 'MNE-to-USD'>('USD-to-MNE');
-  
-  const swapMNEoMNEMutation = useSwapMNEoMNE(telegramId);
-  const swapMNEToUSDMutation = useSwapMNEToUSD(telegramId);
-  const { data: rateData, isLoading: rateLoading } = useExchangeRate(telegramId);
-
-  const swapLoading = swapMNEoMNEMutation.isPending || swapMNEToUSDMutation.isPending;
-
-  const handleSwap = async () => {
-    const swapAmount = parseFloat(amount);
-    
-    if (isNaN(swapAmount) || swapAmount <= 0) {
-      showError(t('swap.invalidAmount'));
-      return;
-    }
-
-    if (swapAmount < 1) {
-      showError(t('swap.minAmount'));
-      return;
-    }
-
-    try {
-      if (direction === 'USD-to-MNE') {
-        if (swapAmount > USDBalance) {
-          showError(t('swap.insufficientBalance'));
-          return;
-        }
-        const result = await swapMNEoMNEMutation.mutateAsync(swapAmount);
-        showSuccess(t('swap.successMessage', { 
-          amount1: swapAmount.toFixed(2), 
-          currency1: 'USD',
-          amount2: result.MNEAmount.toFixed(2), 
-          currency2: 'MNE'
-        }));
-      } else {
-        const result = await swapMNEToUSDMutation.mutateAsync(swapAmount);
-        showSuccess(t('swap.successMessage', { 
-          amount1: swapAmount.toFixed(2), 
-          currency1: 'MNE',
-          amount2: result.USDAmount.toFixed(2), 
-          currency2: 'USD'
-        }));
-      }
-      
-      setAmount('');
-    } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error, t('swap.error'));
-      showError(errorMessage);
-    }
-  };
-
-  const calculatePreview = () => {
-    if (!amount || !rateData) return null;
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount)) return null;
-
-    if (direction === 'USD-to-MNE') {
-      return (numAmount * rateData.rate).toFixed(4);
-    } else {
-      return (numAmount / rateData.rate).toFixed(4);
-    }
-  };
-
-  const previewAmount = calculatePreview();
+  const {
+    amount,
+    direction,
+    setAmount,
+    setDirection,
+    rateData,
+    rateLoading,
+    swapLoading,
+    previewAmount,
+    handleSwap,
+    handleAmountChange,
+    isSwapDisabled
+  } = useSwapLogic({ telegramId, USDBalance });
 
   // Swap Card Front Content (Full Swap Interface)
   const SwapFront = () => (
@@ -174,7 +129,7 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
                 step="0.01"
                 min="1"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={handleAmountChange}
                 placeholder={t('swap.amountPlaceholder')}
                 className="bg-slate-700/50 border-slate-600 text-white pr-16 h-10 text-sm rounded-lg focus:border-purple-500 focus:ring-purple-500/20"
                 disabled={swapLoading}
@@ -208,7 +163,7 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
           {/* Swap Button */}
           <Button
             onClick={handleSwap}
-            disabled={swapLoading || !amount || parseFloat(amount) < 1}
+            disabled={isSwapDisabled}
             className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-semibold h-10 text-sm rounded-lg shadow-lg hover:shadow-purple-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {swapLoading ? (
@@ -295,13 +250,85 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
     </div>
   );
 
+  // Simple variant for dashboard use
+  if (variant === 'simple') {
+    return (
+      <div className="swap-interface">
+        <div className="swap-interface__header">
+          <h3 className="swap-interface__title">Currency Swap (USD ⇄ MNE)</h3>
+          {rateLoading ? (
+            <div className="w-30 h-5 bg-gray-300 rounded animate-pulse" />
+          ) : rateData ? (
+            <div className="swap-interface__rate">
+              <span className="swap-interface__rate-label">Current Rate:</span>
+              <span className="swap-interface__rate-value">{rateData.rate.toFixed(4)}</span>
+            </div>
+          ) : (
+            <div className="swap-interface__rate-error">Rate unavailable</div>
+          )}
+        </div>
+
+        <div className="swap-interface__form">
+          <div className="swap-interface__direction">
+            <label className="swap-interface__direction-label">Direction:</label>
+            <select 
+              value={direction} 
+              onChange={(e) => setDirection(e.target.value as 'USD-to-MNE' | 'MNE-to-USD')}
+              className="swap-interface__direction-select"
+              disabled={swapLoading}
+            >
+              <option value="USD-to-MNE">USD → MNE</option>
+              <option value="MNE-to-USD">MNE → USD</option>
+            </select>
+          </div>
+
+          <div className="swap-interface__amount">
+            <label className="swap-interface__amount-label">Amount:</label>
+            <div className="swap-interface__amount-input-group">
+              <input
+                type="text"
+                value={amount}
+                onChange={handleAmountChange}
+                placeholder="Enter amount (min 1.0)"
+                className="swap-interface__amount-input"
+                disabled={swapLoading}
+                min="1"
+                step="0.01"
+              />
+              <span className="swap-interface__amount-currency">
+                {direction === 'USD-to-MNE' ? 'USD' : 'MNE'}
+              </span>
+            </div>
+          </div>
+
+          {previewAmount && rateData && (
+            <div className="swap-interface__preview">
+              <div className="swap-interface__preview-label">You will receive:</div>
+              <div className="swap-interface__preview-amount">
+                {previewAmount} {direction === 'USD-to-MNE' ? 'MNE' : 'USD'}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleSwap}
+            disabled={isSwapDisabled}
+            className="swap-interface__button"
+          >
+            {swapLoading ? 'Swapping...' : (direction === 'USD-to-MNE' ? 'Swap to MNE' : 'Swap to USD')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <FlippableCard
       id="swap-card"
       frontContent={<SwapFront />}
-      backContent={<SwapBack />}
-      enableAccordion={true}
-      accordionContent={accordionContent}
+      backContent={showBackContent ? <SwapBack /> : undefined}
+      enableAccordion={showAccordion}
+      accordionContent={showAccordion ? accordionContent : undefined}
       showFlipIndicator={true}
     />
   );

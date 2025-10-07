@@ -1,11 +1,11 @@
-﻿/* stylelint-disable at-rule-no-unknown */
+﻿/* Import Layout Template System - Must be first */
+@import './styles/layout-template.css';
+
+/* stylelint-disable at-rule-no-unknown */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 /* stylelint-enable at-rule-no-unknown */
-
-/* Import Layout Template System */
-@import './styles/layout-template.css';
 
 @layer base {
   :root {

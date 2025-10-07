@@ -3,11 +3,9 @@ import prisma from '../prisma.js';
 import { ACTIVE_REFERRAL_MIN_SLOTS, ACTIVE_REFERRAL_MIN_DIRECT_REFERRALS, BRONZE_INVESTOR_THRESHOLD, GOLD_MAGNATE_THRESHOLD, PLATINUM_GOD_THRESHOLD } from '../constants.js';
 import { ActivityLogType } from '@prisma/client';
 import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
-import { userSelect, userSelectWithoutMiningSlots, userSelectMinimal } from '../utils/dbSelects.js'; // Import userSelect
-
-// Simple in-memory cache for user data to improve performance
-const userDataCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 30000; // 30 seconds cache TTL
+import { userSelect, userSelectWithoutMiningSlots, userSelectMinimal } from '../utils/dbSelects.js';
+import { userDataCache } from '../optimizations/cacheOptimizations.js';
+import { DatabaseOptimizer, DatabasePerformanceMonitor } from '../optimizations/databaseOptimizations.js';
 
 // GET /api/user/:telegramId/data
 export const getUserData = async (req: Request, res: Response) => {
@@ -20,61 +18,55 @@ export const getUserData = async (req: Request, res: Response) => {
   }
 
   try {
-    // Check cache first
-    const cacheKey = `userData_${telegramId}`;
-    const cached = userDataCache.get(cacheKey);
-    const now = Date.now();
+    const startTime = performance.now();
     
-    if (cached && (now - cached.timestamp) < CACHE_TTL) {
-      // Return cached data if still valid
-      return res.status(200).json(cached.data);
-    }
+    // Use optimized cache system
+    const cachedData = await userDataCache.getUserData(telegramId, async () => {
+      // Fallback function - fetch from database
+      const user = await DatabaseOptimizer.getUserDataOptimized(telegramId);
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
 
-    const user = await prisma.user.findUnique({ 
-      where: { telegramId }, 
-      select: {
-        ...userSelectMinimal,
-        _count: {
-          select: { referrals: true }
-        }
-      }, // Use minimal userSelect for better performance
+      // Update lastSeenAt on data fetch
+      await prisma.user.update({
+        where: { telegramId },
+        data: { lastSeenAt: new Date() },
+      });
+
+      // Calculate earnings using optimized method
+      const totalEarnings = DatabaseOptimizer.calculateEarningsOptimized(user.miningSlots);
+
+      const USDWallet = user.wallets.find(w => w.currency === 'USD');
+      const MNEWallet = user.wallets.find(w => w.currency === 'MNE');
+      const currentBalance = USDWallet?.balance || 0;
+      const mneBalance = MNEWallet?.balance || 0;
+      
+      const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
+
+      return { 
+        balance: currentBalance, 
+        mneBalance: mneBalance,
+        miningPower: totalMiningPower,
+        accruedEarnings: totalEarnings,
+        totalInvested: user.totalInvested,
+        referralCount: user._count.referrals,
+        rank: user.rank,
+      };
     });
 
-    if (!user) {
+    if (!cachedData) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Update lastSeenAt on data fetch
-    await prisma.user.update({
-      where: { telegramId },
-      data: { lastSeenAt: new Date() },
-    });
-
-    // Use continuous earnings processor for accurate 24/7 earnings
-    const { continuousEarningsProcessor } = await import('../utils/continuousEarningsProcessor.js');
-    const totalEarnings = await continuousEarningsProcessor.getUserEarnings(telegramId);
-
-    const USDWallet = user.wallets.find(w => w.currency === 'USD');
-    const MNEWallet = user.wallets.find(w => w.currency === 'MNE');
-    const currentBalance = USDWallet?.balance || 0;
-    const mneBalance = MNEWallet?.balance || 0;
+    // Record performance metrics
+    const totalTime = performance.now() - startTime;
+    DatabasePerformanceMonitor.recordQuery('getUserData', totalTime);
     
-    const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
-
-    const responseData = { 
-      balance: currentBalance, 
-      mneBalance: mneBalance, // Add MNE balance to response
-      miningPower: totalMiningPower,
-      accruedEarnings: totalEarnings,
-      totalInvested: user.totalInvested,
-      referralCount: user._count.referrals, // Added referral count
-      rank: user.rank, // Added user rank
-    };
-
-    // Cache the response data
-    userDataCache.set(cacheKey, { data: responseData, timestamp: now });
+    console.log(`[PERFORMANCE] User data fetch for ${telegramId}: ${totalTime.toFixed(2)}ms`);
     
-    res.status(200).json(responseData);
+    res.status(200).json(cachedData);
 
   } catch (error) {
     console.error(`[DATA] CRITICAL: Error fetching data for user ${telegramId}:`, error);

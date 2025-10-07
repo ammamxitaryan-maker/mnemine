@@ -87,6 +87,7 @@ import { Telegraf } from 'telegraf';
 import { generateUniqueReferralCode } from './utils/helpers.js';
 import { SLOT_WEEKLY_RATE, WELCOME_BONUS_AMOUNT } from './constants.js';
 import { WebSocketServer } from './websocket/WebSocketServer.js';
+import { webSocketManager } from './websocket/WebSocketManager.js';
 import { validateEnvironment } from './utils/validation.js';
 import './utils/slotProcessor.js'; // Запускаем процессор слотов
 
@@ -767,6 +768,7 @@ async function startServer() {
 
     // Initialize WebSocket server
     const wsServer = new WebSocketServer(server);
+    webSocketManager.setWebSocketServer(wsServer);
     console.log('[WebSocket] WebSocket server initialized');
 
     // Set Telegram webhook URL if bot is initialized

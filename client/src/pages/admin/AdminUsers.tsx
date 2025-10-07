@@ -68,19 +68,21 @@ const AdminUsers = () => {
   const handleUserAction = async (userId: string, action: string) => {
     try {
       switch (action) {
-        case 'freeze':
+        case 'freeze': {
           const freezeReason = prompt('Enter reason for freezing account (optional):');
           await api.post(`/admin/users/${userId}/freeze`, { reason: freezeReason });
           break;
+        }
         case 'unfreeze':
           await api.post(`/admin/users/${userId}/unfreeze`);
           break;
-        case 'ban':
+        case 'ban': {
           const banReason = prompt('Enter reason for banning account:');
           if (banReason) {
             await api.post(`/admin/users/${userId}/ban`, { reason: banReason });
           }
           break;
+        }
         case 'unban':
           await api.post(`/admin/users/${userId}/unban`);
           break;

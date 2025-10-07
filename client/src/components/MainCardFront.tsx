@@ -22,8 +22,19 @@ export const MainCardFront = ({
 }: MainCardFrontProps) => {
   const { t } = useTranslation();
   
+  // Debug logging
+  console.log('[MainCardFront] Received data:', {
+    userData,
+    slotsData: slotsData?.length || 0,
+    displayEarnings,
+    telegramId
+  });
+  
   // Get dynamic MNE earnings
   const dynamicEarnings = useDynamicMNEEarnings(slotsData);
+  
+  // Debug dynamic earnings
+  console.log('[MainCardFront] Dynamic earnings:', dynamicEarnings);
   
   // Get cached exchange rate for USD equivalent
   const { convertMNEToUSD, isStale } = useCachedExchangeRate(telegramId);

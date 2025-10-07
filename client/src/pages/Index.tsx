@@ -8,12 +8,13 @@ import { useAchievements } from '@/hooks/useAchievements';
 import { useLotteryData } from '@/hooks/useLotteryData';
 import { useBonusesSummary } from '@/hooks/useBonusesSummary';
 import { useLocalEarningsCache } from '@/hooks/useLocalEarningsCache';
+import { useWebSocketOptimized } from '@/hooks/useWebSocketOptimized';
 
 import { AuthWrapper } from '@/components/AuthWrapper';
 import { AuthenticatedUser } from '@/types/telegram';
 import { showError } from '@/utils/toast';
 import { Link } from 'react-router-dom';
-import { PerformanceMonitor } from '@/components/PerformanceMonitor';
+import { PerformanceMonitor as PerformanceMonitorComponent } from '@/components/PerformanceMonitor';
 
 import { Server, Trophy, Gift, Award, Ticket, Loader2, Settings, TrendingUp, BarChart3 } from 'lucide-react';
 
@@ -24,13 +25,24 @@ const MainCardBack = lazy(() => import('@/components/MainCardBack').then(module 
 const HomePageHeader = lazy(() => import('@/components/HomePageHeader').then(module => ({ default: module.HomePageHeader })));
 const DashboardLinkCard = lazy(() => import('@/components/DashboardLinkCard').then(module => ({ default: module.DashboardLinkCard })));
 const SwapCard = lazy(() => import('@/components/SwapCard').then(module => ({ default: module.SwapCard })));
+const DynamicEarningsTest = lazy(() => import('@/components/DynamicEarningsTest').then(module => ({ default: module.DynamicEarningsTest })));
+const PerformanceMonitor = lazy(() => import('@/components/PerformanceMonitor').then(module => ({ default: module.PerformanceMonitor })));
+const PerformanceDashboard = lazy(() => import('@/components/PerformanceDashboard').then(module => ({ default: module.PerformanceDashboard })));
 
 const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
   
+  // WebSocket connection for real-time updates
+  const { isConnected, subscribe } = useWebSocketOptimized({
+    url: process.env.VITE_WS_URL || 'ws://localhost:10113',
+    telegramId: user.telegramId,
+    reconnectInterval: 5000,
+    maxReconnectAttempts: 5
+  });
+  
   // Optimized data fetching - only fetch essential data initially
-  const { data: userData, isLoading: userDataLoading, error: userDataError } = useUserData(user.telegramId);
-  const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
+  const { data: userData, isLoading: userDataLoading, error: userDataError, refetch: refetchUserData } = useUserData(user.telegramId);
+  const { data: slotsData, isLoading: slotsLoading, refetch: refetchSlotsData } = useSlotsData(user.telegramId);
   
   // Defer non-critical data fetching until after initial render
   const [shouldFetchSecondary, setShouldFetchSecondary] = useState(false);
@@ -43,6 +55,34 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     
     return () => clearTimeout(timer);
   }, []);
+
+  // WebSocket message handling for real-time updates
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const unsubscribe = subscribe((message) => {
+      console.log('📨 WebSocket message received on Index:', message);
+      
+      switch (message.type) {
+        case 'BALANCE_UPDATE':
+          console.log('💰 Balance updated on Index:', message.data);
+          refetchUserData();
+          break;
+        case 'SLOT_UPDATE':
+          console.log('⛏️ Slot updated on Index:', message.data);
+          refetchUserData();
+          refetchSlotsData();
+          break;
+        case 'NOTIFICATION':
+          console.log('🔔 New notification on Index:', message.data);
+          break;
+        default:
+          console.log('📨 Unknown message type on Index:', message.type);
+      }
+    });
+
+    return unsubscribe;
+  }, [isConnected, subscribe, refetchUserData, refetchSlotsData]);
 
   // Conditional secondary data fetching
   const lotteryDataResult = useLotteryData();
@@ -290,6 +330,27 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                 }
                 showFlipIndicator={true}
               />
+              </Suspense>
+            </section>
+
+            {/* Dynamic Earnings Test Section */}
+            <section className="w-full max-w-4xl mx-auto mt-8 sm:mt-2">
+              <Suspense fallback={<div className="h-32 bg-slate-800/50 rounded-lg animate-pulse" />}>
+                <DynamicEarningsTest slotsData={slotsData} />
+              </Suspense>
+            </section>
+
+            {/* Performance Monitor Section */}
+            <section className="w-full max-w-4xl mx-auto mt-8 sm:mt-2">
+              <Suspense fallback={<div className="h-32 bg-slate-800/50 rounded-lg animate-pulse" />}>
+                <PerformanceMonitor />
+              </Suspense>
+            </section>
+
+            {/* Performance Dashboard Section */}
+            <section className="w-full max-w-4xl mx-auto mt-8 sm:mt-2">
+              <Suspense fallback={<div className="h-32 bg-slate-800/50 rounded-lg animate-pulse" />}>
+                <PerformanceDashboard />
               </Suspense>
             </section>
 

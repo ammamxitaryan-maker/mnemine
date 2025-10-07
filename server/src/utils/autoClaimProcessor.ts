@@ -1,5 +1,6 @@
 import prisma from '../prisma.js';
 import { ActivityLogType } from '@prisma/client';
+import { webSocketManager } from '../websocket/WebSocketManager.js';
 
 interface AutoClaimData {
   userId: string;
@@ -153,6 +154,25 @@ export class AutoClaimProcessor {
       });
 
       console.log(`[AUTO_CLAIM] Auto-claimed ${totalEarnings.toFixed(4)} MNE for user ${userId}`);
+
+      // Broadcast balance update via WebSocket
+      try {
+        const updatedWallet = await prisma.wallet.findUnique({
+          where: { id: MNEWallet.id },
+          select: { balance: true, currency: true }
+        });
+        
+        if (updatedWallet) {
+          await webSocketManager.broadcastBalanceUpdate(user.telegramId, {
+            currency: updatedWallet.currency,
+            balance: updatedWallet.balance,
+            change: totalEarnings,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (wsError) {
+        console.error(`[AUTO_CLAIM] Failed to broadcast balance update for user ${userId}:`, wsError);
+      }
 
     } catch (error) {
       console.error(`[AUTO_CLAIM] Error processing auto-claim for user ${userId}:`, error);

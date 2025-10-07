@@ -13,6 +13,7 @@ import swapRoutes from './swap.js'; // Import swap routes
 import notificationRoutes from './notifications.js'; // Import notification routes
 import processingRoutes from './processing.js'; // Import processing routes
 import adminAuthRoutes from './adminAuth.js'; // Import admin auth routes
+import performanceRoutes from './performance.js'; // Import performance routes
 
 const router = Router();
 
@@ -46,5 +47,6 @@ router.use('/user', swapRoutes); // Add swap routes
 router.use('/user', notificationRoutes); // Add notification routes
 router.use('/', processingRoutes); // Add processing routes
 router.use('/admin', adminAuthRoutes); // Add admin auth routes
+router.use('/performance', performanceRoutes); // Add performance routes
 
 export default router;

@@ -5,6 +5,7 @@ import { sendSlotClosedNotification } from './notificationController.js';
 import { Wallet, MiningSlot, ActivityLogType } from '@prisma/client';
 import { isUserEligible } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js'; // Import userSelect
+import { webSocketManager } from '../websocket/WebSocketManager.js';
 
 // GET /api/user/:telegramId/slots
 export const getUserSlots = async (req: Request, res: Response) => {
@@ -342,6 +343,25 @@ const processSlotBatch = async (slots: any[], now: Date) => {
         sendSlotClosedNotification(slot.userId, slot.id, finalEarnings).catch(error => {
           console.error(`Failed to send notification for slot ${slot.id}:`, error);
         });
+
+        // Broadcast balance update via WebSocket
+        try {
+          const updatedWallet = await prisma.wallet.findUnique({
+            where: { id: MNEWallet.id },
+            select: { balance: true, currency: true }
+          });
+          
+          if (updatedWallet) {
+            await webSocketManager.broadcastBalanceUpdate(slot.user.telegramId, {
+              currency: updatedWallet.currency,
+              balance: updatedWallet.balance,
+              change: finalEarnings,
+              timestamp: new Date().toISOString()
+            });
+          }
+        } catch (wsError) {
+          console.error(`Failed to broadcast balance update for slot ${slot.id}:`, wsError);
+        }
 
         processed++;
       }
