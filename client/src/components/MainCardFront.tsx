@@ -45,7 +45,7 @@ export const MainCardFront = ({
 
   return (
     <Card
-      className="w-full max-w-[95vw] min-h-[18rem] max-h-[28rem] sm:min-h-[22rem] sm:max-h-[32rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col justify-between backdrop-blur-sm relative overflow-hidden box-border"
+      className="w-full h-full min-h-[20rem] max-h-[24rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col justify-between backdrop-blur-sm relative overflow-hidden box-border"
     >
       {/* Header Section with Expand Indicator */}
       <div className="absolute top-4 right-4 z-20">

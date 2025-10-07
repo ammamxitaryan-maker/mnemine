@@ -40,7 +40,7 @@ export const MainCardBack = ({ user, slots, isLoading }: MainCardBackProps) => {
     return sum + (slot.principal * dailyRate);
   }, 0) || 0;
   return (
-    <Card className="w-full min-h-[18rem] max-h-[28rem] sm:min-h-[22rem] sm:max-h-[32rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col backdrop-blur-sm relative overflow-hidden">
+    <Card className="w-full h-full min-h-[20rem] max-h-[24rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col backdrop-blur-sm relative overflow-hidden">
       <CardHeader className="pb-3 text-center relative z-10">
         <CardTitle className="text-base font-bold flex items-center justify-center gap-2">
           <div className="p-1.5 bg-purple-400/20 rounded-full">

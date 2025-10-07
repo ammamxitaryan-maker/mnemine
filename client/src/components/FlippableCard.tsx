@@ -57,24 +57,15 @@ export const FlippableCard = ({
     }
   }, [clickCount, enableDoubleClick, isFlipped, setIsFlipped, setClickCount]);
 
-  // Reset card states when component unmounts or page changes
-  useEffect(() => {
-    return () => {
-      // Reset states when component unmounts
-      setIsExpanded(false);
-      setIsFlipped(false);
-      setIsHovered(false);
-      setClickCount(0);
-    };
-  }, [setIsExpanded, setIsFlipped, setIsHovered, setClickCount]);
-
   // Reset states when the card ID changes (page navigation)
   useEffect(() => {
-    setIsExpanded(false);
-    setIsFlipped(false);
-    setIsHovered(false);
-    setClickCount(0);
-  }, [id, setIsExpanded, setIsFlipped, setIsHovered, setClickCount]);
+    if (id) {
+      setIsExpanded(false);
+      setIsHovered(false);
+      setClickCount(0);
+      // Don't reset isFlipped as it's managed by persistent state
+    }
+  }, [id, setIsExpanded, setIsHovered, setClickCount]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -137,13 +128,13 @@ export const FlippableCard = ({
         {/* Card Container - Optimized Height for Better Visibility */}
         <div
           className={cn(
-            "w-full h-80 sm:h-96 [perspective:1000px] cursor-pointer relative z-10",
+            "w-full h-[20rem] sm:h-[24rem] [perspective:1000px] cursor-pointer relative z-10",
             enableHoverFlip && "hover:scale-[1.02] transition-transform duration-200"
           )}
-        onClick={handleClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
+          onClick={handleClick}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
         <div
           className={cn(
             "relative w-full h-full transition-transform duration-700 ease-in-out [transform-style:preserve-3d]",
@@ -152,11 +143,11 @@ export const FlippableCard = ({
           )}
         >
           {/* Front */}
-          <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] z-10">
+          <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] z-10 flex">
             {frontContent}
           </div>
           {/* Back */}
-          <div className="absolute inset-0 w-full h-full [transform:rotateY(180deg)] [backface-visibility:hidden] z-10">
+          <div className="absolute inset-0 w-full h-full [transform:rotateY(180deg)] [backface-visibility:hidden] z-10 flex">
             {backContent}
           </div>
         </div>
