@@ -94,3 +94,29 @@ export const userSelectForAdminList = Prisma.validator<Prisma.UserSelect>()({
     },
   },
 });
+
+// Optimized userSelect for production - minimal data to reduce query size
+export const userSelectMinimal = Prisma.validator<Prisma.UserSelect>()({
+  id: true,
+  telegramId: true,
+  username: true,
+  firstName: true,
+  totalInvested: true,
+  wallets: {
+    select: {
+      currency: true,
+      balance: true,
+    },
+  },
+  miningSlots: {
+    where: { isActive: true },
+    select: {
+      id: true,
+      principal: true,
+      lastAccruedAt: true,
+      effectiveWeeklyRate: true,
+      expiresAt: true,
+    },
+  },
+  rank: true,
+});

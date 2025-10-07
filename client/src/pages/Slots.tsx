@@ -1,8 +1,8 @@
 ﻿import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
-import { Loader2, Server, Info, PlusCircle } from 'lucide-react';
+import { Loader2, Server, Info, PlusCircle, TrendingUp, Zap } from 'lucide-react';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useSlotsData, MiningSlot } from '@/hooks/useSlotsData';
 import SlotCard from '@/components/SlotCard';
@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import AnimatedProfitDisplay from '@/components/AnimatedProfitDisplay';
-import { UpgradeSlotDialog } from '@/components/UpgradeSlotDialog';
 
 const buyNewSlot = async ({ telegramId, amount }: { telegramId: string, amount: number }) => {
   const { data } = await api.post(`/user/${telegramId}/slots/buy`, { amount });
@@ -28,7 +27,6 @@ const Slots = () => {
   const { data: userData, isLoading: userDataLoading } = useUserData(user?.telegramId);
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState('');
-  const [slotToUpgrade, setSlotToUpgrade] = useState<MiningSlot | null>(null);
 
   const isLoading = authLoading || slotsLoading || userDataLoading;
 
@@ -89,11 +87,64 @@ const Slots = () => {
 
   const activeSlots = slotsData?.filter(slot => slot.isActive && new Date(slot.expiresAt) > new Date()) ?? [];
   const inactiveSlots = slotsData?.filter(slot => !slot.isActive || new Date(slot.expiresAt) <= new Date()) ?? [];
+  
+  // Calculate total dynamic earnings for all active slots
+  const [totalDynamicEarnings, setTotalDynamicEarnings] = useState(0);
+  
+  useEffect(() => {
+    if (activeSlots.length === 0) {
+      setTotalDynamicEarnings(0);
+      return;
+    }
+    
+    const timer = setInterval(() => {
+      let total = 0;
+      const now = new Date();
+      
+      activeSlots.forEach(slot => {
+        const timeElapsedMs = now.getTime() - new Date(slot.lastAccruedAt).getTime();
+        if (timeElapsedMs > 0) {
+          const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+          const currentEarnings = earningsPerSecond * (timeElapsedMs / 1000);
+          total += currentEarnings;
+        }
+      });
+      
+      setTotalDynamicEarnings(total);
+    }, 50); // Update every 50ms for faster animation based on number of slots
+    
+    return () => clearInterval(timer);
+  }, [activeSlots]);
 
   return (
     <div className="page-container flex flex-col text-white">
       <div className="page-content w-full max-w-md mx-auto">
       <PageHeader titleKey="slots.title" />
+
+      {/* Total Dynamic Earnings Display */}
+      {activeSlots.length > 0 && (
+        <Card className="bg-gradient-to-r from-emerald-900/40 to-emerald-800/20 border-emerald-700/50 mb-3">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center text-sm">
+              <Zap className="w-4 h-4 mr-2 text-emerald-400" />
+              <span>Total Dynamic Earnings</span>
+            </CardTitle>
+            <CardDescription className="text-emerald-300 text-xs">
+              Real-time earnings from all active slots
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-3">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-emerald-400 animate-pulse">
+                +{totalDynamicEarnings.toFixed(6)} USD
+              </div>
+              <div className="text-sm text-emerald-300 mt-1">
+                From {activeSlots.length} active slot{activeSlots.length > 1 ? 's' : ''}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="bg-gray-900/80 border-primary mb-3">
         <CardHeader className="pb-2">
@@ -168,7 +219,7 @@ const Slots = () => {
                   {t('slots.yourActive')}
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-1 space-y-2">
-                  {activeSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} onUpgradeClick={setSlotToUpgrade} />)}
+                  {activeSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} />)}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -181,7 +232,7 @@ const Slots = () => {
                   {t('slots.inactiveExpired')}
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-1 space-y-2">
-                  {inactiveSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} onUpgradeClick={setSlotToUpgrade} />)}
+                  {inactiveSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} />)}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -196,15 +247,6 @@ const Slots = () => {
         </>
       )}
 
-      {slotToUpgrade && user && (
-        <UpgradeSlotDialog
-          slot={slotToUpgrade}
-          isOpen={!!slotToUpgrade}
-          onClose={() => setSlotToUpgrade(null)}
-          telegramId={user.telegramId}
-          currentBalance={currentBalance}
-        />
-      )}
       </div>
     </div>
   );

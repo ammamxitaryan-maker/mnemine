@@ -27,7 +27,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    console.log('[LOGIN] Telegram user login:', { id, username, first_name, last_name });
+    // Reduced logging for production
 
     // Ищем пользователя в базе данных
     let user = await prisma.user.findUnique({
@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
           }
         }
       });
-      console.log('[LOGIN] Created new user:', user.id);
+      // User created successfully
     } else {
       // Обновляем данные существующего пользователя
       user = await prisma.user.update({
@@ -90,7 +90,7 @@ router.post('/login', async (req, res) => {
           }
         }
       });
-      console.log('[LOGIN] Updated existing user:', user.id);
+      // User updated successfully
     }
 
     const responseData = {
@@ -100,12 +100,7 @@ router.post('/login', async (req, res) => {
       user: user
     };
 
-    console.log('[LOGIN] Sending response:', { 
-      success: responseData.success, 
-      telegramId: responseData.telegramId,
-      username: responseData.username,
-      userId: user?.id 
-    });
+    // Response sent successfully
 
     res.json(responseData);
 

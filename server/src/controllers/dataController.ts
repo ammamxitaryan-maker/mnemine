@@ -3,7 +3,7 @@ import prisma from '../prisma.js';
 import { ACTIVE_REFERRAL_MIN_SLOTS, ACTIVE_REFERRAL_MIN_DIRECT_REFERRALS, BRONZE_INVESTOR_THRESHOLD, GOLD_MAGNATE_THRESHOLD, PLATINUM_GOD_THRESHOLD } from '../constants.js';
 import { ActivityLogType } from '@prisma/client';
 import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
-import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js'; // Import userSelect
+import { userSelect, userSelectWithoutMiningSlots, userSelectMinimal } from '../utils/dbSelects.js'; // Import userSelect
 
 // Simple in-memory cache for user data to improve performance
 const userDataCache = new Map<string, { data: any; timestamp: number }>();
@@ -30,22 +30,19 @@ export const getUserData = async (req: Request, res: Response) => {
       return res.status(200).json(cached.data);
     }
 
-    // console.log(`[DATA] Querying database for user ${telegramId}...`); // Removed log
     const user = await prisma.user.findUnique({ 
       where: { telegramId }, 
       select: {
-        ...userSelect,
+        ...userSelectMinimal,
         _count: {
           select: { referrals: true }
         }
-      }, // Use the reusable userSelect
+      }, // Use minimal userSelect for better performance
     });
 
     if (!user) {
-      console.error(`[DATA] User not found for telegramId: ${telegramId}.`);
       return res.status(404).json({ error: 'User not found' });
     }
-    // console.log(`[DATA] User found. ID: ${user.id}. Wallets: ${user.wallets.length}, Active Slots: ${user.miningSlots.length}.`); // Removed log
 
     // Update lastSeenAt on data fetch
     await prisma.user.update({
@@ -56,7 +53,6 @@ export const getUserData = async (req: Request, res: Response) => {
     const currentTime = new Date();
     let totalEarnings = 0;
     
-    // console.log('[DATA] Calculating accrued earnings...'); // Removed log
     user.miningSlots.forEach(slot => {
       const timeElapsedMs = currentTime.getTime() - slot.lastAccruedAt.getTime();
       if (timeElapsedMs > 0) {
@@ -64,14 +60,11 @@ export const getUserData = async (req: Request, res: Response) => {
         totalEarnings += earnings;
       }
     });
-    // console.log(`[DATA] Calculated accrued earnings: ${totalEarnings}.`); // Removed log
 
     const USDWallet = user.wallets.find(w => w.currency === 'USD');
     const currentBalance = USDWallet?.balance || 0;
-    // console.log(`[DATA] Current balance from wallet: ${currentBalance}.`); // Removed log
     
     const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
-    // console.log(`[DATA] Total mining power: ${totalMiningPower}.`); // Removed log
 
     const responseData = { 
       balance: currentBalance, 
@@ -85,7 +78,6 @@ export const getUserData = async (req: Request, res: Response) => {
     // Cache the response data
     userDataCache.set(cacheKey, { data: responseData, timestamp: now });
     
-    // console.log('[DATA] Sending successful response:', responseData); // Removed log
     res.status(200).json(responseData);
 
   } catch (error) {

@@ -11,8 +11,8 @@ const prisma = new PrismaClient({
     maxWait: 20000, // Максимальное время ожидания для получения транзакции (в мс)
     timeout: 20000, // Максимальное время выполнения самой транзакции (в мс)
   },
-  // Production optimizations
-  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  // Production optimizations - minimal logging
+  log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
 });
 
 export default prisma;

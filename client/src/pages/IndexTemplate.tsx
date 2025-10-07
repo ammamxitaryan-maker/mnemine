@@ -94,7 +94,7 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
 
   // Memoized navigation data calculations
   const navigationData = useMemo(() => {
-    const tasksCount = Array.isArray(tasksDataResult.data) ? tasksDataResult.data.filter((t: { isCompleted: boolean }) => !t.isCompleted).length : 0;
+    const tasksCount = 0; // No tasks available at the moment
     const slotsCount = Array.isArray(slotsData) ? slotsData.filter((s: { isActive: boolean }) => s.isActive).length : 0;
     const lotteryJackpot = lotteryDataResult.lottery?.jackpot?.toFixed(4);
     const bonusesCount = bonusesSummaryResult.data?.claimableCount ?? 0;
@@ -107,7 +107,7 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
       bonusesCount,
       achievementsCount
     };
-  }, [tasksDataResult.data, slotsData, lotteryDataResult.lottery?.jackpot, bonusesSummaryResult.data?.claimableCount, achievementsResult.achievements]);
+  }, [slotsData, lotteryDataResult.lottery?.jackpot, bonusesSummaryResult.data?.claimableCount, achievementsResult.achievements]);
 
   // Check if user is admin
   const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 

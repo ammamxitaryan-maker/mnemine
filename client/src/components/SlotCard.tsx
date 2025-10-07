@@ -2,40 +2,37 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { DollarSign, Calendar, CheckCircle, XCircle, TrendingUp, ChevronsUp, Clock, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DollarSign, Calendar, CheckCircle, XCircle, TrendingUp, Clock } from 'lucide-react';
 import { MiningSlot } from '@/hooks/useSlotsData';
 import { formatExpirationDate, getRemainingTime } from '@/utils/date';
 import ProgressBar from './ProgressBar';
-import { Button } from './ui/button';
-import { useSlotActions } from '@/hooks/useSlotActions';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { SLOT_EXTENSION_COST } from '../../../shared/constants';
 
 interface SlotCardProps {
   slot: MiningSlot;
-  onUpgradeClick: (slot: MiningSlot) => void;
 }
 
-const SlotCard: React.FC<SlotCardProps> = ({ slot, onUpgradeClick }) => {
+const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
   const { t } = useTranslation();
   const [remaining, setRemaining] = useState(getRemainingTime(slot.expiresAt));
-  const { user } = useTelegramAuth();
-  const { extend, isExtending } = useSlotActions();
+  const [dynamicEarnings, setDynamicEarnings] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setRemaining(getRemainingTime(slot.expiresAt));
-    }, 1000);
+      
+      // Calculate dynamic earnings for this slot
+      const now = new Date();
+      const timeElapsedMs = now.getTime() - new Date(slot.lastAccruedAt).getTime();
+      if (timeElapsedMs > 0) {
+        const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+        const currentEarnings = earningsPerSecond * (timeElapsedMs / 1000);
+        setDynamicEarnings(currentEarnings);
+      }
+    }, 100); // Update every 100ms for smooth animation
+    
     return () => clearInterval(timer);
-  }, [slot.expiresAt]);
-
-  const handleExtend = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (user) {
-      extend({ telegramId: user.telegramId, slotId: slot.id });
-    }
-  };
+  }, [slot.expiresAt, slot.lastAccruedAt, slot.principal, slot.effectiveWeeklyRate]);
 
   const isExpired = remaining.totalSeconds <= 0;
   const statusText = isExpired ? t('slots.status.expired') : t('slots.status.active');
@@ -45,6 +42,10 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, onUpgradeClick }) => {
   const totalDurationSeconds = (new Date(slot.expiresAt).getTime() - new Date(slot.createdAt).getTime()) / 1000;
   const elapsedSeconds = totalDurationSeconds - remaining.totalSeconds;
   const progress = totalDurationSeconds > 0 ? (elapsedSeconds / totalDurationSeconds) * 100 : 0;
+  
+  // Calculate final result (principal + 30% profit)
+  const finalResult = slot.principal * 1.3;
+  const currentTotal = slot.principal + dynamicEarnings;
 
   return (
     <Card className="bg-gray-900/80 border-primary text-white flex flex-col">
@@ -60,7 +61,43 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, onUpgradeClick }) => {
           </div>
         </CardHeader>
         <CardContent className="p-0 space-y-2">
-          <p className="text-2xl font-extrabold text-gold">{slot.principal.toFixed(4)} USD</p>
+          <div className="flex justify-between items-center">
+            <p className="text-2xl font-extrabold text-gold">{slot.principal.toFixed(4)} USD</p>
+            <div className="text-right">
+              <p className="text-lg font-bold text-emerald-400 animate-pulse">
+                {currentTotal.toFixed(4)} USD
+              </p>
+              <p className="text-xs text-gray-400">Current Total</p>
+            </div>
+          </div>
+          
+          {/* Dynamic earnings display */}
+          <div className="bg-gradient-to-r from-emerald-900/30 to-emerald-800/20 border border-emerald-700/50 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-emerald-400" />
+                <span className="text-sm text-emerald-300">Dynamic Earnings:</span>
+              </div>
+              <span className="text-lg font-bold text-emerald-400 animate-pulse">
+                +{dynamicEarnings.toFixed(6)} USD
+              </span>
+            </div>
+          </div>
+          
+          {/* Final result display */}
+          <div className="bg-gradient-to-r from-gold/20 to-yellow-500/10 border border-gold/50 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <TrendingUp className="w-4 h-4 mr-2 text-gold" />
+                <span className="text-sm text-gold">Final Result:</span>
+              </div>
+              <span className="text-lg font-bold text-gold">
+                {finalResult.toFixed(4)} USD
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">You will receive this amount at the end of the week</p>
+          </div>
+          
           <div className="flex items-center text-sm text-gray-300">
             <TrendingUp className="w-4 h-4 mr-1 text-green-400" />
             <span>{t('slots.profit')}: <span className="font-semibold text-green-400">{profitPercentage.toFixed(2)}%</span></span>
@@ -78,17 +115,6 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, onUpgradeClick }) => {
           </div>
         </CardContent>
       </div>
-      {!isExpired && (
-        <CardFooter className="p-2 bg-black/20 grid grid-cols-2 gap-2">
-          <Button variant="outline" className="border-secondary text-secondary hover:bg-secondary/10" onClick={() => onUpgradeClick(slot)}>
-            <ChevronsUp className="w-4 h-4 mr-2" />
-            {t('slots.upgradeButton')}
-          </Button>
-          <Button variant="outline" className="border-accent text-accent hover:bg-accent/10" onClick={handleExtend} disabled={isExtending}>
-            {isExtending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Clock className="w-4 h-4 mr-2" /> {t('slots.extendButton', { amount: SLOT_EXTENSION_COST.toFixed(2) })}</>}
-          </Button>
-        </CardFooter>
-      )}
     </Card>
   );
 };
