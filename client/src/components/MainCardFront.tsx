@@ -66,9 +66,30 @@ export const MainCardFront = ({
             <div className="p-3 bg-yellow-400/20 rounded-full">
               <Coins className="w-6 h-6 text-yellow-400" />
             </div>
-            <p className="text-2xl sm:text-3xl font-bold text-white animate-pulse line-clamp-1">
-              {displayEarnings.toFixed(8)} <span className="text-sm sm:text-base text-gray-300">USD</span>
-            </p>
+            <div className="flex flex-col items-center">
+              <p className="text-2xl sm:text-3xl font-bold text-white animate-pulse line-clamp-1">
+                {(() => {
+                  // Check if user has purchased slots (has active slots)
+                  const hasActiveSlots = slotsData && slotsData.some(slot => slot.isActive && new Date(slot.expiresAt) > new Date());
+                  
+                  if (hasActiveSlots) {
+                    // Show 30% bonus visually only - multiply by 1.3 for display
+                    const displayWithBonus = displayEarnings * 1.3;
+                    return displayWithBonus.toFixed(8);
+                  } else {
+                    // Show normal earnings if no slots
+                    return displayEarnings.toFixed(8);
+                  }
+                })()} <span className="text-sm sm:text-base text-gray-300">USD</span>
+              </p>
+              {/* Show bonus indicator if user has slots */}
+              {slotsData && slotsData.some(slot => slot.isActive && new Date(slot.expiresAt) > new Date()) && (
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="text-xs font-medium text-emerald-400">+30% Bonus</span>
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

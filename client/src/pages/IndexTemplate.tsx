@@ -71,10 +71,26 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
 
   // Initialize display earnings when userData changes
   useEffect(() => {
-    if (userData) {
-      setDisplayEarnings(userData.accruedEarnings);
+    if (userData && slotsData) {
+      // Calculate accumulated earnings since last server sync
+      const now = new Date();
+      let accumulatedEarnings = userData.accruedEarnings;
+      
+      // Add earnings that have accumulated since the server calculation
+      slotsData.forEach(slot => {
+        if (slot.isActive && new Date(slot.expiresAt) > now) {
+          const timeElapsedMs = now.getTime() - new Date(slot.lastAccruedAt || slot.startAt).getTime();
+          if (timeElapsedMs > 0) {
+            const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+            const additionalEarnings = earningsPerSecond * (timeElapsedMs / 1000);
+            accumulatedEarnings += additionalEarnings;
+          }
+        }
+      });
+      
+      setDisplayEarnings(accumulatedEarnings);
     }
-  }, [userData, userData?.accruedEarnings]);
+  }, [userData, slotsData]);
 
   // Memoized navigation data calculations
   const navigationData = useMemo(() => {
@@ -260,8 +276,27 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
             </div>
             <div>
               <p className="text-2xl font-bold text-white animate-pulse">
-                {displayEarnings.toFixed(8)} <span className="text-sm text-gray-300">USD</span>
+                {(() => {
+                  // Check if user has purchased slots (has active slots)
+                  const hasActiveSlots = slotsData && slotsData.some(slot => slot.isActive && new Date(slot.expiresAt) > new Date());
+                  
+                  if (hasActiveSlots) {
+                    // Show 30% bonus visually only - multiply by 1.3 for display
+                    const displayWithBonus = displayEarnings * 1.3;
+                    return displayWithBonus.toFixed(8);
+                  } else {
+                    // Show normal earnings if no slots
+                    return displayEarnings.toFixed(8);
+                  }
+                })()} <span className="text-sm text-gray-300">USD</span>
               </p>
+              {/* Show bonus indicator if user has slots */}
+              {slotsData && slotsData.some(slot => slot.isActive && new Date(slot.expiresAt) > new Date()) && (
+                <div className="flex items-center justify-center gap-1 mt-1">
+                  <span className="text-xs font-medium text-emerald-400">+30% Bonus</span>
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                </div>
+              )}
             </div>
           </div>
         </TemplateCard>

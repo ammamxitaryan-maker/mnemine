@@ -35,6 +35,7 @@ export const useLocalEarningsCache = ({
   const animationStartTime = useRef<number>(Date.now());
   const animationFrameId = useRef<number | null>(null);
   const syncTimeoutId = useRef<NodeJS.Timeout | null>(null);
+  const lastSyncTime = useRef<number>(Date.now());
 
   // Calculate earnings per second from slots data
   const calculateEarningsPerSecond = useCallback((slots: SlotData[]) => {
@@ -56,7 +57,14 @@ export const useLocalEarningsCache = ({
     return totalEarningsPerSecond;
   }, []);
 
-  // Smooth animation function
+  // Calculate accumulated earnings since last sync
+  const calculateAccumulatedEarnings = useCallback((baseEarnings: number, slots: SlotData[], timeSinceLastSync: number) => {
+    const earningsPerSecond = calculateEarningsPerSecond(slots);
+    const accumulatedEarnings = earningsPerSecond * timeSinceLastSync;
+    return baseEarnings + accumulatedEarnings;
+  }, [calculateEarningsPerSecond]);
+
+  // Smooth animation function - memoized to prevent memory leaks
   const animateEarnings = useCallback(() => {
     const now = Date.now();
     const elapsedTime = now - animationStartTime.current;
@@ -92,27 +100,62 @@ export const useLocalEarningsCache = ({
     }
   }, []);
 
-  // Sync with server data
+  // Sync with server data - optimized to avoid expensive JSON.stringify
   const syncWithServer = useCallback(() => {
     const hasServerDataChanged = 
       serverEarnings !== lastServerEarnings.current ||
-      JSON.stringify(serverSlotsData) !== JSON.stringify(lastServerSlots.current);
+      serverSlotsData.length !== lastServerSlots.current.length ||
+      serverSlotsData.some((slot, index) => {
+        const lastSlot = lastServerSlots.current[index];
+        return !lastSlot || 
+               slot.id !== lastSlot.id || 
+               slot.isActive !== lastSlot.isActive ||
+               slot.principal !== lastSlot.principal ||
+               slot.expiresAt !== lastSlot.expiresAt;
+      });
     
     if (hasServerDataChanged) {
+      const now = Date.now();
+      const timeSinceLastSync = (now - lastSyncTime.current) / 1000; // Convert to seconds
+      
+      // Calculate accumulated earnings since last sync
+      const accumulatedEarnings = calculateAccumulatedEarnings(
+        serverEarnings, 
+        serverSlotsData, 
+        timeSinceLastSync
+      );
+      
       // Update local cache
       lastServerEarnings.current = serverEarnings;
       lastServerSlots.current = serverSlotsData;
+      lastSyncTime.current = now;
       
-      // Reset animation with new base value
-      setLocalEarnings(serverEarnings);
-      animationStartTime.current = Date.now();
+      // Set earnings to accumulated value immediately
+      setLocalEarnings(accumulatedEarnings);
+      animationStartTime.current = now;
       
       // Restart animation if it was running
       if (isAnimating) {
         startAnimation();
       }
     }
-  }, [serverEarnings, serverSlotsData, isAnimating, startAnimation]);
+  }, [serverEarnings, serverSlotsData, isAnimating, startAnimation, calculateAccumulatedEarnings]);
+
+  // Initial sync to calculate accumulated earnings immediately
+  useEffect(() => {
+    // Calculate accumulated earnings from the start
+    const now = Date.now();
+    const timeSinceLastSync = (now - lastSyncTime.current) / 1000;
+    const accumulatedEarnings = calculateAccumulatedEarnings(
+      serverEarnings, 
+      serverSlotsData, 
+      timeSinceLastSync
+    );
+    
+    setLocalEarnings(accumulatedEarnings);
+    lastSyncTime.current = now;
+    animationStartTime.current = now;
+  }, [serverEarnings, serverSlotsData, calculateAccumulatedEarnings]);
 
   // Auto-sync with server every 30 seconds
   useEffect(() => {
@@ -145,15 +188,19 @@ export const useLocalEarningsCache = ({
     }
   }, [serverSlotsData, startAnimation, stopAnimation]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount to prevent memory leaks
   useEffect(() => {
     return () => {
-      stopAnimation();
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        animationFrameId.current = null;
+      }
       if (syncTimeoutId.current) {
         clearTimeout(syncTimeoutId.current);
+        syncTimeoutId.current = null;
       }
     };
-  }, [stopAnimation]);
+  }, []);
 
   // Manual sync function for immediate updates
   const forceSync = useCallback(() => {

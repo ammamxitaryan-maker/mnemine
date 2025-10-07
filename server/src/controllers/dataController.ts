@@ -5,6 +5,10 @@ import { ActivityLogType } from '@prisma/client';
 import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js'; // Import userSelect
 
+// Simple in-memory cache for user data to improve performance
+const userDataCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30000; // 30 seconds cache TTL
+
 // GET /api/user/:telegramId/data
 export const getUserData = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
@@ -16,6 +20,16 @@ export const getUserData = async (req: Request, res: Response) => {
   }
 
   try {
+    // Check cache first
+    const cacheKey = `userData_${telegramId}`;
+    const cached = userDataCache.get(cacheKey);
+    const now = Date.now();
+    
+    if (cached && (now - cached.timestamp) < CACHE_TTL) {
+      // Return cached data if still valid
+      return res.status(200).json(cached.data);
+    }
+
     // console.log(`[DATA] Querying database for user ${telegramId}...`); // Removed log
     const user = await prisma.user.findUnique({ 
       where: { telegramId }, 
@@ -68,6 +82,9 @@ export const getUserData = async (req: Request, res: Response) => {
       rank: user.rank, // Added user rank
     };
 
+    // Cache the response data
+    userDataCache.set(cacheKey, { data: responseData, timestamp: now });
+    
     // console.log('[DATA] Sending successful response:', responseData); // Removed log
     res.status(200).json(responseData);
 

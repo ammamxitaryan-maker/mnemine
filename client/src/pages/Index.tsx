@@ -38,7 +38,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const bonusesSummaryResult = useBonusesSummary();
   const achievementsResult = useAchievements();
 
-  // Local earnings cache with animation
+  // Local earnings cache with animation - optimized for performance
   const { 
     localEarnings: displayEarnings, 
     isAnimating,
@@ -46,8 +46,8 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   } = useLocalEarningsCache({
     serverEarnings: userData?.accruedEarnings || 0,
     serverSlotsData: slotsData || [],
-    syncInterval: 30000, // 30 seconds
-    animationInterval: 100 // 100ms for smooth animation
+    syncInterval: 60000, // 60 seconds - reduced frequency for better performance
+    animationInterval: 200 // 200ms - reduced animation frequency
   });
 
   // Memoized loading state
