@@ -63,7 +63,7 @@ export const TaskCard = ({ task, telegramId }: TaskCardProps) => {
             {task.reward.toFixed(2)} USD
           </div>
           <p className="text-xs text-gray-400">
-            {task.isCompleted ? "Completed" : "Available"}
+            {task.isCompleted ? t('tasks.completed') : t('tasks.available')}
           </p>
         </div>
       </CardContent>

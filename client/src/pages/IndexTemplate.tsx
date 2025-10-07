@@ -210,7 +210,7 @@ const IndexTemplateContent = ({ user }: { user: AuthenticatedUser }) => {
     );
   }
 
-  const displayName = user.firstName || user.username || "User";
+  const displayName = user.firstName || user.username || t('profile.user');
   const greeting = t('greeting.morning'); // Simplified for template
 
   return (

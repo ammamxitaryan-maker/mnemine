@@ -24,7 +24,7 @@ export const HomePageHeader = ({ user }: HomePageHeaderProps) => {
   const { t } = useTranslation();
   const { totalUsers, onlineUsers } = useWebSocketUserStats();
 
-  const displayName = user.firstName || user.username || "User";
+  const displayName = user.firstName || user.username || t('profile.user');
   const fallbackInitial = displayName.charAt(0).toUpperCase();
   const greeting = getGreeting(t);
 

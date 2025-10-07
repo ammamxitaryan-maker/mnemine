@@ -100,7 +100,7 @@ export const MainCardBack = ({ user, slots, isLoading }: MainCardBackProps) => {
                 <div className="text-center">
                   <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border border-purple-700/50 rounded-xl p-3">
                     <p className="text-sm font-medium text-purple-300">+{activeSlots.length - 2} more active slots</p>
-                    <p className="text-xs text-gray-400 mt-1">Click "Manage Slots" to view all</p>
+                    <p className="text-xs text-gray-400 mt-1">{t('mainCardBack.clickToViewAll')}</p>
                   </div>
                 </div>
               )}

@@ -20,7 +20,7 @@ const Profile = () => {
     return <p className="text-red-500 text-center p-4">Could not load profile data.</p>;
   }
 
-  const displayName = user?.firstName || user?.username || "User";
+  const displayName = user?.firstName || user?.username || t('profile.user');
 
   return (
     <div className="page-container flex flex-col text-white">
@@ -37,7 +37,7 @@ const Profile = () => {
               <Card className="w-full bg-gray-900/80 border-primary">
                 <CardContent className="p-3 flex flex-col items-center">
                   {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="Profile" className="w-20 h-20 rounded-full border-2 border-primary" />
+                    <img src={user.avatarUrl} alt={t('profile.avatar')} className="w-20 h-20 rounded-full border-2 border-primary" />
                   ) : (
                     <div className="w-20 h-20 rounded-full border-2 border-primary bg-gray-700 flex items-center justify-center">
                       <UserIcon className="w-10 h-10 text-gray-400" />

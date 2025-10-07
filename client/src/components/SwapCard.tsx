@@ -40,7 +40,7 @@ export const SwapCard = ({
 
   // Swap Card Front Content (Full Swap Interface)
   const SwapFront = () => (
-    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-y-auto h-full">
+    <Card className="w-full h-full min-h-[20rem] max-h-[24rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-y-auto">
       <CardHeader className="py-3 px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export const SwapCard = ({
 
   // Swap Card Back Content (Advanced Features)
   const SwapBack = () => (
-    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-y-auto h-full">
+    <Card className="w-full h-full min-h-[20rem] max-h-[24rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-y-auto">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-bold flex items-center justify-center gap-2">
           <div className="p-1.5 bg-blue-400/20 rounded-full">

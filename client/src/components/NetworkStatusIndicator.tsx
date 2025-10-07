@@ -25,7 +25,7 @@ export const NetworkStatusIndicator = () => {
       <button
         onClick={clearNetworkError}
         className="text-white hover:text-gray-200 transition-colors"
-        title="Dismiss"
+        title={t('network.dismiss')}
       >
         ×
       </button>
