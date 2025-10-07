@@ -53,12 +53,12 @@ export const getUserData = async (req: Request, res: Response) => {
       data: { lastSeenAt: new Date() },
     });
 
-    const now = new Date();
+    const currentTime = new Date();
     let totalEarnings = 0;
     
     // console.log('[DATA] Calculating accrued earnings...'); // Removed log
     user.miningSlots.forEach(slot => {
-      const timeElapsedMs = now.getTime() - slot.lastAccruedAt.getTime();
+      const timeElapsedMs = currentTime.getTime() - slot.lastAccruedAt.getTime();
       if (timeElapsedMs > 0) {
         const earnings = slot.principal * slot.effectiveWeeklyRate * (timeElapsedMs / (7 * 24 * 60 * 60 * 1000));
         totalEarnings += earnings;
