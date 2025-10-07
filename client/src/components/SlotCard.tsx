@@ -15,24 +15,26 @@ interface SlotCardProps {
 const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
   const { t } = useTranslation();
   const [remaining, setRemaining] = useState(getRemainingTime(slot.expiresAt));
+  
+  // Animated earnings instead of real-time calculation
   const [dynamicEarnings, setDynamicEarnings] = useState(0);
+  const [animationStartTime] = useState(Date.now());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setRemaining(getRemainingTime(slot.expiresAt));
       
-      // Calculate dynamic earnings for this slot
-      const now = new Date();
-      const timeElapsedMs = now.getTime() - new Date(slot.lastAccruedAt).getTime();
-      if (timeElapsedMs > 0) {
-        const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-        const currentEarnings = earningsPerSecond * (timeElapsedMs / 1000);
-        setDynamicEarnings(currentEarnings);
-      }
-    }, 100); // Update every 100ms for smooth animation
+      // Animated earnings - just for visual effect
+      const now = Date.now();
+      const elapsed = (now - animationStartTime) / 1000; // seconds since mount
+      const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+      const animatedEarnings = earningsPerSecond * elapsed;
+      
+      setDynamicEarnings(animatedEarnings);
+    }, 200); // Update every 200ms for smooth animation
     
     return () => clearInterval(timer);
-  }, [slot.expiresAt, slot.lastAccruedAt, slot.principal, slot.effectiveWeeklyRate]);
+  }, [slot.expiresAt, slot.principal, slot.effectiveWeeklyRate, animationStartTime]);
 
   const isExpired = remaining.totalSeconds <= 0;
   const statusText = isExpired ? t('slots.status.expired') : t('slots.status.active');

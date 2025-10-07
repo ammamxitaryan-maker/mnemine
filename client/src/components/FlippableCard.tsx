@@ -137,9 +137,8 @@ export const FlippableCard = ({
         {/* Card Container - Optimized Height for Better Visibility */}
         <div
           className={cn(
-            "w-full h-40 sm:h-44 [perspective:1000px] cursor-pointer transition-all duration-300 relative z-10",
-            enableAccordion && isExpanded && "h-48 sm:h-52",
-            enableHoverFlip && "hover:scale-[1.02]"
+            "w-full h-40 sm:h-44 [perspective:1000px] cursor-pointer relative z-10",
+            enableHoverFlip && "hover:scale-[1.02] transition-transform duration-200"
           )}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
@@ -165,10 +164,7 @@ export const FlippableCard = ({
       
       {/* Enhanced Accordion Content - Separate Layer */}
       {enableAccordion && isExpanded && accordionContent && (
-        <div className={cn(
-          "w-full transition-all duration-500 ease-in-out overflow-hidden relative z-20 mt-4",
-          isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-        )}>
+        <div className="w-full relative z-20 mt-4">
           <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 rounded-xl backdrop-blur-sm shadow-2xl">
             {accordionContent}
           </div>

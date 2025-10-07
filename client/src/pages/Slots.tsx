@@ -88,8 +88,9 @@ const Slots = () => {
   const activeSlots = slotsData?.filter(slot => slot.isActive && new Date(slot.expiresAt) > new Date()) ?? [];
   const inactiveSlots = slotsData?.filter(slot => !slot.isActive || new Date(slot.expiresAt) <= new Date()) ?? [];
   
-  // Calculate total dynamic earnings for all active slots
+  // Animated total earnings instead of real-time calculation
   const [totalDynamicEarnings, setTotalDynamicEarnings] = useState(0);
+  const [animationStartTime] = useState(Date.now());
   
   useEffect(() => {
     if (activeSlots.length === 0) {
@@ -98,23 +99,22 @@ const Slots = () => {
     }
     
     const timer = setInterval(() => {
-      let total = 0;
-      const now = new Date();
+      // Animated total earnings - just for visual effect
+      const now = Date.now();
+      const elapsed = (now - animationStartTime) / 1000; // seconds since mount
       
+      let total = 0;
       activeSlots.forEach(slot => {
-        const timeElapsedMs = now.getTime() - new Date(slot.lastAccruedAt).getTime();
-        if (timeElapsedMs > 0) {
-          const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-          const currentEarnings = earningsPerSecond * (timeElapsedMs / 1000);
-          total += currentEarnings;
-        }
+        const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+        const animatedEarnings = earningsPerSecond * elapsed;
+        total += animatedEarnings;
       });
       
       setTotalDynamicEarnings(total);
-    }, 50); // Update every 50ms for faster animation based on number of slots
+    }, 100); // Update every 100ms for smooth animation
     
     return () => clearInterval(timer);
-  }, [activeSlots]);
+  }, [activeSlots, animationStartTime]);
 
   return (
     <div className="page-container flex flex-col text-white">
