@@ -3,7 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Coins, Wallet, TrendingUp, Clock, Zap } from 'lucide-react';
+import { Loader2, Coins, Wallet, TrendingUp, Clock, Zap, ChevronDown } from 'lucide-react';
 
 interface MainCardFrontProps {
   userData: { balance: number; miningPower: number } | undefined;
@@ -24,8 +24,15 @@ export const MainCardFront = ({
 
   return (
     <Card
-      className="w-full max-w-[95vw] min-h-[14rem] max-h-[20rem] sm:min-h-[16rem] sm:max-h-[24rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col justify-between backdrop-blur-sm relative overflow-hidden box-border"
+      className="w-full max-w-[95vw] min-h-[18rem] max-h-[28rem] sm:min-h-[22rem] sm:max-h-[32rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col justify-between backdrop-blur-sm relative overflow-hidden box-border"
     >
+      {/* Header Section with Expand Indicator */}
+      <div className="absolute top-4 right-4 z-20">
+        <div className="w-6 h-6 bg-slate-700/50 rounded-full flex items-center justify-center">
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        </div>
+      </div>
+
       <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center gap-4 sm:gap-6 text-center relative z-10 overflow-hidden">
         {/* Balance Section */}
         <div className="w-full flex-grow">

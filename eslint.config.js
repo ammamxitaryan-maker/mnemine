@@ -31,6 +31,10 @@ export default tseslint.config(
         ...globals.node,
         ...globals.browser,
       },
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+        project: ["./client/tsconfig.json", "./server/tsconfig.json", "./cursor-autopilot/tsconfig.json"],
+      },
     },
     rules: {
       "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],

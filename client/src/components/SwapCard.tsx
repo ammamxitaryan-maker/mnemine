@@ -4,9 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeftRight, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Loader2, ArrowLeftRight, ChevronDown, ChevronUp, Info, TrendingUp, DollarSign } from 'lucide-react';
+import { FlippableCard } from '@/components/FlippableCard';
 import { useSwapMNEoMNE, useSwapMNEToUSD, useExchangeRate } from '@/hooks/useSwap';
 import { showSuccess, showError } from '@/utils/toast';
+import { getErrorMessage } from '@/types/errors';
 
 interface SwapCardProps {
   telegramId: string;
@@ -15,7 +17,6 @@ interface SwapCardProps {
 
 export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
   const { t } = useTranslation();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [amount, setAmount] = useState('');
   const [direction, setDirection] = useState<'USD-to-MNE' | 'MNE-to-USD'>('USD-to-MNE');
   
@@ -62,8 +63,8 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
       }
       
       setAmount('');
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || error.message || t('swap.error');
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error, t('swap.error'));
       showError(errorMessage);
     }
   };
@@ -82,12 +83,10 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
 
   const previewAmount = calculatePreview();
 
-  return (
-    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 hover:border-purple-500/60 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-slate-900/30 backdrop-blur-sm relative overflow-hidden">
-      <CardHeader 
-        className="cursor-pointer select-none py-3 px-4 hover:bg-slate-700/20 transition-colors duration-200 rounded-t-lg"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+  // Swap Card Front Content (Full Swap Interface)
+  const SwapFront = () => (
+    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-hidden h-full">
+      <CardHeader className="py-3 px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-purple-400/20 rounded-full">
@@ -95,25 +94,20 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
             </div>
             <div>
               <CardTitle className="text-sm font-bold text-white">{t('swap.title')}</CardTitle>
-              {!isExpanded && rateData && (
+              {rateData && (
                 <CardDescription className="text-gray-300 text-xs mt-0.5">
                   1 USD = <span className="text-yellow-400 font-mono font-semibold">{rateData.rate.toFixed(4)}</span> MNE
                 </CardDescription>
               )}
             </div>
           </div>
-          <div className="p-1.5 hover:bg-slate-700/30 rounded-full transition-colors duration-200">
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4 text-gray-400" />
-            ) : (
+          <div className="w-6 h-6 bg-slate-700/50 rounded-full flex items-center justify-center">
               <ChevronDown className="w-4 h-4 text-gray-400" />
-            )}
           </div>
         </div>
       </CardHeader>
 
-      {isExpanded && (
-        <CardContent className="space-y-3 px-4 pb-4 animate-in slide-in-from-top duration-300">
+      <CardContent className="px-4 pb-4 space-y-3">
           {/* Exchange Rate Display */}
           <div className="bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 border border-yellow-700/50 rounded-lg p-3">
             <div className="flex items-center justify-between">
@@ -234,8 +228,95 @@ export const SwapCard = ({ telegramId, USDBalance }: SwapCardProps) => {
             </p>
           </div>
         </CardContent>
-      )}
     </Card>
+  );
+
+  // Swap Card Back Content (Advanced Features)
+  const SwapBack = () => (
+    <Card className="w-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl backdrop-blur-sm relative overflow-hidden h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-bold flex items-center justify-center gap-2">
+          <div className="p-1.5 bg-blue-400/20 rounded-full">
+            <TrendingUp className="w-4 h-4 text-blue-400" />
+          </div>
+          Advanced Swap
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 py-2 space-y-4">
+        <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 border border-emerald-700/50 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-emerald-300">Your Balance:</span>
+            <span className="text-sm font-bold text-emerald-400">{USDBalance.toFixed(2)} USD</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-emerald-300">Est. MNE Value:</span>
+            <span className="text-sm font-bold text-emerald-400">
+              {rateData ? (USDBalance * rateData.rate).toFixed(4) : '0.0000'} MNE
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border border-purple-700/50 rounded-lg p-3 text-center">
+            <DollarSign className="w-5 h-5 text-purple-400 mx-auto mb-1" />
+            <p className="text-xs text-purple-300">USD to MNE</p>
+          </div>
+          <div className="bg-gradient-to-br from-cyan-900/30 to-cyan-800/20 border border-cyan-700/50 rounded-lg p-3 text-center">
+            <ArrowLeftRight className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
+            <p className="text-xs text-cyan-300">MNE to USD</p>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border border-blue-700/50 rounded-xl p-3">
+          <p className="text-xs text-blue-300 text-center">
+            <strong>Pro Tip:</strong> Use limit orders for better rates
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Swap Card Accordion Content
+  const accordionContent = (
+    <div className="space-y-3">
+      {/* Quick Swap Actions */}
+      <div className="grid grid-cols-3 gap-2">
+        <button className="bg-gradient-to-r from-green-600/80 to-green-500/80 hover:from-green-500/90 hover:to-green-400/90 text-white font-semibold py-2 px-2 rounded-lg text-xs transition-all duration-200 flex items-center justify-center gap-1">
+          <span className="font-bold">25%</span>
+        </button>
+        <button className="bg-gradient-to-r from-blue-600/80 to-blue-500/80 hover:from-blue-500/90 hover:to-blue-400/90 text-white font-semibold py-2 px-2 rounded-lg text-xs transition-all duration-200 flex items-center justify-center gap-1">
+          <span className="font-bold">50%</span>
+        </button>
+        <button className="bg-gradient-to-r from-purple-600/80 to-purple-500/80 hover:from-purple-500/90 hover:to-purple-400/90 text-white font-semibold py-2 px-2 rounded-lg text-xs transition-all duration-200 flex items-center justify-center gap-1">
+          <span className="font-bold">100%</span>
+        </button>
+      </div>
+
+      {/* Market Info */}
+      <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 border border-gray-700/50 rounded-lg p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-300">Market Status</span>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-xs text-emerald-400 font-semibold">Active</span>
+          </div>
+        </div>
+        <div className="text-xs text-gray-400">
+          Last updated: {new Date().toLocaleTimeString()}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <FlippableCard
+      id="swap-card"
+      frontContent={<SwapFront />}
+      backContent={<SwapBack />}
+      enableAccordion={true}
+      accordionContent={accordionContent}
+      showFlipIndicator={true}
+    />
   );
 };
 

@@ -51,15 +51,15 @@ export const PLATINUM_GOD_THRESHOLD = 200.0;
 
 // Бонусы за ранги
 export const RANK_REFERRAL_BONUS_PERCENTAGE = 0.05; // +5% к реферальным выплатам (старая логика)
-export const RANK_SLOT_RATE_BONUS_PERCENTAGE = 0.10; // +10% к доходности слота (0.10, не 0.4)
+// REMOVED: RANK_SLOT_RATE_BONUS_PERCENTAGE - no slot rate bonuses, all slots are 30%
 
 // Новые фиксированные реферальные выплаты для рангов
 export const RANKED_REFERRAL_COMMISSIONS_L1 = 0.25; // 25% для L1
 export const RANKED_REFERRAL_COMMISSIONS_L2 = 0.15; // 15% для L2
 export const RANKED_REFERRAL_COMMISSIONS_L3 = 0.10; // 10% для L3
 
-export const REINVESTMENT_BONUS_PERCENTAGE = 0.15; // +15% к доходности за 100% реинвестиции
-export const REINVESTMENT_AMOUNT = 0.9; // Сумма реинвестиции в слот
+// REMOVED: REINVESTMENT_BONUS_PERCENTAGE - no reinvestment bonuses, all slots are 30%
+// REMOVED: REINVESTMENT_AMOUNT - no reinvestment system
 
 // Параметры фонда
 export const FUND_PERCENTAGE_FROM_INVESTMENTS = 0.33; // 33% от всех реальных вложений
@@ -72,7 +72,7 @@ export const ACTIVE_REFERRAL_MIN_DIRECT_REFERRALS = 1; // Для Eligible_i и A
 // Антифрод и лимиты
 export const SUSPICIOUS_IP_THRESHOLD = 3; // Более 3 IP за 24 часа
 export const SUSPICIOUS_DEVICE_THRESHOLD = 3; // Более 3 устройств за 24 часа (пока не используется)
-export const SLOT_PURCHASE_DAILY_LIMIT = 5; // Не более 5 слотов за 24 часа
+// REMOVED: SLOT_PURCHASE_DAILY_LIMIT - no daily limits for slot purchases
 export const WITHDRAWAL_DAILY_LIMIT = 1; // Не более 1 вывода за 24 часа
 
 export const REFERRAL_INCOME_CAP_THRESHOLD = 20.0; // Если V_i <= 20 USDT, реферальный доход <= Bal_i(t)
@@ -118,19 +118,19 @@ export const RANK_BENEFITS = {
     referralCommissionL1: 0.25,
     referralCommissionL2: 0.15,
     referralCommissionL3: 0.10,
-    slotRateBonus: 0.10,
+    // REMOVED: slotRateBonus - no slot bonuses, all slots are 30%
   },
   'Gold Magnate': {
     referralCommissionL1: 0.25,
     referralCommissionL2: 0.15,
     referralCommissionL3: 0.10,
-    slotRateBonus: 0.10,
+    // REMOVED: slotRateBonus - no slot bonuses, all slots are 30%
   },
   'Platinum God': {
     referralCommissionL1: 0.25,
     referralCommissionL2: 0.15,
     referralCommissionL3: 0.10,
-    slotRateBonus: 0.10,
+    // REMOVED: slotRateBonus - no slot bonuses, all slots are 30%
   },
 };
 

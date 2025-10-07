@@ -3,6 +3,7 @@ import { LoadingButton } from './LoadingButton';
 import { Skeleton } from './SkeletonLoader';
 import { useSwapMNEoMNE, useSwapMNEToUSD, useExchangeRate } from '../hooks/useSwap';
 import { useErrorHandler } from './ErrorBoundary';
+import { getErrorMessage } from '../types/errors';
 
 interface SwapInterfaceProps {
   telegramId: string;
@@ -11,7 +12,7 @@ interface SwapInterfaceProps {
 export const SwapInterface: React.FC<SwapInterfaceProps> = ({ telegramId }) => {
   const [amount, setAmount] = useState('');
   const [swapDirection, setSwapDirection] = useState<'USD-to-MNE' | 'MNE-to-USD'>('USD-to-MNE');
-  const [lastSwap, setLastSwap] = useState<any>(null);
+  const [lastSwap, setLastSwap] = useState<{ MNEAmount?: number; USDAmount?: number; rate?: number } | null>(null);
   
   // FIX: Use real API hooks instead of mocks
   const swapMNEoMNEMutation = useSwapMNEoMNE(telegramId);
@@ -49,9 +50,9 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ telegramId }) => {
       setAmount(''); // Clear input after successful swap
       console.log('✅ Swap successful');
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Swap failed:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Swap failed';
+      const errorMessage = getErrorMessage(error, 'Swap failed');
       alert(`❌ Swap Failed\n\n${errorMessage}`);
     }
   }, [amount, swapDirection, swapMNEoMNEMutation, swapMNEToUSDMutation]);
@@ -90,7 +91,7 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ telegramId }) => {
           <label className="swap-interface__direction-label">Direction:</label>
           <select 
             value={swapDirection} 
-            onChange={(e) => setSwapDirection(e.target.value as any)}
+            onChange={(e) => setSwapDirection(e.target.value as 'USD-to-MNE' | 'MNE-to-USD')}
             className="swap-interface__direction-select"
             disabled={swapLoading}
           >

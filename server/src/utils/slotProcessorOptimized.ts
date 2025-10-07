@@ -208,9 +208,10 @@ const processUserSlots = async (userId: string, slots: any[]) => {
   const activityLogs: any[] = [];
 
   for (const slot of slots) {
-    // Рассчитываем доход с момента покупки слота
+    // Рассчитываем доход с момента покупки слота (всегда 30%)
     const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
-    const earnings = slot.principal * slot.effectiveWeeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
+    const weeklyRate = 0.3; // Always 30% for all slots
+    const earnings = slot.principal * weeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
     
     totalEarnings += earnings;
     

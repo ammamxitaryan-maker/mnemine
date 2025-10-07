@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/types/errors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,8 +40,9 @@ const AdminLogin = () => {
       } else {
         setError(response.data.error || 'Login failed');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Login failed');
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

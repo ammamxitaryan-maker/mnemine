@@ -78,23 +78,29 @@ export const FlippableCard = ({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (enableDoubleClick) {
       setClickCount(prev => prev + 1);
       return;
     }
-    
+
     if (enableAccordion) {
-      if (!isExpanded) {
-        // First click: expand accordion
-        setIsExpanded(true);
-      } else if (!isFlipped) {
-        // Second click: flip to back
-        setIsFlipped(true);
+      // If accordion content is provided, use accordion behavior
+      if (accordionContent) {
+        if (!isExpanded) {
+          // First click: expand accordion
+          setIsExpanded(true);
+        } else if (!isFlipped) {
+          // Second click: flip to back
+          setIsFlipped(true);
+        } else {
+          // Third click: return to front and collapse accordion
+          setIsFlipped(false);
+          setIsExpanded(false);
+        }
       } else {
-        // Third click: return to front
-        setIsFlipped(false);
-        setIsExpanded(false);
+        // No accordion content, just flip normally
+        setIsFlipped(!isFlipped);
       }
     } else {
       // Just flip normally

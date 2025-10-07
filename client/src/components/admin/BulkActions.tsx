@@ -31,7 +31,7 @@ interface BulkResult {
   action: string;
   success: boolean;
   newRole?: string;
-  userInfo?: any;
+  userInfo?: Record<string, unknown>;
 }
 
 interface BulkError {
@@ -84,9 +84,10 @@ const BulkActions = ({ selectedUsers, onClose, onSuccess }: BulkActionsProps) =>
       if (response.data.data.summary.failed === 0) {
         onSuccess();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Bulk action error:', error);
-      alert(`Failed to perform bulk action: ${error.response?.data?.error || 'Unknown error'}`);
+      const errorMessage = (error as { response?: { data?: { error?: string } } }).response?.data?.error || 'Unknown error';
+      alert(`Failed to perform bulk action: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

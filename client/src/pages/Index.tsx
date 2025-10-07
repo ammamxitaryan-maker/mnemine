@@ -9,6 +9,7 @@ import { useSlotsData } from '@/hooks/useSlotsData';
 import { useAchievements } from '@/hooks/useAchievements';
 import { useLotteryData } from '@/hooks/useLotteryData';
 import { useBonusesSummary } from '@/hooks/useBonusesSummary';
+import { useLocalEarningsCache } from '@/hooks/useLocalEarningsCache';
 
 import { AuthWrapper } from '@/components/AuthWrapper';
 import { FlippableCard } from '@/components/FlippableCard';
@@ -19,8 +20,9 @@ import { DashboardLinkCard } from '@/components/DashboardLinkCard';
 import { SwapCard } from '@/components/SwapCard';
 import { AuthenticatedUser } from '@/types/telegram';
 import { showError } from '@/utils/toast';
+import { Link } from 'react-router-dom';
 
-import { Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, Settings } from 'lucide-react';
+import { Server, Trophy, Gift, CheckSquare, Award, Ticket, Loader2, Settings, TrendingUp, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
@@ -36,8 +38,17 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const bonusesSummaryResult = useBonusesSummary();
   const achievementsResult = useAchievements();
 
-  // Local state
-  const [displayEarnings, setDisplayEarnings] = useState(0);
+  // Local earnings cache with animation
+  const { 
+    localEarnings: displayEarnings, 
+    isAnimating,
+    forceSync 
+  } = useLocalEarningsCache({
+    serverEarnings: userData?.accruedEarnings || 0,
+    serverSlotsData: slotsData || [],
+    syncInterval: 30000, // 30 seconds
+    animationInterval: 100 // 100ms for smooth animation
+  });
 
   // Memoized loading state
   const overallLoading = useMemo(() => 
@@ -65,21 +76,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     return slotsData.filter(slot => slot.isActive && new Date(slot.expiresAt) > new Date());
   }, [slotsData]);
 
-  // Memoized earnings calculation
-  const earningsPerSecond = useMemo(() => {
-    if (!userData || activeSlots.length === 0) return 0;
-    return activeSlots.reduce((total, slot) => {
-      const earningsPerSecondForSlot = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-      return total + earningsPerSecondForSlot;
-    }, 0) * 10; // Aggressive multiplier for visual effect
-  }, [userData, activeSlots]);
-
-  // Initialize display earnings when userData changes
-  useEffect(() => {
-    if (userData) {
-      setDisplayEarnings(userData.accruedEarnings);
-    }
-  }, [userData, userData?.accruedEarnings]);
+  // REMOVED: Old earnings calculation - now handled by useLocalEarningsCache
 
   // Memoized navigation data calculations - moved before early returns
   const navigationData = useMemo(() => {
@@ -165,26 +162,20 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     // Only add admin panel link if user is admin
     if (isAdmin) {
       baseItems.push({
-        to: "/admin", 
-        icon: Settings, 
-        titleKey: "admin.panel", 
-        isNotification: false
+        to: "/admin",
+        icon: Settings,
+        titleKey: "admin.panel",
+        data: 0,
+        isLoading: false,
+        error: undefined,
+        unit: "panel"
       });
     }
 
     return baseItems;
   }, [navigationData, tasksDataResult.isLoading, tasksDataResult.error, slotsLoading, lotteryDataResult.isLoading, lotteryDataResult.error, bonusesSummaryResult.isLoading, bonusesSummaryResult.error, achievementsResult.isLoading, achievementsResult.error, isAdmin]);
 
-  // Dynamic earnings update effect
-  useEffect(() => {
-    if (earningsPerSecond === 0) return;
-
-    const interval = setInterval(() => {
-      setDisplayEarnings(prev => prev + earningsPerSecond);
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [earningsPerSecond]);
+  // REMOVED: Old dynamic earnings effect - now handled by useLocalEarningsCache
 
   if (userDataError) {
     return (
@@ -194,8 +185,8 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     );
   }
 
-  // Затем, если не загружается и данные пользователя доступны, отображаем контент
-  if (overallLoading || !userData) { // Явно проверяем наличие userData
+  // �����, ���� �� ����������� � ������ ������������ ��������, ���������� �������
+  if (overallLoading || !userData) { // ���� ��������� ������� userData
     return (
       <div className="flex justify-center items-center min-h-screen text-white p-4">
         <Loader2 className="w-12 h-12 animate-spin" />
@@ -205,27 +196,28 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-200 to-slate-800 relative">
       {/* Background Layer */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-sm pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-400/9
+      80 via-purple-900/60 to-slate-900/55 backdrop-blur-sm pointer-events-none" />
       
       {/* Main Content Container - Fully Responsive with Better Spacing */}
-      <div className="relative w-full max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 z-10">
-        <div className="space-y-6 sm:space-y-8">
+      <div className="relative w-full max-w-7xl mx-auto px-2 py-1 sm:px-1 lg:px-1 z-2">
+        <div className="space-y-6 sm:space-y-10">
           {/* Header Section */}
           <header className="relative">
             <HomePageHeader user={user} />
           </header>
           
           {/* Main Content - Responsive Grid Layout */}
-          <main className="space-y-6 sm:space-y-8">
+          <main className="space-y-10 sm:space-y-4">
             {/* Primary Dashboard Section */}
-            <section className="w-full max-w-4xl mx-auto">
+            <section className="max-w-2xl mx-auto mb-28">
               <FlippableCard
                 id="main-card"
                 frontContent={
-                  <MainCardFront 
-                    userData={userData} 
+                  <MainCardFront
+                    userData={userData}
                     slotsData={slotsData}
                     displayEarnings={displayEarnings}
                     onClaim={claim}
@@ -233,13 +225,79 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                   />
                 }
                 backContent={<MainCardBack user={user} slots={slotsData} isLoading={slotsLoading} />}
-                enableAccordion={false}
+                enableAccordion={true}
+                accordionContent={
+                  <div className="space-y-4">
+                    {/* Mining Statistics */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-gradient-to-br from-cyan-900/40 to-cyan-800/30 border border-cyan-700/60 rounded-lg p-3">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <TrendingUp className="w-4 h-4 text-cyan-400" />
+                          <span className="text-sm font-medium text-cyan-300">Mining Power</span>
+                        </div>
+                        <p className="text-lg font-bold text-cyan-400 text-center">{((userData?.miningPower ?? 0) * 100).toFixed(2)}%</p>
+                      </div>
+                      <div className="bg-gradient-to-br from-emerald-900/40 to-emerald-800/30 border border-emerald-700/60 rounded-lg p-3">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Server className="w-4 h-4 text-emerald-400" />
+                          <span className="text-sm font-medium text-emerald-300">Active Slots</span>
+                        </div>
+                        <p className="text-lg font-bold text-emerald-400 text-center">
+                          {slotsData?.filter(s => s.isActive && new Date(s.expiresAt) > new Date()).length || 0}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Daily Earnings Breakdown */}
+                    {activeSlots.length > 0 && (
+                      <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border border-purple-700/60 rounded-lg p-4">
+                        <h4 className="text-sm font-semibold text-purple-300 mb-3 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" />
+                          Daily Earnings Breakdown
+                        </h4>
+                        <div className="space-y-2">
+                          {activeSlots.slice(0, 3).map((slot, index) => {
+                            const dailyRate = slot.effectiveWeeklyRate / 7;
+                            const dailyEarnings = slot.principal * dailyRate;
+                            return (
+                              <div key={slot.id || index} className="flex justify-between items-center text-sm">
+                                <span className="text-gray-300">Slot {index + 1}:</span>
+                                <span className="font-mono text-emerald-400">{dailyEarnings.toFixed(6)} USD</span>
+                              </div>
+                            );
+                          })}
+                          {activeSlots.length > 3 && (
+                            <div className="text-xs text-gray-400 text-center pt-2">
+                              +{activeSlots.length - 3} more slots...
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quick Actions */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link to="/slots" className="block">
+                        <button className="w-full bg-gradient-to-r from-blue-600/80 to-blue-500/80 hover:from-blue-500/90 hover:to-blue-400/90 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-2">
+                          <Server className="w-4 h-4" />
+                          Manage Slots
+                        </button>
+                      </Link>
+                      <Link to="/tasks" className="block">
+                        <button className="w-full bg-gradient-to-r from-green-600/80 to-green-500/80 hover:from-green-500/90 hover:to-green-400/90 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-2">
+                          <CheckSquare className="w-4 h-4" />
+                          Tasks
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                }
                 showFlipIndicator={true}
               />
             </section>
 
             {/* Secondary Features Section */}
-            <section className="w-full max-w-4xl mx-auto">
+            <section className="w-full max-w-2xl mx-auto mt-8 sm:mt-2">
               <SwapCard
                 telegramId={user.telegramId}
                 USDBalance={userData?.balance || 0}
@@ -247,10 +305,10 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
             </section>
 
             {/* Navigation Grid Section */}
-            <section className="w-full max-w-4xl mx-auto">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+            <section className="w-full max-w-2xl mx-auto px-3 sm:px-2">
+              <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-3 lg:gap-3">
                 {navItems.map((item) => (
-                  <div key={item.to} className="h-20 sm:h-24 lg:h-28">
+                  <div key={item.to} className="h28 sm:h-28 lg:h-28">
                     <DashboardLinkCard
                       to={item.to}
                       icon={item.icon}
@@ -267,7 +325,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
             </section>
 
             {/* Bottom Spacing for Mobile Navigation - Reduced */}
-            <div className="h-20 sm:h-24" />
+            <div className="h-1 sm:h-4" />
           </main>
         </div>
       </div>

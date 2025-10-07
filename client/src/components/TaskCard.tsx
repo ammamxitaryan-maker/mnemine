@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, Gift, Info, Loader2 } from 'lucide-react';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { getErrorMessage } from '@/types/errors';
 import { Task } from '@/hooks/useTasksData';
 import { FlippableCard } from './FlippableCard';
 
@@ -32,9 +33,9 @@ export const TaskCard = ({ task, telegramId }: TaskCardProps) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', telegramId] });
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] });
     },
-    onError: (error: any, _variables, context) => {
+    onError: (error: unknown, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
-      const errorMessage = error.response?.data?.error || 'Failed to claim. Please try again.';
+      const errorMessage = getErrorMessage(error, 'Failed to claim. Please try again.');
       showError(errorMessage);
     },
   });

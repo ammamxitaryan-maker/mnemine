@@ -303,7 +303,8 @@ export class WebSocketServer {
       const timeDiff = now.getTime() - lastAccrued.getTime();
       const secondsDiff = timeDiff / 1000;
       
-      const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+      const weeklyRate = 0.3; // Always 30% for all slots
+      const earningsPerSecond = (slot.principal * weeklyRate) / (7 * 24 * 60 * 60);
       const currentEarnings = earningsPerSecond * secondsDiff;
       
       return {
@@ -345,7 +346,7 @@ export class WebSocketServer {
       }
     }, 10000));
 
-    // Broadcast user earnings every 10 seconds (optimized for better performance)
+    // Broadcast user earnings every 30 seconds (optimized for better performance)
     this.broadcastIntervals.set('earnings', setInterval(async () => {
       try {
         // Only broadcast to users with active connections
@@ -372,7 +373,7 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting earnings:', error);
       }
-    }, 10000));
+    }, 30000));
 
     // Broadcast price data every minute for real-time price chart
     this.broadcastIntervals.set('price', setInterval(async () => {

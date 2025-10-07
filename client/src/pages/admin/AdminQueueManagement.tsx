@@ -28,7 +28,7 @@ interface QueueItem {
   type: 'payout' | 'notification' | 'email' | 'sms';
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'retry';
   priority: 'low' | 'normal' | 'high' | 'critical';
-  payload: any;
+  payload: Record<string, unknown>;
   attempts: number;
   maxAttempts: number;
   createdAt: string;

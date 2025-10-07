@@ -1,0 +1,425 @@
+/* ========================================
+   DESIGN TOKENS - MODERN DESIGN SYSTEM
+   ======================================== */
+
+:root {
+  /* ========================================
+     COLOR SYSTEM - ENHANCED ACCESSIBILITY
+     ======================================== */
+  
+  /* Primary Colors - Vibrant Blue */
+  --color-primary-50: 239 246 255;
+  --color-primary-100: 219 234 254;
+  --color-primary-200: 191 219 254;
+  --color-primary-300: 147 197 253;
+  --color-primary-400: 96 165 250;
+  --color-primary-500: 59 130 246;
+  --color-primary-600: 37 99 235;
+  --color-primary-700: 29 78 216;
+  --color-primary-800: 30 64 175;
+  --color-primary-900: 30 58 138;
+  --color-primary-950: 23 37 84;
+
+  /* Secondary Colors - Success Green */
+  --color-secondary-50: 240 253 244;
+  --color-secondary-100: 220 252 231;
+  --color-secondary-200: 187 247 208;
+  --color-secondary-300: 134 239 172;
+  --color-secondary-400: 74 222 128;
+  --color-secondary-500: 34 197 94;
+  --color-secondary-600: 22 163 74;
+  --color-secondary-700: 21 128 61;
+  --color-secondary-800: 22 101 52;
+  --color-secondary-900: 20 83 45;
+  --color-secondary-950: 5 46 22;
+
+  /* Accent Colors - Purple */
+  --color-accent-50: 250 245 255;
+  --color-accent-100: 243 232 255;
+  --color-accent-200: 233 213 255;
+  --color-accent-300: 216 180 254;
+  --color-accent-400: 196 181 253;
+  --color-accent-500: 168 85 247;
+  --color-accent-600: 147 51 234;
+  --color-accent-700: 126 34 206;
+  --color-accent-800: 107 33 168;
+  --color-accent-900: 88 28 135;
+  --color-accent-950: 59 7 100;
+
+  /* Gold Colors - USD Theme */
+  --color-gold-50: 255 251 235;
+  --color-gold-100: 254 243 199;
+  --color-gold-200: 253 230 138;
+  --color-gold-300: 252 211 77;
+  --color-gold-400: 251 191 36;
+  --color-gold-500: 245 158 11;
+  --color-gold-600: 217 119 6;
+  --color-gold-700: 180 83 9;
+  --color-gold-800: 146 64 14;
+  --color-gold-900: 120 53 15;
+  --color-gold-950: 69 26 3;
+
+  /* Neutral Colors - Enhanced Dark Theme */
+  --color-neutral-50: 248 250 252;
+  --color-neutral-100: 241 245 249;
+  --color-neutral-200: 226 232 240;
+  --color-neutral-300: 203 213 225;
+  --color-neutral-400: 148 163 184;
+  --color-neutral-500: 100 116 139;
+  --color-neutral-600: 71 85 105;
+  --color-neutral-700: 51 65 85;
+  --color-neutral-800: 30 41 59;
+  --color-neutral-900: 15 23 42;
+  --color-neutral-950: 2 6 23;
+
+  /* Semantic Colors */
+  --color-success: var(--color-secondary-500);
+  --color-warning: var(--color-gold-500);
+  --color-error: 239 68 68;
+  --color-info: var(--color-primary-500);
+
+  /* Background Colors */
+  --color-background: var(--color-neutral-950);
+  --color-background-secondary: var(--color-neutral-900);
+  --color-background-tertiary: var(--color-neutral-800);
+
+  /* Surface Colors */
+  --color-surface: var(--color-neutral-900);
+  --color-surface-elevated: var(--color-neutral-800);
+  --color-surface-overlay: var(--color-neutral-800);
+
+  /* Text Colors */
+  --color-text-primary: var(--color-neutral-50);
+  --color-text-secondary: var(--color-neutral-300);
+  --color-text-tertiary: var(--color-neutral-400);
+  --color-text-disabled: var(--color-neutral-500);
+  --color-text-inverse: var(--color-neutral-900);
+
+  /* Border Colors */
+  --color-border: var(--color-neutral-700);
+  --color-border-light: var(--color-neutral-600);
+  --color-border-strong: var(--color-neutral-500);
+
+  /* ========================================
+     TYPOGRAPHY SYSTEM
+     ======================================== */
+
+  /* Font Families */
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  --font-family-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Font Sizes - Fluid Typography */
+  --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+  --font-size-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 1.3rem + 1vw, 1.875rem);
+  --font-size-3xl: clamp(1.875rem, 1.6rem + 1.375vw, 2.25rem);
+  --font-size-4xl: clamp(2.25rem, 1.9rem + 1.75vw, 3rem);
+  --font-size-5xl: clamp(3rem, 2.5rem + 2.5vw, 3.75rem);
+  --font-size-6xl: clamp(3.75rem, 3rem + 3.75vw, 4.5rem);
+
+  /* Font Weights */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* Line Heights */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Letter Spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  /* ========================================
+     SPACING SYSTEM - 8PT GRID
+     ======================================== */
+
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 0.125rem; /* 2px */
+  --space-1: 0.25rem;    /* 4px */
+  --space-1-5: 0.375rem; /* 6px */
+  --space-2: 0.5rem;     /* 8px */
+  --space-2-5: 0.625rem; /* 10px */
+  --space-3: 0.75rem;    /* 12px */
+  --space-3-5: 0.875rem; /* 14px */
+  --space-4: 1rem;       /* 16px */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px */
+  --space-7: 1.75rem;    /* 28px */
+  --space-8: 2rem;       /* 32px */
+  --space-9: 2.25rem;    /* 36px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-11: 2.75rem;   /* 44px */
+  --space-12: 3rem;      /* 48px */
+  --space-14: 3.5rem;    /* 56px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+  --space-28: 7rem;      /* 112px */
+  --space-32: 8rem;      /* 128px */
+  --space-36: 9rem;      /* 144px */
+  --space-40: 10rem;     /* 160px */
+  --space-44: 11rem;     /* 176px */
+  --space-48: 12rem;     /* 192px */
+  --space-52: 13rem;     /* 208px */
+  --space-56: 14rem;     /* 224px */
+  --space-60: 15rem;     /* 240px */
+  --space-64: 16rem;     /* 256px */
+  --space-72: 18rem;     /* 288px */
+  --space-80: 20rem;     /* 320px */
+  --space-96: 24rem;     /* 384px */
+
+  /* ========================================
+     BORDER RADIUS SYSTEM
+     ======================================== */
+
+  --radius-none: 0;
+  --radius-sm: 0.125rem;   /* 2px */
+  --radius-base: 0.25rem;  /* 4px */
+  --radius-md: 0.375rem;   /* 6px */
+  --radius-lg: 0.5rem;     /* 8px */
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+  --radius-3xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+
+  /* ========================================
+     SHADOW SYSTEM
+     ======================================== */
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-base: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* ========================================
+     Z-INDEX SYSTEM
+     ======================================== */
+
+  --z-auto: auto;
+  --z-0: 0;
+  --z-10: 10;
+  --z-20: 20;
+  --z-30: 30;
+  --z-40: 40;
+  --z-50: 50;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+
+  /* ========================================
+     ANIMATION SYSTEM
+     ======================================== */
+
+  /* Duration */
+  --duration-75: 75ms;
+  --duration-100: 100ms;
+  --duration-150: 150ms;
+  --duration-200: 200ms;
+  --duration-300: 300ms;
+  --duration-500: 500ms;
+  --duration-700: 700ms;
+  --duration-1000: 1000ms;
+
+  /* Easing */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* ========================================
+     BREAKPOINTS
+     ======================================== */
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ========================================
+     COMPONENT TOKENS
+     ======================================== */
+
+  /* Button Tokens */
+  --button-height-sm: 2rem;
+  --button-height-md: 2.5rem;
+  --button-height-lg: 3rem;
+  --button-padding-x-sm: 0.75rem;
+  --button-padding-x-md: 1rem;
+  --button-padding-x-lg: 1.5rem;
+  --button-padding-y-sm: 0.5rem;
+  --button-padding-y-md: 0.625rem;
+  --button-padding-y-lg: 0.75rem;
+
+  /* Input Tokens */
+  --input-height-sm: 2rem;
+  --input-height-md: 2.5rem;
+  --input-height-lg: 3rem;
+  --input-padding-x: 0.75rem;
+  --input-padding-y: 0.5rem;
+
+  /* Card Tokens */
+  --card-padding: 1.5rem;
+  --card-padding-sm: 1rem;
+  --card-padding-lg: 2rem;
+  --card-radius: var(--radius-lg);
+  --card-shadow: var(--shadow-md);
+
+  /* Navigation Tokens */
+  --nav-height: 4rem;
+  --nav-padding: 1rem;
+  --nav-item-padding: 0.75rem;
+  --nav-item-radius: var(--radius-md);
+
+  /* Modal Tokens */
+  --modal-backdrop: rgba(0, 0, 0, 0.5);
+  --modal-radius: var(--radius-xl);
+  --modal-shadow: var(--shadow-2xl);
+  --modal-padding: 1.5rem;
+
+  /* Toast Tokens */
+  --toast-width: 20rem;
+  --toast-padding: 1rem;
+  --toast-radius: var(--radius-lg);
+  --toast-shadow: var(--shadow-lg);
+
+  /* ========================================
+     ACCESSIBILITY TOKENS
+     ======================================== */
+
+  /* Focus Ring */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color: var(--color-primary-500);
+  --focus-ring-color-offset: var(--color-background);
+
+  /* High Contrast Mode */
+  --high-contrast-border: 2px;
+  --high-contrast-text: var(--color-text-primary);
+  --high-contrast-bg: var(--color-background);
+
+  /* Reduced Motion */
+  --motion-reduce: 0.01ms;
+  --motion-safe: var(--duration-300);
+}
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+
+.dark {
+  --color-background: var(--color-neutral-950);
+  --color-background-secondary: var(--color-neutral-900);
+  --color-background-tertiary: var(--color-neutral-800);
+  
+  --color-surface: var(--color-neutral-900);
+  --color-surface-elevated: var(--color-neutral-800);
+  --color-surface-overlay: var(--color-neutral-800);
+  
+  --color-text-primary: var(--color-neutral-50);
+  --color-text-secondary: var(--color-neutral-300);
+  --color-text-tertiary: var(--color-neutral-400);
+  --color-text-disabled: var(--color-neutral-500);
+  
+  --color-border: var(--color-neutral-700);
+  --color-border-light: var(--color-neutral-600);
+  --color-border-strong: var(--color-neutral-500);
+}
+
+/* ========================================
+   LIGHT MODE OVERRIDES
+   ======================================== */
+
+.light {
+  --color-background: var(--color-neutral-50);
+  --color-background-secondary: var(--color-neutral-100);
+  --color-background-tertiary: var(--color-neutral-200);
+  
+  --color-surface: var(--color-neutral-50);
+  --color-surface-elevated: var(--color-neutral-100);
+  --color-surface-overlay: var(--color-neutral-200);
+  
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-700);
+  --color-text-tertiary: var(--color-neutral-600);
+  --color-text-disabled: var(--color-neutral-500);
+  
+  --color-border: var(--color-neutral-300);
+  --color-border-light: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-400);
+}
+
+/* ========================================
+   RESPONSIVE UTILITIES
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-75: 0.01ms;
+    --duration-100: 0.01ms;
+    --duration-150: 0.01ms;
+    --duration-200: 0.01ms;
+    --duration-300: 0.01ms;
+    --duration-500: 0.01ms;
+    --duration-700: 0.01ms;
+    --duration-1000: 0.01ms;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: var(--color-text-primary);
+    --focus-ring-width: 3px;
+    --high-contrast-border: 3px;
+  }
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+  :root {
+    --color-background: white;
+    --color-text-primary: black;
+    --color-text-secondary: #333;
+    --shadow-xs: none;
+    --shadow-sm: none;
+    --shadow-base: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+    --shadow-2xl: none;
+  }
+}

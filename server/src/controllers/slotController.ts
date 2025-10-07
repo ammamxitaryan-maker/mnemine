@@ -1,6 +1,6 @@
 ﻿import { Request, Response } from 'express';
 import prisma from '../prisma.js';
-import { SLOT_EXTENSION_COST, SLOT_EXTENSION_DAYS, SLOT_WEEKLY_RATE, SLOT_PURCHASE_DAILY_LIMIT, RANK_SLOT_RATE_BONUS_PERCENTAGE, REINVESTMENT_BONUS_PERCENTAGE, REINVESTMENT_AMOUNT, MINIMUM_SLOT_INVESTMENT } from '../constants.js';
+import { SLOT_EXTENSION_COST, SLOT_EXTENSION_DAYS, SLOT_WEEKLY_RATE, MINIMUM_SLOT_INVESTMENT } from '../constants.js';
 import { sendSlotClosedNotification } from './notificationController.js';
 import { Wallet, MiningSlot, ActivityLogType } from '@prisma/client';
 import { isUserEligible } from '../utils/helpers.js';
@@ -53,18 +53,7 @@ export const buyNewSlot = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Insufficient funds' });
     }
 
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const recentSlotPurchases = await prisma.activityLog.count({
-      where: {
-        userId: user.id,
-        type: ActivityLogType.NEW_SLOT_PURCHASE,
-        createdAt: { gte: twentyFourHoursAgo },
-      },
-    });
-
-    if (recentSlotPurchases >= SLOT_PURCHASE_DAILY_LIMIT) {
-      return res.status(400).json({ error: `You can only purchase ${SLOT_PURCHASE_DAILY_LIMIT} slots per day.` });
-    }
+    // REMOVED: Daily slot purchase limit - users can buy unlimited slots
 
     // Доходность всегда 30% независимо от суммы
     const weeklyRate = SLOT_WEEKLY_RATE; // Всегда 30%
@@ -177,67 +166,7 @@ export const extendSlot = async (req: Request, res: Response) => {
 };
 
 
-// POST /api/user/:telegramId/reinvest
-export const reinvestEarnings = async (req: Request, res: Response) => {
-  const { telegramId } = req.params;
-  const ipAddress = req.ip;
-
-  try {
-    const user = await prisma.user.findUnique({
-      where: { telegramId },
-      select: userSelect, // Use the reusable userSelect
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-    if (!USDWallet) {
-      return res.status(400).json({ error: 'USD wallet not found' });
-    }
-
-    if (USDWallet.balance < REINVESTMENT_AMOUNT) {
-      return res.status(400).json({ error: `Insufficient funds for reinvestment. Requires ${REINVESTMENT_AMOUNT} USD.` });
-    }
-
-    // Find the first active slot for reinvestment
-    const targetSlot = user.miningSlots.find((s: MiningSlot) => s.isActive && new Date(s.expiresAt) > new Date());
-    if (!targetSlot) {
-      return res.status(400).json({ error: 'No active mining slot found for reinvestment.' });
-    }
-
-    let bonusRateIncrease = REINVESTMENT_BONUS_PERCENTAGE;
-    if (user.rank) {
-      bonusRateIncrease += RANK_SLOT_RATE_BONUS_PERCENTAGE;
-    }
-
-    await prisma.$transaction([
-      prisma.wallet.update({
-        where: { id: USDWallet.id },
-        data: { balance: { decrement: REINVESTMENT_AMOUNT } },
-      }),
-      prisma.miningSlot.update({
-        where: { id: targetSlot.id },
-        data: { effectiveWeeklyRate: { increment: bonusRateIncrease } },
-      }),
-      prisma.activityLog.create({
-        data: {
-          userId: user.id,
-          type: ActivityLogType.REINVESTMENT,
-          amount: -REINVESTMENT_AMOUNT,
-          description: `Reinvested ${REINVESTMENT_AMOUNT} USD into mining slot for +${(bonusRateIncrease * 100).toFixed(2)}% weekly rate.`,
-          ipAddress: ipAddress,
-        },
-      }),
-    ]);
-
-    res.status(200).json({ message: `Successfully reinvested ${REINVESTMENT_AMOUNT} USD.` });
-  } catch (error) {
-    console.error(`Error reinvesting earnings for user ${telegramId}:`, error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
+// REMOVED: reinvestEarnings function - no reinvestment system, all slots are 30%
 
 // POST /api/user/:telegramId/slots/:slotId/upgrade
 export const upgradeSlot = async (req: Request, res: Response) => {
@@ -379,9 +308,10 @@ const processSlotBatch = async (slots: any[], now: Date) => {
 
   for (const slot of slots) {
     try {
-      // Рассчитываем финальный доход с момента покупки слота
+      // Рассчитываем финальный доход с момента покупки слота (всегда 30%)
       const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
-      const finalEarnings = slot.principal * slot.effectiveWeeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
+      const weeklyRate = 0.3; // Always 30% for all slots
+      const finalEarnings = slot.principal * weeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
       
       // Добавляем доход к балансу пользователя
       const USDWallet = slot.user.wallets.find((w: Wallet) => w.currency === 'USD');
@@ -464,8 +394,10 @@ export const getRealTimeIncome = async (req: Request, res: Response) => {
     const slotsData = user.miningSlots.map(slot => {
       // Используем startAt для расчета общего времени с момента покупки
       const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
-      const currentIncome = slot.principal * slot.effectiveWeeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
-      const projectedIncome = slot.principal * slot.effectiveWeeklyRate;
+      // All slots have exactly 30% weekly rate (0.3)
+      const weeklyRate = 0.3;
+      const currentIncome = slot.principal * weeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
+      const projectedIncome = slot.principal * weeklyRate;
       
       totalCurrentIncome += currentIncome;
       totalProjectedIncome += projectedIncome;
@@ -481,7 +413,7 @@ export const getRealTimeIncome = async (req: Request, res: Response) => {
         isLocked: slot.isLocked,
         type: slot.type,
         hoursUntilExpiry: Math.round(hoursUntilExpiry),
-        rate: slot.effectiveWeeklyRate * 100, // В процентах
+        rate: 30, // Always 30% for all slots
         totalHoursElapsed: Math.round(totalTimeElapsedMs / (1000 * 60 * 60)), // Общее время в часах
       };
     });

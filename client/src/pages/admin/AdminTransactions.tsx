@@ -35,7 +35,7 @@ interface Transaction {
   description: string;
   createdAt: string;
   completedAt: string | null;
-  metadata: any;
+  metadata: Record<string, unknown>;
 }
 
 const AdminTransactions = () => {

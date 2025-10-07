@@ -44,30 +44,15 @@ const Admin = () => {
   // Admin access check - allow users with Telegram IDs in admin list
   const ADMIN_TELEGRAM_IDS = ['6760298907', '987654321'];
   
-  // Check if user exists
-  if (!user) {
-    console.log('[ADMIN] No user data, redirecting to main app');
-    return <Navigate to="/" replace />;
-  }
+  // Check if user is admin (moved before conditional returns)
+  const isAdmin = user ? ADMIN_TELEGRAM_IDS.includes(user.telegramId) : false;
 
-  // Check if user is admin
-  const isAdmin = ADMIN_TELEGRAM_IDS.includes(user.telegramId);
-
-  // If user is NOT admin, redirect to main app
-  if (!isAdmin) {
-    console.log('[ADMIN] Access denied for user:', user.telegramId, '- not admin');
-    return <Navigate to="/" replace />;
-  }
-
-  // Only admin users can see this component
-  console.log('[ADMIN] Admin access granted for user:', user.telegramId);
-
-  const users = adminData?.users || [];
-  const onlineCount = adminData?.onlineCount || 0;
-
+  // All hooks must be called before any conditional returns
   useEffect(() => {
-    fetchStats();
-  }, []);
+    if (isAdmin) {
+      fetchStats();
+    }
+  }, [isAdmin]);
 
   const fetchStats = async () => {
     try {
@@ -80,6 +65,24 @@ const Admin = () => {
       setStatsLoading(false);
     }
   };
+
+  // Check if user exists
+  if (!user) {
+    console.log('[ADMIN] No user data, redirecting to main app');
+    return <Navigate to="/" replace />;
+  }
+
+  // If user is NOT admin, redirect to main app
+  if (!isAdmin) {
+    console.log('[ADMIN] Access denied for user:', user.telegramId, '- not admin');
+    return <Navigate to="/" replace />;
+  }
+
+  // Only admin users can see this component
+  console.log('[ADMIN] Admin access granted for user:', user.telegramId);
+
+  const users = adminData?.users || [];
+  const onlineCount = adminData?.onlineCount || 0;
 
   const isLoading = usersLoading || statsLoading;
 

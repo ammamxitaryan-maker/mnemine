@@ -5,30 +5,29 @@ import { TelegramInstructions } from '@/components/TelegramInstructions';
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
 
 // Helper function to create a minimal user object for Telegram auth
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createTelegramUser = (user: any): AuthenticatedUser => {
+const createTelegramUser = (user: Record<string, unknown>): AuthenticatedUser => {
   // Check if this is a backend user (has telegramId field) or Telegram WebApp user
   const isBackendUser = user.telegramId !== undefined;
   
   return {
-    id: isBackendUser ? user.id : String(user.id),
-    telegramId: isBackendUser ? user.telegramId : String(user.id),
-    firstName: user.first_name || user.firstName || 'User',
-    lastName: user.last_name || user.lastName || '',
-    username: user.username || '',
-    avatarUrl: user.photo_url || user.avatarUrl || null,
+    id: isBackendUser ? String(user.id) : String(user.id),
+    telegramId: isBackendUser ? String(user.telegramId) : String(user.id),
+    firstName: String(user.first_name || user.firstName || 'User'),
+    lastName: String(user.last_name || user.lastName || ''),
+    username: String(user.username || ''),
+    avatarUrl: user.photo_url ? String(user.photo_url) : user.avatarUrl ? String(user.avatarUrl) : null,
     role: 'USER', // Always set to USER on client side for security
-    referralCode: user.referralCode || '',
-    referredById: user.referredById || null,
-    wallets: user.wallets || [],
-    miningSlots: user.miningSlots || [],
-    captchaValidated: user.captchaValidated ?? true,
-    isSuspicious: user.isSuspicious ?? false,
-    lastSuspiciousPenaltyAppliedAt: user.lastSuspiciousPenaltyAppliedAt || null,
-    lastSeenAt: user.lastSeenAt ? new Date(user.lastSeenAt) : new Date(),
-    lastInvestmentGrowthBonusClaimedAt: user.lastInvestmentGrowthBonusClaimedAt ? new Date(user.lastInvestmentGrowthBonusClaimedAt) : null,
-    lastReferralZeroPenaltyAppliedAt: user.lastReferralZeroPenaltyAppliedAt ? new Date(user.lastReferralZeroPenaltyAppliedAt) : null,
-    rank: user.rank || null
+    referralCode: String(user.referralCode || ''),
+    referredById: user.referredById ? String(user.referredById) : null,
+    wallets: Array.isArray(user.wallets) ? user.wallets : [],
+    miningSlots: Array.isArray(user.miningSlots) ? user.miningSlots : [],
+    captchaValidated: Boolean(user.captchaValidated ?? true),
+    isSuspicious: Boolean(user.isSuspicious ?? false),
+    lastSuspiciousPenaltyAppliedAt: user.lastSuspiciousPenaltyAppliedAt ? new Date(String(user.lastSuspiciousPenaltyAppliedAt)) : null,
+    lastSeenAt: user.lastSeenAt ? new Date(String(user.lastSeenAt)) : new Date(),
+    lastInvestmentGrowthBonusClaimedAt: user.lastInvestmentGrowthBonusClaimedAt ? new Date(String(user.lastInvestmentGrowthBonusClaimedAt)) : null,
+    lastReferralZeroPenaltyAppliedAt: user.lastReferralZeroPenaltyAppliedAt ? new Date(String(user.lastReferralZeroPenaltyAppliedAt)) : null,
+    rank: user.rank ? String(user.rank) : null
   };
 };
 

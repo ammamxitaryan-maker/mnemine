@@ -1,5 +1,6 @@
 ﻿import { Router } from 'express';
 import prisma from '../prisma.js';
+import { SLOT_WEEKLY_RATE } from '../constants.js';
 
 const router = Router();
 
@@ -62,7 +63,7 @@ router.post('/login', async (req, res) => {
               principal: 1.0,
               startAt: new Date(),
               lastAccruedAt: new Date(),
-              effectiveWeeklyRate: 0.1,
+              effectiveWeeklyRate: SLOT_WEEKLY_RATE, // 30% как и все остальные слоты
               expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
               isActive: true
             }

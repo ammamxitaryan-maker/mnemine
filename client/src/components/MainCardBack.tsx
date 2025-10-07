@@ -17,11 +17,13 @@ interface MainCardBackProps {
 
 const SlotCountdown = ({ expiresAt }: { expiresAt: string }) => {
   const { days, hours, minutes, seconds, totalSeconds } = useCountdown(expiresAt);
+
   if (totalSeconds <= 0) {
-    return <span className="text-red-400">Expired</span>;
+    return <span className="text-red-400 text-xs">Expired</span>;
   }
+
   return (
-    <span className="font-mono text-accent">
+    <span className="font-mono text-accent text-xs inline-flex items-center">
       {days}d {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m {String(seconds).padStart(2, '0')}s
     </span>
   );
@@ -37,9 +39,21 @@ export const MainCardBack = ({ user, slots, isLoading }: MainCardBackProps) => {
     const dailyRate = slot.effectiveWeeklyRate / 7;
     return sum + (slot.principal * dailyRate);
   }, 0) || 0;
-
+  const SlotCountdown = ({ expiresAt }: { expiresAt: string }) => {
+    const { days, hours, minutes, seconds, totalSeconds } = useCountdown(expiresAt);
+  
+    if (totalSeconds <= 0) {
+      return <span className="text-red-400 text-xs">Expired</span>;
+    }
+  
+    return (
+      <span className="font-mono text-accent text-xs inline-flex items-center">
+        {days}d {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m {String(seconds).padStart(2, '0')}s
+      </span>
+    );
+  };
   return (
-    <Card className="w-full h-full bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col backdrop-blur-sm relative overflow-hidden">
+    <Card className="w-full min-h-[18rem] max-h-[28rem] sm:min-h-[22rem] sm:max-h-[32rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col backdrop-blur-sm relative overflow-hidden">
       <CardHeader className="pb-3 text-center relative z-10">
         <CardTitle className="text-base font-bold flex items-center justify-center gap-2">
           <div className="p-1.5 bg-purple-400/20 rounded-full">
