@@ -57,19 +57,20 @@ export const useDynamicMNEEarnings = (slots: MiningSlot[] | undefined) => {
 
     activeSlots.forEach((slot, index) => {
       const now = new Date(currentTime);
-      const slotStartTime = new Date(slot.createdAt);
-      const timeElapsedMs = now.getTime() - slotStartTime.getTime();
+      const lastAccruedTime = new Date(slot.lastAccruedAt || slot.createdAt);
+      const timeElapsedMs = now.getTime() - lastAccruedTime.getTime();
       
       console.log(`[DynamicEarnings] Slot ${index}:`, {
         principal: slot.principal,
         effectiveWeeklyRate: slot.effectiveWeeklyRate,
+        lastAccruedAt: slot.lastAccruedAt,
         createdAt: slot.createdAt,
         timeElapsedMs: timeElapsedMs,
         timeElapsedHours: timeElapsedMs / (1000 * 60 * 60)
       });
       
       if (timeElapsedMs > 0) {
-        // Calculate earnings since slot creation
+        // Calculate earnings since last accrual (not slot creation)
         const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
         const earnings = earningsPerSecond * (timeElapsedMs / 1000);
         

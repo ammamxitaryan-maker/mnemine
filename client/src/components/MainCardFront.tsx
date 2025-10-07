@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Coins, Wallet, TrendingUp, Clock, Zap, ChevronDown, DollarSign } from 'lucide-react';
 import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
 import { useDynamicMNEEarnings } from '@/hooks/useDynamicMNEEarnings';
+import { useWebSocketEarnings } from '@/hooks/useWebSocketEarnings';
 
 interface MainCardFrontProps {
   userData: { balance: number; mneBalance: number; miningPower: number } | undefined;
@@ -22,12 +23,23 @@ export const MainCardFront = ({
 }: MainCardFrontProps) => {
   const { t } = useTranslation();
   
+  // Use WebSocket earnings for real-time updates
+  const { 
+    isConnected: wsConnected, 
+    totalEarnings: wsEarnings, 
+    currentBalance: wsBalance,
+    lastUpdate: wsLastUpdate 
+  } = useWebSocketEarnings(telegramId);
+  
   // Debug logging
   console.log('[MainCardFront] Received data:', {
     userData,
     slotsData: slotsData?.length || 0,
     displayEarnings,
-    telegramId
+    telegramId,
+    wsConnected,
+    wsEarnings,
+    wsBalance
   });
   
   // Get dynamic MNE earnings
@@ -39,9 +51,13 @@ export const MainCardFront = ({
   // Get cached exchange rate for USD equivalent
   const { convertMNEToUSD, isStale } = useCachedExchangeRate(telegramId);
   
+  // Use WebSocket earnings if available, otherwise fall back to dynamic earnings
+  const currentEarnings = wsConnected && wsEarnings > 0 ? wsEarnings : dynamicEarnings.totalEarnings;
+  const currentBalance = wsConnected && wsBalance > 0 ? wsBalance : userData?.balance || 0;
+  
   // Calculate USD equivalents
   const mneBalanceUSD = convertMNEToUSD(userData?.mneBalance || 0);
-  const dynamicEarningsUSD = convertMNEToUSD(dynamicEarnings.totalEarnings);
+  const dynamicEarningsUSD = convertMNEToUSD(currentEarnings);
 
   return (
     <Card
@@ -92,7 +108,12 @@ export const MainCardFront = ({
             <h2 className="text-sm font-semibold text-gray-200">Live Earnings</h2>
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-purple-400 animate-pulse" />
-              <span className="text-xs font-medium text-purple-400">Real-time</span>
+              <span className="text-xs font-medium text-purple-400">
+                {wsConnected ? 'WebSocket' : 'Real-time'}
+              </span>
+              {wsConnected && (
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              )}
             </div>
           </div>
           <div className="flex items-center justify-center gap-2">
@@ -101,7 +122,7 @@ export const MainCardFront = ({
             </div>
             <div className="flex flex-col items-center">
               <p className="text-2xl sm:text-3xl font-bold text-white animate-pulse line-clamp-1">
-                {dynamicEarnings.totalEarnings.toFixed(4)} <span className="text-sm sm:text-base text-gray-300">MNE</span>
+                {currentEarnings.toFixed(4)} <span className="text-sm sm:text-base text-gray-300">MNE</span>
               </p>
               {/* USD Equivalent for Dynamic Earnings */}
               {dynamicEarningsUSD > 0 && (
