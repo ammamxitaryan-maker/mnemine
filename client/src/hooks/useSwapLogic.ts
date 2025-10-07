@@ -65,7 +65,7 @@ export const useSwapLogic = ({ telegramId, USDBalance = 0 }: SwapLogicProps): Sw
       return;
     }
 
-    if (swapAmount < 1) {
+    if (swapAmount < 0.001) {
       showError(t('swap.minAmount'));
       return;
     }

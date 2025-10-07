@@ -137,16 +137,16 @@ export const RANK_BENEFITS = {
 // Base commissions for comparison, from backend/src/constants.ts
 export const BASE_REFERRAL_COMMISSIONS = [0.20, 0.10, 0.05];
 
-// Exchange Rate Constants
-export const MIN_EXCHANGE_RATE = 0.001; // 0.1%
-export const MAX_EXCHANGE_RATE = 0.03;  // 3%
+// Exchange Rate Constants - Limits removed
+export const MIN_EXCHANGE_RATE = 0.0001; // 0.01% - Very low minimum
+export const MAX_EXCHANGE_RATE = 0.1;    // 10% - Higher maximum
 export const DEFAULT_EXCHANGE_RATE = 0.01; // 1%
 
 // MNE Currency Support
 export const MNE_CURRENCY = 'MNE';
 
-// Конвертация валют
-export const MINIMUM_CONVERSION_AMOUNT = 1.0; // Минимальная сумма конвертации
+// Конвертация валют - Limits removed
+export const MINIMUM_CONVERSION_AMOUNT = 0.001; // Very low minimum amount
 export const MINIMUM_WITHDRAWAL_MNE = 3.0; // Минимальная сумма вывода MNE
 export const EXCHANGE_RATE_VARIATION_MIN = 0.0; // Минимальное отклонение курса (0%)
 export const EXCHANGE_RATE_VARIATION_MAX = 0.05; // Максимальное отклонение курса (5%)

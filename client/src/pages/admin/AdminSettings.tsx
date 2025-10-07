@@ -206,18 +206,24 @@ const AdminSettings = () => {
                 <div>
                   <Label>Minimum Rate</Label>
                   <Input
-                    value={settings?.exchangeRate.min.toFixed(4) || '0.0000'}
+                    value="0.0001"
                     disabled
                     className="bg-gray-700 border-gray-600"
                   />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Very low minimum (limits removed)
+                  </p>
                 </div>
                 <div>
                   <Label>Maximum Rate</Label>
                   <Input
-                    value={settings?.exchangeRate.max.toFixed(4) || '0.0000'}
+                    value="0.1000"
                     disabled
                     className="bg-gray-700 border-gray-600"
                   />
+                  <p className="text-xs text-gray-400 mt-1">
+                    High maximum (limits removed)
+                  </p>
                 </div>
               </div>
               <Button 

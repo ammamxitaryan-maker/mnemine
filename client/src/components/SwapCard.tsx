@@ -127,10 +127,10 @@ export const SwapCard = ({
                 id="swapAmount"
                 type="number"
                 step="0.01"
-                min="1"
+                min="0.001"
                 value={amount}
                 onChange={handleAmountChange}
-                placeholder={t('swap.amountPlaceholder')}
+                placeholder="Enter amount (min 0.001)"
                 className="bg-slate-700/50 border-slate-600 text-white pr-16 h-10 text-sm rounded-lg focus:border-purple-500 focus:ring-purple-500/20"
                 disabled={swapLoading}
               />
@@ -289,10 +289,10 @@ export const SwapCard = ({
                 type="text"
                 value={amount}
                 onChange={handleAmountChange}
-                placeholder="Enter amount (min 1.0)"
+                placeholder="Enter amount (min 0.001)"
                 className="swap-interface__amount-input"
                 disabled={swapLoading}
-                min="1"
+                min="0.001"
                 step="0.01"
               />
               <span className="swap-interface__amount-currency">

@@ -48,7 +48,7 @@ export function validateAmount(amount: any): boolean {
   return typeof amount === 'number' && 
          !isNaN(amount) && 
          isFinite(amount) && 
-         amount > 0 && 
+         amount >= 0.001 && // Very low minimum
          amount <= 1000000; // Max 1M USD
 }
 
