@@ -10,6 +10,7 @@ import {
   deleteUser,
   bulkUserActions
 } from '../controllers/adminController.js';
+import { setExchangeRate } from '../controllers/exchangeController.js';
 import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
 
@@ -33,6 +34,9 @@ router.delete('/delete-user/:userId', isAdmin, deleteUser);
 
 // Bulk user operations
 router.post('/users/bulk-actions', isAdmin, bulkUserActions);
+
+// Exchange rate management
+router.post('/rate', isAdmin, setExchangeRate);
 
 // Custom reports endpoints
 router.get('/custom-reports', isAdmin, async (req, res) => {

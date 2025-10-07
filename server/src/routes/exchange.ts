@@ -19,7 +19,7 @@ router.post('/:telegramId/swap', authenticateUser, extractUserIdFromParams, swap
 router.get('/:telegramId/swap/history', authenticateUser, extractUserIdFromParams, getUserSwapHistory);
 
 // Admin routes (will be protected by admin middleware)
-router.post('/admin/rate', setExchangeRate);
+// Note: This endpoint should be moved to admin routes for proper protection
 
 export default router;
 

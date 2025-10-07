@@ -85,7 +85,7 @@ const AdminDashboardNew = () => {
 
     try {
       setSettingRate(true);
-      await api.post('/exchange/set-rate', { rate: rateValue });
+      await api.post('/admin/rate', { rate: rateValue });
       alert(t('admin.exchangeRate.success', { rate: rateValue.toFixed(4) }));
       setNewRate('');
       fetchCurrentRate();
