@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUserData } from '@/hooks/useUserData';
 import { useSlotsData } from '@/hooks/useSlotsData';
@@ -18,14 +18,13 @@ import { Link } from 'react-router-dom';
 
 import { Server, Trophy, Gift, Award, Ticket, Loader2, Settings, TrendingUp, BarChart3 } from 'lucide-react';
 
-// Lazy load heavy components
-const FlippableCard = lazy(() => import('@/components/FlippableCard').then(module => ({ default: module.FlippableCard })));
-const MainCardFront = lazy(() => import('@/components/MainCardFront').then(module => ({ default: module.MainCardFront })));
-const MainCardBack = lazy(() => import('@/components/MainCardBack').then(module => ({ default: module.MainCardBack })));
-const HomePageHeader = lazy(() => import('@/components/HomePageHeader').then(module => ({ default: module.HomePageHeader })));
-const DashboardLinkCard = lazy(() => import('@/components/DashboardLinkCard').then(module => ({ default: module.DashboardLinkCard })));
-const SwapCard = lazy(() => import('@/components/SwapCard').then(module => ({ default: module.SwapCard })));
-// Test components removed for production
+// Import components directly to avoid dynamic import conflicts
+import { FlippableCard } from '@/components/FlippableCard';
+import { MainCardFront } from '@/components/MainCardFront';
+import { MainCardBack } from '@/components/MainCardBack';
+import { HomePageHeader } from '@/components/HomePageHeader';
+import { DashboardLinkCard } from '@/components/DashboardLinkCard';
+import { SwapCard } from '@/components/SwapCard';
 
 const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
@@ -237,33 +236,26 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
         <div className="space-y-6 sm:space-y-10">
           {/* Header Section */}
           <header className="relative">
-            <Suspense fallback={<div className="h-16 bg-slate-800/50 rounded-lg animate-pulse" />}>
-              <HomePageHeader user={user} />
-            </Suspense>
+            <HomePageHeader user={user} />
           </header>
           
           {/* Main Content - Responsive Grid Layout */}
           <main className="space-y-10 sm:space-y-4">
             {/* Primary Dashboard Section */}
             <section className="max-w-2xl mx-auto mb-28">
-              <Suspense fallback={<div className="h-96 bg-slate-800/50 rounded-lg animate-pulse" />}>
-                <FlippableCard
-                  id="main-card"
-                  frontContent={
-                    <Suspense fallback={<div className="h-64 bg-slate-700/50 rounded-lg animate-pulse" />}>
-                      <MainCardFront
-                        userData={userData}
-                        slotsData={slotsData}
-                        displayEarnings={displayEarnings}
-                        telegramId={user.telegramId}
-                      />
-                    </Suspense>
-                  }
-                  backContent={
-                    <Suspense fallback={<div className="h-64 bg-slate-700/50 rounded-lg animate-pulse" />}>
-                      <MainCardBack user={user} slots={slotsData} isLoading={slotsLoading} />
-                    </Suspense>
-                  }
+              <FlippableCard
+                id="main-card"
+                frontContent={
+                  <MainCardFront
+                    userData={userData}
+                    slotsData={slotsData}
+                    displayEarnings={displayEarnings}
+                    telegramId={user.telegramId}
+                  />
+                }
+                backContent={
+                  <MainCardBack user={user} slots={slotsData} isLoading={slotsLoading} />
+                }
                 enableAccordion={true}
                 accordionContent={
                   <div className="space-y-4">
@@ -328,19 +320,14 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                 }
                 showFlipIndicator={true}
               />
-              </Suspense>
             </section>
-
-            {/* Test sections removed for production */}
 
             {/* Secondary Features Section */}
             <section className="w-full max-w-2xl mx-auto mt-8 sm:mt-2">
-              <Suspense fallback={<div className="h-32 bg-slate-800/50 rounded-lg animate-pulse" />}>
-                <SwapCard
-                  telegramId={user.telegramId}
-                  USDBalance={userData?.balance || 0}
-                />
-              </Suspense>
+              <SwapCard
+                telegramId={user.telegramId}
+                USDBalance={userData?.balance || 0}
+              />
             </section>
 
             {/* Navigation Grid Section */}
@@ -348,18 +335,16 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
               <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-3 lg:gap-3">
                 {navItems.map((item) => (
                   <div key={item.to} className="h28 sm:h-28 lg:h-28">
-                    <Suspense fallback={<div className="h-28 bg-slate-800/50 rounded-lg animate-pulse" />}>
-                      <DashboardLinkCard
-                        to={item.to}
-                        icon={item.icon}
-                        title={t(item.titleKey)}
-                        displayData={item.data}
-                        isLoading={item.isLoading}
-                        error={item.error}
-                        unit={item.unit ? t(item.unit) : undefined}
-                        isNotification={item.isNotification}
-                      />
-                    </Suspense>
+                    <DashboardLinkCard
+                      to={item.to}
+                      icon={item.icon}
+                      title={t(item.titleKey)}
+                      displayData={item.data}
+                      isLoading={item.isLoading}
+                      error={item.error}
+                      unit={item.unit ? t(item.unit) : undefined}
+                      isNotification={item.isNotification}
+                    />
                   </div>
                 ))}
               </div>
@@ -371,7 +356,6 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
         </div>
       </div>
       
-      {/* Test components removed for production */}
     </div>
   );
 };
