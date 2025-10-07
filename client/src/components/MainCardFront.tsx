@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Coins, Wallet, TrendingUp, Clock, Zap, ChevronDown, DollarSign } from 'lucide-react';
-import { useExchangeRate } from '@/hooks/useSwap';
+import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
+import { useDynamicMNEEarnings } from '@/hooks/useDynamicMNEEarnings';
 
 interface MainCardFrontProps {
   userData: { balance: number; mneBalance: number; miningPower: number } | undefined;
-  slotsData: { isActive: boolean; expiresAt: string }[] | undefined;
+  slotsData: { isActive: boolean; expiresAt: string; principal: number; effectiveWeeklyRate: number; lastAccruedAt: string }[] | undefined;
   displayEarnings: number;
   telegramId: string;
 }
@@ -21,9 +22,15 @@ export const MainCardFront = ({
 }: MainCardFrontProps) => {
   const { t } = useTranslation();
   
-  // Get exchange rate for USD equivalent calculation
-  const { data: rateData } = useExchangeRate(telegramId);
-  const usdEquivalent = rateData && userData?.mneBalance ? userData.mneBalance * rateData.rate : 0;
+  // Get dynamic MNE earnings
+  const dynamicEarnings = useDynamicMNEEarnings(slotsData);
+  
+  // Get cached exchange rate for USD equivalent
+  const { convertMNEToUSD, isStale } = useCachedExchangeRate(telegramId);
+  
+  // Calculate USD equivalents
+  const mneBalanceUSD = convertMNEToUSD(userData?.mneBalance || 0);
+  const dynamicEarningsUSD = convertMNEToUSD(dynamicEarnings.totalEarnings);
 
   return (
     <Card
@@ -54,55 +61,51 @@ export const MainCardFront = ({
               {(userData?.mneBalance ?? 0).toFixed(2)} <span className="text-sm sm:text-base text-gray-300">MNE</span>
             </p>
           </div>
-          {/* USD Equivalent Display */}
-          {usdEquivalent > 0 && (
+          {/* USD Equivalent Display with Cache Status */}
+          {mneBalanceUSD > 0 && (
             <div className="mt-2 flex items-center justify-center gap-2">
               <div className="p-2 bg-yellow-400/20 rounded-full">
                 <DollarSign className="w-4 h-4 text-yellow-400" />
               </div>
               <p className="text-lg font-semibold text-yellow-400">
-                {usdEquivalent.toFixed(4)} <span className="text-sm text-yellow-300">USD</span>
+                {mneBalanceUSD.toFixed(4)} <span className="text-sm text-yellow-300">USD</span>
+                {isStale && <span className="text-xs text-orange-400 ml-1">(cached)</span>}
               </p>
             </div>
           )}
         </div>
 
-        {/* Accrued Earnings Section */}
+        {/* Dynamic MNE Earnings Section */}
         <div className="w-full flex-grow">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-200">{t('accruedEarnings')}</h2>
+            <h2 className="text-sm font-semibold text-gray-200">Live Earnings</h2>
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-purple-400" />
-              <span className="text-xs font-medium text-purple-400">Live</span>
+              <Zap className="w-4 h-4 text-purple-400 animate-pulse" />
+              <span className="text-xs font-medium text-purple-400">Real-time</span>
             </div>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <div className="p-3 bg-yellow-400/20 rounded-full">
-              <Coins className="w-6 h-6 text-yellow-400" />
+            <div className="p-3 bg-emerald-400/20 rounded-full">
+              <Coins className="w-6 h-6 text-emerald-400" />
             </div>
             <div className="flex flex-col items-center">
               <p className="text-2xl sm:text-3xl font-bold text-white animate-pulse line-clamp-1">
-                {(() => {
-                  // Check if user has purchased slots (has active slots)
-                  const hasActiveSlots = slotsData && slotsData.some(slot => slot.isActive && new Date(slot.expiresAt) > new Date());
-                  
-                  if (hasActiveSlots) {
-                    // Show 30% bonus visually only - multiply by 1.3 for display
-                    const displayWithBonus = displayEarnings * 1.3;
-                    return displayWithBonus.toFixed(8);
-                  } else {
-                    // Show normal earnings if no slots
-                    return displayEarnings.toFixed(8);
-                  }
-                })()} <span className="text-sm sm:text-base text-gray-300">USD</span>
+                {dynamicEarnings.totalEarnings.toFixed(4)} <span className="text-sm sm:text-base text-gray-300">MNE</span>
               </p>
-              {/* Show bonus indicator if user has slots */}
-              {slotsData && slotsData.some(slot => slot.isActive && new Date(slot.expiresAt) > new Date()) && (
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="text-xs font-medium text-emerald-400">+30% Bonus</span>
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                </div>
+              {/* USD Equivalent for Dynamic Earnings */}
+              {dynamicEarningsUSD > 0 && (
+                <p className="text-sm font-semibold text-yellow-400 mt-1">
+                  {dynamicEarningsUSD.toFixed(4)} <span className="text-xs text-yellow-300">USD</span>
+                  {isStale && <span className="text-xs text-orange-400 ml-1">(cached)</span>}
+                </p>
               )}
+              {/* Earnings Rate Indicator */}
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-xs font-medium text-emerald-400">
+                  +{dynamicEarnings.perSecondEarnings.toFixed(6)} MNE/sec
+                </span>
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -126,6 +129,28 @@ export const MainCardFront = ({
             </p>
           </div>
         </div>
+
+        {/* Dynamic Earnings Rate Display */}
+        {dynamicEarnings.perSecondEarnings > 0 && (
+          <div className="w-full mt-2">
+            <div className="bg-gradient-to-r from-emerald-900/30 to-emerald-800/20 border border-emerald-700/50 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-emerald-400 animate-pulse" />
+                  <span className="text-sm text-emerald-300">Earnings Rate:</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-emerald-400 animate-pulse">
+                    +{dynamicEarnings.perSecondEarnings.toFixed(6)} MNE/sec
+                  </p>
+                  <p className="text-xs text-emerald-300">
+                    {dynamicEarnings.hourlyEarnings.toFixed(4)} MNE/hour
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
 
       {/* Auto-claim info */}

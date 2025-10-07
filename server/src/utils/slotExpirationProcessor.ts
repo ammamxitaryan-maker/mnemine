@@ -77,10 +77,10 @@ export class SlotExpirationProcessor {
   private async processExpiredSlot(slot: any) {
     try {
       const now = new Date();
-      const USDWallet = slot.user.wallets[0];
+      const MNEWallet = slot.user.wallets.find((w: any) => w.currency === 'MNE');
       
-      if (!USDWallet) {
-        console.error(`[SLOTS] No USD wallet found for user ${slot.userId}`);
+      if (!MNEWallet) {
+        console.error(`[SLOTS] No MNE wallet found for user ${slot.userId}`);
         return;
       }
 
@@ -96,7 +96,7 @@ export class SlotExpirationProcessor {
       await prisma.$transaction(async (tx) => {
         // Update wallet balance
         await tx.wallet.update({
-          where: { id: USDWallet.id },
+          where: { id: MNEWallet.id },
           data: { balance: { increment: actualEarnings } }
         });
 
@@ -115,12 +115,12 @@ export class SlotExpirationProcessor {
             userId: slot.userId,
             type: 'CLAIM',
             amount: actualEarnings,
-            description: `Slot expired - earned ${actualEarnings.toFixed(4)} USD from ${slot.principal} USD investment (30% return)`
+            description: `Slot expired - earned ${actualEarnings.toFixed(4)} MNE from ${slot.principal} MNE investment (30% return)`
           }
         });
       });
 
-      console.log(`[SLOTS] Processed expired slot ${slot.id}: earned ${actualEarnings.toFixed(4)} USD`);
+      console.log(`[SLOTS] Processed expired slot ${slot.id}: earned ${actualEarnings.toFixed(4)} MNE`);
 
     } catch (error) {
       console.error(`[SLOTS] Error processing expired slot ${slot.id}:`, error);

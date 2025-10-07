@@ -61,7 +61,7 @@ export const buyNewSlot = async (req: Request, res: Response) => {
 
     await prisma.$transaction([
       prisma.wallet.update({
-        where: { id: USDWallet.id },
+        where: { id: MNEWallet.id },
         data: { balance: { decrement: amount } },
       }),
       prisma.miningSlot.create({
@@ -82,7 +82,7 @@ export const buyNewSlot = async (req: Request, res: Response) => {
           userId: user.id,
           type: ActivityLogType.NEW_SLOT_PURCHASE,
           amount: -amount,
-          description: `Invested ${amount.toFixed(2)} USD in a new slot`,
+          description: `Invested ${amount.toFixed(2)} MNE in a new slot`,
           ipAddress: ipAddress,
         },
       }),
@@ -95,7 +95,7 @@ export const buyNewSlot = async (req: Request, res: Response) => {
       }),
     ]);
 
-    res.status(201).json({ message: `Slot purchased successfully for ${amount.toFixed(2)} USD.` });
+    res.status(201).json({ message: `Slot purchased successfully for ${amount.toFixed(2)} MNE.` });
   } catch (error) {
     console.error(`Error purchasing slot for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
@@ -188,9 +188,9 @@ export const upgradeSlot = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-    if (!USDWallet || USDWallet.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient funds' });
+    const MNEWallet = user.wallets.find((w: Wallet) => w.currency === 'MNE');
+    if (!MNEWallet || MNEWallet.balance < amount) {
+      return res.status(400).json({ error: 'Insufficient MNE funds' });
     }
 
     const slot = user.miningSlots.find((s: MiningSlot) => s.id === slotId);
@@ -204,7 +204,7 @@ export const upgradeSlot = async (req: Request, res: Response) => {
 
     await prisma.$transaction([
       prisma.wallet.update({
-        where: { id: USDWallet.id },
+        where: { id: MNEWallet.id },
         data: { balance: { decrement: amount } },
       }),
       prisma.miningSlot.update({
@@ -216,7 +216,7 @@ export const upgradeSlot = async (req: Request, res: Response) => {
           userId: user.id,
           type: ActivityLogType.REINVESTMENT, // Re-using this type for upgrades
           amount: -amount,
-          description: `Upgraded slot principal with ${amount.toFixed(2)} USD.`,
+          description: `Upgraded slot principal with ${amount.toFixed(2)} MNE.`,
           ipAddress: ipAddress,
         },
       }),
@@ -226,7 +226,7 @@ export const upgradeSlot = async (req: Request, res: Response) => {
       }),
     ]);
 
-    res.status(200).json({ message: `Slot upgraded successfully with ${amount.toFixed(2)} USD.` });
+    res.status(200).json({ message: `Slot upgraded successfully with ${amount.toFixed(2)} MNE.` });
   } catch (error) {
     console.error(`Error upgrading slot for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
@@ -314,11 +314,11 @@ const processSlotBatch = async (slots: any[], now: Date) => {
       const finalEarnings = slot.principal * weeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
       
       // Добавляем доход к балансу пользователя
-      const USDWallet = slot.user.wallets.find((w: Wallet) => w.currency === 'USD');
-      if (USDWallet) {
+      const MNEWallet = slot.user.wallets.find((w: Wallet) => w.currency === 'MNE');
+      if (MNEWallet) {
         await prisma.$transaction([
           prisma.wallet.update({
-            where: { id: USDWallet.id },
+            where: { id: MNEWallet.id },
             data: { balance: { increment: finalEarnings } },
           }),
           prisma.miningSlot.update({
@@ -333,7 +333,7 @@ const processSlotBatch = async (slots: any[], now: Date) => {
               userId: slot.userId,
               type: ActivityLogType.CLAIM,
               amount: finalEarnings,
-              description: `Automatic slot closure - earned ${finalEarnings.toFixed(4)} USD from ${slot.principal} USD investment`,
+              description: `Automatic slot closure - earned ${finalEarnings.toFixed(4)} MNE from ${slot.principal} MNE investment`,
             },
           }),
         ]);

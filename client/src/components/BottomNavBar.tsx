@@ -2,12 +2,13 @@
 
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Wallet, Users, User as ProfileIcon, Ticket } from 'lucide-react';
+import { Home, Wallet, Users, User as ProfileIcon, Ticket, Server } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/', icon: Home, labelKey: 'home' },
   { to: '/wallet', icon: Wallet, labelKey: 'wallet' },
+  { to: '/slots', icon: Server, labelKey: 'slots' },
   { to: '/lottery', icon: Ticket, labelKey: 'lottery.title' },
   { to: '/referrals', icon: Users, labelKey: 'referrals.title' },
   { to: '/profile', icon: ProfileIcon, labelKey: 'profile' },

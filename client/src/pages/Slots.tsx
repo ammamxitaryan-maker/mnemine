@@ -70,7 +70,7 @@ const Slots = () => {
     }
     
     if (investmentAmount > currentBalance) {
-      showError(`Insufficient balance. You have ${currentBalance.toFixed(4)} USD available.`);
+      showError(`Insufficient balance. You have ${currentBalance.toFixed(2)} MNE available.`);
       return;
     }
     
@@ -82,7 +82,7 @@ const Slots = () => {
     mutation.mutate({ telegramId: user.telegramId, amount: investmentAmount });
   };
 
-  const currentBalance = userData?.balance ?? 0;
+  const currentBalance = userData?.mneBalance ?? 0;
   const canInvest = parseFloat(amount) > 0 && parseFloat(amount) <= currentBalance;
 
   const activeSlots = slotsData?.filter(slot => slot.isActive && new Date(slot.expiresAt) > new Date()) ?? [];
@@ -136,7 +136,7 @@ const Slots = () => {
           <CardContent className="p-3">
             <div className="text-center">
               <div className="text-3xl font-bold text-emerald-400 animate-pulse">
-                +{totalDynamicEarnings.toFixed(6)} USD
+                +{totalDynamicEarnings.toFixed(4)} MNE
               </div>
               <div className="text-sm text-emerald-300 mt-1">
                 From {activeSlots.length} active slot{activeSlots.length > 1 ? 's' : ''}
@@ -160,7 +160,7 @@ const Slots = () => {
           <AnimatedProfitDisplay
             baseValue={currentBalance}
             weeklyGrowthRate={userData?.miningPower ?? 0}
-            currencySymbol="USD"
+            currencySymbol="MNE"
           />
         </CardContent>
       </Card>

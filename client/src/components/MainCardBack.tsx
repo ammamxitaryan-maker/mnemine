@@ -39,19 +39,6 @@ export const MainCardBack = ({ user, slots, isLoading }: MainCardBackProps) => {
     const dailyRate = slot.effectiveWeeklyRate / 7;
     return sum + (slot.principal * dailyRate);
   }, 0) || 0;
-  const SlotCountdown = ({ expiresAt }: { expiresAt: string }) => {
-    const { days, hours, minutes, seconds, totalSeconds } = useCountdown(expiresAt);
-  
-    if (totalSeconds <= 0) {
-      return <span className="text-red-400 text-xs">Expired</span>;
-    }
-  
-    return (
-      <span className="font-mono text-accent text-xs inline-flex items-center">
-        {days}d {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m {String(seconds).padStart(2, '0')}s
-      </span>
-    );
-  };
   return (
     <Card className="w-full min-h-[18rem] max-h-[28rem] sm:min-h-[22rem] sm:max-h-[32rem] bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/60 shadow-2xl flex flex-col backdrop-blur-sm relative overflow-hidden">
       <CardHeader className="pb-3 text-center relative z-10">
@@ -77,17 +64,17 @@ export const MainCardBack = ({ user, slots, isLoading }: MainCardBackProps) => {
             <div className="grid grid-cols-2 gap-3">
               <div className="relative bg-gradient-to-br from-emerald-900/40 to-emerald-800/30 border border-emerald-700/60 rounded-lg p-3 shadow-lg">
                 <div className="flex items-center justify-center gap-2 mb-1">
-                  <DollarSign className="w-3 h-3 text-emerald-400" />
+                  <Server className="w-3 h-3 text-emerald-400" />
                   <span className="text-xs font-medium text-emerald-300">Invested</span>
                 </div>
-                <p className="text-sm font-bold text-emerald-400">{totalInvestment.toFixed(2)} <span className="text-xs text-gray-300">USD</span></p>
+                <p className="text-sm font-bold text-emerald-400">{totalInvestment.toFixed(2)} <span className="text-xs text-gray-300">MNE</span></p>
               </div>
               <div className="relative bg-gradient-to-br from-cyan-900/40 to-cyan-800/30 border border-cyan-700/60 rounded-lg p-3 shadow-lg">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <TrendingUp className="w-3 h-3 text-cyan-400" />
                   <span className="text-xs font-medium text-cyan-300">Daily</span>
                 </div>
-                <p className="text-sm font-bold text-cyan-400">{totalDailyEarnings.toFixed(4)} <span className="text-xs text-gray-300">USD</span></p>
+                <p className="text-sm font-bold text-cyan-400">{totalDailyEarnings.toFixed(4)} <span className="text-xs text-gray-300">MNE</span></p>
               </div>
             </div>
             
@@ -97,7 +84,7 @@ export const MainCardBack = ({ user, slots, isLoading }: MainCardBackProps) => {
               {activeSlots.slice(0, 2).map(slot => (
                 <div key={slot.id} className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 border border-slate-600/50 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-bold text-white">{slot.principal.toFixed(2)} <span className="text-sm text-gray-300">USD</span></span>
+                    <span className="text-lg font-bold text-white">{slot.principal.toFixed(2)} <span className="text-sm text-gray-300">MNE</span></span>
                     <span className="text-emerald-400 font-semibold">{(slot.effectiveWeeklyRate * 100).toFixed(2)}%</span>
                   </div>
                   <div className="flex items-center justify-between">

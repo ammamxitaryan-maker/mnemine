@@ -196,10 +196,10 @@ const processSlotBatch = async (slots: any[]) => {
 // Обработка слотов одного пользователя
 const processUserSlots = async (userId: string, slots: any[]) => {
   const now = new Date();
-  const USDWallet = slots[0].user.wallets.find((w: Wallet) => w.currency === 'USD');
+  const MNEWallet = slots[0].user.wallets.find((w: Wallet) => w.currency === 'MNE');
   
-  if (!USDWallet) {
-    throw new Error(`USD wallet not found for user ${userId}`);
+  if (!MNEWallet) {
+    throw new Error(`MNE wallet not found for user ${userId}`);
   }
 
   // Рассчитываем общий доход для всех слотов пользователя
@@ -227,7 +227,7 @@ const processUserSlots = async (userId: string, slots: any[]) => {
       userId: slot.userId,
       type: ActivityLogType.CLAIM,
       amount: earnings,
-      description: `Automatic slot closure - earned ${earnings.toFixed(4)} USD from ${slot.principal} USD investment`
+      description: `Automatic slot closure - earned ${earnings.toFixed(4)} MNE from ${slot.principal} MNE investment`
     });
   }
 
@@ -235,7 +235,7 @@ const processUserSlots = async (userId: string, slots: any[]) => {
   await prisma.$transaction([
     // Обновляем баланс пользователя
     prisma.wallet.update({
-      where: { id: USDWallet.id },
+      where: { id: MNEWallet.id },
       data: { balance: { increment: totalEarnings } }
     }),
     

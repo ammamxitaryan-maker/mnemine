@@ -54,7 +54,7 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
       <div className="p-4 flex-grow">
         <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-lg font-bold flex items-center">
-            <DollarSign className="w-5 h-5 mr-2 text-secondary" />
+            <Coins className="w-5 h-5 mr-2 text-purple-400" />
             {t('slots.investment')}
           </CardTitle>
           <div className={`flex items-center text-sm font-medium ${statusColor}`}>
@@ -64,10 +64,10 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
         </CardHeader>
         <CardContent className="p-0 space-y-2">
           <div className="flex justify-between items-center">
-            <p className="text-2xl font-extrabold text-gold">{slot.principal.toFixed(4)} USD</p>
+            <p className="text-2xl font-extrabold text-purple-400">{slot.principal.toFixed(2)} MNE</p>
             <div className="text-right">
               <p className="text-lg font-bold text-emerald-400 animate-pulse">
-                {currentTotal.toFixed(4)} USD
+                {currentTotal.toFixed(2)} MNE
               </p>
               <p className="text-xs text-gray-400">Current Total</p>
             </div>
@@ -81,7 +81,7 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
                 <span className="text-sm text-emerald-300">Dynamic Earnings:</span>
               </div>
               <span className="text-lg font-bold text-emerald-400 animate-pulse">
-                +{dynamicEarnings.toFixed(6)} USD
+                +{dynamicEarnings.toFixed(4)} MNE
               </span>
             </div>
           </div>
