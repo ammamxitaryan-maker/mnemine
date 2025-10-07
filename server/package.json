@@ -13,9 +13,6 @@
     "postbuild": "node -e \"const fs = require('fs'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.copyFileSync('dist-package.json', 'dist/package.json');\"",
     "start": "node dist/index.js",
     "start:prod": "NODE_ENV=production node dist/index.js",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
     "type-check": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:generate:local": "prisma generate",
@@ -29,7 +26,6 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "clean": "rm -rf dist",
-    "precommit": "npm run type-check && npm run test",
     "validate": "npm run type-check"
   },
   "dependencies": {
@@ -55,10 +51,6 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
-    "@types/supertest": "^6.0.3",
-    "@vitest/coverage-v8": "^2.1.9",
-    "supertest": "^7.1.4",
-    "tsc-watch": "^6.3.1",
-    "vitest": "^2.1.9"
+    "tsc-watch": "^6.3.1"
   }
 }

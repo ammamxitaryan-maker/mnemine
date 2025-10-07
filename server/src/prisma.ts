@@ -6,13 +6,19 @@ if (!process.env.DATABASE_URL) {
 }
 
 const prisma = new PrismaClient({
-  // Увеличиваем таймаут для интерактивных транзакций, чтобы избежать ошибок Socket timeout
+  // Production-optimized connection settings
   transactionOptions: {
-    maxWait: 20000, // Максимальное время ожидания для получения транзакции (в мс)
-    timeout: 20000, // Максимальное время выполнения самой транзакции (в мс)
+    maxWait: process.env.NODE_ENV === 'production' ? 10000 : 20000, // Shorter timeout in production
+    timeout: process.env.NODE_ENV === 'production' ? 10000 : 20000, // Shorter timeout in production
   },
   // Production optimizations - minimal logging
   log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+  // Connection pool optimization for production
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL + (process.env.NODE_ENV === 'production' ? '?connection_limit=5&pool_timeout=20' : ''),
+    },
+  },
 });
 
 export default prisma;

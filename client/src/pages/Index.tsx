@@ -14,7 +14,7 @@ import { AuthWrapper } from '@/components/AuthWrapper';
 import { AuthenticatedUser } from '@/types/telegram';
 import { showError } from '@/utils/toast';
 import { Link } from 'react-router-dom';
-import { PerformanceMonitor as PerformanceMonitorComponent } from '@/components/PerformanceMonitor';
+// Test imports removed for production
 
 import { Server, Trophy, Gift, Award, Ticket, Loader2, Settings, TrendingUp, BarChart3 } from 'lucide-react';
 
@@ -25,9 +25,7 @@ const MainCardBack = lazy(() => import('@/components/MainCardBack').then(module 
 const HomePageHeader = lazy(() => import('@/components/HomePageHeader').then(module => ({ default: module.HomePageHeader })));
 const DashboardLinkCard = lazy(() => import('@/components/DashboardLinkCard').then(module => ({ default: module.DashboardLinkCard })));
 const SwapCard = lazy(() => import('@/components/SwapCard').then(module => ({ default: module.SwapCard })));
-const DynamicEarningsTest = lazy(() => import('@/components/DynamicEarningsTest').then(module => ({ default: module.DynamicEarningsTest })));
-const PerformanceMonitor = lazy(() => import('@/components/PerformanceMonitor').then(module => ({ default: module.PerformanceMonitor })));
-const PerformanceDashboard = lazy(() => import('@/components/PerformanceDashboard').then(module => ({ default: module.PerformanceDashboard })));
+// Test components removed for production
 
 const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
@@ -333,26 +331,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
               </Suspense>
             </section>
 
-            {/* Dynamic Earnings Test Section */}
-            <section className="w-full max-w-4xl mx-auto mt-8 sm:mt-2">
-              <Suspense fallback={<div className="h-32 bg-slate-800/50 rounded-lg animate-pulse" />}>
-                <DynamicEarningsTest slotsData={slotsData} />
-              </Suspense>
-            </section>
-
-            {/* Performance Monitor Section */}
-            <section className="w-full max-w-4xl mx-auto mt-8 sm:mt-2">
-              <Suspense fallback={<div className="h-32 bg-slate-800/50 rounded-lg animate-pulse" />}>
-                <PerformanceMonitor />
-              </Suspense>
-            </section>
-
-            {/* Performance Dashboard Section */}
-            <section className="w-full max-w-4xl mx-auto mt-8 sm:mt-2">
-              <Suspense fallback={<div className="h-32 bg-slate-800/50 rounded-lg animate-pulse" />}>
-                <PerformanceDashboard />
-              </Suspense>
-            </section>
+            {/* Test sections removed for production */}
 
             {/* Secondary Features Section */}
             <section className="w-full max-w-2xl mx-auto mt-8 sm:mt-2">
@@ -392,8 +371,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
         </div>
       </div>
       
-      {/* Performance Monitor - Development Only */}
-      <PerformanceMonitor />
+      {/* Test components removed for production */}
     </div>
   );
 };

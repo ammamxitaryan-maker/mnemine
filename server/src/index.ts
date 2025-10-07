@@ -6,31 +6,35 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables - try multiple paths for flexibility
-const envPaths = [
-  path.resolve(__dirname, '../../../.env.local'),  // Local development .env
-  path.resolve(__dirname, '../../../.env'),        // Root .env (development mode)
-  path.resolve(__dirname, '../../.env'),           // Server .env (fallback)
-  path.resolve(process.cwd(), '.env.local'),       // Current working directory local
-  path.resolve(process.cwd(), '.env'),             // Current working directory
-  path.resolve(process.cwd(), '../.env'),          // Parent directory
-];
+// Production-optimized environment loading
+if (process.env.NODE_ENV === 'production') {
+  // In production, only load from process.env (Render sets these)
+  console.log('[ENV] Production mode - using process.env variables');
+} else {
+  // Development mode - try multiple paths for flexibility
+  const envPaths = [
+    path.resolve(__dirname, '../../../.env.local'),  // Local development .env
+    path.resolve(__dirname, '../../../.env'),        // Root .env (development mode)
+    path.resolve(__dirname, '../../.env'),           // Server .env (fallback)
+    path.resolve(process.cwd(), '.env.local'),       // Current working directory local
+    path.resolve(process.cwd(), '.env'),             // Current working directory
+    path.resolve(process.cwd(), '../.env'),          // Parent directory
+  ];
 
-// Attempt to load .env from multiple possible locations
-// This ensures compatibility across different deployment scenarios
-for (const envPath of envPaths) {
-  try {
-    dotenv.config({ path: envPath });
-    console.log(`[ENV] Successfully loaded environment from: ${envPath}`);
-    break;
-  } catch (error) {
-    // Continue to next path if current one fails
-    console.log(`[ENV] Failed to load from ${envPath}, trying next...`);
+  // Attempt to load .env from multiple possible locations
+  for (const envPath of envPaths) {
+    try {
+      dotenv.config({ path: envPath });
+      console.log(`[ENV] Successfully loaded environment from: ${envPath}`);
+      break;
+    } catch (error) {
+      console.log(`[ENV] Failed to load from ${envPath}, trying next...`);
+    }
   }
+  
+  // Also load from process.env (for development)
+  dotenv.config();
 }
-
-// Also load from process.env (for production deployments)
-dotenv.config();
 
 // Set fallback values for environment variables BEFORE validation
 // SECURITY WARNING: In production, these MUST be set via environment variables
@@ -89,6 +93,7 @@ import { SLOT_WEEKLY_RATE, WELCOME_BONUS_AMOUNT } from './constants.js';
 import { WebSocketServer } from './websocket/WebSocketServer.js';
 import { webSocketManager } from './websocket/WebSocketManager.js';
 import { validateEnvironment } from './utils/validation.js';
+import { ProductionHealthCheck } from './utils/productionHealthCheck.js';
 import './utils/slotProcessor.js'; // Запускаем процессор слотов
 
 // Validate environment variables
@@ -319,11 +324,16 @@ app.use((req: any, res: any, next: any) => {
   next();
 });
 
-// Health check endpoint
+// Production health check endpoint
 app.get('/health', async (req: any, res: any) => {
   try {
-    // Check database connection
-    await prisma.$queryRaw`SELECT 1`;
+    // Check database connection with timeout
+    const dbCheckPromise = prisma.$queryRaw`SELECT 1`;
+    const dbTimeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database timeout')), 5000)
+    );
+    
+    await Promise.race([dbCheckPromise, dbTimeoutPromise]);
     
     res.status(200).json({
       status: 'healthy',
@@ -331,6 +341,7 @@ app.get('/health', async (req: any, res: any) => {
       database: 'connected',
       uptime: process.uptime(),
       memory: process.memoryUsage(),
+      health: ProductionHealthCheck.getHealthStatus(),
     });
   } catch (error) {
     res.status(503).json({
@@ -340,6 +351,7 @@ app.get('/health', async (req: any, res: any) => {
       database: 'disconnected',
       uptime: process.uptime(),
       memory: process.memoryUsage(),
+      health: ProductionHealthCheck.getHealthStatus(),
     });
   }
 });
@@ -759,58 +771,95 @@ const gracefulShutdown = async (signal: string) => {
 
 async function startServer() {
   try {
-    // Test database connection first
+    // Test database connection with timeout
     console.log('[SERVER] Testing database connection...');
-    await prisma.$connect();
+    const dbConnectionPromise = prisma.$connect();
+    const dbTimeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+    );
+    
+    await Promise.race([dbConnectionPromise, dbTimeoutPromise]);
     console.log('[SERVER] Database connection successful');
 
-    await Promise.all([seedTasks(), seedBoosters(), seedAdmin(), ensureDatabaseSchema()]);
-
-    // Initialize WebSocket server
-    const wsServer = new WebSocketServer(server);
-    webSocketManager.setWebSocketServer(wsServer);
-    console.log('[WebSocket] WebSocket server initialized');
-
-    // Set Telegram webhook URL if bot is initialized
-    if (bot && token && token.length > 0) {
-      const webhookPath = `/api/webhook/${token}`;
-      const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
-
-      console.log(`[BOT] Webhook configuration:`);
-      console.log(`[BOT] - Webhook path: ${webhookPath}`);
-      console.log(`[BOT] - Backend URL: ${backendUrl}`);
-      console.log(`[BOT] - Webhook URL: ${webhookUrl}`);
-      console.log(`[BOT] - Is HTTPS: ${webhookUrl.startsWith('https://')}`);
-
-      // Only set webhook if backendUrl is HTTPS (for production)
-      if (webhookUrl.startsWith('https://')) {
-        console.log(`[BOT] Setting webhook to: ${webhookUrl}`);
-        
-        bot.telegram.setWebhook(webhookUrl)
-          .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
-          .catch((err: any) => console.error('[BOT] ❌ Failed to set webhook:', err));
-      } else {
-        console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
-      }
-    }
-
+    // Start server first to avoid hanging
     server.listen(port, '0.0.0.0', async () => {
       console.log(`[SERVER] Backend server listening on port ${port}`);
       console.log(`[WebSocket] WebSocket server available at ws://localhost:${port}/ws`);
       console.log(`[SERVER] Frontend URL for bot: ${frontendUrl}`);
       
-      // Start continuous earnings processor for 24/7 earnings
-      const { continuousEarningsProcessor } = await import('./utils/continuousEarningsProcessor.js');
-      await continuousEarningsProcessor.start();
+      // Mark application as healthy
+      ProductionHealthCheck.markAsHealthy();
       
-      // Start slot expiration processor for automatic slot handling
-      const { slotExpirationProcessor } = await import('./utils/slotExpirationProcessor.js');
-      await slotExpirationProcessor.start();
+      // Initialize WebSocket server after server is running
+      try {
+        const wsServer = new WebSocketServer(server);
+        webSocketManager.setWebSocketServer(wsServer);
+        console.log('[WebSocket] WebSocket server initialized');
+      } catch (wsError) {
+        console.error('[WebSocket] Failed to initialize WebSocket server:', wsError);
+      }
+
+      // Set Telegram webhook URL if bot is initialized (non-blocking)
+      if (bot && token && token.length > 0) {
+        const webhookPath = `/api/webhook/${token}`;
+        const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
+
+        console.log(`[BOT] Webhook configuration:`);
+        console.log(`[BOT] - Webhook path: ${webhookPath}`);
+        console.log(`[BOT] - Backend URL: ${backendUrl}`);
+        console.log(`[BOT] - Webhook URL: ${webhookUrl}`);
+        console.log(`[BOT] - Is HTTPS: ${webhookUrl.startsWith('https://')}`);
+
+        // Only set webhook if backendUrl is HTTPS (for production)
+        if (webhookUrl.startsWith('https://')) {
+          console.log(`[BOT] Setting webhook to: ${webhookUrl}`);
+          
+          bot.telegram.setWebhook(webhookUrl)
+            .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
+            .catch((err: any) => console.error('[BOT] ❌ Failed to set webhook:', err));
+        } else {
+          console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
+        }
+      }
       
-      // Start auto-claim processor for automatic MNE transfers after 7 days
-      const { autoClaimProcessor } = await import('./utils/autoClaimProcessor.js');
-      await autoClaimProcessor.start();
+      // Start background processors (non-blocking)
+      try {
+        // Start continuous earnings processor for 24/7 earnings
+        const { continuousEarningsProcessor } = await import('./utils/continuousEarningsProcessor.js');
+        await continuousEarningsProcessor.start();
+        console.log('[PROCESSOR] Continuous earnings processor started');
+      } catch (error) {
+        console.error('[PROCESSOR] Failed to start continuous earnings processor:', error);
+      }
+      
+      try {
+        // Start slot expiration processor for automatic slot handling
+        const { slotExpirationProcessor } = await import('./utils/slotExpirationProcessor.js');
+        await slotExpirationProcessor.start();
+        console.log('[PROCESSOR] Slot expiration processor started');
+      } catch (error) {
+        console.error('[PROCESSOR] Failed to start slot expiration processor:', error);
+      }
+      
+      try {
+        // Start auto-claim processor for automatic MNE transfers after 7 days
+        const { autoClaimProcessor } = await import('./utils/autoClaimProcessor.js');
+        await autoClaimProcessor.start();
+        console.log('[PROCESSOR] Auto-claim processor started');
+      } catch (error) {
+        console.error('[PROCESSOR] Failed to start auto-claim processor:', error);
+      }
     });
+
+    // Run database seeding in background (non-blocking)
+    Promise.all([seedTasks(), seedBoosters(), seedAdmin(), ensureDatabaseSchema()])
+      .then(() => {
+        console.log('[SEED] Database seeding completed');
+      })
+      .catch((error) => {
+        console.error('[SEED] Database seeding failed:', error);
+      });
+
   } catch (error) {
     console.error('[SERVER] Failed to start server:', error);
     console.error('[SERVER] Error details:', error);
