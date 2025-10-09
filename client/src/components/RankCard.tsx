@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from 'react-i18next';
-import { BRONZE_INVESTOR_THRESHOLD, GOLD_MAGNATE_THRESHOLD, PLATINUM_GOD_THRESHOLD } from '../../../shared/constants';
+import { BRONZE_INVESTOR_THRESHOLD, GOLD_MAGNATE_THRESHOLD, PLATINUM_GOD_THRESHOLD } from '@/shared/constants';
 import { UserStats } from '@/hooks/useStatsData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';

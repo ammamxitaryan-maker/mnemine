@@ -6,7 +6,6 @@ import "./i18n"; // Import i18n configuration
 import { SplashScreen } from "./components/SplashScreen";
 import { ThemeProvider } from "./components/ThemeProvider";
 
-// console.log("[MAIN] Application starting..."); // Removed log
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

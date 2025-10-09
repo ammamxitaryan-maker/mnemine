@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { CheckCircle } from 'lucide-react';
-import { RANKED_REFERRAL_COMMISSIONS_L1, RANKED_REFERRAL_COMMISSIONS_L2, RANKED_REFERRAL_COMMISSIONS_L3, RANK_SLOT_RATE_BONUS_PERCENTAGE, REFERRAL_COMMISSIONS } from '../../../shared/constants';
+import { RANKED_REFERRAL_COMMISSIONS_L1, RANKED_REFERRAL_COMMISSIONS_L2, RANKED_REFERRAL_COMMISSIONS_L3, RANK_SLOT_RATE_BONUS_PERCENTAGE, REFERRAL_COMMISSIONS } from '@/shared/constants';
 
 interface RankBenefitsProps {
   rank: string | null;

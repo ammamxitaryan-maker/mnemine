@@ -20,7 +20,7 @@ import {
   FIRST_100_WITHDRAWALS_LIMIT, 
   WITHDRAWAL_MIN_BALANCE_REQUIREMENT,
   MINIMUM_WITHDRAWAL_REGULAR
-} from '../../../shared/constants';
+} from '@/shared/constants';
 
 const withdrawFunds = async ({ telegramId, amount, address }: { telegramId: string, amount: number, address: string }) => {
   const { data } = await api.post(`/user/${telegramId}/withdraw`, { amount, address });

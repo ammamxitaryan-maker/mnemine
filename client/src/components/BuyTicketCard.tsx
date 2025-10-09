@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Shuffle } from 'lucide-react';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 import { getErrorMessage } from '@/types/errors';
-import { LOTTERY_TICKET_COST } from '../../../shared/constants';
+import { LOTTERY_TICKET_COST } from '@/shared/constants';
 
 interface BuyTicketCardProps {
   telegramId: string; // Add telegramId as a prop
@@ -99,10 +99,10 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
           ))}
         </div>
         <div className="flex justify-center">
-            <Button variant="ghost" onClick={handleQuickPick}>
-                <Shuffle className="w-4 h-4 mr-2" />
-                {t('lottery.quickPick')}
-            </Button>
+          <Button variant="ghost" onClick={handleQuickPick}>
+            <Shuffle className="w-4 h-4 mr-2" />
+            {t('lottery.quickPick')}
+          </Button>
         </div>
       </CardContent>
       <CardFooter>

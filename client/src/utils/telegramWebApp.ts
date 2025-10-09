@@ -49,18 +49,12 @@ export const initializeTelegramWebApp = (): void => {
   if (isFeatureSupported('closingConfirmation', '6.0')) {
     tg.enableClosingConfirmation?.();
     tg.isClosingConfirmationEnabled = true;
-  } else {
-    console.log(`[TelegramWebApp] Closing confirmation not supported in version 6.0`);
   }
 
   if (isFeatureSupported('verticalSwipes', '6.0')) {
     // Enable vertical swipes for scrolling
     tg.enableVerticalSwipes?.();
-  } else {
-    console.log(`[TelegramWebApp] Vertical swipes control not supported in version 6.0`);
   }
-
-  console.log(`[TelegramWebApp] Initialized with version 6.0`);
 };
 
 /**
@@ -74,14 +68,10 @@ export const setTelegramWebAppColors = (headerColor?: string, backgroundColor?: 
 
   if (isFeatureSupported('headerColor', version) && headerColor) {
     tg.headerColor = headerColor;
-  } else if (headerColor) {
-    console.log(`[TelegramWebApp] Header color not supported in version ${version}`);
   }
 
   if (isFeatureSupported('backgroundColor', version) && backgroundColor) {
     tg.backgroundColor = backgroundColor;
-  } else if (backgroundColor) {
-    console.log(`[TelegramWebApp] Background color not supported in version ${version}`);
   }
 };
 
@@ -92,21 +82,36 @@ export const isTelegramWebApp = (): boolean => {
   return !!window.Telegram?.WebApp;
 };
 
+// Type definitions for Telegram WebApp
+interface TelegramWebApp {
+  initDataUnsafe?: {
+    user?: {
+      id: number;
+      first_name: string;
+      last_name?: string;
+      username?: string;
+      language_code?: string;
+    };
+  };
+  showAlert?: (message: string) => void;
+  showConfirm?: (message: string, callback: (confirmed: boolean) => void) => void;
+}
+
 /**
  * Get user data from Telegram WebApp
  */
 export const getTelegramUser = () => {
-  const tg = getTelegramWebApp();
-  return tg ? (tg as any).initDataUnsafe?.user : null;
+  const tg = getTelegramWebApp() as TelegramWebApp | null;
+  return tg?.initDataUnsafe?.user || null;
 };
 
 /**
  * Show alert in Telegram WebApp
  */
 export const showTelegramAlert = (message: string): void => {
-  const tg = getTelegramWebApp();
-  if (tg && (tg as any).showAlert) {
-    (tg as any).showAlert(message);
+  const tg = getTelegramWebApp() as TelegramWebApp | null;
+  if (tg?.showAlert) {
+    tg.showAlert(message);
   } else {
     alert(message);
   }
@@ -116,9 +121,9 @@ export const showTelegramAlert = (message: string): void => {
  * Show confirm dialog in Telegram WebApp
  */
 export const showTelegramConfirm = (message: string, callback: (confirmed: boolean) => void): void => {
-  const tg = getTelegramWebApp();
-  if (tg && (tg as any).showConfirm) {
-    (tg as any).showConfirm(message, callback);
+  const tg = getTelegramWebApp() as TelegramWebApp | null;
+  if (tg?.showConfirm) {
+    tg.showConfirm(message, callback);
   } else {
     const confirmed = confirm(message);
     callback(confirmed);

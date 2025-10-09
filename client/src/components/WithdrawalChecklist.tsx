@@ -8,7 +8,7 @@ import {
   WITHDRAWAL_REFERRAL_REQUIREMENT,
   WITHDRAWAL_SLOT_REQUIREMENT,
   FIRST_100_WITHDRAWALS_LIMIT
-} from '../../../shared/constants';
+} from '@/shared/constants';
 
 interface WithdrawalChecklistProps {
   userData: UserData | undefined;

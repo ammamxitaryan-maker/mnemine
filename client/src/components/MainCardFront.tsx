@@ -30,24 +30,10 @@ export const MainCardFront = ({
     currentBalance: wsBalance,
     lastUpdate: wsLastUpdate 
   } = useWebSocketEarnings(telegramId);
-  
-  // Debug logging
-  console.log('[MainCardFront] Received data:', {
-    userData,
-    slotsData: slotsData?.length || 0,
-    displayEarnings,
-    telegramId,
-    wsConnected,
-    wsEarnings,
-    wsBalance
-  });
-  
+
   // Get dynamic MNE earnings
   const dynamicEarnings = useDynamicMNEEarnings(slotsData);
-  
-  // Debug dynamic earnings
-  console.log('[MainCardFront] Dynamic earnings:', dynamicEarnings);
-  
+
   // Get cached exchange rate for USD equivalent
   const { convertMNEToUSD, isStale } = useCachedExchangeRate(telegramId);
   

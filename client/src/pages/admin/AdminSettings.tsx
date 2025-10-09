@@ -79,7 +79,8 @@ const AdminSettings = () => {
       setMinWithdrawal(data.limits.minWithdrawal.toString());
       setMaxWithdrawal(data.limits.maxWithdrawal.toString());
       setDailyWithdrawalLimit(data.limits.dailyWithdrawalLimit.toString());
-    } catch (err: any) {
+    } catch (err: unknown) {
+      console.error('Failed to load settings:', err);
       setMessage({ type: 'error', text: 'Failed to load settings' });
     } finally {
       setLoading(false);
@@ -113,8 +114,10 @@ const AdminSettings = () => {
       await api.post('/admin/settings/update', payload);
       setMessage({ type: 'success', text: 'Settings saved successfully' });
       fetchSettings();
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to save settings' });
+    } catch (err: unknown) {
+      console.error('Failed to save settings:', err);
+      const errorMessage = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to save settings';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setSaving(false);
     }
@@ -125,8 +128,10 @@ const AdminSettings = () => {
       setSaving(true);
       await api.post(`/admin/system/${action}`);
       setMessage({ type: 'success', text: `${action} completed successfully` });
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.error || `Failed to ${action}` });
+    } catch (err: unknown) {
+      console.error(`Failed to ${action}:`, err);
+      const errorMessage = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || `Failed to ${action}`;
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setSaving(false);
     }

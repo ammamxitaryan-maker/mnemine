@@ -17,7 +17,7 @@ import {
   LEADERBOARD_BONUS_AMOUNT, 
   INVESTMENT_GROWTH_BONUS_AMOUNT, 
   REFERRAL_3_IN_3_DAYS_BONUS 
-} from '../../../shared/constants';
+} from '@/shared/constants';
 
 const Bonuses = () => {
   const { t } = useTranslation();

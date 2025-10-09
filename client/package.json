@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:prod": "vite build --mode production",
     "build:ultra": "vite build --mode ultra-optimized",
+    "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -17,7 +18,15 @@
     "prebuild": "npm run type-check && npm run lint:check",
     "postbuild": "echo 'Build completed successfully!'",
     "validate": "npm run lint:check && npm run type-check",
-    "analyze": "npm run build:analyze && npx vite-bundle-analyzer dist/stats.html"
+    "analyze": "npm run build:analyze && npx vite-bundle-analyzer dist/stats.html",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:watch": "vitest --watch",
+    "performance:audit": "npm run build && npx lighthouse http://localhost:4173 --output=html --output-path=./performance-audit.html",
+    "bundle:analyze": "npm run build && npx vite-bundle-analyzer dist",
+    "optimize:images": "npx imagemin public/**/*.{jpg,jpeg,png} --out-dir=public/optimized",
+    "precommit": "npm run lint:check && npm run type-check && npm run test"
   },
   "dependencies": {
     "@dyad-sh/react-vite-component-tagger": "^0.8.0",
@@ -32,7 +41,6 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tanstack/react-query": "^5.90.2",
     "@vitejs/plugin-react-swc": "^3.11.0",
-    "autoprefixer": "^10.4.21",
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

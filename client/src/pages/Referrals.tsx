@@ -10,7 +10,7 @@ import { FriendCard } from '@/components/FriendCard';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'; // Import Accordion components
-import { REFERRAL_SIGNUP_BONUS } from '../../../shared/constants';
+import { REFERRAL_SIGNUP_BONUS } from '@/shared/constants';
 
 const Referrals = () => {
   const { t } = useTranslation();

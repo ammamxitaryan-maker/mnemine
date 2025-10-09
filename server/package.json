@@ -26,7 +26,19 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "clean": "rm -rf dist",
-    "validate": "npm run type-check"
+    "validate": "npm run type-check",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:watch": "vitest --watch",
+    "lint": "eslint . --ext ts,js --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,js --fix",
+    "lint:check": "eslint . --ext ts,js --max-warnings 100",
+    "performance:test": "npm run build && node dist/performance-test.js",
+    "database:optimize": "node dist/scripts/optimize-database.js",
+    "cache:clear": "node dist/scripts/clear-cache.js",
+    "health:check": "node dist/scripts/health-check.js",
+    "precommit": "npm run lint:check && npm run type-check && npm run test"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
