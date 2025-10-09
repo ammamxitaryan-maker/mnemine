@@ -92,6 +92,7 @@ model MiningSlot {
   id                  String   @id @default(cuid())
   userId              String
   principal           Float
+  accruedEarnings     Float    @default(0) // Накопленные доходы для claim
   startAt             DateTime @default(now())
   lastAccruedAt       DateTime
   effectiveWeeklyRate Float

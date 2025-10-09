@@ -5,6 +5,7 @@ interface WebSocketEarningsData {
   earnings: number;
   balance: number;
   lastUpdate: string;
+  totalAccruedEarnings?: number;
 }
 
 interface WebSocketSlotsData {
@@ -39,13 +40,41 @@ export const useWebSocketEarnings = (telegramId: string | undefined) => {
 
     switch (lastMessage.type) {
       case 'earnings_update':
+      case 'EARNINGS_UPDATE':
         if (lastMessage.data) {
-          setEarningsData({
-            earnings: Number(lastMessage.data.earnings) || 0,
-            balance: Number(lastMessage.data.balance) || 0,
-            lastUpdate: String(lastMessage.data.lastUpdate) || new Date().toISOString()
-          });
+          setEarningsData(prev => ({
+            earnings: Number(lastMessage.data.accruedEarnings || lastMessage.data.earnings) || 0,
+            balance: Number(lastMessage.data.balance) || (prev?.balance || 0),
+            lastUpdate: String(lastMessage.data.lastUpdate) || new Date().toISOString(),
+            totalAccruedEarnings: Number(lastMessage.data.totalAccruedEarnings || lastMessage.data.accruedEarnings) || 0
+          }));
           console.log('[WebSocketEarnings] Updated earnings data:', lastMessage.data);
+        }
+        break;
+
+      case 'slot_earnings_updated':
+        if (lastMessage.data) {
+          // Update specific slot earnings - use database field
+          setSlotsData(prev =>
+            prev.map(slot =>
+              slot.id === lastMessage.data.slotId
+                ? { ...slot, currentEarnings: lastMessage.data.accruedEarnings }
+                : slot
+            )
+          );
+          console.log('[WebSocketEarnings] Updated slot earnings:', lastMessage.data);
+        }
+        break;
+
+      case 'earnings_claimed':
+        if (lastMessage.data) {
+          setEarningsData(prev => ({
+            earnings: 0, // Reset earnings after claim
+            balance: Number(lastMessage.data.newBalance) || (prev?.balance || 0),
+            lastUpdate: new Date().toISOString(),
+            totalAccruedEarnings: 0
+          }));
+          console.log('[WebSocketEarnings] Earnings claimed:', lastMessage.data);
         }
         break;
 
@@ -61,7 +90,8 @@ export const useWebSocketEarnings = (telegramId: string | undefined) => {
           setEarningsData({
             earnings: Number(lastMessage.data.accruedEarnings) || 0,
             balance: Number(lastMessage.data.balance) || 0,
-            lastUpdate: String(lastMessage.data.lastUpdate) || new Date().toISOString()
+            lastUpdate: String(lastMessage.data.lastUpdate) || new Date().toISOString(),
+            totalAccruedEarnings: Number(lastMessage.data.accruedEarnings) || 0
           });
           console.log('[WebSocketEarnings] Updated user data:', lastMessage.data);
         }

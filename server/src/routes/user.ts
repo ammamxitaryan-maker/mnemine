@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getUserData, getUserStats, getUserActivity } from '../controllers/dataController.js';
 import { depositFunds, withdrawFunds } from '../controllers/walletController.js';
-import { getUserSlots, buyNewSlot, extendSlot, upgradeSlot, getRealTimeIncome } from '../controllers/slotController.js'; // Import upgradeSlot
+import { getUserSlots, buyNewSlot, extendSlot, upgradeSlot, getRealTimeIncome, getUserAccruedEarnings, claimEarnings } from '../controllers/slotController.js'; // Import new functions
 import { getReferralData, getReferralList, getReferralStreakBonusStatus, claimReferralStreakBonus, getReferralStats } from '../controllers/referralController.js'; // Import new functions
 import { claimTaskReward } from '../controllers/taskController.js';
 import { getDailyBonusStatus, claimDailyBonus, getDividendsStatus, claimDividends, getBonusesSummary, claimLeaderboardBonus, claimInvestmentGrowthBonus } from '../controllers/bonusController.js'; // Import new dividend functions
@@ -23,6 +23,8 @@ router.post('/:telegramId/withdraw', authenticateUser, extractUserIdFromParams, 
 // Slot & Booster routes - with authentication
 router.get('/:telegramId/slots', authenticateUser, extractUserIdFromParams, getUserSlots);
 router.get('/:telegramId/real-time-income', authenticateUser, extractUserIdFromParams, getRealTimeIncome);
+router.get('/:telegramId/slots/earnings', authenticateUser, extractUserIdFromParams, getUserAccruedEarnings);
+router.post('/:telegramId/slots/claim', authenticateUser, extractUserIdFromParams, claimEarnings);
 router.post('/:telegramId/slots/buy', authenticateUser, extractUserIdFromParams, buyNewSlot);
 router.post('/:telegramId/slots/:slotId/extend', authenticateUser, extractUserIdFromParams, extendSlot);
 router.post('/:telegramId/slots/:slotId/upgrade', authenticateUser, extractUserIdFromParams, upgradeSlot);

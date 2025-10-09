@@ -39,16 +39,20 @@ export class RealTimeController {
         slot.isActive && new Date(slot.expiresAt) > new Date()
       );
 
-      // Calculate earnings directly from user data for better performance
+      // Calculate earnings using accumulated earnings from database + real-time calculation
       const currentTime = new Date();
       let totalEarnings = 0;
-      
+
       for (const slot of activeSlots) {
         const timeElapsedMs = currentTime.getTime() - slot.lastAccruedAt.getTime();
         if (timeElapsedMs > 0) {
           const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-          const earnings = earningsPerSecond * (timeElapsedMs / 1000);
-          totalEarnings += earnings;
+          const realTimeEarnings = earningsPerSecond * (timeElapsedMs / 1000);
+          // Используем накопленные доходы из базы + реальное время
+          totalEarnings += slot.accruedEarnings + realTimeEarnings;
+        } else {
+          // Если время не прошло, используем только накопленные доходы
+          totalEarnings += slot.accruedEarnings;
         }
       }
 
@@ -119,15 +123,17 @@ export class RealTimeController {
         const lastAccrued = new Date(slot.lastAccruedAt);
         const timeDiff = currentTime.getTime() - lastAccrued.getTime();
         const secondsDiff = timeDiff / 1000;
-        
+
+        // Используем накопленные доходы из базы данных + расчет реального времени
         const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-        const currentEarnings = earningsPerSecond * secondsDiff;
-        
+        const realTimeEarnings = earningsPerSecond * secondsDiff;
+        const currentEarnings = slot.accruedEarnings + realTimeEarnings;
+
         return {
           ...slot,
           currentEarnings,
           earningsPerSecond,
-          timeRemaining: slot.isActive ? 
+          timeRemaining: slot.isActive ?
             Math.max(0, new Date(slot.expiresAt).getTime() - currentTime.getTime()) : 0
         };
       });

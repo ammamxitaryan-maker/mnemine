@@ -849,6 +849,15 @@ async function startServer() {
       } catch (error) {
         console.error('[PROCESSOR] Failed to start auto-claim processor:', error);
       }
+
+      try {
+        // Start earnings accumulator for real-time earnings updates
+        const { earningsAccumulator } = await import('./services/earningsAccumulator.js');
+        earningsAccumulator.start();
+        console.log('[PROCESSOR] Earnings accumulator started');
+      } catch (error) {
+        console.error('[PROCESSOR] Failed to start earnings accumulator:', error);
+      }
     });
 
     // Run database seeding in background (non-blocking)

@@ -9,6 +9,7 @@ import SlotCard from '@/components/SlotCard';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 import { useUserData } from '@/hooks/useUserData';
 import { PageHeader } from '@/components/PageHeader';
+import EarningsSummary from '@/components/EarningsSummary';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -212,6 +213,11 @@ const Slots = () => {
         <p className="text-red-500 text-center text-sm">Could not load your mining slots.</p>
       ) : (
         <>
+          {/* Earnings Summary */}
+          <div className="mb-4">
+            <EarningsSummary telegramId={user?.telegramId} />
+          </div>
+
           {activeSlots.length > 0 && (
             <Accordion type="single" collapsible defaultValue="active-slots" className="w-full mb-3">
               <AccordionItem value="active-slots" className="border-b border-gray-700">
@@ -219,7 +225,7 @@ const Slots = () => {
                   {t('slots.yourActive')}
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-1 space-y-2">
-                  {activeSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} />)}
+                  {activeSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} telegramId={user?.telegramId} />)}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -232,7 +238,7 @@ const Slots = () => {
                   {t('slots.inactiveExpired')}
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-1 space-y-2">
-                  {inactiveSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} />)}
+                  {inactiveSlots.map((slot: MiningSlot) => <SlotCard key={slot.id} slot={slot} telegramId={user?.telegramId} />)}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

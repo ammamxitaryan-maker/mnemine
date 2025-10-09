@@ -40,6 +40,22 @@ class WebSocketManager {
       console.warn('[WebSocketManager] WebSocket server not initialized');
     }
   }
+
+  public sendToUser(telegramId: string, eventType: string, data: any) {
+    if (this.wsServer) {
+      this.wsServer.sendToUser(telegramId, eventType, data);
+    } else {
+      console.warn('[WebSocketManager] WebSocket server not initialized');
+    }
+  }
+
+  public broadcastEarningsUpdate(telegramId: string, earningsData: any) {
+    if (this.wsServer) {
+      this.wsServer.broadcastEarningsUpdate(telegramId, earningsData);
+    } else {
+      console.warn('[WebSocketManager] WebSocket server not initialized');
+    }
+  }
 }
 
 export const webSocketManager = WebSocketManager.getInstance();

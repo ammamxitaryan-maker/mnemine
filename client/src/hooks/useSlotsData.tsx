@@ -5,6 +5,7 @@ export interface MiningSlot {
   id: string;
   userId: string;
   principal: number; // Amount invested in the slot
+  accruedEarnings: number; // Accumulated earnings ready for claim
   effectiveWeeklyRate: number; // Weekly profit rate (e.g., 0.3 for 30%)
   createdAt: string; // When the slot was created
   expiresAt: string; // When the slot expires (ISO string)
@@ -12,6 +13,7 @@ export interface MiningSlot {
   type: string; // Type of slot (e.g., 'standard')
   lastAccruedAt: string; // Last time earnings were accrued
   earningsPerSecond: number; // Earnings per second for compatibility
+  currentEarnings?: number; // Current live earnings (calculated)
   [key: string]: unknown; // Index signature for compatibility
 }
 

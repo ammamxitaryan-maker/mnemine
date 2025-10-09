@@ -578,6 +578,28 @@ export class WebSocketServer {
     });
   }
 
+  public sendToUser(telegramId: string, eventType: string, data: any) {
+    this.broadcastToUser(telegramId, {
+      type: eventType,
+      data: data,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  public async broadcastEarningsUpdate(telegramId: string, earningsData: any) {
+    try {
+      const message: WebSocketMessage = {
+        type: 'EARNINGS_UPDATE',
+        data: earningsData,
+        timestamp: new Date().toISOString()
+      };
+
+      this.broadcastToUser(telegramId, message);
+    } catch (error) {
+      console.error('[WebSocketServer] Error broadcasting earnings update:', error);
+    }
+  }
+
   public getConnectedUsers(): string[] {
     return Array.from(this.clients.keys());
   }

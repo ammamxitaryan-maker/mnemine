@@ -6,6 +6,7 @@ import { Wallet, MiningSlot, ActivityLogType } from '@prisma/client';
 import { isUserEligible } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js'; // Import userSelect
 import { webSocketManager } from '../websocket/WebSocketManager.js';
+import { earningsAccumulator } from '../services/earningsAccumulator.js';
 
 // GET /api/user/:telegramId/slots
 export const getUserSlots = async (req: Request, res: Response) => {
@@ -446,6 +447,60 @@ export const getRealTimeIncome = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error(`Error fetching real-time income for user ${telegramId}:`, error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// GET /api/user/:telegramId/slots/earnings - Get total accrued earnings for user
+export const getUserAccruedEarnings = async (req: Request, res: Response) => {
+  const { telegramId } = req.params;
+
+  if (!telegramId) {
+    return res.status(400).json({ error: 'Telegram ID is required' });
+  }
+
+  try {
+    const totalEarnings = await earningsAccumulator.getUserAccruedEarnings(telegramId);
+
+    res.status(200).json({
+      totalAccruedEarnings: totalEarnings,
+      hasEarningsToClaim: totalEarnings > 0.01,
+      lastUpdated: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`Error fetching accrued earnings for user ${telegramId}:`, error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// POST /api/user/:telegramId/slots/claim - Claim all accrued earnings
+export const claimEarnings = async (req: Request, res: Response) => {
+  const { telegramId } = req.params;
+  const { slotIds } = req.body; // Optional: specific slot IDs to claim from
+
+  if (!telegramId) {
+    return res.status(400).json({ error: 'Telegram ID is required' });
+  }
+
+  try {
+    const result = await earningsAccumulator.claimEarnings(telegramId, slotIds);
+
+    if (result.success) {
+      res.status(200).json({
+        success: true,
+        claimedAmount: result.claimedAmount,
+        message: result.message,
+        lastUpdated: new Date().toISOString()
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: result.message,
+        lastUpdated: new Date().toISOString()
+      });
+    }
+  } catch (error) {
+    console.error(`Error claiming earnings for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

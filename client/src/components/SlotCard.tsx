@@ -7,34 +7,34 @@ import { DollarSign, Calendar, CheckCircle, XCircle, TrendingUp, Clock, Coins } 
 import { MiningSlot } from '@/hooks/useSlotsData';
 import { formatExpirationDate, getRemainingTime } from '@/utils/date';
 import ProgressBar from './ProgressBar';
+import { useWebSocketEarnings } from '@/hooks/useWebSocketEarnings';
 
 interface SlotCardProps {
   slot: MiningSlot;
+  telegramId?: string;
 }
 
-const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
+const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
   const { t } = useTranslation();
   const [remaining, setRemaining] = useState(getRemainingTime(slot.expiresAt));
-  
-  // Animated earnings instead of real-time calculation
-  const [dynamicEarnings, setDynamicEarnings] = useState(0);
-  const [animationStartTime] = useState(Date.now());
+
+  // Get real-time earnings data
+  const { totalEarnings, slotsData, isConnected } = useWebSocketEarnings(telegramId);
+
+  // Find current slot data from WebSocket updates
+  const currentSlotData = slotsData.find(s => s.id === slot.id);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setRemaining(getRemainingTime(slot.expiresAt));
-      
-      // Animated earnings - just for visual effect
-      const now = Date.now();
-      const elapsed = (now - animationStartTime) / 1000; // seconds since mount
-      const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-      const animatedEarnings = earningsPerSecond * elapsed;
-      
-      setDynamicEarnings(animatedEarnings);
-    }, 200); // Update every 200ms for smooth animation
-    
+    }, 1000); // Update remaining time every second
+
     return () => clearInterval(timer);
-  }, [slot.expiresAt, slot.principal, slot.effectiveWeeklyRate, animationStartTime]);
+  }, [slot.expiresAt]);
+
+  // Use accumulated earnings from database (most accurate)
+  // WebSocket data is used only for real-time status, not for earnings calculation
+  const currentEarnings = slot.accruedEarnings || 0;
 
   const isExpired = remaining.totalSeconds <= 0;
   const statusText = isExpired ? t('slots.status.expired') : t('slots.status.active');
@@ -45,9 +45,9 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
   const elapsedSeconds = totalDurationSeconds - remaining.totalSeconds;
   const progress = totalDurationSeconds > 0 ? (elapsedSeconds / totalDurationSeconds) * 100 : 0;
   
-  // Calculate final result (principal + 30% profit)
-  const finalResult = slot.principal * 1.3;
-  const currentTotal = slot.principal + dynamicEarnings;
+  // Calculate final result (principal + accumulated earnings)
+  const finalResult = slot.principal + currentEarnings;
+  const currentTotal = slot.principal + currentEarnings;
 
   return (
     <Card className="bg-gray-900/80 border-primary text-white flex flex-col">
@@ -73,17 +73,25 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
             </div>
           </div>
           
-          {/* Dynamic earnings display */}
+          {/* Real-time earnings display */}
           <div className="bg-gradient-to-r from-emerald-900/30 to-emerald-800/20 border border-emerald-700/50 rounded-lg p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Clock className="w-4 h-4 mr-2 text-emerald-400" />
-                <span className="text-sm text-emerald-300">Dynamic Earnings:</span>
+                <span className="text-sm text-emerald-300">
+                  {isConnected ? 'Live Earnings:' : 'Accumulated Earnings:'}
+                </span>
+                {isConnected && (
+                  <div className="ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                )}
               </div>
-              <span className="text-lg font-bold text-emerald-400 animate-pulse">
-                +{dynamicEarnings.toFixed(4)} MNE
+              <span className={`text-lg font-bold ${isConnected ? 'text-emerald-400 animate-pulse' : 'text-emerald-300'}`}>
+                +{currentEarnings.toFixed(4)} MNE
               </span>
             </div>
+            {!isConnected && (
+              <p className="text-xs text-gray-400 mt-1">Updates every 10 seconds</p>
+            )}
           </div>
           
           {/* Final result display */}
