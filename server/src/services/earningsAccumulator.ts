@@ -150,7 +150,8 @@ export class EarningsAccumulator {
           miningSlots: {
             where: { isActive: true },
             select: { accruedEarnings: true }
-          }
+          },
+          wallets: true
         }
       });
 
@@ -203,7 +204,7 @@ export class EarningsAccumulator {
           await prisma.activityLog.create({
             data: {
               userId: user.id,
-              type: 'EARNINGS_CLAIMED',
+              type: 'CLAIM',
               amount: slot.accruedEarnings,
               description: `Claimed ${slot.accruedEarnings.toFixed(2)} MNE from slot earnings`
             }

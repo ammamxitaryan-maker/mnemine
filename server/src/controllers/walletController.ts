@@ -317,7 +317,7 @@ export const claimEarnings = async (req: Request, res: Response) => {
 
     const now = new Date();
     let totalEarnings = 0;
-    const updatedSlotsData = user.miningSlots.map((slot: MiningSlot) => {
+    const updatedSlotsData = user.miningSlots.map(slot => {
       // Проверяем, не заблокирован ли слот
       if (slot.isLocked) {
         return null; // Пропускаем заблокированные слоты

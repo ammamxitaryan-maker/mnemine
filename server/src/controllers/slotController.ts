@@ -124,7 +124,7 @@ export const extendSlot = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Insufficient funds' });
     }
 
-    const slot = user.miningSlots.find((s: MiningSlot) => s.id === slotId); // Find the specific slot
+    const slot = user.miningSlots.find(s => s.id === slotId); // Find the specific slot
     if (!slot) {
       return res.status(404).json({ error: 'Slot not found' });
     }
@@ -195,7 +195,7 @@ export const upgradeSlot = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Insufficient MNE funds' });
     }
 
-    const slot = user.miningSlots.find((s: MiningSlot) => s.id === slotId);
+    const slot = user.miningSlots.find(s => s.id === slotId);
     if (!slot) {
       return res.status(404).json({ error: 'Slot not found or not active' });
     }
