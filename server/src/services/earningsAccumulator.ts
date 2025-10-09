@@ -148,8 +148,7 @@ export class EarningsAccumulator {
         where: { telegramId },
         include: {
           miningSlots: {
-            where: { isActive: true },
-            select: { accruedEarnings: true }
+            where: { isActive: true }
           },
           wallets: true
         }
@@ -177,7 +176,8 @@ export class EarningsAccumulator {
               isActive: true,
               ...(slotIds && { id: { in: slotIds } })
             }
-          }
+          },
+          wallets: true
         }
       });
 
