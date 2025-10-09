@@ -351,7 +351,7 @@ export class CacheManager {
     });
     
     this.multiLevelCaches.forEach(cache => {
-      totalSize += cache.size();
+      totalSize += cache.getStats().size;
     });
     
     return totalSize;
@@ -374,7 +374,9 @@ export function cached<T extends (...args: any[]) => any>(
       let result = cache.get(key);
       if (result === undefined) {
         result = method.apply(this, args);
-        cache.set(key, result);
+        if (result !== undefined) {
+          cache.set(key, result);
+        }
       }
       
       return result;
