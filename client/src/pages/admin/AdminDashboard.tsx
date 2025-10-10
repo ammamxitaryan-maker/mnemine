@@ -5,17 +5,20 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Users, 
-  DollarSign, 
-  TrendingUp, 
-  Activity, 
-  Ticket, 
-  UserCheck, 
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Users,
+  DollarSign,
+  TrendingUp,
+  Activity,
+  Ticket,
+  UserCheck,
   AlertTriangle,
   CheckCircle,
   Clock,
-  BarChart3
+  BarChart3,
+  Database,
+  Trash2
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -48,11 +51,39 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const handleResetDatabase = () => {
+    setShowResetDialog(true);
+  };
+
+  const confirmResetDatabase = async () => {
+    setIsResetting(true);
+    setShowResetDialog(false);
+
+    try {
+      const response = await api.post('/admin/reset-database');
+
+      if (response.data.success) {
+        alert('✅ База данных успешно сброшена!\n\nВсе данные клиентов удалены. Админ-пользователь пересоздан.');
+        // Обновляем статистику
+        await fetchDashboardData();
+      } else {
+        throw new Error(response.data.error || 'Ошибка сброса базы данных');
+      }
+    } catch (error: any) {
+      console.error('Ошибка сброса базы данных:', error);
+      alert(`❌ Ошибка сброса базы данных: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -109,7 +140,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
         <Button
           onClick={() => navigate('/admin/users')}
           className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
@@ -137,6 +168,16 @@ const AdminDashboard = () => {
         >
           <BarChart3 className="h-5 w-5 md:h-6 md:w-6" />
           <span className="text-xs md:text-sm font-medium">Settings</span>
+        </Button>
+        <Button
+          onClick={handleResetDatabase}
+          disabled={isResetting}
+          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+        >
+          <Database className="h-5 w-5 md:h-6 md:w-6" />
+          <span className="text-xs md:text-sm font-medium">
+            {isResetting ? 'Resetting...' : 'Reset DB'}
+          </span>
         </Button>
       </div>
 
@@ -301,6 +342,65 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Database Reset Confirmation Dialog */}
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-red-400">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              Подтверждение сброса базы данных
+            </DialogTitle>
+            <DialogDescription className="text-gray-300">
+              Это действие полностью удалит ВСЕ данные клиентов из базы данных:
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center text-red-400">
+                <span className="w-2 h-2 bg-red-400 rounded-full mr-3"></span>
+                Все пользователи будут удалены
+              </div>
+              <div className="flex items-center text-red-400">
+                <span className="w-2 h-2 bg-red-400 rounded-full mr-3"></span>
+                Все инвестиции будут потеряны
+              </div>
+              <div className="flex items-center text-red-400">
+                <span className="w-2 h-2 bg-red-400 rounded-full mr-3"></span>
+                Все транзакции будут стерты
+              </div>
+              <div className="flex items-center text-red-400">
+                <span className="w-2 h-2 bg-red-400 rounded-full mr-3"></span>
+                Все реферальные связи будут уничтожены
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
+              <p className="text-red-300 text-sm">
+                ⚠️ Это действие необратимо! После сброса все клиенты смогут войти в приложение заново с нуля.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowResetDialog(false)}
+              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={confirmResetDatabase}
+              disabled={isResetting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isResetting ? 'Сбрасываем...' : 'Подтвердить сброс'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

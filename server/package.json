@@ -25,7 +25,7 @@
     "prisma:migrate:prod": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "db:reset": "tsx src/scripts/resetDatabase.ts",
+    "db:reset": "node --import tsx/esm src/scripts/resetDatabase.ts",
     "clean": "rm -rf dist",
     "validate": "npm run type-check",
     "test": "vitest",

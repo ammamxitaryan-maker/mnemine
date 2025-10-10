@@ -872,9 +872,171 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch dashboard stats' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch dashboard stats'
+    });
+  }
+};
+
+// POST /api/admin/reset-database - Полный сброс базы данных
+export const resetDatabase = async (req: Request, res: Response) => {
+  try {
+    // Проверяем аутентификацию админа
+    const currentAdminUser = req.user as any;
+    if (!currentAdminUser || currentAdminUser.role !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    console.log(`[ADMIN] Database reset initiated by admin: ${currentAdminUser.telegramId}`);
+
+    // Удаляем данные в правильном порядке (с учетом внешних ключей)
+    const tablesToDelete = [
+      'AccountFreeze',
+      'Investment',
+      'Withdrawal',
+      'ReferralEarning',
+      'Notification',
+      'Wallet',
+      'MiningSlot',
+      'CompletedTask',
+      'ActivityLog',
+      'LotteryTicket',
+      'SwapTransaction',
+      'User',
+      'Task',
+      'ExchangeRate'
+    ];
+
+    for (const tableName of tablesToDelete) {
+      try {
+        await prisma.$executeRawUnsafe(`DELETE FROM "${tableName}";`);
+        console.log(`✅ Deleted all records from ${tableName}`);
+      } catch (error) {
+        console.error(`❌ Error deleting from ${tableName}:`, error);
+        // Продолжаем даже если есть ошибки
+      }
+    }
+
+    // Сбрасываем последовательности автоинкремента
+    try {
+      const sequences = [
+        'AccountFreeze_id_seq',
+        'ActivityLog_id_seq',
+        'CompletedTask_id_seq',
+        'Investment_id_seq',
+        'LotteryTicket_id_seq',
+        'MiningSlot_id_seq',
+        'Notification_id_seq',
+        'ReferralEarning_id_seq',
+        'SwapTransaction_id_seq',
+        'Task_id_seq',
+        'User_id_seq',
+        'Wallet_id_seq',
+        'Withdrawal_id_seq',
+        'ExchangeRate_id_seq'
+      ];
+
+      for (const seq of sequences) {
+        await prisma.$executeRawUnsafe(`ALTER SEQUENCE IF EXISTS "${seq}" RESTART WITH 1;`);
+      }
+      console.log('✅ Auto-increment sequences reset');
+    } catch (error) {
+      console.log('⚠️  Could not reset sequences (may not exist):', error);
+    }
+
+    // Создаем админ-пользователя заново
+    let referralCode = '';
+    let adminUser: any = null;
+
+    try {
+      const generateReferralCode = () => {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+      };
+
+      referralCode = generateReferralCode();
+      let existingUser = await prisma.user.findUnique({ where: { referralCode } });
+
+      while (existingUser) {
+        referralCode = generateReferralCode();
+        existingUser = await prisma.user.findUnique({ where: { referralCode } });
+      }
+
+      adminUser = await prisma.user.create({
+        data: {
+          telegramId: '6760298907',
+          firstName: 'Admin',
+          username: 'admin_dev',
+          role: 'ADMIN',
+          referralCode: referralCode,
+          captchaValidated: true,
+          isSuspicious: false,
+          lastSeenAt: new Date(),
+          wallets: {
+            create: {
+              currency: 'USD',
+              balance: 50000
+            }
+          },
+          miningSlots: {
+            create: {
+              principal: 1.00,
+              startAt: new Date(),
+              lastAccruedAt: new Date(),
+              effectiveWeeklyRate: 0.3,
+              expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000),
+              isActive: true,
+            }
+          }
+        }
+      });
+
+      // Создаем курс обмена по умолчанию
+      await prisma.exchangeRate.create({
+        data: {
+          rate: 1.0,
+          isActive: true,
+          createdBy: 'system'
+        }
+      });
+
+      console.log(`✅ Admin user recreated with ID: ${adminUser.id}`);
+      console.log(`🔗 Referral code: ${referralCode}`);
+
+    } catch (adminError) {
+      console.error('❌ Error creating admin user:', adminError);
+    }
+
+    // Логируем действие админа (если пользователь был создан)
+    if (adminUser) {
+      await prisma.activityLog.create({
+        data: {
+          userId: adminUser.id,
+          type: 'ADMIN_ACTION',
+          amount: 0,
+          description: `Database reset performed by admin ${currentAdminUser.telegramId}`
+        }
+      });
+    }
+
+    console.log('🎉 Database reset completed successfully!');
+
+    res.json({
+      success: true,
+      message: 'Database reset completed successfully. All user data has been cleared.',
+      adminUserId: adminUser.id,
+      referralCode: referralCode,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error resetting database:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reset database'
     });
   }
 };

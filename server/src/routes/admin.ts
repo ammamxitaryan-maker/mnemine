@@ -1,14 +1,15 @@
 ﻿import { Router } from 'express';
-import { 
-  getDailyPayouts, 
-  getTodayPayouts, 
+import {
+  getDailyPayouts,
+  getTodayPayouts,
   processTodayPayouts,
   getActiveUsers,
   getInactiveUsers,
   freezeAccounts,
   getDashboardStats,
   deleteUser,
-  bulkUserActions
+  bulkUserActions,
+  resetDatabase
 } from '../controllers/adminController.js';
 import { setExchangeRate } from '../controllers/exchangeController.js';
 import { isAdmin } from '../middleware-stubs.js';
@@ -826,6 +827,9 @@ router.get('/transactions', isAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch transactions' });
   }
 });
+
+// Database management endpoints
+router.post('/reset-database', isAdmin, resetDatabase);
 
 // System settings endpoints
 router.get('/settings', isAdmin, async (req, res) => {
