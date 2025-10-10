@@ -25,6 +25,7 @@
     "prisma:migrate:prod": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
+    "db:reset": "tsx src/scripts/resetDatabase.ts",
     "clean": "rm -rf dist",
     "validate": "npm run type-check",
     "test": "vitest",
@@ -63,6 +64,7 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
-    "tsc-watch": "^6.3.1"
+    "tsc-watch": "^6.3.1",
+    "tsx": "^4.20.6"
   }
 }
