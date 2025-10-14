@@ -1,5 +1,6 @@
 import prisma from '../prisma.js';
 import { webSocketManager } from '../websocket/WebSocketManager.js';
+import { DatabaseOptimizationService } from './databaseOptimizationService.js';
 
 /**
  * Сервис для накопления доходов от слотов в реальном времени
@@ -103,30 +104,35 @@ export class EarningsAccumulator {
         }
       }
 
-      // Обновляем накопленные доходы в базе данных
-      for (const update of updates) {
-        await prisma.miningSlot.update({
-          where: { id: update.id },
-          data: {
-            accruedEarnings: update.accruedEarnings,
-            lastAccruedAt: currentTime
+      // Обновляем накопленные доходы в базе данных с использованием batch операций
+      if (updates.length > 0) {
+        // Use optimized batch update
+        await DatabaseOptimizationService.batchUpdateMiningSlots(
+          updates.map(update => ({
+            id: update.id,
+            data: {
+              accruedEarnings: update.accruedEarnings,
+              lastAccruedAt: currentTime
+            }
+          }))
+        );
+
+        // Отправляем обновления через WebSocket для всех обновленных слотов
+        const updatedSlots = activeSlots.filter(slot => 
+          updates.some(update => update.id === slot.id)
+        );
+
+        for (const slot of updatedSlots) {
+          const update = updates.find(u => u.id === slot.id);
+          if (update) {
+            webSocketManager.sendToUser(slot.user.telegramId, 'slot_earnings_updated', {
+              slotId: slot.id,
+              accruedEarnings: update.accruedEarnings,
+              lastAccruedAt: currentTime,
+              principal: slot.principal,
+              effectiveWeeklyRate: slot.effectiveWeeklyRate
+            });
           }
-        });
-
-        // Отправляем обновление через WebSocket
-        const slot = await prisma.miningSlot.findUnique({
-          where: { id: update.id },
-          include: { user: true }
-        });
-
-        if (slot) {
-          webSocketManager.sendToUser(slot.user.telegramId, 'slot_earnings_updated', {
-            slotId: slot.id,
-            accruedEarnings: slot.accruedEarnings,
-            lastAccruedAt: slot.lastAccruedAt,
-            principal: slot.principal,
-            effectiveWeeklyRate: slot.effectiveWeeklyRate
-          });
         }
       }
 

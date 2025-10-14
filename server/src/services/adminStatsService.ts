@@ -1,33 +1,16 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma.js';
+import { DatabaseOptimizationService } from './databaseOptimizationService.js';
 
 export class AdminStatsService {
   // GET /api/admin/dashboard-stats - Статистика для админ панели
   static async getDashboardStats(req: Request, res: Response) {
     try {
+      // Use optimized database service for parallel queries
+      const stats = await DatabaseOptimizationService.getDashboardStatsOptimized();
+
+      // Get today's payouts separately
       const today = new Date();
-      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      // Общая статистика
-      const totalUsers = await prisma.user.count();
-      const activeUsers = await prisma.user.count({
-        where: { isActive: true, isFrozen: false }
-      });
-      const frozenUsers = await prisma.user.count({
-        where: { isFrozen: true }
-      });
-
-      // Финансовая статистика
-      const totalInvested = await prisma.user.aggregate({
-        _sum: { totalInvested: true }
-      });
-
-      const totalEarnings = await prisma.user.aggregate({
-        _sum: { totalEarnings: true }
-      });
-
-      // Сегодняшние выплаты
       const todayPayouts = await prisma.dailyPayout.findFirst({
         where: {
           date: {
@@ -37,69 +20,16 @@ export class AdminStatsService {
         }
       });
 
-      // Активность за неделю
-      const weeklyActivity = await prisma.activityLog.count({
-        where: {
-          createdAt: { gte: weekAgo }
-        }
-      });
-
-      // Новые пользователи за неделю
-      const newUsersThisWeek = await prisma.user.count({
-        where: {
-          createdAt: { gte: weekAgo }
-        }
-      });
-
-      // Статистика по слотам
-      const totalSlots = await prisma.miningSlot.count();
-      const activeSlots = await prisma.miningSlot.count({
-        where: { isActive: true }
-      });
-
-      // Статистика по рефералам
-      const totalReferrals = await prisma.user.count({
-        where: { referredById: { not: null } }
-      });
-
-      // Статистика по выводам
-      const totalWithdrawals = await prisma.withdrawal.aggregate({
-        _sum: { amount: true },
-        _count: true
-      });
-
       res.status(200).json({
         success: true,
         data: {
-          users: {
-            total: totalUsers,
-            active: activeUsers,
-            frozen: frozenUsers,
-            newThisWeek: newUsersThisWeek
-          },
-          finances: {
-            totalInvested: totalInvested._sum.totalInvested || 0,
-            totalEarnings: totalEarnings._sum.totalEarnings || 0,
-            totalWithdrawals: totalWithdrawals._sum.amount || 0,
-            withdrawalCount: totalWithdrawals._count || 0
-          },
-          slots: {
-            total: totalSlots,
-            active: activeSlots,
-            inactive: totalSlots - activeSlots
-          },
-          referrals: {
-            total: totalReferrals
-          },
+          ...stats,
           today: {
             payouts: todayPayouts ? {
               amount: todayPayouts.totalAmount,
               users: todayPayouts.totalUsers,
               status: todayPayouts.status
             } : null
-          },
-          activity: {
-            weeklyLogs: weeklyActivity
           },
           system: {
             uptime: '24/7',

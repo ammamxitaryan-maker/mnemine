@@ -5,6 +5,7 @@ import { ActivityLogType } from '@prisma/client';
 import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots, userSelectMinimal } from '../utils/dbSelects.js';
 import { CacheService } from '../services/cacheService.js';
+import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
 
 // GET /api/user/:telegramId/data
 export const getUserData = async (req: Request, res: Response) => {
@@ -19,31 +20,14 @@ export const getUserData = async (req: Request, res: Response) => {
   try {
     const startTime = performance.now();
     
-    // Use optimized cache system
+    // Use optimized cache system with database optimization
     const cachedData = await CacheService.userData.getUserData(telegramId, async () => {
-      // Fallback function - fetch from database
-      const user = await prisma.user.findUnique({
-        where: { telegramId },
-        include: {
-          wallets: true,
-          miningSlots: true,
-          referrals: true,
-          activityLogs: {
-            orderBy: { createdAt: 'desc' },
-            take: 10
-          }
-        }
-      });
+      // Use optimized database service
+      const user = await DatabaseOptimizationService.getUserDataOptimized(telegramId);
       
       if (!user) {
         throw new Error('User not found');
       }
-
-      // Update lastSeenAt on data fetch
-      await prisma.user.update({
-        where: { telegramId },
-        data: { lastSeenAt: new Date() },
-      });
 
       // Calculate earnings
       const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
@@ -63,6 +47,40 @@ export const getUserData = async (req: Request, res: Response) => {
         totalInvested: user.totalInvested,
         referralCount: user._count.referrals,
         rank: user.rank,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatarUrl: user.avatarUrl,
+        telegramId: user.telegramId,
+        referralCode: user.referralCode,
+        referredById: user.referredById,
+        lastSeenAt: user.lastSeenAt,
+        lastDepositAt: user.lastDepositAt,
+        lastWithdrawalAt: user.lastWithdrawalAt,
+        lastSlotPurchaseAt: user.lastSlotPurchaseAt,
+        captchaValidated: user.captchaValidated,
+        lastReferralZeroPenaltyAppliedAt: user.lastReferralZeroPenaltyAppliedAt,
+        isSuspicious: user.isSuspicious,
+        lastSuspiciousPenaltyAppliedAt: user.lastSuspiciousPenaltyAppliedAt,
+        lastInvestmentGrowthBonusClaimedAt: user.lastInvestmentGrowthBonusClaimedAt,
+        isOnline: user.isOnline,
+        permissions: user.permissions,
+        managedBy: user.managedBy,
+        activityLogs: user.activityLogs,
+        referralsCount: user.referrals.length,
+        wallets: user.wallets,
+        isEligibleForFirstWithdrawal: isUserEligible(user),
+        isUserSuspicious: isUserSuspicious(user),
+        lastActivityAt: user.lastActivityAt,
+        isActive: user.isActive,
+        isFrozen: user.isFrozen,
+        frozenAt: user.frozenAt,
+        frozenReason: user.frozenReason,
+        activityScore: user.activityScore,
+        totalWithdrawn: user.totalWithdrawn,
+        firstWithdrawalAt: user.firstWithdrawalAt,
+        hasMadeDeposit: user.hasMadeDeposit,
+        lastLotteryTicketAt: user.lastLotteryTicketAt,
       };
     });
 
@@ -88,63 +106,12 @@ export const getUserData = async (req: Request, res: Response) => {
 export const getUserStats = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
   try {
-    const user = await prisma.user.findUnique({
-      where: { telegramId },
-      select: {
-        id: true,
-        telegramId: true,
-        username: true,
-        firstName: true,
-        lastName: true,
-        avatarUrl: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-        referralCode: true,
-        referredById: true,
-        totalInvested: true,
-        lastDepositAt: true,
-        lastWithdrawalAt: true,
-        lastSlotPurchaseAt: true,
-        _count: {
-          select: { referrals: true, completedTasks: true, miningSlots: true },
-        },
-        miningSlots: { where: { isActive: true } },
-        lastInvestmentGrowthBonusClaimedAt: true,
-        lastReferralZeroPenaltyAppliedAt: true,
-        isSuspicious: true,
-        lastSuspiciousPenaltyAppliedAt: true,
-        rank: true,
-      },
-    });
+    // Use optimized database service
+    const user = await DatabaseOptimizationService.getUserStatsOptimized(telegramId);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-
-    const transactions = await prisma.activityLog.findMany({
-      where: { userId: user.id },
-    });
-
-    const totalEarnings = transactions
-      .filter(t => t.amount > 0)
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    const totalSpending = transactions
-      .filter(t => t.amount < 0)
-      .reduce((sum, t) => sum + t.amount, 0);
-      
-    const boostersPurchased = 0; // Booster functionality removed
-
-    const activeReferralsCount = await prisma.user.count({
-      where: {
-        referredById: user.id,
-        OR: [
-          { miningSlots: { some: { isActive: true } } },
-          { referrals: { some: {} } }
-        ]
-      }
-    });
 
     const isEligible = await isUserEligible(user.id);
     const isSuspicious = await isUserSuspicious(user.id);
