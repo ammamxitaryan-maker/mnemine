@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "verbatimModuleSyntax": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@prisma/client": ["./node_modules/.prisma/client"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "./node_modules/.prisma/client/index.d.ts"],
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/test/**/*"]
+}

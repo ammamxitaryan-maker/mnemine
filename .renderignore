@@ -1,0 +1,40 @@
+# Ignore development files
+.env
+.env.local
+.env.development
+.env.test
+node_modules
+.git
+.gitignore
+README.md
+*.log
+.DS_Store
+Thumbs.db
+
+# Ignore test files
+**/*.test.*
+**/*.spec.*
+**/test/**
+**/tests/**
+
+# Ignore development tools
+.vscode
+.idea
+*.swp
+*.swo
+
+# Ignore problematic package.json files that might confuse Render
+src/backend/package.json
+server/package.json
+client/package.json
+
+# Keep only production files
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!Dockerfile
+!render.yaml
+!server/**
+!client/**
+!shared/**
+!scripts/**

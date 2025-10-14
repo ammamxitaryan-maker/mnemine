@@ -1,0 +1,66 @@
+{
+  "name": "tg-mining-sim-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm run dev:server\" \"pnpm run dev:client\"",
+    "dev:client": "pnpm --prefix client run dev",
+    "dev:server": "pnpm --prefix server run dev",
+    "build": "pnpm run build:client && pnpm run build:server",
+    "build:prod": "pnpm run build:client && pnpm run build:server:prod",
+    "build:client": "pnpm --prefix client run build",
+    "build:server": "pnpm --prefix server run build",
+    "build:server:prod": "pnpm --prefix server run build:prod",
+    "copy:frontend": "mkdir -p server/public && cp -r client/dist/* server/public/ || xcopy client\\dist\\* server\\public\\ /E /I /Y",
+    "start": "pnpm run copy:frontend && pnpm --prefix server run start",
+    "start:prod": "pnpm run copy:frontend && pnpm --prefix server run start:prod",
+    "verify:deployment": "node scripts/verify-deployment.js",
+    "verify:production": "node scripts/verify-production.js",
+    "verify:production:build": "pnpm run build:prod && pnpm run verify:production",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "lint:check": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0",
+    "preview": "pnpm --prefix client run preview",
+    "type-check": "pnpm --prefix client run type-check && pnpm --prefix server run type-check",
+    "build:analyze": "pnpm --prefix client run build:analyze",
+    "precommit": "pnpm run lint:check && pnpm run type-check",
+    "postinstall": "pnpm --prefix server run prisma:generate",
+    "prisma:generate": "pnpm --prefix server run prisma:generate",
+    "prisma:generate:local": "pnpm --prefix server run prisma:generate:local",
+    "prisma:generate:prod": "pnpm --prefix server run prisma:generate:prod",
+    "prisma:push": "pnpm --prefix server run prisma:push",
+    "prisma:push:local": "pnpm --prefix server run prisma:push:local",
+    "prisma:push:prod": "pnpm --prefix server run prisma:push:prod",
+    "prisma:migrate": "pnpm --prefix server run prisma:migrate",
+    "prisma:migrate:local": "pnpm --prefix server run prisma:migrate:local",
+    "prisma:migrate:prod": "pnpm --prefix server run prisma:migrate:prod",
+    "clean": "pnpm --prefix client run clean && pnpm --prefix server run clean",
+    "clean:all": "rm -rf node_modules client/node_modules server/node_modules client/dist server/dist"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.16.3"
+  },
+  "overrides": {
+    "@eslint-community/eslint-utils": "^4.9.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "@types/node": "^22.18.8",
+    "@types/node-telegram-bot-api": "^0.64.11",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.37.0",
+    "globals": "^15.15.0",
+    "prisma": "^6.16.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.45.0"
+  }
+}
