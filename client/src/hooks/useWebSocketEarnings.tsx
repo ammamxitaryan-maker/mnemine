@@ -58,7 +58,7 @@ export const useWebSocketEarnings = (telegramId: string | undefined) => {
           setSlotsData(prev =>
             prev.map(slot =>
               slot.id === lastMessage.data.slotId
-                ? { ...slot, currentEarnings: lastMessage.data.accruedEarnings }
+                ? { ...slot, currentEarnings: lastMessage.data.accruedEarnings as number }
                 : slot
             )
           );

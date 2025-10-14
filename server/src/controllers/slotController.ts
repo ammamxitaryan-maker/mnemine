@@ -1,7 +1,7 @@
 ﻿import { Request, Response } from 'express';
 import prisma from '../prisma.js';
 import { SLOT_EXTENSION_COST, SLOT_EXTENSION_DAYS, SLOT_WEEKLY_RATE, MINIMUM_SLOT_INVESTMENT } from '../constants.js';
-import { sendSlotClosedNotification } from './notificationController.js';
+import { sendSlotClosedNotification, sendInvestmentSlotCompletedNotification } from './notificationController.js';
 import { Wallet, MiningSlot, ActivityLogType } from '@prisma/client';
 import { isUserEligible } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js'; // Import userSelect
@@ -341,9 +341,15 @@ const processSlotBatch = async (slots: any[], now: Date) => {
         ]);
 
         // Отправляем уведомление пользователю (асинхронно)
-        sendSlotClosedNotification(slot.userId, slot.id, finalEarnings).catch(error => {
-          console.error(`Failed to send notification for slot ${slot.id}:`, error);
-        });
+        if (slot.type === 'investment') {
+          sendInvestmentSlotCompletedNotification(slot.userId, slot.id, slot.principal, finalEarnings).catch(error => {
+            console.error(`Failed to send investment slot notification for slot ${slot.id}:`, error);
+          });
+        } else {
+          sendSlotClosedNotification(slot.userId, slot.id, finalEarnings).catch(error => {
+            console.error(`Failed to send notification for slot ${slot.id}:`, error);
+          });
+        }
 
         // Broadcast balance update via WebSocket
         try {
@@ -400,6 +406,7 @@ export const getRealTimeIncome = async (req: Request, res: Response) => {
             isLocked: true,
             type: true,
             expiresAt: true,
+            accruedEarnings: true,
           }
         }
       }
@@ -413,29 +420,37 @@ export const getRealTimeIncome = async (req: Request, res: Response) => {
     let totalCurrentIncome = 0;
     let totalProjectedIncome = 0;
     const slotsData = user.miningSlots.map(slot => {
-      // Используем startAt для расчета общего времени с момента покупки
+      // Calculate current earnings based on elapsed time (server-side only)
       const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
-      // All slots have exactly 30% weekly rate (0.3)
-      const weeklyRate = 0.3;
-      const currentIncome = slot.principal * weeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
+      const durationMs = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+      const elapsed = Math.min(totalTimeElapsedMs, durationMs);
+      
+      // Calculate earnings: 30% over 7 days
+      const weeklyRate = 0.3; // 30%
+      const currentEarnings = slot.principal * weeklyRate * (elapsed / durationMs);
       const projectedIncome = slot.principal * weeklyRate;
       
-      totalCurrentIncome += currentIncome;
+      totalCurrentIncome += currentEarnings;
       totalProjectedIncome += projectedIncome;
 
       const timeUntilExpiry = slot.expiresAt.getTime() - now.getTime();
       const hoursUntilExpiry = Math.max(0, timeUntilExpiry / (1000 * 60 * 60));
+      const isCompleted = elapsed >= durationMs;
 
       return {
         id: slot.id,
         principal: slot.principal,
-        currentIncome: currentIncome,
+        currentEarnings: currentEarnings,
         projectedIncome: projectedIncome,
+        currentBalance: slot.principal + currentEarnings,
         isLocked: slot.isLocked,
         type: slot.type,
         hoursUntilExpiry: Math.round(hoursUntilExpiry),
         rate: 30, // Always 30% for all slots
-        totalHoursElapsed: Math.round(totalTimeElapsedMs / (1000 * 60 * 60)), // Общее время в часах
+        totalHoursElapsed: Math.round(totalTimeElapsedMs / (1000 * 60 * 60)),
+        isCompleted: isCompleted,
+        progress: Math.min((elapsed / durationMs) * 100, 100),
+        timeLeft: Math.max(0, timeUntilExpiry),
       };
     });
 
@@ -501,6 +516,221 @@ export const claimEarnings = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error(`Error claiming earnings for user ${telegramId}:`, error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// POST /api/invest - Create new investment slot
+export const createInvestmentSlot = async (req: Request, res: Response) => {
+  const { telegramId, amount } = req.body;
+  const ipAddress = req.ip;
+
+  if (!telegramId || !amount || typeof amount !== 'number' || amount < MINIMUM_SLOT_INVESTMENT) {
+    return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} MNE` });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { telegramId },
+      select: userSelectWithoutMiningSlots,
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const MNEWallet = user.wallets.find((w: Wallet) => w.currency === 'MNE');
+    if (!MNEWallet || MNEWallet.balance < amount) {
+      return res.status(400).json({ error: 'Insufficient MNE funds' });
+    }
+
+    const now = new Date();
+    const weeklyRate = 0.3; // 30% return over 7 days
+
+    await prisma.$transaction([
+      prisma.wallet.update({
+        where: { id: MNEWallet.id },
+        data: { balance: { decrement: amount } },
+      }),
+      prisma.miningSlot.create({
+        data: {
+          userId: user.id,
+          principal: amount,
+          startAt: now,
+          lastAccruedAt: now,
+          effectiveWeeklyRate: weeklyRate,
+          expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000), // 7 days
+          isActive: true,
+          type: 'investment',
+          isLocked: true, // Locked for 7 days
+        },
+      }),
+      prisma.activityLog.create({
+        data: {
+          userId: user.id,
+          type: ActivityLogType.NEW_SLOT_PURCHASE,
+          amount: -amount,
+          description: `Invested ${amount.toFixed(2)} MNE in investment slot (30% return over 7 days)`,
+          ipAddress: ipAddress,
+        },
+      }),
+      prisma.user.update({
+        where: { id: user.id },
+        data: { 
+          totalInvested: { increment: amount },
+          lastSlotPurchaseAt: now,
+        },
+      }),
+    ]);
+
+    res.status(201).json({ 
+      message: `Investment slot created successfully for ${amount.toFixed(2)} MNE. Expected return: ${(amount * 1.3).toFixed(2)} MNE in 7 days.`,
+      slotId: 'created' // In real implementation, you'd return the actual slot ID
+    });
+  } catch (error) {
+    console.error(`Error creating investment slot for user ${telegramId}:`, error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// GET /api/slots/:userId - Get all slots for user
+export const getUserInvestmentSlots = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { telegramId: userId },
+      select: {
+        id: true,
+        telegramId: true,
+        miningSlots: {
+          select: {
+            id: true,
+            principal: true,
+            startAt: true,
+            expiresAt: true,
+            isActive: true,
+            type: true,
+            accruedEarnings: true,
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const now = new Date();
+    const slotsWithCalculations = user.miningSlots.map(slot => {
+      const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
+      const durationMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+      const elapsed = Math.min(totalTimeElapsedMs, durationMs);
+      
+      const weeklyRate = 0.3; // 30%
+      const currentEarnings = slot.principal * weeklyRate * (elapsed / durationMs);
+      const isCompleted = elapsed >= durationMs;
+      const timeLeft = Math.max(0, slot.expiresAt.getTime() - now.getTime());
+
+      return {
+        id: slot.id,
+        principal: slot.principal,
+        currentEarnings: currentEarnings,
+        currentBalance: slot.principal + currentEarnings,
+        isCompleted: isCompleted,
+        isActive: slot.isActive,
+        progress: Math.min((elapsed / durationMs) * 100, 100),
+        timeLeft: timeLeft,
+        startTime: slot.startAt,
+        expiresAt: slot.expiresAt,
+        status: isCompleted ? 'completed' : (slot.isActive ? 'active' : 'inactive'),
+      };
+    });
+
+    res.status(200).json({
+      userId: user.telegramId,
+      slots: slotsWithCalculations,
+      lastUpdated: now.toISOString()
+    });
+  } catch (error) {
+    console.error(`Error fetching investment slots for user ${userId}:`, error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// POST /api/claim/:slotId - Claim completed slot
+export const claimCompletedSlot = async (req: Request, res: Response) => {
+  const { slotId } = req.params;
+  const { telegramId } = req.body;
+
+  if (!telegramId) {
+    return res.status(400).json({ error: 'Telegram ID is required' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { telegramId },
+      select: userSelect,
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const slot = user.miningSlots.find(s => s.id === slotId);
+    if (!slot) {
+      return res.status(404).json({ error: 'Slot not found' });
+    }
+
+    if (!slot.isActive) {
+      return res.status(400).json({ error: 'Slot is not active' });
+    }
+
+    const now = new Date();
+    const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
+    const durationMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const elapsed = Math.min(totalTimeElapsedMs, durationMs);
+    
+    const weeklyRate = 0.3; // 30%
+    const finalEarnings = slot.principal * weeklyRate * (elapsed / durationMs);
+    const totalAmount = slot.principal + finalEarnings;
+
+    const MNEWallet = user.wallets.find((w: Wallet) => w.currency === 'MNE');
+    if (!MNEWallet) {
+      return res.status(400).json({ error: 'MNE wallet not found' });
+    }
+
+    await prisma.$transaction([
+      prisma.wallet.update({
+        where: { id: MNEWallet.id },
+        data: { balance: { increment: finalEarnings } },
+      }),
+      prisma.miningSlot.update({
+        where: { id: slot.id },
+        data: { 
+          isActive: false,
+          lastAccruedAt: now,
+        },
+      }),
+      prisma.activityLog.create({
+        data: {
+          userId: user.id,
+          type: ActivityLogType.CLAIM,
+          amount: finalEarnings,
+          description: `Claimed investment slot - earned ${finalEarnings.toFixed(4)} MNE from ${slot.principal} MNE investment (30% return)`,
+        },
+      }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      claimedAmount: finalEarnings,
+      totalAmount: totalAmount,
+      message: `✅ Investment slot completed! Earned ${finalEarnings.toFixed(4)} MNE (30% return)`,
+      lastUpdated: now.toISOString()
+    });
+  } catch (error) {
+    console.error(`Error claiming slot ${slotId} for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

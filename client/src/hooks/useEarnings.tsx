@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useWebSocketEarnings } from './useWebSocketEarnings';
 
@@ -67,27 +68,23 @@ export const useEarnings = (telegramId?: string) => {
   });
 
   // WebSocket integration for real-time updates
-  useWebSocketEarnings(telegramId, {
-    onEarningsUpdate: (data) => {
-      // Update earnings data in cache
+  const { earningsData: wsEarningsData } = useWebSocketEarnings(telegramId);
+  
+  // Update earnings data when WebSocket data changes
+  useEffect(() => {
+    if (wsEarningsData) {
       queryClient.setQueryData(['earnings', telegramId], (oldData: EarningsData | undefined) => {
         if (oldData) {
           return {
             ...oldData,
-            totalAccruedEarnings: data.totalAccruedEarnings || oldData.totalAccruedEarnings,
+            totalAccruedEarnings: wsEarningsData.totalAccruedEarnings || oldData.totalAccruedEarnings,
             lastUpdated: new Date().toISOString()
           };
         }
         return oldData;
       });
-    },
-    onEarningsClaimed: (data) => {
-      // Refresh all related queries when earnings are claimed
-      queryClient.invalidateQueries({ queryKey: ['earnings', telegramId] });
-      queryClient.invalidateQueries({ queryKey: ['slotsData', telegramId] });
-      queryClient.invalidateQueries({ queryKey: ['userData', telegramId] });
     }
-  });
+  }, [wsEarningsData, queryClient, telegramId]);
 
   return {
     earnings: earningsQuery.data,

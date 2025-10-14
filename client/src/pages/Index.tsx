@@ -314,7 +314,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                       isLoading={item.isLoading}
                       error={item.error}
                       unit={item.unit ? t(item.unit) : undefined}
-                      isNotification={item.isNotification}
+                      isNotification={false}
                     />
                   </div>
                 ))}

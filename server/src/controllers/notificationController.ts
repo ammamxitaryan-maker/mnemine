@@ -130,6 +130,32 @@ export const sendSlotClosedNotification = async (userId: string, slotId: string,
   }
 };
 
+// Функция для отправки уведомления о завершении инвестиционного слота
+export const sendInvestmentSlotCompletedNotification = async (userId: string, slotId: string, principal: number, earnings: number) => {
+  try {
+    const totalAmount = principal + earnings;
+    await prisma.notification.create({
+      data: {
+        userId,
+        type: NOTIFICATION_TYPES.INVESTMENT_COMPLETED,
+        title: '✅ Investment Slot Completed!',
+        message: `Your investment slot has completed! Earned ${earnings.toFixed(4)} MNE (30% return). Total: ${totalAmount.toFixed(4)} MNE. Click to claim your profits!`,
+        isRead: false,
+        priority: 'high',
+        metadata: {
+          slotId,
+          principal,
+          earnings,
+          totalAmount,
+          returnRate: 30
+        }
+      },
+    });
+  } catch (error) {
+    console.error('Error sending investment slot completed notification:', error);
+  }
+};
+
 // Функция для отправки уведомления о новом реферале
 export const sendReferralJoinedNotification = async (userId: string, referralName: string) => {
   try {

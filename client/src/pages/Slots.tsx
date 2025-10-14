@@ -89,58 +89,64 @@ const Slots = () => {
   const activeSlots = slotsData?.filter(slot => slot.isActive && new Date(slot.expiresAt) > new Date()) ?? [];
   const inactiveSlots = slotsData?.filter(slot => !slot.isActive || new Date(slot.expiresAt) <= new Date()) ?? [];
   
-  // Animated total earnings instead of real-time calculation
-  const [totalDynamicEarnings, setTotalDynamicEarnings] = useState(0);
-  const [animationStartTime] = useState(Date.now());
+  // Real-time earnings from server
+  const [realTimeData, setRealTimeData] = useState<any>(null);
+  const [isLoadingRealTime, setIsLoadingRealTime] = useState(false);
   
-  useEffect(() => {
-    if (activeSlots.length === 0) {
-      setTotalDynamicEarnings(0);
-      return;
+  // Fetch real-time earnings from server
+  const fetchRealTimeEarnings = async () => {
+    if (!user?.telegramId) return;
+    
+    setIsLoadingRealTime(true);
+    try {
+      const response = await api.get(`/user/${user.telegramId}/real-time-income`);
+      setRealTimeData(response.data);
+    } catch (error) {
+      console.error('Error fetching real-time earnings:', error);
+    } finally {
+      setIsLoadingRealTime(false);
     }
-    
-    const timer = setInterval(() => {
-      // Animated total earnings - just for visual effect
-      const now = Date.now();
-      const elapsed = (now - animationStartTime) / 1000; // seconds since mount
-      
-      let total = 0;
-      activeSlots.forEach(slot => {
-        const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-        const animatedEarnings = earningsPerSecond * elapsed;
-        total += animatedEarnings;
-      });
-      
-      setTotalDynamicEarnings(total);
-    }, 100); // Update every 100ms for smooth animation
-    
-    return () => clearInterval(timer);
-  }, [activeSlots, animationStartTime]);
+  };
+
+  useEffect(() => {
+    if (user?.telegramId && activeSlots.length > 0) {
+      fetchRealTimeEarnings();
+      // Update every 3 seconds for real-time effect
+      const interval = setInterval(fetchRealTimeEarnings, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.telegramId, activeSlots.length]);
 
   return (
     <div className="page-container flex flex-col text-white">
       <div className="page-content w-full max-w-md mx-auto">
       <PageHeader titleKey="slots.title" />
 
-      {/* Total Dynamic Earnings Display */}
-      {activeSlots.length > 0 && (
+      {/* Real-time Earnings Display */}
+      {activeSlots.length > 0 && realTimeData && (
         <Card className="bg-gradient-to-r from-emerald-900/40 to-emerald-800/20 border-emerald-700/50 mb-3">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center text-sm">
               <Zap className="w-4 h-4 mr-2 text-emerald-400" />
-              <span>Total Dynamic Earnings</span>
+              <span>Real-time Earnings</span>
+              {!isLoadingRealTime && (
+                <div className="ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              )}
             </CardTitle>
             <CardDescription className="text-emerald-300 text-xs">
-              Real-time earnings from all active slots
+              Server-calculated earnings from all active investment slots
             </CardDescription>
           </CardHeader>
           <CardContent className="p-3">
             <div className="text-center">
               <div className="text-3xl font-bold text-emerald-400 animate-pulse">
-                +{totalDynamicEarnings.toFixed(4)} MNE
+                +{realTimeData.totalCurrentIncome?.toFixed(4) || '0.0000'} MNE
               </div>
               <div className="text-sm text-emerald-300 mt-1">
                 From {activeSlots.length} active slot{activeSlots.length > 1 ? 's' : ''}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Expected total: {realTimeData.totalProjectedIncome?.toFixed(4) || '0.0000'} MNE
               </div>
             </div>
           </CardContent>

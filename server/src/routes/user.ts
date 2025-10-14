@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getUserData, getUserStats, getUserActivity } from '../controllers/dataController.js';
 import { depositFunds, withdrawFunds } from '../controllers/walletController.js';
-import { getUserSlots, buyNewSlot, extendSlot, upgradeSlot, getRealTimeIncome, getUserAccruedEarnings, claimEarnings } from '../controllers/slotController.js'; // Import new functions
+import { getUserSlots, buyNewSlot, extendSlot, upgradeSlot, getRealTimeIncome, getUserAccruedEarnings, claimEarnings, createInvestmentSlot, getUserInvestmentSlots, claimCompletedSlot } from '../controllers/slotController.js'; // Import new functions
 import { getReferralData, getReferralList, getReferralStreakBonusStatus, claimReferralStreakBonus, getReferralStats } from '../controllers/referralController.js'; // Import new functions
 import { claimTaskReward } from '../controllers/taskController.js';
 import { getDailyBonusStatus, claimDailyBonus, getDividendsStatus, claimDividends, getBonusesSummary, claimLeaderboardBonus, claimInvestmentGrowthBonus } from '../controllers/bonusController.js'; // Import new dividend functions
@@ -29,6 +29,11 @@ router.post('/:telegramId/slots/buy', authenticateUser, extractUserIdFromParams,
 router.post('/:telegramId/slots/:slotId/extend', authenticateUser, extractUserIdFromParams, extendSlot);
 router.post('/:telegramId/slots/:slotId/upgrade', authenticateUser, extractUserIdFromParams, upgradeSlot);
 // Booster functionality removed - reinvestEarnings function was removed
+
+// Investment Slots API routes
+router.post('/:telegramId/invest', authenticateUser, extractUserIdFromParams, createInvestmentSlot);
+router.get('/:telegramId/myslots', authenticateUser, extractUserIdFromParams, getUserInvestmentSlots);
+router.post('/:telegramId/claim/:slotId', authenticateUser, extractUserIdFromParams, claimCompletedSlot);
 
 // Referral routes - with authentication
 router.get('/:telegramId/referrals', authenticateUser, extractUserIdFromParams, getReferralData);

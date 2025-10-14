@@ -7,6 +7,7 @@ import NotFound from "./pages/NotFound";
 import Referrals from "./pages/Referrals";
 import Leaderboard from "./pages/Leaderboard";
 import Slots from "./pages/Slots";
+import InvestmentSlots from "./pages/InvestmentSlots";
 import Wallet from "./pages/Wallet";
 import Deposit from "./pages/Deposit";
 import Withdraw from "./pages/Withdraw";
@@ -68,6 +69,7 @@ const App = () => {
               <Route path="/profile" element={<Profile />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/slots" element={<Slots />} />
+              <Route path="/investment-slots" element={<InvestmentSlots />} />
               <Route path="/lottery" element={<Lottery />} />
               <Route path="/stats" element={<Stats />} />
             </Route>
