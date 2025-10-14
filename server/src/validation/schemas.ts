@@ -13,11 +13,13 @@ export const PaginationSchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 
-export const DateRangeSchema = z.object({
+export const DateRangeBaseSchema = z.object({
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
-}).refine(
-  (data) => {
+});
+
+export const DateRangeSchema = DateRangeBaseSchema.refine(
+  (data: any) => {
     if (data.startDate && data.endDate) {
       return new Date(data.startDate) <= new Date(data.endDate);
     }
@@ -66,7 +68,7 @@ export const SlotPurchaseSchema = z.object({
   currency: CurrencySchema,
   type: SlotTypeSchema.default('standard'),
 }).refine(
-  (data) => {
+  (data: any) => {
     if (data.currency === 'USD' && data.amount < 1) {
       return false;
     }
@@ -118,7 +120,7 @@ export const TransactionFilterSchema = z.object({
   type: TransactionTypeSchema.optional(),
   status: TransactionStatusSchema.optional(),
   currency: CurrencySchema.optional(),
-  ...DateRangeSchema.shape,
+  ...DateRangeBaseSchema.shape,
   ...PaginationSchema.shape,
 });
 
@@ -135,7 +137,7 @@ export const WithdrawalRequestSchema = z.object({
   type: WithdrawalTypeSchema.default('REGULAR_WITHDRAWAL'),
   reason: z.string().max(500).optional(),
 }).refine(
-  (data) => {
+  (data: any) => {
     if (data.currency === 'USD' && data.amount < 10) {
       return false;
     }
@@ -163,7 +165,7 @@ export const LotteryPurchaseSchema = z.object({
   numbers: z.array(LotteryNumberSchema).length(6),
   amount: z.number().positive().max(10000),
 }).refine(
-  (data) => {
+  (data: any) => {
     const uniqueNumbers = new Set(data.numbers);
     return uniqueNumbers.size === 6;
   },
@@ -172,8 +174,8 @@ export const LotteryPurchaseSchema = z.object({
     path: ["numbers"],
   }
 ).refine(
-  (data) => {
-    return data.numbers.every(num => num >= 1 && num <= 49);
+  (data: any) => {
+    return data.numbers.every((num: any) => num >= 1 && num <= 49);
   },
   {
     message: "Lottery numbers must be between 1 and 49",
@@ -192,7 +194,7 @@ export const SwapRequestSchema = z.object({
   toCurrency: CurrencySchema,
   amount: z.number().positive().max(1000000),
 }).refine(
-  (data) => data.fromCurrency !== data.toCurrency,
+  (data: any) => data.fromCurrency !== data.toCurrency,
   {
     message: "From and to currencies must be different",
     path: ["toCurrency"],
@@ -210,7 +212,7 @@ export const ReferralCodeSchema = z.object({
 });
 
 export const ReferralStatsSchema = z.object({
-  ...DateRangeSchema.shape,
+  ...DateRangeBaseSchema.shape,
   ...PaginationSchema.shape,
 });
 
@@ -257,7 +259,7 @@ export const AdminBalanceAdjustmentSchema = z.object({
 export const ActivityLogFilterSchema = z.object({
   type: z.string().optional(),
   userId: z.string().cuid().optional(),
-  ...DateRangeSchema.shape,
+  ...DateRangeBaseSchema.shape,
   ...PaginationSchema.shape,
 });
 

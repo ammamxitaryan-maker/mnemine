@@ -3,6 +3,8 @@
  * Provides all types in a single import point
  */
 
+import { Request, Response, NextFunction } from 'express';
+
 // API types
 export * from './api.js';
 

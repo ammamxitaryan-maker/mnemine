@@ -3,7 +3,7 @@
  * Provides automatic request validation using Zod schemas
  */
 
-import { Request, Response, NextFunction } from 'zod';
+import { Request, Response, NextFunction } from 'express';
 import { ZodSchema, ZodError } from 'zod';
 import { logger, LogContext } from '../utils/logger.js';
 import { createErrorResponse } from '../types/api.js';
@@ -41,7 +41,7 @@ export const validateRequest = (schema: ZodSchema, source: 'body' | 'query' | 'p
     } catch (error) {
       if (error instanceof ZodError) {
         // Format validation errors
-        const validationErrors = error.errors.map(err => ({
+        const validationErrors = error.errors.map((err: any) => ({
           field: err.path.join('.'),
           message: err.message,
           value: err.input,
@@ -109,7 +109,7 @@ export const validateMultiple = (validations: Array<{
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors = error.errors.map(err => ({
+        const validationErrors = error.errors.map((err: any) => ({
           field: err.path.join('.'),
           message: err.message,
           value: err.input,
