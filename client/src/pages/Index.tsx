@@ -12,17 +12,25 @@ import { AuthWrapper } from '@/components/AuthWrapper';
 import { AuthenticatedUser } from '@/types/telegram';
 import { showError } from '@/utils/toast';
 import { Link } from 'react-router-dom';
-// Test imports removed for production
 
 import { Server, Trophy, Ticket, Loader2, Settings, TrendingUp, BarChart3 } from 'lucide-react';
 
 // Import components directly to avoid dynamic import conflicts
-import { FlippableCard } from '@/components/FlippableCard';
-import { MainCardFront } from '@/components/MainCardFront';
-import { MainCardBack } from '@/components/MainCardBack';
+import { FlippableCard } from '@/components/common/FlippableCard';
+import { MainCardFront } from '@/components/common/MainCardFront';
+import { MainCardBack } from '@/components/common/MainCardBack';
 import { HomePageHeader } from '@/components/HomePageHeader';
-import { DashboardLinkCard } from '@/components/DashboardLinkCard';
-import { SwapCard } from '@/components/SwapCard';
+import { DashboardLinkCard } from '@/components/common/DashboardLinkCard';
+import { SwapCard } from '@/components/business/SwapCard';
+
+// Constants moved outside component to avoid recreation
+const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+  ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
+  : ['6760298907'];
+
+const SECONDARY_DATA_DELAY = 100;
+const SYNC_INTERVAL = 120000; // 2 minutes
+const ANIMATION_INTERVAL = 500; // 500ms
 
 const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   const { t } = useTranslation();
@@ -42,14 +50,20 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   // Defer non-critical data fetching until after initial render
   const [shouldFetchSecondary, setShouldFetchSecondary] = useState(false);
   
+  // Simplified secondary data fetching - single useEffect
   useEffect(() => {
-    // Delay secondary data fetching to improve initial load time
-    const timer = setTimeout(() => {
-      setShouldFetchSecondary(true);
-    }, 100);
-    
+    const timer = setTimeout(() => setShouldFetchSecondary(true), SECONDARY_DATA_DELAY);
     return () => clearTimeout(timer);
   }, []);
+
+  // Memoized refetch functions to prevent unnecessary re-renders
+  const handleRefetchUserData = useCallback(() => {
+    refetchUserData();
+  }, [refetchUserData]);
+
+  const handleRefetchSlotsData = useCallback(() => {
+    refetchSlotsData();
+  }, [refetchSlotsData]);
 
   // WebSocket message handling for real-time updates
   useEffect(() => {
@@ -61,12 +75,12 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
       switch (message.type) {
         case 'BALANCE_UPDATE':
           console.log('💰 Balance updated on Index:', message.data);
-          refetchUserData();
+          handleRefetchUserData();
           break;
         case 'SLOT_UPDATE':
           console.log('⛏️ Slot updated on Index:', message.data);
-          refetchUserData();
-          refetchSlotsData();
+          handleRefetchUserData();
+          handleRefetchSlotsData();
           break;
         case 'NOTIFICATION':
           console.log('🔔 New notification on Index:', message.data);
@@ -77,7 +91,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     });
 
     return unsubscribe;
-  }, [isConnected, subscribe, refetchUserData, refetchSlotsData]);
+  }, [isConnected, subscribe, handleRefetchUserData, handleRefetchSlotsData]);
 
   // Conditional secondary data fetching
   const lotteryDataResult = useLotteryData();
@@ -90,15 +104,12 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
   } = useLocalEarningsCache({
     serverEarnings: userData?.accruedEarnings || 0,
     serverSlotsData: slotsData || [],
-    syncInterval: 120000, // 2 minutes - further reduced for better performance
-    animationInterval: 500 // 500ms - reduced animation frequency
+    syncInterval: SYNC_INTERVAL,
+    animationInterval: ANIMATION_INTERVAL
   });
 
-  // Optimized loading state - only check critical data
-  const criticalLoading = useMemo(() => 
-    userDataLoading || slotsLoading,
-    [userDataLoading, slotsLoading]
-  );
+  // Simplified loading state - only check critical data
+  const isLoading = userDataLoading || slotsLoading;
 
   // Memoized active slots calculation with performance optimization
   const activeSlots = useMemo(() => {
@@ -113,6 +124,11 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     });
   }, [slotsData]);
 
+  // Memoized admin check - simplified dependency
+  const isAdmin = useMemo(() => {
+    return user && ADMIN_TELEGRAM_IDS.includes(user.telegramId);
+  }, [user?.telegramId]); // Only depend on telegramId, not entire user object
+
   // Optimized navigation data calculations with reduced dependencies
   const navigationData = useMemo(() => {
     const slotsCount = activeSlots.length;
@@ -122,17 +138,9 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
       slotsCount,
       lotteryJackpot
     };
-  }, [activeSlots, shouldFetchSecondary, lotteryDataResult.lottery?.jackpot]);
+  }, [activeSlots.length, shouldFetchSecondary, lotteryDataResult.lottery?.jackpot]);
 
-  // Memoized admin check to avoid repeated calculations
-  const isAdmin = useMemo(() => {
-    const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
-      ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
-      : ['6760298907'];
-    return user && ADMIN_TELEGRAM_IDS.includes(user.telegramId);
-  }, [user]);
-
-  // Optimized navigation items with reduced dependencies
+  // Memoized navigation items with optimized dependencies
   const navItems = useMemo(() => {
     const baseItems = [
       { 
@@ -174,10 +182,32 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     }
 
     return baseItems;
-  }, [navigationData, slotsLoading, shouldFetchSecondary, lotteryDataResult.isLoading, lotteryDataResult.error, isAdmin]);
+  }, [
+    navigationData.slotsCount, 
+    navigationData.lotteryJackpot, 
+    slotsLoading, 
+    shouldFetchSecondary, 
+    lotteryDataResult.isLoading, 
+    lotteryDataResult.error, 
+    isAdmin
+  ]);
 
-  // REMOVED: Old dynamic earnings effect - now handled by useLocalEarningsCache
+  // Memoized slot calculations for accordion content
+  const slotCalculations = useMemo(() => {
+    if (activeSlots.length === 0) return [];
+    
+    return activeSlots.slice(0, 3).map((slot, index) => {
+      const dailyRate = slot.effectiveWeeklyRate / 7;
+      const dailyEarnings = slot.principal * dailyRate;
+      return {
+        id: slot.id || index,
+        index: index + 1,
+        dailyEarnings
+      };
+    });
+  }, [activeSlots]);
 
+  // Error handling
   if (userDataError) {
     return (
       <div className="flex items-center justify-center min-h-screen text-white p-4">
@@ -186,8 +216,8 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     );
   }
 
-  // �����, ���� �� ����������� � ������ ������������ ��������, ���������� �������
-  if (criticalLoading || !userData) { // ���� ��������� ������� userData
+  // Loading state
+  if (isLoading || !userData) {
     return (
       <div className="flex justify-center items-center min-h-screen text-white p-4">
         <Loader2 className="w-12 h-12 animate-spin" />
@@ -195,12 +225,10 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-200 to-slate-800 relative">
       {/* Background Layer */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-400/9
-      80 via-purple-900/60 to-slate-900/55 backdrop-blur-sm pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-400/80 via-purple-900/60 to-slate-900/55 backdrop-blur-sm pointer-events-none" />
       
       {/* Main Content Container - Fully Responsive with Better Spacing */}
       <div className="relative w-full max-w-7xl mx-auto px-2 py-1 sm:px-1 lg:px-1 z-2">
@@ -245,7 +273,7 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                           <span className="text-sm font-medium text-emerald-300">Active Slots</span>
                         </div>
                         <p className="text-lg font-bold text-emerald-400 text-center">
-                          {slotsData?.filter(s => s.isActive && new Date(s.expiresAt) > new Date()).length || 0}
+                          {activeSlots.length}
                         </p>
                       </div>
                     </div>
@@ -258,17 +286,12 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
                           Daily Earnings Breakdown
                         </h4>
                         <div className="space-y-2">
-                          {activeSlots.slice(0, 3).map((slot, index) => {
-                            // Memoize expensive calculations
-                            const dailyRate = slot.effectiveWeeklyRate / 7;
-                            const dailyEarnings = slot.principal * dailyRate;
-                            return (
-                              <div key={slot.id || index} className="flex justify-between items-center text-sm">
-                                <span className="text-gray-300">Slot {index + 1}:</span>
-                                <span className="font-mono text-emerald-400">{dailyEarnings.toFixed(6)} USD</span>
-                              </div>
-                            );
-                          })}
+                          {slotCalculations.map(({ id, index, dailyEarnings }) => (
+                            <div key={id} className="flex justify-between items-center text-sm">
+                              <span className="text-gray-300">Slot {index}:</span>
+                              <span className="font-mono text-emerald-400">{dailyEarnings.toFixed(6)} USD</span>
+                            </div>
+                          ))}
                           {activeSlots.length > 3 && (
                             <div className="text-xs text-gray-400 text-center pt-2">
                               +{activeSlots.length - 3} more slots...
@@ -326,7 +349,6 @@ const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
           </main>
         </div>
       </div>
-      
     </div>
   );
 };

@@ -4,8 +4,7 @@ import { ACTIVE_REFERRAL_MIN_SLOTS, ACTIVE_REFERRAL_MIN_DIRECT_REFERRALS, BRONZE
 import { ActivityLogType } from '@prisma/client';
 import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots, userSelectMinimal } from '../utils/dbSelects.js';
-import { userDataCache } from '../optimizations/cacheOptimizations.js';
-import { DatabaseOptimizer, DatabasePerformanceMonitor } from '../optimizations/databaseOptimizations.js';
+import { CacheService } from '../services/cacheService.js';
 
 // GET /api/user/:telegramId/data
 export const getUserData = async (req: Request, res: Response) => {
@@ -21,9 +20,20 @@ export const getUserData = async (req: Request, res: Response) => {
     const startTime = performance.now();
     
     // Use optimized cache system
-    const cachedData = await userDataCache.getUserData(telegramId, async () => {
+    const cachedData = await CacheService.userData.getUserData(telegramId, async () => {
       // Fallback function - fetch from database
-      const user = await DatabaseOptimizer.getUserDataOptimized(telegramId);
+      const user = await prisma.user.findUnique({
+        where: { telegramId },
+        include: {
+          wallets: true,
+          miningSlots: true,
+          referrals: true,
+          activityLogs: {
+            orderBy: { createdAt: 'desc' },
+            take: 10
+          }
+        }
+      });
       
       if (!user) {
         throw new Error('User not found');
@@ -35,8 +45,8 @@ export const getUserData = async (req: Request, res: Response) => {
         data: { lastSeenAt: new Date() },
       });
 
-      // Calculate earnings using optimized method
-      const totalEarnings = DatabaseOptimizer.calculateEarningsOptimized(user.miningSlots);
+      // Calculate earnings
+      const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
       const USDWallet = user.wallets.find(w => w.currency === 'USD');
       const MNEWallet = user.wallets.find(w => w.currency === 'MNE');

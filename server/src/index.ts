@@ -14,17 +14,16 @@ smartConsoleReplacement();
 
 // Production-optimized environment loading
 if (process.env.NODE_ENV === 'production') {
-  // In production, only load from process.env (Render sets these)
   logger.server('Production mode - using process.env variables');
 } else {
   // Development mode - try multiple paths for flexibility
   const envPaths = [
-    path.resolve(__dirname, '../../../.env.local'),  // Local development .env
-    path.resolve(__dirname, '../../../.env'),        // Root .env (development mode)
-    path.resolve(__dirname, '../../.env'),           // Server .env (fallback)
-    path.resolve(process.cwd(), '.env.local'),       // Current working directory local
-    path.resolve(process.cwd(), '.env'),             // Current working directory
-    path.resolve(process.cwd(), '../.env'),          // Parent directory
+    path.resolve(__dirname, '../../../.env.local'),
+    path.resolve(__dirname, '../../../.env'),
+    path.resolve(__dirname, '../../.env'),
+    path.resolve(process.cwd(), '.env.local'),
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), '../.env'),
   ];
 
   // Attempt to load .env from multiple possible locations
@@ -38,20 +37,18 @@ if (process.env.NODE_ENV === 'production') {
     }
   }
   
-  // Also load from process.env (for development)
   dotenv.config();
 }
 
 // Set fallback values for environment variables BEFORE validation
-// SECURITY WARNING: In production, these MUST be set via environment variables
 if (!process.env.DATABASE_URL) {
   if (process.env.NODE_ENV === 'production') {
     logger.error(LogContext.SERVER, 'CRITICAL: DATABASE_URL not set in production!');
     throw new Error('DATABASE_URL must be set in production environment');
   }
-  // Development fallback only
   process.env.DATABASE_URL = 'postgresql://localhost:5432/mnemine_dev';
 }
+
 if (!process.env.JWT_SECRET) {
   if (process.env.NODE_ENV === 'production') {
     logger.error(LogContext.SERVER, 'CRITICAL: JWT_SECRET not set in production!');
@@ -60,6 +57,7 @@ if (!process.env.JWT_SECRET) {
     process.env.JWT_SECRET = 'local-jwt-secret-32-chars-minimum-length-dev-only';
   }
 }
+
 if (!process.env.ENCRYPTION_KEY) {
   if (process.env.NODE_ENV === 'production') {
     logger.error(LogContext.SERVER, 'CRITICAL: ENCRYPTION_KEY not set in production!');
@@ -68,6 +66,7 @@ if (!process.env.ENCRYPTION_KEY) {
     process.env.ENCRYPTION_KEY = 'local-encryption-key-32chars-dev-only-1234';
   }
 }
+
 if (!process.env.SESSION_SECRET) {
   if (process.env.NODE_ENV === 'production') {
     logger.error(LogContext.SERVER, 'CRITICAL: SESSION_SECRET not set in production!');
@@ -86,7 +85,6 @@ logger.server('Environment configuration loaded', {
 });
 
 import express from 'express';
-// import cors from 'cors'; // Removed for static file serving
 import { createServer } from 'http';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -103,7 +101,7 @@ import { webSocketManager } from './websocket/WebSocketManager.js';
 import { validateEnvironment } from './utils/validation.js';
 import { ProductionHealthCheck } from './utils/productionHealthCheck.js';
 import { requestLogger, websocketLogger, authLogger, businessLogger } from './middleware/requestLogger.js';
-import './utils/slotProcessor.js'; // Запускаем процессор слотов
+import './utils/slotProcessor.js';
 
 // Validate environment variables
 validateEnvironment();
@@ -123,12 +121,9 @@ app.use(businessLogger);
 
 // Use environment variables for URLs, fallback to localhost for development
 const backendUrl = process.env.BACKEND_URL || `http://localhost:${port}`;
-// For Telegram WebApp, we use the same URL as backend since the frontend is served from there
 const frontendUrl = process.env.FRONTEND_URL || backendUrl;
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const adminTelegramId = process.env.ADMIN_TELEGRAM_ID || '6760298907';
-
-// Environment variables are already configured above before validation
 
 // Production-ready security middleware
 app.use(helmet({
@@ -157,7 +152,6 @@ app.use(helmet({
 
 // Telegram WebApp iframe support middleware
 app.use((req, res, next) => {
-  // Allow iframe embedding for Telegram WebApp
   res.removeHeader("X-Frame-Options");
   res.setHeader("X-Frame-Options", "ALLOWALL");
   res.setHeader("Content-Security-Policy", "frame-ancestors https://web.telegram.org https://telegram.org");
@@ -166,97 +160,42 @@ app.use((req, res, next) => {
   next();
 });
 
-// Security middleware removed
-
-// Telegram WebApp middleware removed for unrestricted access
-
 // Compression middleware
 app.use(compression());
 
-// Monitoring and logging middleware removed
+// Monitoring and logging middleware
 if (process.env.NODE_ENV === 'production') {
   app.use(morgan('combined'));
 } else {
   app.use(morgan('dev'));
 }
 
-// Production-ready rate limiting configuration - DISABLED
+// Rate limiting configuration
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute window
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000', 10), // Very high limit to effectively disable
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000', 10),
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: Math.ceil(parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10) / 1000)
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => {
-    // Skip rate limiting for all requests - effectively disabled
-    return true;
-  },
+  skip: (req) => true, // Effectively disabled
   keyGenerator: (req) => {
-    // Use IP address + user agent for more granular rate limiting
     return `${req.ip}-${req.get('User-Agent')?.slice(0, 50) || 'unknown'}`;
   }
 });
-// app.use('/api', limiter); // Commented out to disable rate limiting
 
-// Auth rate limiting disabled for production testing
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_REQUESTS || '1000', 10), // Increased to 1000
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_REQUESTS || '1000', 10),
   message: {
     error: 'Too many authentication attempts, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => {
-    // Skip rate limiting for all auth endpoints during testing
-    return true;
-  }
+  skip: (req) => true, // Effectively disabled
 });
-// Commented out for production testing
-// app.use('/api/auth', authLimiter);
-
-// CORS middleware removed to allow static file serving
-// const corsOptions = {
-//   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-//     // Allow requests with no origin (like mobile apps or curl requests)
-//     if (!origin) return callback(null, true);
-//     
-//     // Allow local development origins
-//     const allowedOrigins = [
-//       'http://localhost:5173',
-//       'http://127.0.0.1:5173',
-//       'http://localhost:3000',
-//       'http://127.0.0.1:3000',
-//       frontendUrl,
-//       backendUrl
-//     ];
-//     
-//     // Allow all origins in development mode
-//     if (process.env.NODE_ENV === 'development' || process.env.LOCAL_DEV_MODE === 'true') {
-//       return callback(null, true);
-//     }
-//     
-//     // In production, check against allowed origins
-//     if (allowedOrigins.includes(origin)) {
-//       return callback(null, true);
-//     }
-//     
-//     // For Telegram WebApp, allow Telegram domains
-//     if (origin.includes('telegram.org') || origin.includes('web.telegram.org')) {
-//       return callback(null, true);
-//     }
-//     
-//     callback(new Error('Not allowed by CORS'));
-//   },
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-//   preflightContinue: false,
-//   optionsSuccessStatus: 204,
-//   credentials: true,
-// };
-// app.use(cors(corsOptions));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -265,7 +204,6 @@ app.use((req, res, next) => {
   const userAgent = req.get('User-Agent') || 'Unknown';
   const referer = req.get('Referer') || 'None';
   
-  // Log all requests with detailed information
   console.log(`[REQUEST] ${req.method} ${req.path}`);
   console.log(`[REQUEST] Origin: ${origin || 'undefined (direct access)'}`);
   console.log(`[REQUEST] User-Agent: ${userAgent}`);
@@ -292,7 +230,7 @@ app.use((req, res, next) => {
     console.log(`[TELEGRAM] Init Data Header: ${req.headers['x-telegram-init-data'] || 'None'}`);
   }
   
-  // Simplified CORS handling - Allow all origins for development
+  // CORS handling
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, x-telegram-init-data');
@@ -310,7 +248,6 @@ app.use((req, res, next) => {
     const duration = Date.now() - startTime;
     console.log(`[RESPONSE] ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
     
-    // Log errors
     if (res.statusCode >= 400) {
       console.error(`[ERROR] ${req.method} ${req.path} returned ${res.statusCode}`);
     }
@@ -323,7 +260,6 @@ app.use((req, res, next) => {
 app.use(express.json({ 
   limit: '10mb',
   verify: (req: any, res: any, buf: Buffer) => {
-    // Store raw body for webhook verification
     (req as any).rawBody = buf;
   }
 }));
@@ -332,9 +268,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Relaxed request validation middleware for testing
+// Request validation middleware
 app.use((req: any, res: any, next: any) => {
-  // Allow all content types during testing
   console.log(`[REQUEST] ${req.method} ${req.path} - Content-Type: ${req.get('Content-Type') || 'none'}`);
   next();
 });
@@ -342,7 +277,6 @@ app.use((req: any, res: any, next: any) => {
 // Production health check endpoint
 app.get('/health', async (req: any, res: any) => {
   try {
-    // Check database connection with timeout
     const dbCheckPromise = prisma.$queryRaw`SELECT 1`;
     const dbTimeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error('Database timeout')), 5000)
@@ -371,7 +305,7 @@ app.get('/health', async (req: any, res: any) => {
   }
 });
 
-// Initialize bot and setup webhook BEFORE API routes and rate limiting
+// Initialize bot and setup webhook
 let bot: Telegraf | null = null;
 if (token && token.length > 0) {
   bot = new Telegraf(token);
@@ -396,7 +330,6 @@ if (token && token.length > 0) {
     });
   });
   
-  // Add /app command for quick access
   bot.command('app', (ctx) => {
     console.log(`[BOT] /app command received from user: ${ctx.from?.id}`);
     ctx.reply("🚀 Запустить приложение:", {
@@ -414,14 +347,12 @@ if (token && token.length > 0) {
     });
   });
   
-  // Add callback query handler for WebApp button
   bot.action(/webapp/, (ctx) => {
     console.log(`[BOT] WebApp button clicked by user: ${ctx.from?.id}`);
     console.log(`[BOT] Callback data: ${(ctx.callbackQuery as any)?.data}`);
     console.log(`[BOT] Opening WebApp with URL: ${frontendUrl}`);
   });
   
-  // Add /help command
   bot.command('help', (ctx) => {
     console.log(`[BOT] /help command received from user: ${ctx.from?.id}`);
     const helpText = `🤖 *Mnemine Mining Bot*
@@ -446,7 +377,6 @@ if (token && token.length > 0) {
     });
   });
   
-  // Add error handling for bot
   bot.catch((err, ctx) => {
     console.error(`[BOT] Error occurred for user ${ctx.from?.id}:`, err);
   });
@@ -456,7 +386,7 @@ if (token && token.length > 0) {
   logger.warn(LogContext.TELEGRAM, "Telegram bot token is not provided. Bot features will be disabled.");
 }
 
-// Setup webhook endpoint BEFORE API routes to ensure it takes precedence
+// Setup webhook endpoint
 if (token && bot) {
   const webhookPath = `/api/webhook`;
   const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
@@ -466,17 +396,12 @@ if (token && bot) {
   console.log(`[BOT] Webhook path: ${webhookPath}`);
   console.log(`[BOT] Webhook URL: ${webhookUrl}`);
   
-  // Create webhook callback - use the standard /api/webhook path
-  const webhookCallback = bot.webhookCallback(`/api/webhook`);
-  
-  // Alternative manual webhook handler for debugging
   const manualWebhookHandler = async (req: any, res: any) => {
     try {
       console.log(`[WEBHOOK] Manual handler processing update`);
       console.log(`[WEBHOOK] Bot instance available:`, !!bot);
       console.log(`[WEBHOOK] Bot token:`, token ? `${token.substring(0, 10)}...` : 'Not available');
       
-      // Process the update directly with the bot
       const update = req.body;
       if (update) {
         console.log(`[WEBHOOK] Processing update ID:`, update.update_id);
@@ -495,7 +420,6 @@ if (token && bot) {
   };
   
   if (webhookDelayMs > 0) {
-    // Wrap webhook callback with delay
     app.use(webhookPath, async (req, res, next) => {
       console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
       console.log(`[WEBHOOK] Request body:`, JSON.stringify(req.body, null, 2));
@@ -509,14 +433,12 @@ if (token && bot) {
       }
     });
   } else {
-    // Wrap webhook callback with logging and error handling
     app.use(webhookPath, async (req, res, next) => {
       console.log(`[WEBHOOK] Received webhook request`);
       console.log(`[WEBHOOK] Method: ${req.method}`);
       console.log(`[WEBHOOK] Headers:`, JSON.stringify(req.headers, null, 2));
       console.log(`[WEBHOOK] Body:`, JSON.stringify(req.body, null, 2));
       
-      // Add response logging
       const originalSend = res.send;
       res.send = function(data) {
         console.log(`[WEBHOOK] Response status: ${res.statusCode}`);
@@ -538,26 +460,22 @@ if (token && bot) {
   console.log(`[BOT] Webhook endpoint registered at: ${webhookPath}`);
 }
 
-// Telegram WebApp middleware removed
-
-// API routes - MUST be before static files for proper SPA routing
+// API routes
 app.use('/api', apiRoutes);
 
-// Static file serving with detailed logging - AFTER API routes
-// Use process.cwd() to get the project root directory
+// Static file serving
 const projectRoot = process.cwd();
 console.log(`[SERVER] Current working directory: ${projectRoot}`);
-// Check if we're in the server directory or root directory
+
 const publicPath = projectRoot.endsWith('/server') || projectRoot.endsWith('\\server') 
-  ? path.join(projectRoot, 'public')  // We're in server directory
-  : path.join(projectRoot, 'server/public');  // We're in root directory
+  ? path.join(projectRoot, 'public')
+  : path.join(projectRoot, 'server/public');
 console.log(`[SERVER] Public path: ${publicPath}`);
 
 app.use('/assets', express.static(path.join(publicPath, 'assets'), {
   setHeaders: (res, path) => {
     console.log(`[STATIC] Serving asset: ${path}`);
-    // Set cache headers for assets
-    res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
   }
 }));
 
@@ -567,14 +485,11 @@ app.use('/locales', express.static(path.join(publicPath, 'locales'), {
   }
 }));
 
-// Serve other static files (favicon, robots.txt, etc.) - but only for specific files
 app.use('/favicon.ico', express.static(path.join(publicPath, 'favicon.ico')));
 app.use('/robots.txt', express.static(path.join(publicPath, 'robots.txt')));
 app.use('/placeholder.svg', express.static(path.join(publicPath, 'placeholder.svg')));
 
-// Error handling middleware removed
-
-// SPA fallback - serve index.html for all non-API routes (GET only to avoid interfering with webhooks)
+// SPA fallback
 app.get('*', (req: any, res: any) => {
   console.log(`[SPA] Serving index.html for route: ${req.path}`);
   console.log(`[SPA] User-Agent: ${req.get('User-Agent') || 'Unknown'}`);
@@ -594,11 +509,9 @@ app.get('*', (req: any, res: any) => {
   });
 });
 
-
-// Enhanced global error handlers with better logging
+// Enhanced global error handlers
 process.on('uncaughtException', (error) => {
   logger.error(LogContext.SERVER, 'Uncaught Exception', error);
-  // Don't exit immediately in production, allow graceful shutdown
   if (process.env.NODE_ENV === 'production') {
     gracefulShutdown('UNCAUGHT_EXCEPTION');
   } else {
@@ -612,7 +525,6 @@ process.on('unhandledRejection', (reason, promise) => {
     reason: reason instanceof Error ? reason.message : reason,
     stack: reason instanceof Error ? reason.stack : 'No stack trace',
   });
-  // Don't exit immediately in production, allow graceful shutdown
   if (process.env.NODE_ENV === 'production') {
     gracefulShutdown('UNHANDLED_REJECTION');
   } else {
@@ -620,10 +532,8 @@ process.on('unhandledRejection', (reason, promise) => {
   }
 });
 
-// Handle SIGTERM and SIGINT for graceful shutdown
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
 
 async function seedTasks() {
   for (const task of tasks) {
@@ -643,7 +553,6 @@ async function ensureDatabaseSchema() {
   try {
     console.log('[SEED] Ensuring database schema is complete...');
     
-    // Create ExchangeRate table (PostgreSQL syntax)
     try {
       await prisma.$executeRaw`
         CREATE TABLE IF NOT EXISTS "ExchangeRate" (
@@ -660,20 +569,16 @@ async function ensureDatabaseSchema() {
       console.warn('[SEED] Could not create ExchangeRate table:', tableError);
     }
 
-    // Ensure LotteryTicket table has all required columns (PostgreSQL syntax)
     try {
-      // Simple approach - just try to add the column, ignore if it already exists
       await prisma.$executeRaw`ALTER TABLE "LotteryTicket" ADD COLUMN IF NOT EXISTS "isAdminSelected" BOOLEAN NOT NULL DEFAULT false;`;
       console.log('[SEED] LotteryTicket.isAdminSelected column added/verified');
     } catch (columnError) {
       console.warn('[SEED] Could not add isAdminSelected column (may already exist):', columnError);
     }
 
-    // Check if any exchange rate exists
     const existingRate = await prisma.exchangeRate.findFirst();
     
     if (!existingRate) {
-      // Create default exchange rate
       await prisma.exchangeRate.create({
         data: {
           rate: 1.0,
@@ -708,29 +613,27 @@ async function seedAdmin() {
           username: 'admin_dev',
           role: 'ADMIN',
           referralCode: await generateUniqueReferralCode(),
-          wallets: { create: { currency: 'USD', balance: 0 } }, // Changed currency to USD
+          wallets: { create: { currency: 'USD', balance: 0 } },
           miningSlots: {
             create: {
               principal: 1.00,
               startAt: new Date(),
               lastAccruedAt: new Date(),
-              effectiveWeeklyRate: SLOT_WEEKLY_RATE, // Use new constant
+              effectiveWeeklyRate: SLOT_WEEKLY_RATE,
               expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000),
               isActive: true,
             },
           },
-          captchaValidated: true, // Default to true for admin
-          isSuspicious: false, // Default to false for admin
-          lastSuspiciousPenaltyAppliedAt: null, // Default to null
-          lastSeenAt: new Date(), // Added lastSeenAt for admin user
+          captchaValidated: true,
+          isSuspicious: false,
+          lastSuspiciousPenaltyAppliedAt: null,
+          lastSeenAt: new Date(),
         },
       });
     } else {
-      // Admin already exists, just ensure they have proper balance
       console.log(`[SEED] Admin user ${ADMIN_TELEGRAM_ID} already exists`);
     }
 
-    // Only set admin balance for the specific admin user
     if (user.telegramId === ADMIN_TELEGRAM_ID) {
       const wallet = await prisma.wallet.findFirst({
         where: { userId: user.id, currency: 'USD' },
@@ -777,18 +680,14 @@ const gracefulShutdown = async (signal: string) => {
     }
   });
   
-  // Force close after 30 seconds
   setTimeout(() => {
     logger.error(LogContext.SERVER, 'Forced shutdown after timeout');
     process.exit(1);
   }, 30000);
 };
 
-// Shutdown handlers are registered above
-
 async function startServer() {
   try {
-    // Test database connection with timeout
     console.log('[SERVER] Testing database connection...');
     const dbConnectionPromise = prisma.$connect();
     const dbTimeoutPromise = new Promise((_, reject) => 
@@ -798,16 +697,13 @@ async function startServer() {
     await Promise.race([dbConnectionPromise, dbTimeoutPromise]);
     logger.database('Database connection successful');
 
-    // Start server first to avoid hanging
     server.listen(port, '0.0.0.0', async () => {
       logger.server(`Backend server listening on port ${port}`);
       logger.websocket(`WebSocket server available at ws://localhost:${port}/ws`);
       logger.server(`Frontend URL for bot: ${frontendUrl}`);
       
-      // Mark application as healthy
       ProductionHealthCheck.markAsHealthy();
       
-      // Initialize WebSocket server after server is running
       try {
         const wsServer = new WebSocketServer(server);
         webSocketManager.setWebSocketServer(wsServer);
@@ -816,7 +712,6 @@ async function startServer() {
         logger.error(LogContext.WEBSOCKET, 'Failed to initialize WebSocket server', wsError);
       }
 
-      // Set Telegram webhook URL if bot is initialized (non-blocking)
       if (bot && token && token.length > 0) {
         const webhookPath = `/api/webhook/${token}`;
         const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
@@ -827,7 +722,6 @@ async function startServer() {
         console.log(`[BOT] - Webhook URL: ${webhookUrl}`);
         console.log(`[BOT] - Is HTTPS: ${webhookUrl.startsWith('https://')}`);
 
-        // Only set webhook if backendUrl is HTTPS (for production)
         if (webhookUrl.startsWith('https://')) {
           console.log(`[BOT] Setting webhook to: ${webhookUrl}`);
           
@@ -839,9 +733,7 @@ async function startServer() {
         }
       }
       
-      // Start background processors (non-blocking)
       try {
-        // Start continuous earnings processor for 24/7 earnings
         const { continuousEarningsProcessor } = await import('./utils/continuousEarningsProcessor.js');
         await continuousEarningsProcessor.start();
         logger.business('Continuous earnings processor started');
@@ -850,7 +742,6 @@ async function startServer() {
       }
       
       try {
-        // Start slot expiration processor for automatic slot handling
         const { slotExpirationProcessor } = await import('./utils/slotExpirationProcessor.js');
         await slotExpirationProcessor.start();
         logger.business('Slot expiration processor started');
@@ -859,7 +750,6 @@ async function startServer() {
       }
       
       try {
-        // Start auto-claim processor for automatic MNE transfers after 7 days
         const { autoClaimProcessor } = await import('./utils/autoClaimProcessor.js');
         await autoClaimProcessor.start();
         logger.business('Auto-claim processor started');
@@ -868,7 +758,6 @@ async function startServer() {
       }
 
       try {
-        // Start earnings accumulator for real-time earnings updates
         const { earningsAccumulator } = await import('./services/earningsAccumulator.js');
         earningsAccumulator.start();
         logger.business('Earnings accumulator started');
@@ -877,7 +766,6 @@ async function startServer() {
       }
     });
 
-    // Run database seeding in background (non-blocking)
     Promise.all([seedTasks(), seedBoosters(), seedAdmin(), ensureDatabaseSchema()])
       .then(() => {
         logger.database('Database seeding completed');
@@ -894,5 +782,4 @@ async function startServer() {
 
 startServer();
 
-// Export the app for testing
 export default app;

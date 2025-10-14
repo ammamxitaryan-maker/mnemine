@@ -3,6 +3,9 @@ node_modules/
 */node_modules/
 **/node_modules/
 
+# NPM metadata cache
+false/
+
 # Build outputs
 dist/
 */dist/

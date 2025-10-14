@@ -1,19 +1,12 @@
 import { Request, Response } from 'express';
-import { DatabasePerformanceMonitor } from '../optimizations/databaseOptimizations.js';
-import { userDataCache, slotsDataCache, marketDataCache } from '../optimizations/cacheOptimizations.js';
+import { CacheService } from '../services/cacheService.js';
 
 // GET /api/performance/metrics
 export const getPerformanceMetrics = async (req: Request, res: Response) => {
   try {
-    const dbReport = DatabasePerformanceMonitor.getPerformanceReport();
-    const cacheStats = {
-      userData: userDataCache.getStats(),
-      slotsData: slotsDataCache.getStats(),
-      marketData: marketDataCache.getStats()
-    };
+    const cacheStats = CacheService.getStats();
 
     const metrics = {
-      database: dbReport,
       cache: cacheStats,
       system: {
         memoryUsage: process.memoryUsage(),
