@@ -18,7 +18,6 @@ const getInitialLanguage = () => {
 
 i18n
   .use(HttpApi)
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     supportedLngs: ['hy', 'ru', 'en'],
@@ -26,7 +25,7 @@ i18n
     lng: getInitialLanguage(),
     debug: false,
     detection: {
-      order: ['localStorage', 'queryString', 'cookie', 'navigator'],
+      order: ['localStorage', 'queryString', 'cookie'],
       caches: ['localStorage', 'cookie'],
       lookupLocalStorage: 'mnemine-language',
     },
@@ -49,5 +48,12 @@ i18n.changeLanguage = (lng, callback) => {
   }
   return originalChangeLanguage(lng, callback);
 };
+
+// Force Armenian language on initialization (except for admin panel)
+if (!isAdminPanel()) {
+  // Set Armenian in localStorage to persist the choice
+  localStorage.setItem('mnemine-language', 'hy');
+  i18n.changeLanguage('hy');
+}
 
 export default i18n;

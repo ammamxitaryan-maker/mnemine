@@ -33,10 +33,10 @@ export const MinimalistReferralsPage = () => {
     if (referralData?.referralLink) {
       try {
         await navigator.clipboard.writeText(referralData.referralLink);
-        showSuccess('Referral link copied!');
+        showSuccess('Ուղեգրային հղումը պատճենվեց!');
         hapticLight();
       } catch (error) {
-        showError('Failed to copy link');
+        showError('Չհաջողվեց պատճենել հղումը');
       }
     }
   };
@@ -45,8 +45,8 @@ export const MinimalistReferralsPage = () => {
     if (referralData?.referralLink && navigator.share) {
       try {
         await navigator.share({
-          title: 'Join FastMine',
-          text: 'Join FastMine and start earning!',
+          title: 'Միացեք FastMine-ին',
+          text: 'Միացեք FastMine-ին և սկսեք վաստակել!',
           url: referralData.referralLink,
         });
         hapticLight();

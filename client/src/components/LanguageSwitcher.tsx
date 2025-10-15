@@ -19,7 +19,8 @@ const languages = [
 export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
   const [isChanging, setIsChanging] = useState(false);
-  const { isAutoDetected, detectedLanguage, confidence, overrideLanguage } = useAutoLanguageDetection();
+  // Disabled auto language detection to force Armenian as default
+  // const { isAutoDetected, detectedLanguage, confidence, overrideLanguage } = useAutoLanguageDetection();
 
   const changeLanguage = async (lng: string) => {
     if (i18n.language === lng) return; // Don't change if already selected
@@ -27,8 +28,8 @@ export const LanguageSwitcher = () => {
     setIsChanging(true);
     try {
       await i18n.changeLanguage(lng);
-      // Переопределяем автоматическое определение при ручном выборе
-      overrideLanguage(lng);
+      // Disabled auto language detection
+      // overrideLanguage(lng);
     } catch (error) {
       console.error('Failed to change language:', error);
     } finally {
@@ -43,12 +44,12 @@ export const LanguageSwitcher = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" disabled={isChanging} className="relative">
           <Globe className="h-6 w-6" />
-          {/* Индикатор автоматического определения */}
-          {isAutoDetected && confidence > 0.5 && (
+          {/* Disabled auto language detection indicator */}
+          {/* {isAutoDetected && confidence > 0.5 && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full flex items-center justify-center">
               <Zap className="w-2 h-2 text-white" />
             </div>
-          )}
+          )} */}
           {isChanging && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
@@ -58,8 +59,8 @@ export const LanguageSwitcher = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-gray-900 border-gray-700 text-white min-w-[200px]">
-        {/* Информация об автоматическом определении */}
-        {isAutoDetected && confidence > 0.5 && (
+        {/* Disabled auto language detection info */}
+        {/* {isAutoDetected && confidence > 0.5 && (
           <div className="px-3 py-2 text-xs text-gray-400 border-b border-gray-700">
             <div className="flex items-center gap-2">
               <Zap className="w-3 h-3 text-primary" />
@@ -69,7 +70,7 @@ export const LanguageSwitcher = () => {
               Confidence: {Math.round(confidence * 100)}%
             </div>
           </div>
-        )}
+        )} */}
         
         {languages.map((lang) => (
           <DropdownMenuItem 

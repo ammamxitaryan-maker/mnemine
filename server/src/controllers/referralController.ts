@@ -11,7 +11,15 @@ export const getReferralData = async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { telegramId }, include: { _count: { select: { referrals: true } } } });
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.status(200).json({ referralCode: user.referralCode, referralCount: user._count.referrals });
+    
+    // Generate individual referral link
+    const referralLink = `https://t.me/mnemine/app?startapp=${user.referralCode}`;
+    
+    res.status(200).json({ 
+      referralCode: user.referralCode, 
+      referralLink: referralLink,
+      referralCount: user._count.referrals 
+    });
   } catch (error) {
     console.error(`Error fetching referral data for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });

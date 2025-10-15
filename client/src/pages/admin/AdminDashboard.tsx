@@ -140,49 +140,49 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
         <Button
           onClick={() => navigate('/admin/users')}
-          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <Users className="h-5 w-5 md:h-6 md:w-6" />
-          <span className="text-xs md:text-sm font-medium">Manage Users</span>
+          <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+          <span className="text-xs sm:text-sm font-medium">Users</span>
         </Button>
         <Button
           onClick={() => navigate('/admin/transactions')}
-          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <DollarSign className="h-5 w-5 md:h-6 md:w-6" />
-          <span className="text-xs md:text-sm font-medium">Transactions</span>
+          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+          <span className="text-xs sm:text-sm font-medium">Transactions</span>
         </Button>
         <Button
           onClick={() => navigate('/admin/lottery')}
-          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-purple-600 hover:bg-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-purple-600 hover:bg-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <Ticket className="h-5 w-5 md:h-6 md:w-6" />
-          <span className="text-xs md:text-sm font-medium">Lottery</span>
+          <Ticket className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+          <span className="text-xs sm:text-sm font-medium">Lottery</span>
         </Button>
         <Button
-          onClick={() => navigate('/admin/settings')}
-          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-gray-600 hover:bg-gray-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+          onClick={() => navigate('/admin/analytics')}
+          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-orange-600 hover:bg-orange-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <BarChart3 className="h-5 w-5 md:h-6 md:w-6" />
-          <span className="text-xs md:text-sm font-medium">Settings</span>
+          <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+          <span className="text-xs sm:text-sm font-medium">Analytics</span>
         </Button>
         <Button
           onClick={handleResetDatabase}
           disabled={isResetting}
-          className="h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
         >
-          <Database className="h-5 w-5 md:h-6 md:w-6" />
-          <span className="text-xs md:text-sm font-medium">
+          <Database className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+          <span className="text-xs sm:text-sm font-medium">
             {isResetting ? 'Resetting...' : 'Reset DB'}
           </span>
         </Button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         {/* Users Stats */}
         <Card className="bg-gray-900 border-gray-700 shadow-lg hover:shadow-xl transition-shadow duration-200">
           <CardHeader className="pb-3">
