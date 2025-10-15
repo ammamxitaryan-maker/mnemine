@@ -79,12 +79,12 @@ export const RealTimeEarnings = ({ telegramId, className = '' }: RealTimeEarning
         </div>
         {usdEquivalent > 0 && (
           <div className="text-sm text-accent mb-2">
-            ≈ {usdEquivalent.toFixed(4)} USD
+            ≈ ${usdEquivalent.toFixed(2)} USD
           </div>
         )}
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <TrendingUp className="w-3 h-3" />
-          <span>+{perSecondRate.toFixed(8)} MNE/sec</span>
+          <span>+{perSecondRate.toFixed(5)} MNE/sec</span>
         </div>
       </div>
     </div>

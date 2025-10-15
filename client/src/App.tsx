@@ -65,11 +65,13 @@ const App = () => {
             {/* Routes with the minimalist layout */}
             <Route element={<MinimalistLayout />}>
               <Route path="/" element={<Index />} />
-              <Route path="/slots" element={<Slots />} />
-              <Route path="/lottery" element={<Lottery />} />
-              <Route path="/wallet" element={<Wallet />} />
-              <Route path="/profile" element={<Profile />} />
             </Route>
+            
+            {/* Individual page routes */}
+            <Route path="/slots" element={<Slots />} />
+            <Route path="/lottery" element={<Lottery />} />
+            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/profile" element={<Profile />} />
             
             {/* Routes with the main layout for other pages */}
             <Route element={<MainLayout />}>

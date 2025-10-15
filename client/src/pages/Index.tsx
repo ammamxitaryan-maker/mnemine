@@ -2,10 +2,10 @@
 
 import { AuthWrapper } from '@/components/AuthWrapper';
 import { AuthenticatedUser } from '@/types/telegram';
-import { MinimalistHomePage } from '@/components/MinimalistHomePage';
+import { ExpandedHomePage } from '@/components/ExpandedHomePage';
 
 const IndexContent = ({ user }: { user: AuthenticatedUser }) => {
-  return <MinimalistHomePage user={user} />;
+  return <ExpandedHomePage user={user} />;
 };
 
 const Index = () => {
