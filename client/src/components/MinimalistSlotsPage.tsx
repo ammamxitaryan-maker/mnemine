@@ -55,9 +55,9 @@ export const MinimalistSlotsPage = () => {
       queryClient.invalidateQueries({ queryKey: ['slotsData', user?.telegramId] });
       queryClient.invalidateQueries({ queryKey: ['userData', user?.telegramId] });
     },
-    onError: (error: any, _variables, context) => {
+    onError: (error: Error, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
-      const errorMessage = error.response?.data?.error || 'Failed to purchase slot.';
+      const errorMessage = (error as any)?.response?.data?.error || 'Failed to purchase slot.';
       showError(errorMessage);
     },
   });

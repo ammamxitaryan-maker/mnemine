@@ -43,7 +43,7 @@ const AdminDashboardCompact = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const fetchData = async () => {
     try {
@@ -58,8 +58,9 @@ const AdminDashboardCompact = () => {
       setActiveUsers(activeRes.data.data.users || []);
       setInactiveUsers(inactiveRes.data.data.users || []);
       setCurrentRate(rateRes.data.rate);
-    } catch (err: any) {
-      showError(err.response?.data?.error || t('admin.error'));
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      showError(error.response?.data?.error || t('admin.error'));
     } finally {
       setLoading(false);
     }
@@ -75,8 +76,9 @@ const AdminDashboardCompact = () => {
       showSuccess(t('admin.exchangeRate.success', { rate: rate.toFixed(4) }));
       setNewRate('');
       setCurrentRate(rate);
-    } catch (err: any) {
-      showError(t('admin.exchangeRate.error', { error: err.response?.data?.error || '' }));
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      showError(t('admin.exchangeRate.error', { error: error.response?.data?.error || '' }));
     }
   };
 
@@ -86,8 +88,9 @@ const AdminDashboardCompact = () => {
       await api.post('/admin/freeze-accounts', { userIds: [userId], reason: 'INACTIVITY', adminId: 'ADMIN' });
       showSuccess(t('admin.userManagement.freezeSuccess'));
       fetchData();
-    } catch (err: any) {
-      showError(err.response?.data?.error || t('admin.error'));
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      showError(error.response?.data?.error || t('admin.error'));
     }
   };
 
@@ -97,8 +100,9 @@ const AdminDashboardCompact = () => {
       await api.delete(`/admin/delete-user/${userId}`, { data: { adminId: 'ADMIN' } });
       showSuccess(t('admin.userManagement.deleteSuccess'));
       fetchData();
-    } catch (err: any) {
-      showError(err.response?.data?.error || t('admin.error'));
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      showError(error.response?.data?.error || t('admin.error'));
     }
   };
 

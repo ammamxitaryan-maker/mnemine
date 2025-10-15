@@ -9,6 +9,7 @@ interface ReferredUser {
   isOnline: boolean;
   createdAt: string;
   totalInvested: number;
+  totalEarnings: number;
 }
 
 const fetchReferralList = async (telegramId: string): Promise<ReferredUser[]> => {

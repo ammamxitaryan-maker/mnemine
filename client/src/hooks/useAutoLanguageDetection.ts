@@ -50,7 +50,6 @@ const INTERNATIONAL_LANGUAGES = {
   'mn': ['MN'], // Mongolian
   'ka': ['GE'], // Georgian
   'az': ['AZ'], // Azerbaijani
-  'hy': ['AM'], // Armenian
   'fa': ['IR', 'AF', 'TJ'], // Persian
   'ur': ['PK', 'IN'], // Urdu
   'bn': ['BD', 'IN'], // Bengali
@@ -67,7 +66,6 @@ const INTERNATIONAL_LANGUAGES = {
   'my': ['MM'], // Burmese
   'km': ['KH'], // Khmer
   'lo': ['LA'], // Lao
-  'ka': ['GE'], // Georgian
   'am': ['ET'], // Amharic
   'sw': ['KE', 'TZ', 'UG', 'RW', 'BI', 'CD', 'SO', 'MW', 'ZM', 'ZW', 'MZ', 'AO'], // Swahili
   'yo': ['NG'], // Yoruba
@@ -157,13 +155,13 @@ export const useAutoLanguageDetection = () => {
   // Функция для определения языка по коду языка браузера
   const detectLanguageByCode = (languageCode: string): string | null => {
     // Проверяем точное совпадение
-    if (INTERNATIONAL_LANGUAGES.hasOwnProperty(languageCode)) {
+    if (Object.prototype.hasOwnProperty.call(INTERNATIONAL_LANGUAGES, languageCode)) {
       return languageCode;
     }
 
     // Проверяем похожие коды (например, 'en-US' -> 'en')
     const baseLanguage = languageCode.split('-')[0];
-    if (INTERNATIONAL_LANGUAGES.hasOwnProperty(baseLanguage)) {
+    if (Object.prototype.hasOwnProperty.call(INTERNATIONAL_LANGUAGES, baseLanguage)) {
       return baseLanguage;
     }
 
@@ -281,7 +279,7 @@ export const useAutoLanguageDetection = () => {
     };
 
     initializeAutoDetection();
-  }, []);
+  }, [applyAutoLanguage, detectLanguage]);
 
   return {
     ...detectionResult,

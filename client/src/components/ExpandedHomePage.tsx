@@ -6,16 +6,11 @@ import {
   CircleDot, 
   Server, 
   Ticket, 
-  Wallet, 
   ArrowDownToLine,
   ArrowUpFromLine,
   History,
   Shield,
   ChevronRight,
-  Award,
-  TrendingUp,
-  Users,
-  Loader2,
   UserPlus
 } from 'lucide-react';
 import { AuthenticatedUser } from '@/types/telegram';
@@ -24,7 +19,6 @@ import { useSlotsData } from '@/hooks/useSlotsData';
 import { useWebSocketUserStats } from '@/hooks/useWebSocketUserStats';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { MainBalanceDisplay } from './MainBalanceDisplay';
-import { SlotControlPanel } from './SlotControlPanel';
 import { QuickActions } from './QuickActions';
 import { SimpleStats } from './SimpleStats';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -104,11 +98,6 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
       {/* Main Balance Display */}
       <div className="px-6 mb-6">
         <MainBalanceDisplay />
-      </div>
-
-      {/* Slot Control Panel */}
-      <div className="px-6 mb-6">
-        <SlotControlPanel />
       </div>
 
       {/* Main Actions */}

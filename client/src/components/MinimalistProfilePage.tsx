@@ -133,7 +133,7 @@ export const MinimalistProfilePage = () => {
         <div className="minimal-card text-center">
           <div className="flex items-center justify-center mb-4">
             <Avatar className="h-20 w-20 border-2 border-primary">
-              {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName} />}
+              {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName || 'User'} />}
               <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">
                 {fallbackInitial}
               </AvatarFallback>

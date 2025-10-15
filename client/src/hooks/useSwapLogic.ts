@@ -17,7 +17,7 @@ export interface SwapLogicReturn {
   setDirection: (direction: 'USD-to-MNE' | 'MNE-to-USD') => void;
   
   // Data
-  rateData: any;
+  rateData: { rate: number; timestamp: string } | null;
   rateLoading: boolean;
   swapLoading: boolean;
   

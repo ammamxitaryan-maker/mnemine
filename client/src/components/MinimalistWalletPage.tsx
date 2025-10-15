@@ -7,7 +7,8 @@ import {
   ArrowDownToLine, 
   ArrowUpFromLine, 
   History,
-  Loader2
+  Loader2,
+  TrendingUp
 } from 'lucide-react';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useUserData } from '@/hooks/useUserData';

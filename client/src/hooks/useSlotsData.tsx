@@ -17,13 +17,21 @@ export interface MiningSlot {
   [key: string]: unknown; // Index signature for compatibility
 }
 
+export interface RealTimeSlotData {
+  id: string;
+  currentEarnings: number;
+  currentBalance: number;
+  progress: number;
+  isCompleted: boolean;
+}
+
 const fetchSlotsData = async (telegramId?: string): Promise<MiningSlot[]> => {
   if (!telegramId) {
     return [];
   }
   const { data } = await api.get(`/user/${telegramId}/slots`);
   // Ensure earningsPerSecond is always provided
-  return data.map((slot: any) => ({
+  return data.map((slot: MiningSlot) => ({
     ...slot,
     earningsPerSecond: slot.earningsPerSecond || 0
   }));

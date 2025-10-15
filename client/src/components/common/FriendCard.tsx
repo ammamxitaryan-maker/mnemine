@@ -11,6 +11,7 @@ interface ReferredUser {
   isOnline: boolean;
   createdAt: string;
   totalInvested: number;
+  totalEarnings: number;
 }
 
 interface FriendCardProps {

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DollarSign, Calendar, CheckCircle, XCircle, TrendingUp, Clock, Coins, Download } from 'lucide-react';
-import { MiningSlot } from '@/hooks/useSlotsData';
+import { MiningSlot, RealTimeSlotData } from '@/hooks/useSlotsData';
 import { formatExpirationDate, getRemainingTime } from '@/utils/date';
 import ProgressBar from '@/components/common/ProgressBar';
 import { api } from '@/lib/api';
@@ -20,7 +20,7 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
   const [remaining, setRemaining] = useState(getRemainingTime(slot.expiresAt));
 
   // Get real-time earnings data from server
-  const [realTimeSlotData, setRealTimeSlotData] = useState<any>(null);
+  const [realTimeSlotData, setRealTimeSlotData] = useState<RealTimeSlotData | null>(null);
   const [isLoadingRealTime, setIsLoadingRealTime] = useState(false);
 
   // Fetch real-time slot data from server
@@ -30,7 +30,7 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
     setIsLoadingRealTime(true);
     try {
       const response = await api.get(`/user/${telegramId}/real-time-income`);
-      const slotData = response.data.slots?.find((s: any) => s.id === slot.id);
+      const slotData = response.data.slots?.find((s: RealTimeSlotData) => s.id === slot.id);
       setRealTimeSlotData(slotData);
     } catch (error) {
       console.error('Error fetching real-time slot data:', error);
@@ -46,7 +46,7 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
       const interval = setInterval(fetchRealTimeSlotData, 3000);
       return () => clearInterval(interval);
     }
-  }, [telegramId, slot.id, slot.isActive]);
+  }, [telegramId, slot.id, slot.isActive, fetchRealTimeSlotData]);
 
   useEffect(() => {
     const timer = setInterval(() => {

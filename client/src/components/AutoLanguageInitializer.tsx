@@ -24,7 +24,7 @@ export const AutoLanguageInitializer = ({ children }: AutoLanguageInitializerPro
     };
 
     initializeLanguage();
-  }, []);
+  }, [applyAutoLanguage, confidence, detectedLanguage]);
 
   return <>{children}</>;
 };

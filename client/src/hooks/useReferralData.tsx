@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 interface ReferralData {
   referralCode: string;
   referralCount: number;
+  referralLink: string;
 }
 
 const fetchReferralData = async (telegramId: string): Promise<ReferralData> => {

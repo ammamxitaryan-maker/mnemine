@@ -78,7 +78,17 @@ export const useWebSocketOptimized = ({
         
         if (!isManualCloseRef.current) {
           setConnectionStatus('disconnected');
-          attemptReconnect();
+          // Use setTimeout to avoid circular dependency
+          setTimeout(() => {
+            if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+              reconnectAttemptsRef.current++;
+              console.log(`🔄 Attempting reconnection ${reconnectAttemptsRef.current}/${maxReconnectAttempts}...`);
+              setConnectionStatus('connecting');
+              reconnectTimeoutRef.current = setTimeout(() => {
+                connect();
+              }, reconnectInterval);
+            }
+          }, 0);
         }
       };
 
@@ -90,9 +100,8 @@ export const useWebSocketOptimized = ({
     } catch (error) {
       console.error('❌ Failed to create WebSocket connection:', error);
       setConnectionStatus('error');
-      attemptReconnect();
     }
-  }, [url, telegramId]);
+  }, [url, telegramId, reconnectInterval, maxReconnectAttempts]);
 
   // Мемоизированная функция переподключения
   const attemptReconnect = useCallback(() => {

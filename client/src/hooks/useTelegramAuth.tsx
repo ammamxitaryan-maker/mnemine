@@ -322,5 +322,15 @@ export const useTelegramAuth = () => {
     validateAuth();
   }, [authAttempted]);
 
-  return { user, loading, error, initData, TelegramInstructions };
+  const logout = () => {
+    setUser(null);
+    setAuthAttempted(false);
+    setError(null);
+    // Clear any cached data
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('telegram_auth_cache');
+    }
+  };
+
+  return { user, loading, error, initData, TelegramInstructions, logout };
 };

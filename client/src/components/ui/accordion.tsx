@@ -36,7 +36,7 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
               onToggle: handleToggle, 
               openItems,
               type 
-            } as any)
+            } as React.ComponentProps<typeof child>)
           }
           return child
         })}
@@ -71,7 +71,7 @@ const AccordionItem = React.forwardRef<HTMLDivElement, AccordionItemProps>(
               isOpen,
               onToggle: () => onToggle?.(value),
               type 
-            } as any)
+            } as React.ComponentProps<typeof child>)
           }
           return child
         })}

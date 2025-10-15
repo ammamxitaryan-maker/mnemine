@@ -23,7 +23,7 @@ export const useWebSocketEarnings = (telegramId: string | undefined) => {
   const [slotsData, setSlotsData] = useState<WebSocketSlotsData[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
-  const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:3001'}/ws`;
+  const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:10112'}/ws`;
   
   const { socket, isConnected: wsConnected, lastMessage } = useWebSocketOptimized({
     url: wsUrl,
