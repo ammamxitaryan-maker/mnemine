@@ -48,7 +48,7 @@ export const MinimalistProfilePage = () => {
     {
       icon: TrendingUp,
       label: 'Mining Power',
-      value: `${((userData?.miningPower ?? 0) * 100).toFixed(1)}%`,
+      value: '30.0%',
       color: 'text-primary'
     },
     {
