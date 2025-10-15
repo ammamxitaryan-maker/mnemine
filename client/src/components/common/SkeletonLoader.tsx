@@ -8,7 +8,7 @@ interface SkeletonProps {
   animate?: boolean;
 }
 
-export const Skeleton: React.FC<SkeletonProps> = ({
+const Skeleton: React.FC<SkeletonProps> = ({
   width = '100%',
   height = '20px',
   className = '',
@@ -28,7 +28,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 };
 
 // Специализированные скелетоны для разных компонентов
-export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
+const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
   <div className={`p-4 border rounded-lg ${className}`}>
     <div className="flex items-center space-x-4">
       <Skeleton width={40} height={40} rounded />
@@ -44,7 +44,7 @@ export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' 
   </div>
 );
 
-export const SkeletonTable: React.FC<{ rows?: number; className?: string }> = ({ 
+const SkeletonTable: React.FC<{ rows?: number; className?: string }> = ({ 
   rows = 5, 
   className = '' 
 }) => (
@@ -62,7 +62,7 @@ export const SkeletonTable: React.FC<{ rows?: number; className?: string }> = ({
   </div>
 );
 
-export const SkeletonList: React.FC<{ items?: number; className?: string }> = ({ 
+const SkeletonList: React.FC<{ items?: number; className?: string }> = ({ 
   items = 3, 
   className = '' 
 }) => (
@@ -79,7 +79,7 @@ export const SkeletonList: React.FC<{ items?: number; className?: string }> = ({
   </div>
 );
 
-export const SkeletonChart: React.FC<{ className?: string }> = ({ className = '' }) => (
+const SkeletonChart: React.FC<{ className?: string }> = ({ className = '' }) => (
   <div className={`p-4 ${className}`}>
     <div className="mb-4">
       <Skeleton width="40%" height={20} />

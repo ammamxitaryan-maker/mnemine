@@ -7,7 +7,7 @@ interface AccountStatusCardProps {
   isSuspicious: boolean;
 }
 
-export const AccountStatusCard = ({ isEligible, isSuspicious }: AccountStatusCardProps) => {
+const AccountStatusCard = ({ isEligible, isSuspicious }: AccountStatusCardProps) => {
   const { t } = useTranslation();
 
   let title = t('accountStatus.ok.title');

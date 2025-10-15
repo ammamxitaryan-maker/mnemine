@@ -14,7 +14,7 @@ interface DashboardLinkCardProps {
   isNotification?: boolean;
 }
 
-export const DashboardLinkCard = ({ to, icon: Icon, title, displayData, isLoading = false, error = null, unit, isNotification = false }: DashboardLinkCardProps) => {
+const DashboardLinkCard = ({ to, icon: Icon, title, displayData, isLoading = false, error = null, unit, isNotification = false }: DashboardLinkCardProps) => {
   const showBadge = isNotification && !isLoading && !error && displayData && (typeof displayData === 'number' ? displayData > 0 : true);
   const showText = !isNotification && !isLoading && !error && displayData !== null && displayData !== undefined;
 

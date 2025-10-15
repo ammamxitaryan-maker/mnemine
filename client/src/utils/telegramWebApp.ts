@@ -97,35 +97,5 @@ interface TelegramWebApp {
   showConfirm?: (message: string, callback: (confirmed: boolean) => void) => void;
 }
 
-/**
- * Get user data from Telegram WebApp
- */
-export const getTelegramUser = () => {
-  const tg = getTelegramWebApp() as TelegramWebApp | null;
-  return tg?.initDataUnsafe?.user || null;
-};
 
-/**
- * Show alert in Telegram WebApp
- */
-export const showTelegramAlert = (message: string): void => {
-  const tg = getTelegramWebApp() as TelegramWebApp | null;
-  if (tg?.showAlert) {
-    tg.showAlert(message);
-  } else {
-    alert(message);
-  }
-};
 
-/**
- * Show confirm dialog in Telegram WebApp
- */
-export const showTelegramConfirm = (message: string, callback: (confirmed: boolean) => void): void => {
-  const tg = getTelegramWebApp() as TelegramWebApp | null;
-  if (tg?.showConfirm) {
-    tg.showConfirm(message, callback);
-  } else {
-    const confirmed = confirm(message);
-    callback(confirmed);
-  }
-};

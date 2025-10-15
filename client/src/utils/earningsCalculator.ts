@@ -96,32 +96,7 @@ export const calculateTotalEarnings = (slots: MiningSlot[]): {
   };
 };
 
-/**
- * Рассчитывает доход за определенный период времени
- */
-export const calculateEarningsForPeriod = (
-  slots: MiningSlot[], 
-  seconds: number
-): number => {
-  const { totalPerSecondRate } = calculateTotalEarnings(slots);
-  return totalPerSecondRate * seconds;
-};
 
-/**
- * Рассчитывает, сколько времени нужно для достижения определенной суммы
- */
-export const calculateTimeToReachAmount = (
-  slots: MiningSlot[], 
-  targetAmount: number
-): number => {
-  const { totalPerSecondRate } = calculateTotalEarnings(slots);
-  
-  if (totalPerSecondRate <= 0) {
-    return Infinity; // Невозможно достичь
-  }
-  
-  return targetAmount / totalPerSecondRate; // секунды
-};
 
 /**
  * Форматирует время в читаемый вид
@@ -148,35 +123,3 @@ export const formatTime = (seconds: number): string => {
 /**
  * Проверяет, правильно ли настроен слот
  */
-export const validateSlot = (slot: MiningSlot): {
-  isValid: boolean;
-  issues: string[];
-} => {
-  const issues: string[] = [];
-  
-  if (slot.principal <= 0) {
-    issues.push('Principal must be greater than 0');
-  }
-  
-  if (!slot.isActive) {
-    issues.push('Slot is not active');
-  }
-  
-  const now = new Date();
-  const expiresAt = new Date(slot.expiresAt);
-  
-  if (expiresAt <= now) {
-    issues.push('Slot has expired');
-  }
-  
-  const remainingDays = (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-  
-  if (remainingDays > 7) {
-    issues.push('Slot duration exceeds 7 days');
-  }
-  
-  return {
-    isValid: issues.length === 0,
-    issues
-  };
-};

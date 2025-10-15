@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
-export interface ReferralStats {
+interface ReferralStats {
   totalReferralEarnings: number;
   activeReferralsCount: number;
   referralsByLevel: {

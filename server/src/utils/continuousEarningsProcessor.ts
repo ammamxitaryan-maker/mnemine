@@ -1,4 +1,5 @@
 import prisma from '../prisma.js';
+import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
 
 interface SlotEarnings {
   slotId: string;
@@ -106,7 +107,8 @@ export class ContinuousEarningsProcessor {
           userEarnings.set(slot.userId, current + slot.earnings);
         }
 
-        // Update user balances with earned amounts
+        // Update user balances with earned amounts and create activity logs
+        const activityLogs = [];
         for (const [userId, totalEarnings] of userEarnings) {
           if (totalEarnings > 0) {
             await prisma.wallet.updateMany({
@@ -121,25 +123,32 @@ export class ContinuousEarningsProcessor {
               }
             });
 
-            // Log the earnings activity
-            await prisma.activityLog.create({
-              data: {
-                userId: userId,
-                type: 'EARNINGS',
-                amount: totalEarnings,
-                description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} MNE`
-              }
+            // Prepare activity log for batch creation
+            activityLogs.push({
+              userId: userId,
+              type: 'EARNINGS',
+              amount: totalEarnings,
+              description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} MNE`
             });
           }
         }
 
-        // Update slot timestamps
-        await Promise.all(slotsToUpdate.map(update => 
-          prisma.miningSlot.update({
-            where: { id: update.id },
-            data: { lastAccruedAt: update.lastAccruedAt }
-          })
-        ));
+        // Batch create activity logs
+        if (activityLogs.length > 0) {
+          await prisma.activityLog.createMany({
+            data: activityLogs
+          });
+        }
+
+        // Update slot timestamps using batch processing
+        if (slotsToUpdate.length > 0) {
+          await DatabaseOptimizationService.batchUpdateMiningSlots(
+            slotsToUpdate.map(update => ({
+              id: update.id,
+              data: { lastAccruedAt: update.lastAccruedAt }
+            }))
+          );
+        }
 
         const totalEarnings = slotEarnings.reduce((sum, slot) => sum + slot.earnings, 0);
         console.log(`[EARNINGS] Processed and persisted earnings for ${slotsToUpdate.length} slots, total: ${totalEarnings.toFixed(6)} MNE`);

@@ -4,7 +4,7 @@ import { useTelegramAuth } from './useTelegramAuth';
 import { MiningSlot } from './useSlotsData';
 import { Activity } from './useActivityData';
 
-export interface AdminUserDetail {
+interface AdminUserDetail {
   id: string;
   telegramId: string;
   firstName: string | null;

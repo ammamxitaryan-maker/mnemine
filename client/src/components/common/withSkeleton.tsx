@@ -1,7 +1,7 @@
 import React from 'react';
 
 // HOC для оборачивания компонентов в скелетон
-export const withSkeleton = <P extends object>(
+const withSkeleton = <P extends object>(
   Component: React.ComponentType<P>,
   SkeletonComponent: React.ComponentType<Record<string, unknown>>
 ) => {

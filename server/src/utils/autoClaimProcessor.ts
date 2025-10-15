@@ -1,6 +1,7 @@
 import prisma from '../prisma.js';
 import { ActivityLogType } from '@prisma/client';
 import { webSocketManager } from '../websocket/WebSocketManager.js';
+import { ensureUserWallets } from './walletUtils.js';
 
 interface AutoClaimData {
   userId: string;
@@ -83,12 +84,25 @@ export class AutoClaimProcessor {
         userSlotsMap.get(slot.userId)!.push(slot);
       }
 
-      // Process each user's slots
+      // Process each user's slots with error tracking
+      let processedUsers = 0;
+      let errorUsers = 0;
+      
       for (const [userId, slots] of userSlotsMap) {
-        await this.processUserAutoClaim(userId, slots, now);
+        try {
+          await this.processUserAutoClaim(userId, slots, now);
+          processedUsers++;
+        } catch (error) {
+          errorUsers++;
+          console.error(`[AUTO_CLAIM] Failed to process auto-claim for user ${userId}:`, error);
+        }
       }
 
-      console.log(`[AUTO_CLAIM] Processed auto-claims for ${userSlotsMap.size} users`);
+      if (errorUsers > 0) {
+        console.warn(`[AUTO_CLAIM] Completed processing: ${processedUsers} successful, ${errorUsers} failed`);
+      } else {
+        console.log(`[AUTO_CLAIM] Successfully processed auto-claims for ${processedUsers} users`);
+      }
 
     } catch (error) {
       console.error('[AUTO_CLAIM] Error processing auto-claims:', error);
@@ -98,11 +112,28 @@ export class AutoClaimProcessor {
   private async processUserAutoClaim(userId: string, slots: any[], now: Date) {
     try {
       const user = slots[0].user;
-      const MNEWallet = user.wallets.find((w: any) => w.currency === 'MNE');
+      let MNEWallet = user.wallets.find((w: any) => w.currency === 'MNE');
       
       if (!MNEWallet) {
-        console.error(`[AUTO_CLAIM] No MNE wallet found for user ${userId}`);
-        return;
+        console.log(`[AUTO_CLAIM] No MNE wallet found for user ${userId}, creating one...`);
+        try {
+          await ensureUserWallets(userId);
+          // Refetch the user with wallets to get the newly created MNE wallet
+          const updatedUser = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { wallets: true }
+          });
+          MNEWallet = updatedUser?.wallets.find((w: any) => w.currency === 'MNE');
+          
+          if (!MNEWallet) {
+            console.error(`[AUTO_CLAIM] Failed to create MNE wallet for user ${userId}`);
+            return;
+          }
+          console.log(`[AUTO_CLAIM] Successfully created MNE wallet for user ${userId}`);
+        } catch (error) {
+          console.error(`[AUTO_CLAIM] Error creating MNE wallet for user ${userId}:`, error);
+          return;
+        }
       }
 
       let totalEarnings = 0;

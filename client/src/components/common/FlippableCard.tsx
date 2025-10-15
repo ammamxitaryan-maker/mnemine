@@ -17,7 +17,7 @@ interface FlippableCardProps {
   showFlipIndicator?: boolean;
 }
 
-export const FlippableCard = ({ 
+const FlippableCard = ({ 
   id, 
   frontContent, 
   backContent, 

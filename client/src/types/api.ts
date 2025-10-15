@@ -13,24 +13,6 @@ export interface ApiResponse<T = unknown> {
   requestId?: string;
 }
 
-// Pagination types
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
 
 // User types (client-safe version)
 export interface UserProfile {
@@ -98,17 +80,6 @@ export interface MiningSlotInfo {
   updatedAt: Date;
 }
 
-export interface SlotPurchaseRequest {
-  amount: number;
-  currency: 'USD' | 'MNE';
-  type?: 'standard' | 'premium' | 'vip';
-}
-
-export interface SlotPurchaseResponse {
-  slot: MiningSlotInfo;
-  transaction: TransactionInfo;
-  newBalance: number;
-}
 
 // Transaction types
 export interface TransactionInfo {
@@ -189,16 +160,6 @@ export interface LotteryTicketInfo {
   createdAt: Date;
 }
 
-export interface LotteryPurchaseRequest {
-  numbers: string[];
-  amount: number;
-}
-
-export interface LotteryPurchaseResponse {
-  ticket: LotteryTicketInfo;
-  transaction: TransactionInfo;
-  newBalance: number;
-}
 
 // Swap types
 export interface SwapRequest {
@@ -215,14 +176,6 @@ export interface SwapResponse {
   };
 }
 
-export interface SwapTransactionInfo {
-  id: string;
-  userId: string;
-  USDAmount: number;
-  MNEAmount: number;
-  exchangeRate: number;
-  createdAt: Date;
-}
 
 // Task types
 export interface TaskInfo {
@@ -235,11 +188,6 @@ export interface TaskInfo {
   createdAt: Date;
 }
 
-export interface CompletedTaskInfo {
-  userId: string;
-  taskId: string;
-  createdAt: Date;
-}
 
 // Activity log types
 export interface ActivityLogInfo {
@@ -375,19 +323,6 @@ export interface ApiError {
   timestamp: string;
 }
 
-// Type guards
-export const isApiResponse = <T>(response: unknown): response is ApiResponse<T> => {
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    'success' in response &&
-    'timestamp' in response
-  );
-};
-
-export const isPaginatedResponse = <T>(response: unknown): response is PaginatedResponse<T> => {
-  return isApiResponse<T[]>(response) && 'pagination' in response;
-};
 
 export const isApiError = (error: unknown): error is ApiError => {
   return (

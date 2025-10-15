@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
-export type ActivityLogType =
+type ActivityLogType =
   | 'DEPOSIT'
   | 'WITHDRAWAL'
   | 'CLAIM'

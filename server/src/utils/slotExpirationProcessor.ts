@@ -1,4 +1,5 @@
 import prisma from '../prisma.js';
+import { ensureUserWallets } from './walletUtils.js';
 
 // Processor for handling expired slots and automatic earnings claiming
 export class SlotExpirationProcessor {
@@ -50,9 +51,7 @@ export class SlotExpirationProcessor {
         include: {
           user: {
             include: {
-              wallets: {
-                where: { currency: 'USD' }
-              }
+              wallets: true
             }
           }
         }
@@ -64,24 +63,56 @@ export class SlotExpirationProcessor {
 
       console.log(`[SLOTS] Processing ${expiredSlots.length} expired slots`);
 
-      // Process each expired slot
+      // Process each expired slot with error tracking
+      let processedCount = 0;
+      let errorCount = 0;
+      
       for (const slot of expiredSlots) {
-        await this.processExpiredSlot(slot);
+        try {
+          await this.processExpiredSlot(slot);
+          processedCount++;
+        } catch (error) {
+          errorCount++;
+          console.error(`[SLOTS] Failed to process expired slot ${slot.id}:`, error);
+        }
+      }
+
+      if (errorCount > 0) {
+        console.warn(`[SLOTS] Completed processing: ${processedCount} successful, ${errorCount} failed`);
+      } else {
+        console.log(`[SLOTS] Successfully processed ${processedCount} expired slots`);
       }
 
     } catch (error) {
-      console.error('[SLOTS] Error processing expired slots:', error);
+      console.error('[SLOTS] Critical error processing expired slots:', error);
     }
   }
 
   private async processExpiredSlot(slot: any) {
     try {
       const now = new Date();
-      const MNEWallet = slot.user.wallets.find((w: any) => w.currency === 'MNE');
+      let MNEWallet = slot.user.wallets.find((w: any) => w.currency === 'MNE');
       
       if (!MNEWallet) {
-        console.error(`[SLOTS] No MNE wallet found for user ${slot.userId}`);
-        return;
+        console.log(`[SLOTS] No MNE wallet found for user ${slot.userId}, creating one...`);
+        try {
+          await ensureUserWallets(slot.userId);
+          // Refetch the user with wallets to get the newly created MNE wallet
+          const updatedUser = await prisma.user.findUnique({
+            where: { id: slot.userId },
+            include: { wallets: true }
+          });
+          MNEWallet = updatedUser?.wallets.find((w: any) => w.currency === 'MNE');
+          
+          if (!MNEWallet) {
+            console.error(`[SLOTS] Failed to create MNE wallet for user ${slot.userId}`);
+            return;
+          }
+          console.log(`[SLOTS] Successfully created MNE wallet for user ${slot.userId}`);
+        } catch (error) {
+          console.error(`[SLOTS] Error creating MNE wallet for user ${slot.userId}:`, error);
+          return;
+        }
       }
 
       // Calculate final earnings (30% of principal)
@@ -130,3 +161,41 @@ export class SlotExpirationProcessor {
 
 // Global instance
 export const slotExpirationProcessor = new SlotExpirationProcessor();
+
+// Health check function
+export async function checkSlotProcessingHealth(): Promise<{
+  isHealthy: boolean;
+  expiredSlotsCount: number;
+  activeSlotsCount: number;
+  lastProcessedAt?: Date;
+}> {
+  try {
+    const now = new Date();
+    
+    const [expiredSlotsCount, activeSlotsCount] = await Promise.all([
+      prisma.miningSlot.count({
+        where: {
+          isActive: true,
+          expiresAt: { lte: now }
+        }
+      }),
+      prisma.miningSlot.count({
+        where: { isActive: true }
+      })
+    ]);
+
+    return {
+      isHealthy: expiredSlotsCount < 100, // Consider unhealthy if more than 100 expired slots pending
+      expiredSlotsCount,
+      activeSlotsCount,
+      lastProcessedAt: new Date()
+    };
+  } catch (error) {
+    console.error('[HEALTH_CHECK] Error checking slot processing health:', error);
+    return {
+      isHealthy: false,
+      expiredSlotsCount: -1,
+      activeSlotsCount: -1
+    };
+  }
+}

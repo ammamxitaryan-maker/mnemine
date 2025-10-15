@@ -7,7 +7,7 @@ interface ReferralLinkProps {
   referralCode: string;
 }
 
-export const ReferralLink = ({ referralCode }: ReferralLinkProps) => {
+const ReferralLink = ({ referralCode }: ReferralLinkProps) => {
   const [copied, setCopied] = useState(false);
   const referralLink = `https://t.me/mnemine/app?startapp=${referralCode}`;
 

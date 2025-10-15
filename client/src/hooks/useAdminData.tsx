@@ -18,7 +18,7 @@ export interface AdminUser {
   };
 }
 
-export interface AdminData {
+interface AdminData {
   users: AdminUser[];
   totalCount: number;
   onlineCount: number;

@@ -18,7 +18,7 @@ interface FriendCardProps {
   friend: ReferredUser;
 }
 
-export const FriendCard = ({ friend }: FriendCardProps) => {
+const FriendCard = ({ friend }: FriendCardProps) => {
   const { t } = useTranslation();
   const displayName = friend.firstName || friend.username || t('referrals.anonymous');
   const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'A';

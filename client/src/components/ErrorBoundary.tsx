@@ -149,7 +149,7 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 // Хук для использования Error Boundary в функциональных компонентах
-export const useErrorHandler = () => {
+const useErrorHandler = () => {
   const [error, setError] = React.useState<Error | null>(null);
 
   const resetError = React.useCallback(() => {
@@ -171,7 +171,7 @@ export const useErrorHandler = () => {
 };
 
 // HOC для оборачивания компонентов в Error Boundary
-export const withErrorBoundary = <P extends object>(
+const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
   errorBoundaryProps?: Omit<Props, 'children'>
 ) => {
@@ -187,7 +187,7 @@ export const withErrorBoundary = <P extends object>(
 };
 
 // Стили для Error Boundary
-export const errorBoundaryStyles = `
+const errorBoundaryStyles = `
 .error-boundary {
   display: flex;
   align-items: center;

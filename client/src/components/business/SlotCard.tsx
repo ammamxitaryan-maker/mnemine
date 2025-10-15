@@ -202,4 +202,4 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
   );
 };
 
-export default SlotCard;
+// export default SlotCard;
