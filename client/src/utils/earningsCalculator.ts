@@ -34,26 +34,18 @@ export const calculateSlotEarnings = (slot: MiningSlot): SlotEarnings => {
   
   // Основные параметры
   const principal = slot.principal;
-  const weeklyRate = 0.30; // 30% за неделю
-  const totalReturn = principal * (1 + weeklyRate); // principal + 30%
-  const totalEarnings = totalReturn - principal; // 30% от principal
+  const weeklyRate = slot.effectiveWeeklyRate || 0.30; // Use actual rate from slot or fallback to 30%
+  const totalReturn = principal * (1 + weeklyRate); // principal + weekly rate
+  const totalEarnings = totalReturn - principal; // weekly rate % от principal
   
   // Рассчитываем скорость дохода
   let dailyReturn = 0;
   let perSecondRate = 0;
   
   if (slot.isActive && remainingSeconds > 0) {
-    // Если слот активен и время не истекло
-    if (remainingDays >= 7) {
-      // Если осталось 7+ дней - используем стандартную скорость
-      dailyReturn = totalEarnings / 7; // 30% / 7 дней
-      perSecondRate = dailyReturn / (24 * 60 * 60); // в секунду
-    } else {
-      // Если осталось меньше 7 дней - ускоряем для завершения
-      const remainingEarnings = totalEarnings * (remainingDays / 7);
-      dailyReturn = remainingEarnings / remainingDays;
-      perSecondRate = remainingEarnings / remainingSeconds;
-    }
+    // Calculate per-second rate using the same formula as server
+    perSecondRate = (principal * weeklyRate) / (7 * 24 * 60 * 60);
+    dailyReturn = perSecondRate * (24 * 60 * 60);
   }
   
   return {

@@ -34,6 +34,7 @@ export class SlotEarningsService {
               expiresAt: true,
               effectiveWeeklyRate: true,
               accruedEarnings: true,
+              lastAccruedAt: true,
               type: true
             }
           }
@@ -49,25 +50,58 @@ export class SlotEarningsService {
       const slotDetails = [];
 
       for (const slot of user.miningSlots) {
-        const timeElapsed = now.getTime() - slot.startAt.getTime();
-        const slotDuration = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
-        const progress = Math.min(timeElapsed / slotDuration, 1);
+        // Check if slot is still active and not expired
+        if (now.getTime() > slot.expiresAt.getTime()) {
+          continue; // Skip expired slots
+        }
+
+        // Calculate earnings from last accrual time to now
+        const lastAccrued = new Date(slot.lastAccruedAt || slot.startAt);
+        const timeElapsedMs = now.getTime() - lastAccrued.getTime();
         
-        const expectedEarnings = slot.principal * slot.effectiveWeeklyRate;
-        const currentEarnings = expectedEarnings * progress;
-        
-        totalRealTimeEarnings += currentEarnings;
-        
-        slotDetails.push({
-          slotId: slot.id,
-          principal: slot.principal,
-          currentEarnings: currentEarnings,
-          expectedEarnings: expectedEarnings,
-          progress: progress * 100,
-          timeRemaining: Math.max(0, slot.expiresAt.getTime() - now.getTime()),
-          isCompleted: progress >= 1
-        });
+        // Only calculate if time has elapsed since last accrual
+        if (timeElapsedMs > 0) {
+          const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+          const realTimeEarnings = earningsPerSecond * (timeElapsedMs / 1000);
+          const currentEarnings = slot.accruedEarnings + realTimeEarnings;
+          
+          totalRealTimeEarnings += currentEarnings;
+          
+          // Calculate progress based on total time elapsed since slot start
+          const totalTimeElapsed = now.getTime() - slot.startAt.getTime();
+          const slotDuration = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+          const progress = Math.min(totalTimeElapsed / slotDuration, 1);
+          
+          slotDetails.push({
+            slotId: slot.id,
+            principal: slot.principal,
+            currentEarnings: currentEarnings,
+            expectedEarnings: slot.principal * slot.effectiveWeeklyRate,
+            progress: progress * 100,
+            timeRemaining: Math.max(0, slot.expiresAt.getTime() - now.getTime()),
+            isCompleted: progress >= 1
+          });
+        } else {
+          // Use accrued earnings if no time has elapsed
+          totalRealTimeEarnings += slot.accruedEarnings;
+          
+          const totalTimeElapsed = now.getTime() - slot.startAt.getTime();
+          const slotDuration = 7 * 24 * 60 * 60 * 1000;
+          const progress = Math.min(totalTimeElapsed / slotDuration, 1);
+          
+          slotDetails.push({
+            slotId: slot.id,
+            principal: slot.principal,
+            currentEarnings: slot.accruedEarnings,
+            expectedEarnings: slot.principal * slot.effectiveWeeklyRate,
+            progress: progress * 100,
+            timeRemaining: Math.max(0, slot.expiresAt.getTime() - now.getTime()),
+            isCompleted: progress >= 1
+          });
+        }
       }
+
+      console.log(`[RealTimeIncome] User ${telegramId}: ${user.miningSlots.length} active slots, total earnings: ${totalRealTimeEarnings.toFixed(6)} MNE`);
 
       res.status(200).json({
         telegramId: user.telegramId,

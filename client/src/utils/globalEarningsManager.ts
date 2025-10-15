@@ -143,7 +143,9 @@ class GlobalEarningsManager {
       console.log('[EarningsManager] Initialized state:', {
         totalEarnings: this.state.totalEarnings,
         perSecondRate: this.state.perSecondRate,
-        serverEarnings: this.state.serverEarnings
+        serverEarnings: this.state.serverEarnings,
+        slotsCount: slots.length,
+        activeSlots: slots.filter(s => s.isActive).length
       });
     } else {
       // Check if slots data has changed
@@ -195,7 +197,7 @@ class GlobalEarningsManager {
     
     if (this.state && this.state.isActive && this.state.perSecondRate > 0) {
       this.updateInterval = setInterval(() => {
-        if (this.state) {
+        if (this.state && this.state.isActive) {
           const now = Date.now();
           const timeElapsedSeconds = (now - this.state.lastUpdateTime) / 1000;
           const accumulatedEarnings = this.state.perSecondRate * timeElapsedSeconds;
@@ -205,6 +207,13 @@ class GlobalEarningsManager {
             totalEarnings: this.state.totalEarnings + accumulatedEarnings,
             lastUpdateTime: now,
           };
+          
+          console.log('[EarningsManager] Updated earnings:', {
+            totalEarnings: this.state.totalEarnings,
+            perSecondRate: this.state.perSecondRate,
+            accumulatedEarnings,
+            timeElapsedSeconds
+          });
           
           this.saveToStorage();
           this.notifyListeners();
