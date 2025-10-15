@@ -23,7 +23,8 @@ import { useUserData } from '@/hooks/useUserData';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useWebSocketUserStats } from '@/hooks/useWebSocketUserStats';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { CombinedBalanceEarnings } from './CombinedBalanceEarnings';
+import { MainBalanceDisplay } from './MainBalanceDisplay';
+import { SlotControlPanel } from './SlotControlPanel';
 import { QuickActions } from './QuickActions';
 import { SimpleStats } from './SimpleStats';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -100,9 +101,14 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
         </div>
       </header>
 
-      {/* Combined Balance & Earnings */}
+      {/* Main Balance Display */}
       <div className="px-6 mb-6">
-        <CombinedBalanceEarnings />
+        <MainBalanceDisplay />
+      </div>
+
+      {/* Slot Control Panel */}
+      <div className="px-6 mb-6">
+        <SlotControlPanel />
       </div>
 
       {/* Main Actions */}
