@@ -1,5 +1,6 @@
 import prisma from '../prisma.js';
 import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
+import { ActivityLogType } from '@prisma/client';
 
 interface SlotEarnings {
   slotId: string;
@@ -126,7 +127,7 @@ export class ContinuousEarningsProcessor {
             // Prepare activity log for batch creation
             activityLogs.push({
               userId: userId,
-              type: 'EARNINGS',
+              type: ActivityLogType.CLAIM,
               amount: totalEarnings,
               description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} MNE`
             });
