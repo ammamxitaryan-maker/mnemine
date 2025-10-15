@@ -33,6 +33,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import Stats from "./pages/Stats";
 import Settings from "./pages/Settings";
 import { MainLayout } from "./components/layout/MainLayout";
+import { MinimalistLayout } from "./components/layout/MinimalistLayout";
 import { AdminRoute } from "./components/layout/AdminRoute";
 import WaveBackground from "./components/WaveBackground";
 import GlassGlowOverlay from "./components/GlassGlowOverlay"; // Import the new component
@@ -61,16 +62,20 @@ const App = () => {
           <ViewportOptimizer /> {/* Render ViewportOptimizer for Telegram Web App */}
           <LocalDevAuth /> {/* Local development auth switcher */}
           <Routes>
-            {/* Routes with the main layout and bottom nav bar */}
-            <Route element={<MainLayout />}>
+            {/* Routes with the minimalist layout */}
+            <Route element={<MinimalistLayout />}>
               <Route path="/" element={<Index />} />
-              <Route path="/wallet" element={<Wallet />} />
-              <Route path="/referrals" element={<Referrals />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/slots" element={<Slots />} />
-              <Route path="/investment-slots" element={<InvestmentSlots />} />
               <Route path="/lottery" element={<Lottery />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+            
+            {/* Routes with the main layout for other pages */}
+            <Route element={<MainLayout />}>
+              <Route path="/referrals" element={<Referrals />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/investment-slots" element={<InvestmentSlots />} />
               <Route path="/stats" element={<Stats />} />
             </Route>
             

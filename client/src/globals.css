@@ -8,26 +8,26 @@
 
 @layer base {
   :root {
-    /* Unified Dark Theme - Mobile-First Design */
-    --background: 222 47% 11%; /* #0f172a - Deep navy background */
-    --foreground: 214 32% 91%; /* #f1f5f9 - Clean white text */
+    /* Minimalist Dark Theme - Mobile-First Design */
+    --background: 0 0% 3%; /* #080808 - Pure black background */
+    --foreground: 0 0% 98%; /* #fafafa - Clean white text */
 
-    --card: 215 28% 17%; /* #1e293b - Card background */
-    --card-foreground: 214 32% 91%;
+    --card: 0 0% 6%; /* #0f0f0f - Subtle card background */
+    --card-foreground: 0 0% 98%;
 
-    --popover: 215 28% 17%;
-    --popover-foreground: 214 32% 91%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%; /* #3b82f6 - Vibrant blue */
+    --primary: 142 76% 36%; /* #059669 - Success green for crypto */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 142 76% 36%; /* #059669 - Success green */
+    --secondary: 262 83% 58%; /* #7c3aed - Purple for premium features */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 33% 25%; /* Muted gray */
-    --muted-foreground: 215 20% 65%;
+    --muted: 0 0% 15%; /* Subtle gray */
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 262 83% 58%; /* #7c3aed - Purple accent */
+    --accent: 45 93% 58%; /* #fbbf24 - Gold for USD */
     --accent-foreground: 0 0% 100%;
 
     --gold: 45 93% 58%; /* #fbbf24 - Gold color for USD */
@@ -35,35 +35,35 @@
     --destructive: 0 84% 60%; /* #ef4444 - Bright red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 217 33% 25%; /* Subtle borders */
-    --input: 217 33% 20%; /* Dark inputs */
-    --ring: 217 91% 60%; /* primary */
+    --border: 0 0% 20%; /* Subtle borders */
+    --input: 0 0% 12%; /* Dark inputs */
+    --ring: 142 76% 36%; /* primary */
 
-    --radius: 0.75rem; /* Slightly more rounded for modern look */
+    --radius: 1rem; /* More rounded for modern mobile feel */
   }
 
   .dark {
-    /* Same as root for consistent dark theme */
-    --background: 222 47% 11%;
-    --foreground: 214 32% 91%;
-    --card: 215 28% 17%;
-    --card-foreground: 214 32% 91%;
-    --popover: 215 28% 17%;
-    --popover-foreground: 214 32% 91%;
-    --primary: 217 91% 60%;
+    /* Same as root for consistent minimalist theme */
+    --background: 0 0% 3%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 142 76% 36%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 142 76% 36%;
+    --secondary: 262 83% 58%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 217 33% 25%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 262 83% 58%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 45 93% 58%;
     --accent-foreground: 0 0% 100%;
     --gold: 45 93% 58%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 25%;
-    --input: 217 33% 20%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 20%;
+    --input: 0 0% 12%;
+    --ring: 142 76% 36%;
   }
 }
 
@@ -631,16 +631,101 @@
   animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Enhanced animations for professional UI */
+/* Minimalist Design System */
+@layer components {
+  /* Clean card design */
+  .minimal-card {
+    @apply bg-card border border-border rounded-2xl p-6 shadow-none;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  /* Floating action button */
+  .fab {
+    @apply fixed bottom-20 right-4 w-14 h-14 bg-primary rounded-full shadow-lg;
+    @apply flex items-center justify-center text-white;
+    @apply hover:scale-110 active:scale-95 transition-all duration-200;
+    z-index: 100;
+  }
+  
+  /* Minimalist button */
+  .minimal-btn {
+    @apply bg-transparent border border-border rounded-xl px-6 py-3;
+    @apply text-foreground hover:bg-muted transition-all duration-200;
+    @apply active:scale-95;
+  }
+  
+  /* Primary action button */
+  .primary-btn {
+    @apply bg-primary text-primary-foreground rounded-xl px-6 py-3;
+    @apply hover:bg-primary/90 active:scale-95 transition-all duration-200;
+    @apply shadow-lg shadow-primary/25;
+  }
+  
+  /* Balance display */
+  .balance-display {
+    @apply text-4xl font-light tracking-tight;
+    background: linear-gradient(135deg, #059669, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Quick action grid */
+  .quick-actions {
+    @apply grid grid-cols-3 gap-4;
+  }
+  
+  .quick-action {
+    @apply minimal-card text-center p-4;
+    @apply hover:scale-105 active:scale-95 transition-all duration-200;
+    @apply cursor-pointer;
+  }
+  
+  /* Status indicator */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+    animation: pulse 2s infinite;
+  }
+  
+  .status-dot.online {
+    @apply bg-primary;
+  }
+  
+  .status-dot.offline {
+    @apply bg-muted-foreground;
+  }
+}
+
+/* Enhanced animations for minimalist UI */
 @keyframes shimmer {
   0% { background-position: -200px 0; }
   100% { background-position: calc(200px + 100%) 0; }
 }
 
 .shimmer-effect {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
   background-size: 200px 100%;
-  animation: shimmer 2s infinite;
+  animation: shimmer 3s infinite;
+}
+
+/* Micro-interactions */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(5, 150, 105, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(5, 150, 105, 0.6); }
+}
+
+.glow-effect {
+  animation: glow 3s ease-in-out infinite;
 }
 
 /* Smooth gradient transitions */
