@@ -36,19 +36,31 @@ export const useLotteryData = () => {
     queryKey: ['lotteryStatus'],
     queryFn: fetchLotteryStatus,
     refetchInterval: 30000, // Refetch every 30 seconds
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const ticketsQuery = useQuery<LotteryTicket[], Error>({
     queryKey: ['userLotteryTickets', user?.telegramId],
     queryFn: () => fetchUserTickets(user?.telegramId || 'guest_fallback'),
     enabled: !!user,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const lastDrawQuery = useQuery<Lottery | null, Error>({
     queryKey: ['lastLotteryDraw'],
     queryFn: fetchLastDraw,
     refetchInterval: 60000, // Refetch every minute
+    retry: 3,
+    retryDelay: 1000,
   });
+
+  const refetch = () => {
+    statusQuery.refetch();
+    ticketsQuery.refetch();
+    lastDrawQuery.refetch();
+  };
 
   return {
     lottery: statusQuery.data,
@@ -56,5 +68,6 @@ export const useLotteryData = () => {
     lastDraw: lastDrawQuery.data,
     isLoading: statusQuery.isLoading || ticketsQuery.isLoading || lastDrawQuery.isLoading,
     error: statusQuery.error || ticketsQuery.error || lastDrawQuery.error,
+    refetch,
   };
 };

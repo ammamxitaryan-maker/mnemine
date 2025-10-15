@@ -31,7 +31,7 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       const toastId = showLoading('Purchasing ticket...');
       return { toastId };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       if (mutation.context?.toastId) {
         dismissToast(mutation.context.toastId);
       }
@@ -40,6 +40,7 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       queryClient.invalidateQueries({ queryKey: ['userLotteryTickets', telegramId] }); // Use prop telegramId
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] }); // Use prop telegramId
       queryClient.invalidateQueries({ queryKey: ['lotteryStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['lastLotteryDraw'] });
     },
     onError: (error: unknown) => {
       if (mutation.context?.toastId) {
@@ -69,18 +70,56 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
   };
 
   const handleBuy = () => {
-    if (telegramId && selectedNumbers.length === numbersToPick) { // Use prop telegramId
-      mutation.mutate({ telegramId, numbers: selectedNumbers });
+    if (!telegramId) {
+      showError('User not authenticated');
+      return;
     }
+    
+    if (selectedNumbers.length !== numbersToPick) {
+      showError(`Please select exactly ${numbersToPick} numbers`);
+      return;
+    }
+
+    // Validate numbers are unique
+    const uniqueNumbers = new Set(selectedNumbers);
+    if (uniqueNumbers.size !== selectedNumbers.length) {
+      showError('Please select unique numbers');
+      return;
+    }
+
+    mutation.mutate({ telegramId, numbers: selectedNumbers });
   };
 
   return (
     <Card className="bg-gray-900/80 border-primary">
       <CardHeader>
-        <CardTitle>{t('lottery.buyTicket')}</CardTitle>
-        <CardDescription className="text-gray-400">{t('lottery.pickNumbers', { count: numbersToPick })}</CardDescription>
+        <CardTitle className="flex items-center gap-2">
+          <Ticket className="w-5 h-5 text-accent" />
+          {t('lottery.buyTicket')}
+        </CardTitle>
+        <CardDescription className="text-gray-400">
+          {t('lottery.pickNumbers', { count: numbersToPick })} • Cost: {LOTTERY_TICKET_COST.toFixed(2)} USD
+        </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Selected numbers display */}
+        {selectedNumbers.length > 0 && (
+          <div className="mb-4 p-3 bg-muted/20 rounded-lg">
+            <div className="text-sm text-muted-foreground mb-2">Selected Numbers:</div>
+            <div className="flex flex-wrap gap-2">
+              {selectedNumbers.sort((a, b) => a - b).map(num => (
+                <div key={num} className="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  {num}
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              {selectedNumbers.length} of {numbersToPick} selected
+            </div>
+          </div>
+        )}
+
+        {/* Number grid */}
         <div className="flex flex-wrap gap-2 justify-center mb-4">
           {Array.from({ length: maxNumber }, (_, i) => i + 1).map(num => (
             <Button
@@ -89,8 +128,8 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
               size="icon"
               className={`w-9 h-9 rounded-full text-sm font-bold transition-all duration-200 ${
                 selectedNumbers.includes(num) 
-                  ? 'bg-accent text-white shadow-lg' 
-                  : 'bg-gray-600 hover:bg-gray-500 text-white border-2 border-gray-500 hover:border-gray-400'
+                  ? 'bg-accent text-white shadow-lg scale-110' 
+                  : 'bg-gray-600 hover:bg-gray-500 text-white border-2 border-gray-500 hover:border-gray-400 hover:scale-105'
               }`}
               onClick={() => handleNumberClick(num)}
             >
@@ -98,8 +137,10 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
             </Button>
           ))}
         </div>
-        <div className="flex justify-center">
-          <Button variant="ghost" onClick={handleQuickPick}>
+        
+        {/* Quick pick button */}
+        <div className="flex justify-center mb-4">
+          <Button variant="ghost" onClick={handleQuickPick} className="text-muted-foreground hover:text-foreground">
             <Shuffle className="w-4 h-4 mr-2" />
             {t('lottery.quickPick')}
           </Button>
@@ -107,11 +148,21 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       </CardContent>
       <CardFooter>
         <Button
-          className="w-full bg-accent hover:bg-accent/90 text-lg py-6"
+          className="w-full bg-accent hover:bg-accent/90 text-lg py-6 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={selectedNumbers.length !== numbersToPick || mutation.isPending}
           onClick={handleBuy}
         >
-          {mutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : t('lottery.buyFor', { cost: LOTTERY_TICKET_COST.toFixed(2) })}
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="w-6 h-6 animate-spin mr-2" />
+              Purchasing...
+            </>
+          ) : (
+            <>
+              <Ticket className="w-5 h-5 mr-2" />
+              Buy Ticket for {LOTTERY_TICKET_COST.toFixed(2)} USD
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>
