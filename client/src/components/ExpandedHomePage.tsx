@@ -23,7 +23,8 @@ import {
   Award,
   TrendingUp,
   Users,
-  Loader2
+  Loader2,
+  UserPlus
 } from 'lucide-react';
 import { AuthenticatedUser } from '@/types/telegram';
 import { useUserData } from '@/hooks/useUserData';
@@ -162,6 +163,31 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
             </p>
           </Link>
         </div>
+      </div>
+
+      {/* Referrals Section */}
+      <div className="px-6 mb-6">
+        <h2 className="text-lg font-medium text-foreground mb-4">Referrals</h2>
+        <Link 
+          to="/referrals" 
+          className="minimal-card p-4 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+          onClick={() => hapticLight()}
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-500/10 rounded-xl">
+              <UserPlus className="w-6 h-6 text-emerald-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium text-foreground text-sm mb-1">
+                Invite Friends
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Earn from referrals • Share your link
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </div>
+        </Link>
       </div>
 
       {/* Wallet Actions */}
