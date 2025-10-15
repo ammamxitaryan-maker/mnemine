@@ -61,9 +61,9 @@ services:
     staticPublishPath: ./client/dist
     envVars:
       - key: VITE_BACKEND_URL
-        value: https://mnemine-backend.onrender.com
+        value: https://mnemine-fanp.onrender.com
       - key: VITE_WS_URL
-        value: wss://mnemine-backend.onrender.com/ws
+        value: wss://mnemine-fanp.onrender.com/ws
       - key: VITE_APP_NAME
         value: Mnemine
       - key: VITE_APP_VERSION
