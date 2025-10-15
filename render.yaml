@@ -9,6 +9,7 @@ services:
       npm install
       npm run build:prod
       npm run prisma:generate:prod
+      npm run prisma:deploy
     startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
