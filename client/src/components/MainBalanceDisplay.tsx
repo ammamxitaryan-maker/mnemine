@@ -2,9 +2,11 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Wallet, TrendingUp, DollarSign, Coins } from 'lucide-react';
+import { Wallet, TrendingUp, DollarSign, Coins, Zap } from 'lucide-react';
 import { useMainBalance } from '@/hooks/useMainBalance';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { useEarnings } from '@/hooks/useEarnings';
+import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
 
 interface MainBalanceDisplayProps {
   className?: string;
@@ -17,6 +19,8 @@ export const MainBalanceDisplay = ({
 }: MainBalanceDisplayProps) => {
   const { t } = useTranslation();
   const { user } = useTelegramAuth();
+  const { totalEarnings: liveEarnings, perSecondRate, isActive } = useEarnings();
+  const { convertMNEToUSD } = useCachedExchangeRate(user?.telegramId || '');
   const {
     availableBalance,
     totalInvested,
@@ -69,19 +73,23 @@ export const MainBalanceDisplay = ({
         )}
       </div>
 
-      {/* Current Earnings - Prominent Display */}
-      {(totalEarnings || 0) > 0 && (
+      {/* Live Earnings - Prominent Display */}
+      {isActive && (liveEarnings || 0) > 0 && (
         <div className="text-center mb-6 p-4 bg-accent/10 rounded-xl border border-accent/20">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <TrendingUp className="w-5 h-5 text-accent" />
-            <h3 className="text-lg font-medium text-accent">Current Earnings</h3>
+            <Zap className="w-5 h-5 text-accent animate-pulse" />
+            <h3 className="text-lg font-medium text-accent">Live Earnings</h3>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+              <span className="text-xs text-accent">Live</span>
+            </div>
           </div>
           <div className="text-3xl font-light text-accent mb-1">
-            +{(totalEarnings || 0).toFixed(6)} MNE
+            +{(liveEarnings || 0).toFixed(6)} MNE
           </div>
-          {earningsUsd > 0 && (
+          {convertMNEToUSD(liveEarnings || 0) > 0 && (
             <div className="text-sm text-muted-foreground">
-              ≈ +${earningsUsd.toFixed(2)} USD
+              ≈ +${convertMNEToUSD(liveEarnings || 0).toFixed(2)} USD
             </div>
           )}
         </div>
