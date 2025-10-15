@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSlotsData } from './useSlotsData';
 import { useUserData } from './useUserData';
 import { api } from '@/lib/api';
-import { showSuccess, showError, showLoading, dismissToast } from '@/lib/toast';
+import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 
 interface SlotControlData {
   totalSlots: number;
