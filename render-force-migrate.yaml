@@ -1,3 +1,4 @@
+# Альтернативная конфигурация с принудительным созданием таблиц
 services:
   # Backend Service
   - type: web
@@ -9,8 +10,8 @@ services:
       npm install
       npm run build:prod
       npm run prisma:generate:prod
-      npx prisma migrate deploy
-      npx prisma db push --accept-data-loss
+      npx prisma migrate deploy || npx prisma db push --accept-data-loss
+      npx prisma db pull
     startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
@@ -24,7 +25,5 @@ services:
       - key: WEBAPP_URL
         value: fastmine-telegram-simulator.onrender.com
 
-# Using existing database - no new database needed
-# databases:
-#   - name: fastmine-db
-#     plan: free
+# Если основная конфигурация не работает, используйте эту
+# Просто переименуйте render-force-migrate.yaml в render.yaml
