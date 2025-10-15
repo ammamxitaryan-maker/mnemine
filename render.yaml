@@ -9,8 +9,7 @@ services:
       npm install
       npm run build:prod
       npm run prisma:generate:prod
-      npx prisma migrate deploy
-      npx prisma db push --accept-data-loss
+      npm run prisma:push:prod
     startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
