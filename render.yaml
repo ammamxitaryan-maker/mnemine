@@ -2,18 +2,17 @@
 # This file configures the deployment settings for Render
 
 services:
-  # Backend Service
+  # Combined Backend + Frontend Service
   - type: web
-    name: fastmine-backend
+    name: fastmine-app
     env: node
     plan: starter
     buildCommand: |
-      cd server
-      npm install
-      npm run build:prod
-      npm run prisma:generate:prod
-      npm run prisma:deploy
-    startCommand: npm run start:prod
+      pnpm install --frozen-lockfile
+      pnpm run build:prod
+      pnpm run prisma:generate:prod
+      pnpm run prisma:deploy
+    startCommand: pnpm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
@@ -47,18 +46,6 @@ services:
         value: false
       - key: ENABLE_FALLBACK_AUTH
         value: false
-
-  # Frontend Service
-  - type: web
-    name: fastmine-frontend
-    env: static
-    plan: starter
-    buildCommand: |
-      cd client
-      npm install
-      npm run build
-    staticPublishPath: ./client/dist
-    envVars:
       - key: VITE_BACKEND_URL
         value: https://fastmine.onrender.com
       - key: VITE_WS_URL
@@ -69,10 +56,6 @@ services:
         value: 1.0.0
       - key: VITE_ADMIN_TELEGRAM_IDS
         value: "6760298907"
-      - key: LOCAL_DEV_MODE
-        value: false
-      - key: ENABLE_FALLBACK_AUTH
-        value: false
 
 # Database Configuration
 # Using external PostgreSQL database
