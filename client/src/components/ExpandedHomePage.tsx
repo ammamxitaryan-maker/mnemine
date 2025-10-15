@@ -7,18 +7,10 @@ import {
   Server, 
   Ticket, 
   Wallet, 
-  User,
   ArrowDownToLine,
   ArrowUpFromLine,
   History,
-  Settings,
-  Bell,
   Shield,
-  HelpCircle,
-  LogOut,
-  Globe,
-  Moon,
-  Sun,
   ChevronRight,
   Award,
   TrendingUp,
@@ -31,15 +23,12 @@ import { useUserData } from '@/hooks/useUserData';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useWebSocketUserStats } from '@/hooks/useWebSocketUserStats';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { SimpleBalance } from './SimpleBalance';
-import { RealTimeEarnings } from './RealTimeEarnings';
+import { CombinedBalanceEarnings } from './CombinedBalanceEarnings';
 import { QuickActions } from './QuickActions';
 import { SimpleStats } from './SimpleStats';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
-import { Shield } from 'lucide-react';
 
 interface ExpandedHomePageProps {
   user: AuthenticatedUser;
@@ -76,12 +65,6 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
     );
   }
 
-  const handleLogout = () => {
-    hapticWarning();
-    if (confirm('Are you sure you want to logout?')) {
-      // logout function would be called here
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,14 +100,9 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
         </div>
       </header>
 
-      {/* Balance */}
+      {/* Combined Balance & Earnings */}
       <div className="px-6 mb-6">
-        <SimpleBalance telegramId={user.telegramId} />
-      </div>
-
-      {/* Real-time Earnings */}
-      <div className="px-6 mb-6">
-        <RealTimeEarnings telegramId={user.telegramId} />
+        <CombinedBalanceEarnings />
       </div>
 
       {/* Main Actions */}
@@ -249,68 +227,31 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
         <SimpleStats telegramId={user.telegramId} />
       </div>
 
-      {/* Profile & Settings */}
-      <div className="px-6 mb-8">
-        <h2 className="text-lg font-medium text-foreground mb-4">Account</h2>
-        <div className="minimal-card">
-          <div className="space-y-1">
-            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-xl">
-                  <User className="w-4 h-4 text-primary" />
-                </div>
-                <span className="text-foreground">Profile Info</span>
+      {/* Admin Panel (conditional) */}
+      {isAdmin && (
+        <div className="px-6 mb-8">
+          <Link 
+            to="/admin" 
+            className="minimal-card p-4 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer block"
+            onClick={() => hapticLight()}
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-500/10 rounded-xl">
+                <Shield className="w-6 h-6 text-purple-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-foreground text-sm mb-1">
+                  Admin Panel
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Manage system • View analytics
+                </p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
-
-            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-secondary/10 rounded-xl">
-                  <Settings className="w-4 h-4 text-secondary" />
-                </div>
-                <span className="text-foreground">{t('settings')}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-accent/10 rounded-xl">
-                  <Bell className="w-4 h-4 text-accent" />
-                </div>
-                <span className="text-foreground">{t('notifications')}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </div>
-
-            {isAdmin && (
-              <Link 
-                to="/admin" 
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors"
-                onClick={() => hapticLight()}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-500/10 rounded-xl">
-                    <Shield className="w-4 h-4 text-purple-500" />
-                  </div>
-                  <span className="text-foreground">Admin Panel</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </Link>
-            )}
-
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full mt-4 border-destructive/20 text-destructive hover:bg-destructive/10"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
+          </Link>
         </div>
-      </div>
+      )}
 
       {/* Bottom spacing */}
       <div className="h-8" />

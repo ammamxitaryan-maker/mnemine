@@ -125,7 +125,7 @@ export const MinimalistSlotsPage = () => {
       {/* Real-time Earnings */}
       {activeSlots.length > 0 && (
         <div className="px-6 mb-6">
-          <RealTimeEarnings telegramId={user?.telegramId || ''} />
+          <RealTimeEarnings />
         </div>
       )}
 

@@ -42,6 +42,7 @@ import { ViewportOptimizer } from "./components/ViewportOptimizer"; // Import th
 import { LocalDevAuth } from "./components/LocalDevAuth"; // Import the local dev auth component
 import { DevWarning } from "./components/DevWarning"; // Import the dev warning component
 import { EarningsWrapper } from "./components/EarningsWrapper";
+import { AutoLanguageInitializer } from "./components/AutoLanguageInitializer";
 
 const queryClient = new QueryClient();
 
@@ -59,10 +60,11 @@ const App = () => {
             v7_relativeSplatPath: true
           }}
         >
-          <AppInitializer /> {/* Render AppInitializer inside BrowserRouter */}
-          <ViewportOptimizer /> {/* Render ViewportOptimizer for Telegram Web App */}
-          <LocalDevAuth /> {/* Local development auth switcher */}
-          <EarningsWrapper>
+                 <AppInitializer /> {/* Render AppInitializer inside BrowserRouter */}
+                 <ViewportOptimizer /> {/* Render ViewportOptimizer for Telegram Web App */}
+                 <LocalDevAuth /> {/* Local development auth switcher */}
+                 <AutoLanguageInitializer> {/* Auto language detection */}
+                 <EarningsWrapper>
             <Routes>
             {/* Routes with the minimalist layout */}
             <Route element={<MinimalistLayout />}>
@@ -117,8 +119,9 @@ const App = () => {
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
             </Routes>
-          </EarningsWrapper>
-        </BrowserRouter>
+                 </EarningsWrapper>
+                 </AutoLanguageInitializer>
+               </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
