@@ -6,10 +6,14 @@ interface PersistentEarningsState {
   lastUpdateTime: number;
   isActive: boolean;
   telegramId: string;
+  serverSyncTime: number; // When we last synced with server
+  serverEarnings: number; // Server-calculated earnings
+  lastServerSlotsHash: string; // Hash of slots data for change detection
 }
 
 const LOCAL_STORAGE_KEY = 'globalPersistentEarnings';
-const SYNC_INTERVAL_MS = 60000; // Sync with server every minute
+const SYNC_INTERVAL_MS = 30000; // Sync with server every 30 seconds
+const SERVER_SYNC_INTERVAL_MS = 300000; // Force server sync every 5 minutes
 
 class GlobalEarningsManager {
   private state: PersistentEarningsState | null = null;
@@ -30,6 +34,17 @@ class GlobalEarningsManager {
         try {
           const parsed: PersistentEarningsState = JSON.parse(saved);
           const now = Date.now();
+          
+          // Check if we need to sync with server (more than 5 minutes since last sync)
+          const needsServerSync = !parsed.serverSyncTime || (now - parsed.serverSyncTime) > SERVER_SYNC_INTERVAL_MS;
+          
+          if (needsServerSync) {
+            console.log('[EarningsManager] Need server sync, resetting state');
+            this.state = null;
+            return;
+          }
+          
+          // Calculate accumulated earnings since last update
           const timeElapsedSeconds = (now - parsed.lastUpdateTime) / 1000;
           const accumulatedEarnings = parsed.perSecondRate * timeElapsedSeconds;
           
@@ -38,6 +53,13 @@ class GlobalEarningsManager {
             totalEarnings: parsed.totalEarnings + accumulatedEarnings,
             lastUpdateTime: now,
           };
+          
+          console.log('[EarningsManager] Loaded from storage:', {
+            totalEarnings: this.state.totalEarnings,
+            perSecondRate: this.state.perSecondRate,
+            timeElapsedSeconds,
+            accumulatedEarnings
+          });
         } catch (error) {
           console.error('Error loading earnings from storage:', error);
           this.state = null;
@@ -50,6 +72,19 @@ class GlobalEarningsManager {
     if (typeof window !== 'undefined' && this.state) {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.state));
     }
+  }
+
+  private createSlotsHash(slots: MiningSlot[]): string {
+    // Create a simple hash of slots data to detect changes
+    const slotsData = slots.map(slot => ({
+      id: slot.id,
+      principal: slot.principal,
+      effectiveWeeklyRate: slot.effectiveWeeklyRate,
+      isActive: slot.isActive,
+      expiresAt: slot.expiresAt,
+      lastAccruedAt: slot.lastAccruedAt
+    }));
+    return JSON.stringify(slotsData);
   }
 
   private setupBeforeUnload(): void {
@@ -80,7 +115,7 @@ class GlobalEarningsManager {
     };
   }
 
-  public updateSlotsData(telegramId: string, slots: MiningSlot[]): void {
+  public updateSlotsData(telegramId: string, slots: MiningSlot[], serverEarnings?: number): void {
     // If telegramId changed, reset state
     if (this.currentTelegramId !== telegramId) {
       this.currentTelegramId = telegramId;
@@ -89,26 +124,57 @@ class GlobalEarningsManager {
 
     const { totalPerSecondRate } = calculateTotalEarnings(slots);
     const now = Date.now();
+    const slotsHash = this.createSlotsHash(slots);
 
     if (!this.state) {
+      // Initialize state with server earnings if available
       this.state = {
-        totalEarnings: 0,
+        totalEarnings: serverEarnings || 0,
         perSecondRate: totalPerSecondRate,
         lastUpdateTime: now,
         isActive: totalPerSecondRate > 0,
         telegramId,
+        serverSyncTime: now,
+        serverEarnings: serverEarnings || 0,
+        lastServerSlotsHash: slotsHash,
       };
+      
+      console.log('[EarningsManager] Initialized state:', {
+        totalEarnings: this.state.totalEarnings,
+        perSecondRate: this.state.perSecondRate,
+        serverEarnings: this.state.serverEarnings
+      });
     } else {
+      // Check if slots data has changed
+      const slotsChanged = this.state.lastServerSlotsHash !== slotsHash;
+      
       // Calculate accumulated earnings since last update
       const timeElapsedSeconds = (now - this.state.lastUpdateTime) / 1000;
       const accumulatedEarnings = this.state.perSecondRate * timeElapsedSeconds;
       
+      let newTotalEarnings = this.state.totalEarnings + accumulatedEarnings;
+      
+      // If we have server earnings and slots changed, sync with server
+      if (serverEarnings !== undefined && slotsChanged) {
+        console.log('[EarningsManager] Slots changed, syncing with server:', {
+          oldEarnings: newTotalEarnings,
+          serverEarnings,
+          difference: serverEarnings - newTotalEarnings
+        });
+        
+        // Use server earnings as the base, but keep accumulated earnings since last sync
+        newTotalEarnings = serverEarnings;
+      }
+      
       this.state = {
-        totalEarnings: this.state.totalEarnings + accumulatedEarnings,
+        totalEarnings: newTotalEarnings,
         perSecondRate: totalPerSecondRate,
         lastUpdateTime: now,
         isActive: totalPerSecondRate > 0,
         telegramId,
+        serverSyncTime: slotsChanged ? now : this.state.serverSyncTime,
+        serverEarnings: serverEarnings || this.state.serverEarnings,
+        lastServerSlotsHash: slotsHash,
       };
     }
 

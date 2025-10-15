@@ -4,6 +4,7 @@ import React, { createContext, useContext, ReactNode, useEffect, useState } from
 import { globalEarningsManager } from '@/utils/globalEarningsManager';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useUserData } from '@/hooks/useUserData';
+import { useServerEarnings } from '@/hooks/useServerEarnings';
 
 interface PersistentEarningsState {
   totalEarnings: number;
@@ -37,7 +38,8 @@ export const EarningsProvider = ({ children, telegramId }: EarningsProviderProps
   });
 
   const { data: slotsData, refetch: refetchSlots } = useSlotsData(telegramId);
-  const { refetch: refetchUserData } = useUserData(telegramId);
+  const { data: userData, refetch: refetchUserData } = useUserData(telegramId);
+  const { data: serverEarnings, refetch: refetchServerEarnings } = useServerEarnings(telegramId);
 
   // Subscribe to global earnings manager
   useEffect(() => {
@@ -48,21 +50,29 @@ export const EarningsProvider = ({ children, telegramId }: EarningsProviderProps
     return unsubscribe;
   }, []);
 
-  // Update global manager when slots data changes
+  // Update global manager when slots data or server earnings change
   useEffect(() => {
     if (slotsData) {
-      globalEarningsManager.updateSlotsData(telegramId, slotsData);
+      // Use server earnings if available, otherwise fall back to user data
+      const earnings = serverEarnings?.totalEarnings || userData?.accruedEarnings || 0;
+      globalEarningsManager.updateSlotsData(telegramId, slotsData, earnings);
     }
-  }, [slotsData, telegramId]);
+  }, [slotsData, telegramId, serverEarnings?.totalEarnings, userData?.accruedEarnings]);
 
   // Start sync timer
   useEffect(() => {
-    globalEarningsManager.startSyncTimer(refetchSlots, refetchUserData);
+    const syncFunction = () => {
+      refetchSlots();
+      refetchUserData();
+      refetchServerEarnings();
+    };
+    
+    globalEarningsManager.startSyncTimer(syncFunction, syncFunction);
     
     return () => {
       globalEarningsManager.stopSyncTimer();
     };
-  }, [refetchSlots, refetchUserData]);
+  }, [refetchSlots, refetchUserData, refetchServerEarnings]);
 
   const resetEarnings = () => {
     globalEarningsManager.resetEarnings();
