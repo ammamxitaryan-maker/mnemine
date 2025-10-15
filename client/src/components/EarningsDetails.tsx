@@ -26,8 +26,8 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
     return null;
   }
 
-  const totalReturnPercentage = ((totalExpectedReturn - totalPrincipal) / totalPrincipal) * 100;
-  const timeToComplete = totalPrincipal * 0.3 / perSecondRate; // Время до получения 30%
+  const totalReturnPercentage = totalPrincipal > 0 ? ((totalExpectedReturn - totalPrincipal) / totalPrincipal) * 100 : 0;
+  const timeToComplete = perSecondRate > 0 ? totalPrincipal * 0.3 / perSecondRate : 0; // Время до получения 30%
 
   return (
     <div className={`minimal-card ${className}`}>
