@@ -9,7 +9,7 @@ if (process.env.DATABASE_URL) {
 // Ensure DATABASE_URL is set before creating PrismaClient
 if (!process.env.DATABASE_URL) {
   console.log('[PRISMA] Using fallback DATABASE_URL');
-  process.env.DATABASE_URL = 'postgresql://fastmine_user:tpormjFKIYZmslVCDDkMkTBlkVFdvRJI@dpg-d3mqjku3jp1c73d0ec5g-a.ohio-postgres.render.com/fastmine';
+  process.env.DATABASE_URL = 'postgresql://mnemine_f1a3_user:975WPspBMdzAxnLV94zJeWP51FBFQk0Z@dpg-d3nkeg3e5dus73ed2br0-a/mnemine_f1a3';
 } else {
   console.log('[PRISMA] Using environment DATABASE_URL');
 }
