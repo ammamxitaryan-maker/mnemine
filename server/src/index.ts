@@ -40,6 +40,13 @@ if (process.env.NODE_ENV === 'production') {
   dotenv.config();
 }
 
+// Debug environment variables
+console.log('[SERVER] NODE_ENV:', process.env.NODE_ENV);
+console.log('[SERVER] DATABASE_URL from env:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+if (process.env.DATABASE_URL) {
+  console.log('[SERVER] DATABASE_URL host:', process.env.DATABASE_URL.split('@')[1]?.split('/')[0] || 'UNKNOWN');
+}
+
 // Set fallback values for environment variables BEFORE validation
 if (!process.env.DATABASE_URL) {
   if (process.env.NODE_ENV === 'production') {
