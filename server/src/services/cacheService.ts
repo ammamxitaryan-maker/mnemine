@@ -7,6 +7,7 @@
 
 import { LRUCache } from 'lru-cache';
 import { performance } from 'perf_hooks';
+import { MemoryMonitoringService } from './memoryMonitoringService.js';
 
 // Cache configuration interface
 interface CacheConfig {
@@ -47,13 +48,20 @@ interface QueryOptimizationConfig {
   cacheTimeout: number;
 }
 
-// Default configurations
+// Default configurations with memory awareness
 const DEFAULT_CACHE_CONFIG: CacheConfig = {
   maxSize: 1000,
   ttl: 5 * 60 * 1000, // 5 minutes
   updateAgeOnGet: true,
   allowStale: false,
   maxAge: 10 * 60 * 1000, // 10 minutes
+};
+
+// Memory-aware cache configurations
+const MEMORY_AWARE_CONFIGS = {
+  low: { maxSize: 500, ttl: 2 * 60 * 1000 }, // 2 minutes
+  medium: { maxSize: 1000, ttl: 5 * 60 * 1000 }, // 5 minutes
+  high: { maxSize: 2000, ttl: 10 * 60 * 1000 }, // 10 minutes
 };
 
 const DEFAULT_QUERY_CONFIG: QueryOptimizationConfig = {
@@ -96,6 +104,10 @@ export class AdvancedLRUCache<T = any> {
 
     // Set up event listeners for statistics
     this.setupEventListeners();
+    
+    // Register with memory monitoring service
+    const memoryMonitor = MemoryMonitoringService.getInstance();
+    memoryMonitor.registerCache(`AdvancedLRUCache_${Date.now()}`, this.cache);
   }
 
   private setupEventListeners(): void {
@@ -209,6 +221,62 @@ export class AdvancedLRUCache<T = any> {
     const sum = this.accessTimes.reduce((acc, time) => acc + time, 0);
     this.stats.averageAccessTime = sum / this.accessTimes.length;
   }
+
+  /**
+   * Adjust cache size based on memory pressure
+   */
+  public adjustForMemoryPressure(level: 'low' | 'medium' | 'high'): void {
+    const newConfig = MEMORY_AWARE_CONFIGS[level];
+    const oldSize = this.cache.max;
+    
+    this.cache.max = newConfig.maxSize;
+    this.config.maxSize = newConfig.maxSize;
+    this.config.ttl = newConfig.ttl;
+    
+    console.log(`[CACHE] Adjusted cache size from ${oldSize} to ${newConfig.maxSize} for ${level} memory pressure`);
+  }
+
+  /**
+   * Perform memory-aware cleanup
+   */
+  public performMemoryCleanup(): { entriesRemoved: number; memoryFreed: number } {
+    const beforeSize = this.cache.size;
+    const memoryMonitor = MemoryMonitoringService.getInstance();
+    const memoryCheck = memoryMonitor.checkMemoryThresholds();
+    
+    let entriesToRemove = 0;
+    
+    if (memoryCheck.level === 'critical') {
+      entriesToRemove = Math.floor(this.cache.size * 0.5); // Remove 50%
+    } else if (memoryCheck.level === 'warning') {
+      entriesToRemove = Math.floor(this.cache.size * 0.3); // Remove 30%
+    }
+    
+    if (entriesToRemove > 0) {
+      const keys = Array.from(this.cache.keys()).slice(0, entriesToRemove);
+      for (const key of keys) {
+        this.cache.delete(key);
+      }
+    }
+    
+    const afterSize = this.cache.size;
+    const entriesRemoved = beforeSize - afterSize;
+    
+    console.log(`[CACHE] Memory cleanup: removed ${entriesRemoved} entries (${beforeSize} -> ${afterSize})`);
+    
+    return { entriesRemoved, memoryFreed: entriesRemoved * 1024 }; // Rough estimate
+  }
+
+  /**
+   * Get memory usage estimate
+   */
+  public getMemoryUsage(): number {
+    // Rough estimation: each entry ~1KB + key size
+    const avgEntrySize = 1024; // bytes
+    const keySize = 50; // bytes average
+    const totalSize = (avgEntrySize + keySize) * this.cache.size;
+    return Math.round(totalSize / 1024 / 1024 * 100) / 100; // MB
+  }
 }
 
 /**
@@ -227,6 +295,11 @@ export class MultiLayerCache {
 
     this.redisCache = new Map();
     this.cacheStats = new Map();
+    
+    // Register with memory monitoring
+    const memoryMonitor = MemoryMonitoringService.getInstance();
+    memoryMonitor.registerCache('MultiLayerCache_memory', this.memoryCache.cache);
+    memoryMonitor.registerCache('MultiLayerCache_redis', this.redisCache as any);
   }
 
   /**

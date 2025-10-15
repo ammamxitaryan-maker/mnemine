@@ -14,6 +14,7 @@ import notificationRoutes from './notifications.js'; // Import notification rout
 import processingRoutes from './processing.js'; // Import processing routes
 import adminAuthRoutes from './adminAuth.js'; // Import admin auth routes
 import performanceRoutes from './performance.js'; // Import performance routes
+import memoryMonitoringRoutes from './memoryMonitoring.js'; // Import memory monitoring routes
 
 const router = Router();
 
@@ -48,5 +49,6 @@ router.use('/user', notificationRoutes); // Add notification routes
 router.use('/', processingRoutes); // Add processing routes
 router.use('/admin', adminAuthRoutes); // Add admin auth routes
 router.use('/performance', performanceRoutes); // Add performance routes
+router.use('/admin/memory', memoryMonitoringRoutes); // Add memory monitoring routes
 
 export default router;

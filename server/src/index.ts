@@ -101,6 +101,7 @@ import { webSocketManager } from './websocket/WebSocketManager.js';
 import { validateEnvironment } from './utils/validation.js';
 import { ProductionHealthCheck } from './utils/productionHealthCheck.js';
 import { requestLogger, websocketLogger, authLogger, businessLogger } from './middleware/requestLogger.js';
+import { MemoryMonitoringService } from './services/memoryMonitoringService.js';
 import './utils/slotProcessor.js';
 
 // Validate environment variables
@@ -703,6 +704,10 @@ async function startServer() {
       logger.server(`Frontend URL for bot: ${frontendUrl}`);
       
       ProductionHealthCheck.markAsHealthy();
+      
+      // Initialize memory monitoring
+      const memoryMonitor = MemoryMonitoringService.getInstance();
+      logger.server('Memory monitoring service initialized');
       
       try {
         const wsServer = new WebSocketServer(server);
