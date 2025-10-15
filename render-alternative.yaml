@@ -1,3 +1,4 @@
+# Альтернативная конфигурация Render с прямой ссылкой на существующую БД
 services:
   # Backend Service
   - type: web
@@ -23,7 +24,5 @@ services:
       - key: WEBAPP_URL
         value: fastmine-telegram-simulator.onrender.com
 
-# Using existing database - no new database needed
-# databases:
-#   - name: fastmine-db
-#     plan: free
+# Если база данных уже существует, используйте эту конфигурацию
+# Просто переименуйте render-alternative.yaml в render.yaml
