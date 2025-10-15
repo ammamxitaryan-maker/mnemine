@@ -21,7 +21,7 @@ interface EarningsContextType {
   resetEarnings: () => void;
 }
 
-const EarningsContext = createContext<EarningsContextType | undefined>(undefined);
+export const EarningsContext = createContext<EarningsContextType | undefined>(undefined);
 
 interface EarningsProviderProps {
   children: ReactNode;
@@ -92,10 +92,3 @@ export const EarningsProvider = ({ children, telegramId }: EarningsProviderProps
   );
 };
 
-export const useEarnings = () => {
-  const context = useContext(EarningsContext);
-  if (context === undefined) {
-    throw new Error('useEarnings must be used within an EarningsProvider');
-  }
-  return context;
-};

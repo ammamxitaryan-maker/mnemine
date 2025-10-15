@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Zap, TrendingUp } from 'lucide-react';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
-import { useEarnings } from '@/contexts/EarningsContext';
+import { useEarnings } from '@/hooks/useEarnings';
 
 interface RealTimeEarningsProps {
   className?: string;

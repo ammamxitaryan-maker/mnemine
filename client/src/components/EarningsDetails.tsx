@@ -3,7 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, Clock, DollarSign, Target, Zap } from 'lucide-react';
 import { useSlotsData } from '@/hooks/useSlotsData';
-import { useEarnings } from '@/contexts/EarningsContext';
+import { useEarnings } from '@/hooks/useEarnings';
 import { calculateTotalEarnings, calculateSlotEarnings, formatTime } from '@/utils/earningsCalculator';
 
 interface EarningsDetailsProps {
