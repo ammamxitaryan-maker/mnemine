@@ -1,10 +1,14 @@
 import { WebSocketServer } from './WebSocketServer.js';
+import { UnifiedWebSocketManager } from '../services/unifiedWebSocketManager.js';
 
 class WebSocketManager {
   private static instance: WebSocketManager;
   private wsServer: WebSocketServer | null = null;
+  private unifiedManager: UnifiedWebSocketManager;
 
-  private constructor() {}
+  private constructor() {
+    this.unifiedManager = UnifiedWebSocketManager.getInstance();
+  }
 
   public static getInstance(): WebSocketManager {
     if (!WebSocketManager.instance) {
@@ -15,46 +19,49 @@ class WebSocketManager {
 
   public setWebSocketServer(wsServer: WebSocketServer) {
     this.wsServer = wsServer;
+    // Initialize unified manager with the server
+    this.unifiedManager.initialize(wsServer);
   }
 
   public async broadcastBalanceUpdate(telegramId: string, balanceData: any) {
-    if (this.wsServer) {
-      await this.wsServer.broadcastBalanceUpdate(telegramId, balanceData);
-    } else {
-      console.warn('[WebSocketManager] WebSocket server not initialized');
-    }
+    this.unifiedManager.broadcastToUser(telegramId, 'BALANCE_UPDATE', balanceData);
   }
 
   public async broadcastSlotUpdate(telegramId: string, slotData: any) {
-    if (this.wsServer) {
-      await this.wsServer.broadcastSlotUpdate(telegramId, slotData);
-    } else {
-      console.warn('[WebSocketManager] WebSocket server not initialized');
-    }
+    this.unifiedManager.broadcastToUser(telegramId, 'SLOT_UPDATE', slotData);
   }
 
   public sendNotification(telegramId: string, notification: any) {
-    if (this.wsServer) {
-      this.wsServer.sendNotification(telegramId, notification);
-    } else {
-      console.warn('[WebSocketManager] WebSocket server not initialized');
-    }
+    this.unifiedManager.broadcastToUser(telegramId, 'NOTIFICATION', notification);
   }
 
   public sendToUser(telegramId: string, eventType: string, data: any) {
-    if (this.wsServer) {
-      this.wsServer.sendToUser(telegramId, eventType, data);
-    } else {
-      console.warn('[WebSocketManager] WebSocket server not initialized');
-    }
+    this.unifiedManager.broadcastToUser(telegramId, eventType, data);
   }
 
   public broadcastEarningsUpdate(telegramId: string, earningsData: any) {
-    if (this.wsServer) {
-      this.wsServer.broadcastEarningsUpdate(telegramId, earningsData);
-    } else {
-      console.warn('[WebSocketManager] WebSocket server not initialized');
-    }
+    this.unifiedManager.broadcastToUser(telegramId, 'EARNINGS_UPDATE', earningsData);
+  }
+
+  // New methods for enhanced functionality
+  public broadcastToSubscribers(subscription: string, eventType: string, data: any) {
+    this.unifiedManager.broadcastToSubscribers(subscription, eventType, data);
+  }
+
+  public broadcastToAll(eventType: string, data: any) {
+    this.unifiedManager.broadcastToAll(eventType, data);
+  }
+
+  public isUserOnline(telegramId: string): boolean {
+    return this.unifiedManager.isUserOnline(telegramId);
+  }
+
+  public getUserConnections(telegramId: string) {
+    return this.unifiedManager.getUserConnections(telegramId);
+  }
+
+  public getStats() {
+    return this.unifiedManager.getStats();
   }
 }
 
