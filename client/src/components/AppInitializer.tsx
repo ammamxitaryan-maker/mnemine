@@ -22,9 +22,30 @@ export const AppInitializer = () => {
       // Add event listeners to prevent closing
       window.addEventListener('beforeunload', preventClose);
       
-      // Prevent context menu and selection
-      document.addEventListener('contextmenu', (e) => e.preventDefault());
-      document.addEventListener('selectstart', (e) => e.preventDefault());
+      // Prevent context menu and selection, but allow button interactions
+      document.addEventListener('contextmenu', (e) => {
+        // Allow context menu on buttons and interactive elements
+        if (e.target instanceof HTMLElement && 
+            (e.target.tagName === 'BUTTON' || 
+             e.target.closest('button') || 
+             e.target.closest('[role="button"]') ||
+             e.target.closest('.cursor-pointer'))) {
+          return;
+        }
+        e.preventDefault();
+      });
+      
+      document.addEventListener('selectstart', (e) => {
+        // Allow selection on input fields and textareas
+        if (e.target instanceof HTMLElement && 
+            (e.target.tagName === 'INPUT' || 
+             e.target.tagName === 'TEXTAREA' ||
+             e.target.closest('input') ||
+             e.target.closest('textarea'))) {
+          return;
+        }
+        e.preventDefault();
+      });
       
       // Enable vertical scrolling but prevent horizontal scroll
       document.body.style.overscrollBehavior = 'auto';

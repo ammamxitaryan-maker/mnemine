@@ -100,6 +100,7 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    touch-action: manipulation; /* Allow touch interactions */
   }
 
   /* Telegram Web App specific styles */
@@ -399,7 +400,7 @@
     }
   }
 
-  /* Prevent text selection and context menus */
+  /* Prevent text selection and context menus, but allow button interactions */
   * {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -407,6 +408,25 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+  }
+  
+  /* Allow button interactions */
+  button, [role="button"], .button, a, [onclick], .cursor-pointer {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+  }
+  
+  /* Ensure all interactive elements are clickable */
+  .minimal-card, .card, [data-testid], .hover\\:scale-105, .active\\:scale-95 {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    touch-action: manipulation;
   }
 
   /* Allow text selection in input fields and textareas */

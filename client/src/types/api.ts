@@ -169,7 +169,7 @@ export interface SwapRequest {
 }
 
 export interface SwapResponse {
-  swap: SwapTransactionInfo;
+  swap: TransactionInfo;
   newBalances: {
     fromBalance: number;
     toBalance: number;
@@ -324,15 +324,7 @@ export interface ApiError {
 }
 
 
-export const isApiError = (error: unknown): error is ApiError => {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    'message' in error &&
-    'timestamp' in error
-  );
-};
+// isApiError is exported from errors.ts to avoid duplication
 
 // Utility types
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
