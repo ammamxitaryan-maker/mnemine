@@ -153,10 +153,10 @@ const AdminUsers = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white">User Management</h1>
-          <p className="text-gray-400 text-sm">Manage users, roles, and permissions</p>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">User Management</h1>
+          <p className="text-gray-400 text-xs sm:text-sm">Manage users, roles, and permissions</p>
         </div>
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <Button variant="outline" size="sm" className="w-full sm:w-auto">
