@@ -16,7 +16,12 @@ import {
   Pause,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  Search,
+  Crown,
+  Award,
+  User,
+  Filter
 } from 'lucide-react';
 
 interface LotteryData {
@@ -51,13 +56,20 @@ interface LotteryTicket {
 const AdminLottery = () => {
   const [lottery, setLottery] = useState<LotteryData | null>(null);
   const [tickets, setTickets] = useState<LotteryTicket[]>([]);
+  const [filteredTickets, setFilteredTickets] = useState<LotteryTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedWinner, setSelectedWinner] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showWinnerSelection, setShowWinnerSelection] = useState(false);
 
   useEffect(() => {
     fetchLotteryData();
   }, []);
+
+  useEffect(() => {
+    filterTickets();
+  }, [tickets, searchTerm]);
 
   const fetchLotteryData = async () => {
     try {
@@ -73,6 +85,19 @@ const AdminLottery = () => {
       console.error('Error fetching lottery data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const filterTickets = () => {
+    if (!searchTerm.trim()) {
+      setFilteredTickets(tickets);
+    } else {
+      const filtered = tickets.filter(ticket => 
+        ticket.user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.user.telegramId.includes(searchTerm)
+      );
+      setFilteredTickets(filtered);
     }
   };
 
