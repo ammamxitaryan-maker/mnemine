@@ -48,16 +48,30 @@ const AdminUsers = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [currentPage, pageSize, searchTerm, filterRole, filterStatus]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/users');
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: pageSize.toString(),
+        ...(searchTerm && { search: searchTerm }),
+        ...(filterRole !== 'all' && { role: filterRole }),
+        ...(filterStatus !== 'all' && { status: filterStatus })
+      });
+      
+      const response = await api.get(`/admin/users?${params}`);
       setUsers(response.data.data.users || []);
+      setTotalPages(response.data.data.totalPages || 1);
+      setTotalUsers(response.data.data.totalUsers || 0);
     } catch (err: any) {
       console.error('Error fetching users:', err);
     } finally {
@@ -104,20 +118,58 @@ const AdminUsers = () => {
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = searchTerm === '' || 
-      user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.telegramId.includes(searchTerm);
-    
-    const matchesRole = filterRole === 'all' || user.role === filterRole;
-    const matchesStatus = filterStatus === 'all' || 
-      (filterStatus === 'active' && user.isActive && !user.isFrozen) ||
-      (filterStatus === 'frozen' && user.isFrozen) ||
-      (filterStatus === 'suspicious' && user.isSuspicious);
+  const handleExportUsers = () => {
+    try {
+      // Create CSV content
+      const headers = [
+        'ID',
+        'Telegram ID',
+        'First Name',
+        'Username',
+        'Email',
+        'Role',
+        'Status',
+        'Balance (USD)',
+        'Total Invested',
+        'Created At',
+        'Last Seen',
+        'Referral Count'
+      ];
 
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+      const csvContent = [
+        headers.join(','),
+        ...users.map(user => [
+          user.id,
+          user.telegramId,
+          user.firstName || '',
+          user.username || '',
+          user.email || '',
+          user.role,
+          user.isFrozen ? 'Frozen' : user.isSuspicious ? 'Suspicious' : user.isActive ? 'Active' : 'Inactive',
+          user.balance.toFixed(4),
+          user.totalInvested.toFixed(2),
+          new Date(user.createdAt).toISOString(),
+          user.lastSeenAt ? new Date(user.lastSeenAt).toISOString() : '',
+          user.referralCount
+        ].map(field => `"${field}"`).join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      alert('Failed to export users data');
+    }
+  };
+
 
   const getStatusBadge = (user: User) => {
     if (user.isFrozen) return <Badge variant="destructive">Frozen</Badge>;
@@ -156,10 +208,17 @@ const AdminUsers = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
         <div>
           <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">User Management</h1>
-          <p className="text-gray-400 text-xs sm:text-sm">Manage users, roles, and permissions</p>
+          <p className="text-gray-400 text-xs sm:text-sm">
+            Manage users, roles, and permissions • {totalUsers.toLocaleString()} total users
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <Button variant="outline" size="sm" className="w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full sm:w-auto"
+            onClick={handleExportUsers}
+          >
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -176,19 +235,25 @@ const AdminUsers = () => {
           <CardTitle className="text-sm">Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search users..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // Reset to first page when searching
+                }}
                 className="pl-10 bg-gray-800 border-gray-600"
               />
             </div>
             <select
               value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
+              onChange={(e) => {
+                setFilterRole(e.target.value);
+                setCurrentPage(1);
+              }}
               className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
             >
               <option value="all">All Roles</option>
@@ -198,13 +263,29 @@ const AdminUsers = () => {
             </select>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setCurrentPage(1);
+              }}
               className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="frozen">Frozen</option>
               <option value="suspicious">Suspicious</option>
+            </select>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
+            >
+              <option value={25}>25 per page</option>
+              <option value={50}>50 per page</option>
+              <option value={100}>100 per page</option>
+              <option value={200}>200 per page</option>
             </select>
             <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
@@ -218,7 +299,10 @@ const AdminUsers = () => {
       <Card className="bg-gray-900 border-gray-700">
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-sm">
-            <span>Users ({filteredUsers.length})</span>
+            <span>
+              Users ({users.length} of {totalUsers.toLocaleString()}) • 
+              Page {currentPage} of {totalPages}
+            </span>
             <div className="flex space-x-2">
               <Button
                 variant="outline"
@@ -244,7 +328,7 @@ const AdminUsers = () => {
                       className="rounded border-gray-600 bg-gray-800"
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedUsers(filteredUsers.map(u => u.id));
+                          setSelectedUsers(users.map(u => u.id));
                         } else {
                           setSelectedUsers([]);
                         }
@@ -260,7 +344,7 @@ const AdminUsers = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {users.map((user) => (
                   <tr key={user.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                     <td className="py-3 px-4">
                       <input
@@ -375,7 +459,180 @@ const AdminUsers = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Mobile View */}
+          <div className="md:hidden space-y-4">
+            {users.map((user) => (
+              <div key={user.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-600 bg-gray-800"
+                      checked={selectedUsers.includes(user.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedUsers([...selectedUsers, user.id]);
+                        } else {
+                          setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                        }
+                      }}
+                    />
+                    <div>
+                      <div className="font-medium text-white">
+                        {user.firstName || user.username || `User ${user.telegramId}`}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        @{user.username || 'N/A'} • {user.telegramId}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/admin/user/${user.id}`)}
+                    >
+                      View
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <div className="text-xs text-gray-400">Role</div>
+                    <div>{getRoleBadge(user.role)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400">Status</div>
+                    <div>{getStatusBadge(user)}</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <div className="text-xs text-gray-400">Balance</div>
+                    <div className="font-mono text-yellow-400 text-sm">
+                      {user.balance.toFixed(4)} USD
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {user.totalInvested.toFixed(2)} invested
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400">Joined</div>
+                    <div className="text-sm text-gray-300">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {user.referralCount} referrals
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-2 pt-2 border-t border-gray-700">
+                  {user.isFrozen ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleUserAction(user.id, 'unfreeze')}
+                      className="flex-1"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Unfreeze
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleUserAction(user.id, 'freeze')}
+                      className="flex-1"
+                    >
+                      <UserX className="h-4 w-4 mr-1" />
+                      Freeze
+                    </Button>
+                  )}
+                  {user.isSuspicious ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleUserAction(user.id, 'unban')}
+                      className="flex-1"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Unban
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleUserAction(user.id, 'ban')}
+                      className="flex-1"
+                    >
+                      <Ban className="h-4 w-4 mr-1" />
+                      Ban
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleUserAction(user.id, 'delete')}
+                    className="text-red-400 border-red-600 hover:bg-red-600/10 flex-1"
+                  >
+                    <UserX className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-700">
+            <div className="flex items-center space-x-2 text-sm text-gray-400">
+              <span>Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers.toLocaleString()} users</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+              >
+                First
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <span className="px-3 py-1 text-sm text-gray-300">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+              >
+                Last
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Bulk Actions Modal */}
