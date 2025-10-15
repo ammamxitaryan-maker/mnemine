@@ -24,7 +24,7 @@ export const AutoLanguageInitializer = ({ children }: AutoLanguageInitializerPro
     };
 
     initializeLanguage();
-  }, [applyAutoLanguage, confidence, detectedLanguage]);
+  }, []); // Remove dependency to prevent infinite loop
 
   return <>{children}</>;
 };

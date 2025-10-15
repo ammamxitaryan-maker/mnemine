@@ -279,7 +279,7 @@ export const useAutoLanguageDetection = () => {
     };
 
     initializeAutoDetection();
-  }, [applyAutoLanguage, detectLanguage]);
+  }, []); // Remove dependencies to prevent infinite loop
 
   return {
     ...detectionResult,
