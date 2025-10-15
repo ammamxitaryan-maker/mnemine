@@ -1,5 +1,3 @@
-// Unified Prisma Schema for FastMine
-// Combines features from all environment-specific schemas
 generator client {
   provider = "prisma-client-js"
 }
@@ -35,37 +33,30 @@ model User {
   isOnline                           Boolean           @default(false)
   permissions                        String[]          @default([])
   managedBy                          String?
-  
-  // Admin system fields
-  lastActivityAt                     DateTime?
-  isActive                           Boolean           @default(true)
-  isFrozen                           Boolean           @default(false)
+  activityScore                      Float             @default(0)
+  firstWithdrawalAt                  DateTime?
   frozenAt                           DateTime?
   frozenReason                       String?
-  activityScore                      Float             @default(0)
+  hasMadeDeposit                     Boolean           @default(false)
+  isActive                           Boolean           @default(true)
+  isFrozen                           Boolean           @default(false)
+  lastActivityAt                     DateTime?
+  lastLotteryTicketAt                DateTime?
   totalEarnings                      Float             @default(0)
   totalWithdrawn                     Float             @default(0)
-  firstWithdrawalAt                  DateTime?
-  hasMadeDeposit                     Boolean           @default(false)
-  lastLotteryTicketAt                DateTime?
-  
-  // Relations
+  accountFreezes                     AccountFreeze[]
   activityLogs                       ActivityLog[]
   completedTasks                     CompletedTask[]
+  investments                        Investment[]
   lotteryTickets                     LotteryTicket[]
   miningSlots                        MiningSlot[]
+  notifications                      Notification[]
+  referralEarnings                   ReferralEarning[]
   swapTransactions                   SwapTransaction[]
   referredBy                         User?             @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
   referrals                          User[]            @relation("UserReferrals")
   wallets                            Wallet[]
-  notifications                      Notification[]
-  referralEarnings                   ReferralEarning[]
   withdrawals                        Withdrawal[]
-  investments                        Investment[]
-  accountFreezes                     AccountFreeze[]
-  deposits                           Deposit[]
-  achievements                       UserAchievement[]
-  bonuses                            Bonus[]
 
   @@index([referredById])
   @@index([telegramId])
@@ -85,23 +76,21 @@ model User {
 model Wallet {
   id        String   @id @default(cuid())
   userId    String
-  currency  String   @default("USD")
-  balance   Float    @default(0)
-  frozen    Boolean  @default(false)
+  currency  String
+  balance   Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  frozen    Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
 
-  @@unique([userId, currency])
   @@index([userId])
-  @@index([currency])
+  @@index([frozen])
 }
 
 model MiningSlot {
   id                  String   @id @default(cuid())
   userId              String
   principal           Float
-  accruedEarnings     Float    @default(0)
   startAt             DateTime @default(now())
   lastAccruedAt       DateTime
   effectiveWeeklyRate Float
@@ -111,7 +100,8 @@ model MiningSlot {
   updatedAt           DateTime @updatedAt
   type                String   @default("standard")
   isLocked            Boolean  @default(false)
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accruedEarnings     Float    @default(0)
+  user                User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([isActive])
@@ -129,9 +119,9 @@ model Task {
   description String
   reward      Float
   link        String
-  isActive    Boolean         @default(true)
   createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  updatedAt   DateTime        @default(now()) @updatedAt
+  isActive    Boolean         @default(true)
   completedBy CompletedTask[]
 
   @@index([isActive])
@@ -141,8 +131,8 @@ model CompletedTask {
   userId    String
   taskId    String
   createdAt DateTime @default(now())
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      Task     @relation(fields: [taskId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@id([userId, taskId])
 }
@@ -151,14 +141,13 @@ model ActivityLog {
   id           String          @id @default(cuid())
   userId       String
   type         ActivityLogType
-  amount       Float?
+  amount       Float
   description  String
+  createdAt    DateTime        @default(now())
   sourceUserId String?
   ipAddress    String?
   userAgent    String?
-  metadata     Json?
-  createdAt    DateTime        @default(now())
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([type])
@@ -175,27 +164,22 @@ model Lottery {
   winningNumbers String?
   createdAt      DateTime        @default(now())
   tickets        LotteryTicket[]
-
-  @@index([drawDate])
-  @@index([isDrawn])
 }
 
 model LotteryTicket {
   id              String   @id @default(cuid())
   userId          String
-  lotteryId       String?
-  numbers         String?
-  ticketNumber    Int?
+  lotteryId       String
+  numbers         String
   isWinner        Boolean  @default(false)
   prizeAmount     Float?
   isAdminSelected Boolean  @default(false)
   createdAt       DateTime @default(now())
-  lottery         Lottery? @relation(fields: [lotteryId], references: [id], onDelete: SetNull)
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lottery         Lottery  @relation(fields: [lotteryId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([lotteryId])
-  @@index([isWinner])
 }
 
 model ExchangeRate {
@@ -205,19 +189,16 @@ model ExchangeRate {
   createdBy String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@index([isActive])
-  @@index([createdAt])
 }
 
 model SwapTransaction {
   id           String   @id @default(cuid())
   userId       String
-  USDAmount    Float
-  MNEAmount   Float
   exchangeRate Float
   createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  MNEAmount    Float
+  USDAmount    Float
+  user         User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
@@ -225,22 +206,22 @@ model SwapTransaction {
 }
 
 model Notification {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   userId        String
   type          String
   title         String
   message       String
-  isRead        Boolean  @default(false)
-  priority      String  @default("normal")
-  status        String  @default("PENDING")
-  scheduledFor  DateTime?
-  attempts      Int     @default(0)
-  lastAttemptAt DateTime?
+  isRead        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  attempts      Int       @default(0)
   error         String?
+  lastAttemptAt DateTime?
   metadata      Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  priority      String    @default("normal")
+  scheduledFor  DateTime?
+  status        String    @default("PENDING")
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([isRead])
@@ -251,22 +232,21 @@ model Notification {
 }
 
 model Investment {
-  id                  String   @id @default(cuid())
-  userId              String
-  amount              Float
-  type                InvestmentType
-  status              InvestmentStatus @default(ACTIVE)
-  startDate           DateTime @default(now())
-  endDate             DateTime
-  expectedReturn      Float
-  actualReturn        Float @default(0)
-  weeklyRate          Float
-  isLocked            Boolean @default(true)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id             String           @id @default(cuid())
+  userId         String
+  amount         Float
+  type           InvestmentType
+  status         InvestmentStatus @default(ACTIVE)
+  startDate      DateTime         @default(now())
+  endDate        DateTime
+  expectedReturn Float
+  actualReturn   Float            @default(0)
+  weeklyRate     Float
+  isLocked       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([status])
   @@index([endDate])
@@ -274,138 +254,95 @@ model Investment {
 }
 
 model Withdrawal {
-  id              String   @id @default(cuid())
+  id              String           @id @default(cuid())
   userId          String
   amount          Float
-  currency        String   @default("USD")
+  currency        String
   status          WithdrawalStatus @default(PENDING)
   type            WithdrawalType
-  adminApproved   Boolean @default(false)
+  adminApproved   Boolean          @default(false)
   adminId         String?
   processedAt     DateTime?
   rejectedAt      DateTime?
   rejectionReason String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  user            User             @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([status])
   @@index([createdAt])
 }
 
 model ReferralEarning {
-  id              String   @id @default(cuid())
-  userId          String
-  sourceUserId    String
-  amount          Float
-  type            ReferralEarningType
-  level           Int
-  isCapped        Boolean @default(false)
-  createdAt       DateTime @default(now())
-  
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id           String              @id @default(cuid())
+  userId       String
+  sourceUserId String
+  amount       Float
+  type         ReferralEarningType
+  level        Int
+  isCapped     Boolean             @default(false)
+  createdAt    DateTime            @default(now())
+  user         User                @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([sourceUserId])
   @@index([type])
 }
 
 model DailyPayout {
-  id              String   @id @default(cuid())
-  date            DateTime @unique
-  totalAmount     Float
-  totalUsers      Int
-  processedUsers  Int @default(0)
-  status          PayoutStatus @default(PENDING)
-  processedAt     DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  details         DailyPayoutDetail[]
-  
+  id             String              @id @default(cuid())
+  date           DateTime            @unique
+  totalAmount    Float
+  totalUsers     Int
+  processedUsers Int                 @default(0)
+  status         PayoutStatus        @default(PENDING)
+  processedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  details        DailyPayoutDetail[]
+
   @@index([date])
   @@index([status])
 }
 
 model DailyPayoutDetail {
-  id              String   @id @default(cuid())
-  payoutId        String
-  userId          String
-  amount          Float
-  investmentId    String?
-  processed       Boolean @default(false)
-  processedAt     DateTime?
-  createdAt       DateTime @default(now())
-  
-  payout          DailyPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  
+  id           String      @id @default(cuid())
+  payoutId     String
+  userId       String
+  amount       Float
+  investmentId String?
+  processed    Boolean     @default(false)
+  processedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  payout       DailyPayout @relation(fields: [payoutId], references: [id])
+
   @@index([payoutId])
   @@index([userId])
 }
 
 model AccountFreeze {
-  id              String   @id @default(cuid())
-  userId          String
-  reason          FreezeReason
-  duration        Int?
-  frozenAt        DateTime @default(now())
-  unfrozenAt      DateTime?
-  adminId         String
-  description     String?
-  isActive        Boolean @default(true)
-  
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id          String       @id @default(cuid())
+  userId      String
+  reason      FreezeReason
+  duration    Int?
+  frozenAt    DateTime     @default(now())
+  unfrozenAt  DateTime?
+  adminId     String
+  description String?
+  isActive    Boolean      @default(true)
+  user        User         @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([isActive])
   @@index([frozenAt])
 }
 
-model Deposit {
-  id        String   @id @default(cuid())
-  userId    String
-  amount    Float
-  currency  String   @default("USD")
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model UserAchievement {
-  id            String      @id @default(cuid())
-  userId        String
-  achievementId String
-  unlockedAt    DateTime    @default(now())
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, achievementId])
-  @@index([userId])
-}
-
-model Bonus {
-  id          String   @id @default(cuid())
-  userId      String
-  amount      Float
-  type        String
-  description String?
-  createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([type])
-}
-
-// Enums
 enum UserRole {
   USER
   ADMIN
   MANAGER
   STAFF
-  SUPPORT
 }
 
 enum InvestmentType {
@@ -498,8 +435,4 @@ enum ActivityLogType {
   EARNINGS
   REFERRAL
   BONUS
-  TASK_COMPLETION
-  ACHIEVEMENT_UNLOCK
-  INVESTMENT_GROWTH
-  DIVIDENDS_BONUS
 }
