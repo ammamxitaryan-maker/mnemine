@@ -1,62 +1,28 @@
-# Render Configuration for Mnemine App
-# This file configures the deployment settings for Render
-
 services:
-  # Combined Backend + Frontend Service
+  # Backend Service
   - type: web
-    name: fastmine-app
+    name: mnemine-backend
     env: node
     plan: starter
     buildCommand: |
-      pnpm install --frozen-lockfile
-      pnpm run build:prod
-      pnpm run prisma:generate:prod
-      pnpm run prisma:deploy
-    startCommand: pnpm run start:prod
+      cd server
+      npm install
+      npm run build:prod
+      npm run prisma:generate:prod
+    startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 10000
+        value: 3000
       - key: DATABASE_URL
         value: postgresql://mnemine_f1a3_user:975WPspBMdzAxnLV94zJeWP51FBFQk0Z@dpg-d3nkeg3e5dus73ed2br0-a/mnemine_f1a3
-      - key: JWT_SECRET
-        generateValue: true
-      - key: ENCRYPTION_KEY
-        generateValue: true
-      - key: SESSION_SECRET
-        generateValue: true
-      - key: ADMIN_PASSWORD
-        value: nemesisN3M3616
-      - key: ADMIN_TELEGRAM_ID
-        value: 6760298907
-      - key: ADMIN_TELEGRAM_IDS
-        value: "6760298907"
-      - key: TELEGRAM_BOT_TOKEN
+      - key: BOT_TOKEN
         sync: false
-      - key: TELEGRAM_WEBHOOK_SECRET
-        generateValue: true
-      - key: RATE_LIMIT_MAX_REQUESTS
-        value: 50
-      - key: RATE_LIMIT_WINDOW_MS
-        value: 900000
-      - key: LOG_LEVEL
-        value: warn
-      - key: LOCAL_DEV_MODE
-        value: false
-      - key: ENABLE_FALLBACK_AUTH
-        value: false
-      - key: VITE_BACKEND_URL
-        value: https://fastmine.onrender.com
-      - key: VITE_WS_URL
-        value: wss://fastmine.onrender.com/ws
-      - key: VITE_APP_NAME
-        value: Mnemine
-      - key: VITE_APP_VERSION
-        value: 1.0.0
-      - key: VITE_ADMIN_TELEGRAM_IDS
-        value: "6760298907"
+      - key: WEBAPP_URL
+        value: fastmine-telegram-simulator.onrender.com
 
-# Database Configuration
-# Using external PostgreSQL database
-# DATABASE_URL is configured directly in envVars above
+# Using existing database - no new database needed
+# databases:
+#   - name: fastmine-db
+#     plan: free
