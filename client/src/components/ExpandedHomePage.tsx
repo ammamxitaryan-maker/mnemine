@@ -102,7 +102,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
 
       {/* Main Actions */}
       <div className="px-6 mb-6">
-        <h2 className="text-lg font-medium text-foreground mb-4">Main Actions</h2>
+        <h2 className="text-lg font-medium text-foreground mb-4">{t('mainActions')}</h2>
         <div className="grid grid-cols-2 gap-4">
           <Link 
             to="/slots" 
@@ -113,7 +113,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
               <Server className="w-6 h-6 mx-auto text-primary" />
             </div>
             <h3 className="font-medium text-foreground text-sm mb-1">
-              {t('slots.title')}
+              {t('miningSlots')}
             </h3>
             <p className="text-xs text-muted-foreground">
               {activeSlots.length} active slots
@@ -129,7 +129,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
               <Ticket className="w-6 h-6 mx-auto text-accent" />
             </div>
             <h3 className="font-medium text-foreground text-sm mb-1">
-              {t('lottery.title')}
+              {t('dailyLottery')}
             </h3>
             <p className="text-xs text-muted-foreground">
               Jackpot available
@@ -140,7 +140,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
 
       {/* Referrals Section */}
       <div className="px-6 mb-6">
-        <h2 className="text-lg font-medium text-foreground mb-4">Referrals</h2>
+        <h2 className="text-lg font-medium text-foreground mb-4">{t('referrals')}</h2>
         <Link 
           to="/referrals" 
           className="minimal-card p-4 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
@@ -152,10 +152,10 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
             </div>
             <div className="flex-1">
               <h3 className="font-medium text-foreground text-sm mb-1">
-                Invite Friends
+                {t('inviteFriends')}
               </h3>
               <p className="text-xs text-muted-foreground">
-                Earn from referrals • Share your link
+                {t('earnFromReferrals')}
               </p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -165,7 +165,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
 
       {/* Wallet Actions */}
       <div className="px-6 mb-6">
-        <h2 className="text-lg font-medium text-foreground mb-4">Wallet</h2>
+        <h2 className="text-lg font-medium text-foreground mb-4">{t('wallet')}</h2>
         <div className="grid grid-cols-3 gap-3">
           <Link 
             to="/deposit" 
@@ -179,7 +179,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
               {t('deposit')}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Add funds
+              {t('addFunds')}
             </p>
           </Link>
 
@@ -195,7 +195,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
               {t('withdraw')}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Cash out
+              {t('cashOut')}
             </p>
           </Link>
 
@@ -208,10 +208,10 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
               <History className="w-5 h-5 mx-auto text-accent" />
             </div>
             <h3 className="font-medium text-foreground text-xs mb-1">
-              History
+              {t('history')}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Transactions
+              {t('transactions')}
             </p>
           </Link>
         </div>
@@ -236,10 +236,10 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
               </div>
               <div className="flex-1">
                 <h3 className="font-medium text-foreground text-sm mb-1">
-                  Admin Panel
+                  {t('adminPanel')}
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Manage system • View analytics
+                  {t('manageSystem')}
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />

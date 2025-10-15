@@ -35,7 +35,7 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
         <div className="p-2 bg-primary/10 rounded-xl">
           <TrendingUp className="w-4 h-4 text-primary" />
         </div>
-        <h3 className="font-medium text-foreground">Earnings Details</h3>
+        <h3 className="font-medium text-foreground">{t('earningsDetails')}</h3>
       </div>
 
       {/* Summary Stats */}
@@ -44,14 +44,14 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
           <div className="text-lg font-light text-primary mb-1">
             {totalPrincipal.toFixed(2)}
           </div>
-          <div className="text-xs text-muted-foreground">Total Invested</div>
+          <div className="text-xs text-muted-foreground">{t('totalInvested')}</div>
         </div>
         
         <div className="text-center p-3 bg-muted/20 rounded-xl">
           <div className="text-lg font-light text-accent mb-1">
             {totalReturnPercentage.toFixed(1)}%
           </div>
-          <div className="text-xs text-muted-foreground">Expected Return</div>
+          <div className="text-xs text-muted-foreground">{t('expectedReturn')}</div>
         </div>
       </div>
 
@@ -60,7 +60,7 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-foreground">Daily Rate</span>
+            <span className="text-sm text-foreground">{t('dailyRate')}</span>
           </div>
           <span className="text-sm font-medium text-primary">
             +{totalDailyReturn.toFixed(6)} MNE
@@ -70,7 +70,7 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-foreground">Per Second</span>
+            <span className="text-sm text-foreground">{t('perSecond')}</span>
           </div>
           <span className="text-sm font-medium text-primary">
             +{perSecondRate.toFixed(8)} MNE
@@ -80,7 +80,7 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-foreground">Time to 30%</span>
+            <span className="text-sm text-foreground">{t('timeTo30')}</span>
           </div>
           <span className="text-sm font-medium text-accent">
             {formatTime(timeToComplete)}
@@ -90,10 +90,11 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
 
       {/* Individual Slots */}
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-foreground mb-2">Active Slots</h4>
+        <h4 className="text-sm font-medium text-foreground mb-2">{t('activeSlots')}</h4>
         {activeSlots.slice(0, 3).map((slot, index) => {
-          const slotData = slotsData.find(s => s.id === slot.principal.toString());
-          const slotEarnings = calculateSlotEarnings(slotData || slotsData[0]);
+          // Find the actual slot data by matching principal amount
+          const slotData = slotsData.find(s => Math.abs(s.principal - slot.principal) < 0.001);
+          const slotEarnings = slotData ? calculateSlotEarnings(slotData) : slot;
           
           return (
             <div key={index} className="flex items-center justify-between p-2 bg-muted/10 rounded-lg">
@@ -107,10 +108,10 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
               </div>
               <div className="text-right">
                 <div className="text-sm font-medium text-primary">
-                  +{slot.perSecondRate.toFixed(6)}/s
+                  +{slotEarnings.perSecondRate.toFixed(6)}/s
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {((slot.totalReturn - slot.principal) / slot.principal * 100).toFixed(1)}%
+                  {slotEarnings.principal > 0 ? ((slotEarnings.totalReturn - slotEarnings.principal) / slotEarnings.principal * 100).toFixed(1) : 0}%
                 </div>
               </div>
             </div>
@@ -119,7 +120,7 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
         
         {activeSlots.length > 3 && (
           <div className="text-center text-xs text-muted-foreground py-2">
-            +{activeSlots.length - 3} more slots
+{t('moreSlots', { count: activeSlots.length - 3 })}
           </div>
         )}
       </div>
