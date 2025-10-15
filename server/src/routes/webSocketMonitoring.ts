@@ -17,4 +17,3 @@ router.post('/config', WebSocketMonitoringController.updateConfiguration);
 router.post('/cleanup', WebSocketMonitoringController.forceCleanup);
 
 export default router;
-

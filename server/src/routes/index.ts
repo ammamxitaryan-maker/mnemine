@@ -52,5 +52,6 @@ router.use('/admin', adminAuthRoutes); // Add admin auth routes
 router.use('/performance', performanceRoutes); // Add performance routes
 router.use('/admin/memory', memoryMonitoringRoutes); // Add memory monitoring routes
 router.use('/admin/websocket', webSocketMonitoringRoutes); // Add WebSocket monitoring routes
+router.use('/admin/websocket', webSocketMonitoringRoutes); // Add WebSocket monitoring routes
 
 export default router;

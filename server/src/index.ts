@@ -712,7 +712,7 @@ async function startServer() {
       try {
         const wsServer = new WebSocketServer(server);
         webSocketManager.setWebSocketServer(wsServer);
-        logger.websocket('WebSocket server initialized');
+        logger.websocket('Unified WebSocket server initialized with connection pooling');
       } catch (wsError) {
         logger.error(LogContext.WEBSOCKET, 'Failed to initialize WebSocket server', wsError);
       }
