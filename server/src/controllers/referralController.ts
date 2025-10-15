@@ -70,7 +70,7 @@ export const getReferralStats = async (req: Request, res: Response) => {
       },
       select: { amount: true },
     });
-    const totalReferralEarnings = referralActivities.reduce((sum, act) => sum + act.amount, 0);
+    const totalReferralEarnings = referralActivities.reduce((sum, act) => sum + (act.amount || 0), 0);
 
     // 2. Active Referrals Count
     const activeReferralsCount = await prisma.user.count({

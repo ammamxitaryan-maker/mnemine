@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { CacheService } from '../services/cacheService.js';
+import { DatabasePerformanceMonitor } from '../optimizations/databaseOptimizations.js';
 
 // GET /api/performance/metrics
 export const getPerformanceMetrics = async (req: Request, res: Response) => {
@@ -36,7 +37,7 @@ export const getHealthCheck = async (req: Request, res: Response) => {
     
     // Test cache performance
     const cacheStart = performance.now();
-    const cacheTest = await userDataCache.getUserData('test', async () => 'test');
+    const cacheTest = await CacheService.userData.getUserData('test', async () => 'test');
     const cacheTime = performance.now() - cacheStart;
     
     const totalTime = performance.now() - startTime;
@@ -74,9 +75,9 @@ export const optimizePerformance = async (req: Request, res: Response) => {
     const optimizations = [];
 
     // Clear caches
-    userDataCache.clear();
-    slotsDataCache.clear();
-    marketDataCache.clear();
+    CacheService.userData.clear();
+    CacheService.slotsData.clear();
+    CacheService.marketData.clear();
     optimizations.push('Cleared all caches');
 
     // Get slow queries and provide recommendations

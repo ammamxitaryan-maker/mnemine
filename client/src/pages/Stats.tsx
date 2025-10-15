@@ -1,7 +1,7 @@
 ﻿import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useTranslation } from 'react-i18next';
 import { useStatsData } from '@/hooks/useStatsData';
-import { StatCard } from '@/components/StatCard';
+import { StatCard } from '@/components/common/StatCard';
 import { Loader2, Users, DollarSign, TrendingUp, Zap, Server, CheckSquare } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

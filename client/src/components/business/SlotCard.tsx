@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { DollarSign, Calendar, CheckCircle, XCircle, TrendingUp, Clock, Coins, Download } from 'lucide-react';
 import { MiningSlot } from '@/hooks/useSlotsData';
 import { formatExpirationDate, getRemainingTime } from '@/utils/date';
-import ProgressBar from './ProgressBar';
+import ProgressBar from '@/components/common/ProgressBar';
 import { api } from '@/lib/api';
 
 interface SlotCardProps {

@@ -35,6 +35,8 @@ export class DatabaseOptimizationService {
             lastName: true,
             username: true,
             avatarUrl: true,
+            referralCode: true,
+            referredById: true,
             totalInvested: true,
             totalEarnings: true,
             rank: true,
@@ -344,12 +346,12 @@ export class DatabaseOptimizationService {
 
       // Calculate statistics
       const totalEarnings = activityLogs
-        .filter(log => log.amount > 0)
-        .reduce((sum, log) => sum + log.amount, 0);
+        .filter(log => (log.amount || 0) > 0)
+        .reduce((sum, log) => sum + (log.amount || 0), 0);
 
       const totalSpending = activityLogs
-        .filter(log => log.amount < 0)
-        .reduce((sum, log) => sum + Math.abs(log.amount), 0);
+        .filter(log => (log.amount || 0) < 0)
+        .reduce((sum, log) => sum + Math.abs(log.amount || 0), 0);
 
       const activeReferralsCount = await prisma.user.count({
         where: {

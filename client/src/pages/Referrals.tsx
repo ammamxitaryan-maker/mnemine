@@ -5,10 +5,10 @@ import { useReferralData } from '@/hooks/useReferralData';
 import { useReferralList } from '@/hooks/useReferralList';
 import { useReferralStats } from '@/hooks/useReferralStats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ReferralLink } from '@/components/ReferralLink';
-import { FriendCard } from '@/components/FriendCard';
+import { ReferralLink } from '@/components/business/ReferralLink';
+import { FriendCard } from '@/components/common/FriendCard';
 import { PageHeader } from '@/components/PageHeader';
-import { StatCard } from '@/components/StatCard';
+import { StatCard } from '@/components/common/StatCard';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'; // Import Accordion components
 import { REFERRAL_SIGNUP_BONUS } from '@/shared/constants';
 

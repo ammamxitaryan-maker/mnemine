@@ -6,6 +6,7 @@ import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots, userSelectMinimal } from '../utils/dbSelects.js';
 import { CacheService } from '../services/cacheService.js';
 import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
+import { DatabasePerformanceMonitor } from '../optimizations/databaseOptimizations.js';
 
 // GET /api/user/:telegramId/data
 export const getUserData = async (req: Request, res: Response) => {
@@ -69,8 +70,8 @@ export const getUserData = async (req: Request, res: Response) => {
         activityLogs: user.activityLogs,
         referralsCount: user.referrals.length,
         wallets: user.wallets,
-        isEligibleForFirstWithdrawal: isUserEligible(user),
-        isUserSuspicious: isUserSuspicious(user),
+        isEligibleForFirstWithdrawal: isUserEligible(user.id),
+        isUserSuspicious: isUserSuspicious(user.id),
         lastActivityAt: user.lastActivityAt,
         isActive: user.isActive,
         isFrozen: user.isFrozen,
@@ -115,6 +116,12 @@ export const getUserStats = async (req: Request, res: Response) => {
 
     const isEligible = await isUserEligible(user.id);
     const isSuspicious = await isUserSuspicious(user.id);
+
+    // Use the pre-calculated values from getUserStatsOptimized
+    const totalEarnings = user.totalEarnings || 0;
+    const totalSpending = user.totalSpending || 0;
+    const activeReferralsCount = user.activeReferralsCount || 0;
+    const boostersPurchased = user.boostersPurchased || 0;
 
     let rank: string | null = null;
     if (user.totalInvested >= PLATINUM_GOD_THRESHOLD) {

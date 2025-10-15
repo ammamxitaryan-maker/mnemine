@@ -13,7 +13,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { useStatsData } from '@/hooks/useStatsData';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 import { PageHeader } from '@/components/PageHeader';
-import { WithdrawalChecklist } from '@/components/WithdrawalChecklist';
+import { WithdrawalChecklist } from '@/components/business/WithdrawalChecklist';
 import { 
   WITHDRAWAL_FEE_PERCENTAGE, 
   MINIMUM_WITHDRAWAL_FIRST_100, 

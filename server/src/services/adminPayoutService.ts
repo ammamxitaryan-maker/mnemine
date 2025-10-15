@@ -189,14 +189,12 @@ export class AdminPayoutService {
           });
 
           // Создаем запись о выплате
-          await prisma.payout.create({
+          await prisma.activityLog.create({
             data: {
               userId: user.id,
-              miningSlotId: slot.id,
+              type: ActivityLogType.DAILY_BONUS,
               amount: payoutAmount,
-              currency: 'USD',
-              status: 'COMPLETED',
-              processedAt: new Date()
+              description: `Daily payout for slot ${slot.id}`
             }
           });
         }
@@ -222,7 +220,7 @@ export class AdminPayoutService {
           await prisma.activityLog.create({
             data: {
               userId: user.id,
-              type: ActivityLogType.DAILY_PAYOUT,
+              type: ActivityLogType.DAILY_BONUS,
               amount: userTotalPayout,
               description: `Daily payout processed: ${userTotalPayout.toFixed(2)} USD`,
               ipAddress: req.ip || 'system'
@@ -232,10 +230,9 @@ export class AdminPayoutService {
           // Создаем детали выплаты
           await prisma.dailyPayoutDetail.create({
             data: {
-              dailyPayoutId: dailyPayout.id,
+              payoutId: dailyPayout.id,
               userId: user.id,
-              amount: userTotalPayout,
-              slotsProcessed: user.miningSlots.length
+              amount: userTotalPayout
             }
           });
 

@@ -104,10 +104,10 @@ router.get('/custom-reports', isAdmin, async (req, res) => {
         }
       });
 
-      const totalEarnings = earningsData.reduce((sum, log) => sum + log.amount, 0);
+      const totalEarnings = earningsData.reduce((sum, log) => sum + (log.amount || 0), 0);
       const dailyEarnings = earningsData.reduce((acc, log) => {
         const date = log.createdAt.toISOString().split('T')[0];
-        acc[date] = (acc[date] || 0) + log.amount;
+        acc[date] = (acc[date] || 0) + (log.amount || 0);
         return acc;
       }, {} as Record<string, number>);
 
@@ -116,9 +116,9 @@ router.get('/custom-reports', isAdmin, async (req, res) => {
         daily: dailyEarnings,
         average: totalEarnings / reportData.timeframe.days,
         breakdown: {
-          slotEarnings: earningsData.filter(log => log.type === 'EARNINGS').reduce((sum, log) => sum + log.amount, 0),
-          referralEarnings: earningsData.filter(log => log.type === 'REFERRAL').reduce((sum, log) => sum + log.amount, 0),
-          bonusEarnings: earningsData.filter(log => log.type === 'BONUS').reduce((sum, log) => sum + log.amount, 0)
+          slotEarnings: earningsData.filter(log => log.type === 'EARNINGS').reduce((sum, log) => sum + (log.amount || 0), 0),
+          referralEarnings: earningsData.filter(log => log.type === 'REFERRAL').reduce((sum, log) => sum + (log.amount || 0), 0),
+          bonusEarnings: earningsData.filter(log => log.type === 'BONUS').reduce((sum, log) => sum + (log.amount || 0), 0)
         }
       };
     }

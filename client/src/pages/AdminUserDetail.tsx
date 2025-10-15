@@ -6,8 +6,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { useAdminUserDetail } from '@/hooks/useAdminUserDetail';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ActivityCard } from '@/components/ActivityCard';
-import { StatCard } from '@/components/StatCard';
+import { ActivityCard } from '@/components/common/ActivityCard';
+import { StatCard } from '@/components/common/StatCard';
 
 const AdminUserDetail = () => {
   const { userId } = useParams<{ userId: string }>();

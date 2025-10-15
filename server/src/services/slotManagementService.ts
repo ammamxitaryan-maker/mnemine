@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma.js';
-import { SLOT_EXTENSION_COST, SLOT_EXTENSION_DAYS, SLOT_WEEKLY_RATE, MINIMUM_SLOT_INVESTMENT } from '../constants.js';
+import { SLOT_EXTENSION_COST, SLOT_EXTENSION_DAYS, SLOT_WEEKLY_RATE, MINIMUM_SLOT_INVESTMENT, SLOT_EXTENDED, SLOT_UPGRADED } from '../constants.js';
 import { sendSlotClosedNotification, sendInvestmentSlotCompletedNotification } from '../controllers/notificationController.js';
 import { Wallet, MiningSlot, ActivityLogType } from '@prisma/client';
 import { isUserEligible } from '../utils/helpers.js';
@@ -148,7 +148,7 @@ export class SlotManagementService {
         prisma.activityLog.create({
           data: {
             userId: user.id,
-            type: ActivityLogType.SLOT_EXTENDED,
+            type: ActivityLogType.SLOT_EXTENSION,
             amount: -SLOT_EXTENSION_COST,
             description: `Extended slot for ${SLOT_EXTENSION_DAYS} days`,
             ipAddress: ipAddress,
@@ -217,7 +217,7 @@ export class SlotManagementService {
         prisma.activityLog.create({
           data: {
             userId: user.id,
-            type: ActivityLogType.SLOT_UPGRADED,
+            type: ActivityLogType.NEW_SLOT_PURCHASE,
             amount: -upgradeCost,
             description: `Upgraded slot rate to ${(newRate * 100).toFixed(1)}%`,
             ipAddress: ipAddress,

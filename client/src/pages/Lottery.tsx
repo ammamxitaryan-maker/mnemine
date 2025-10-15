@@ -6,9 +6,9 @@ import { useLotteryData } from '@/hooks/useLotteryData';
 import { useCountdown } from '@/hooks/useCountdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BuyTicketCard } from '@/components/BuyTicketCard';
-import { LotteryTicketCard } from '@/components/LotteryTicketCard';
-import { LastDrawResults } from '@/components/LastDrawResults';
+import { BuyTicketCard } from '@/components/features/BuyTicketCard';
+import { LotteryTicketCard } from '@/components/features/LotteryTicketCard';
+import { LastDrawResults } from '@/components/features/LastDrawResults';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth'; // Import useTelegramAuth
 
 const Lottery = () => {

@@ -53,7 +53,7 @@ const performLotteryDraw = async (lotteryId: string) => {
   const winners: { ticket: any; matches: number }[] = [];
 
   for (const ticket of tickets) {
-    const userNumbers = ticket.numbers.split(',').map(Number);
+    const userNumbers = ticket.numbers?.split(',').map(Number) || [];
     const matches = userNumbers.filter(num => winningNumbers.has(num)).length;
     if (matches >= 4) {
       winners.push({ ticket, matches });

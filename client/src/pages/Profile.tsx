@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { useStatsData } from '@/hooks/useStatsData';
 import { Loader2, Award, Gift, BarChart3, Settings, User as UserIcon } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
-import { RankCard } from '@/components/RankCard';
-import { AccountStatusCard } from '@/components/AccountStatusCard';
+import { RankCard } from '@/components/common/RankCard';
+import { AccountStatusCard } from '@/components/common/AccountStatusCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProfileLinkCard } from '@/components/ProfileLinkCard'; // Import the new component
+import { ProfileLinkCard } from '@/components/common/ProfileLinkCard'; // Import the new component
 
 const Profile = () => {
   const { user } = useTelegramAuth();

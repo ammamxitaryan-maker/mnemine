@@ -94,7 +94,7 @@ export const selectLotteryWinner = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Ticket not found' });
     }
 
-    if (ticket.lottery.isDrawn) {
+    if (ticket.lottery?.isDrawn) {
       return res.status(400).json({ error: 'Lottery has already been drawn' });
     }
 

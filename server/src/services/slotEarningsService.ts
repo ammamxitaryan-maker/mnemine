@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../prisma.js';
 import { sendInvestmentSlotCompletedNotification } from '../controllers/notificationController.js';
 import { ActivityLogType } from '@prisma/client';
+import { EARNINGS_CLAIMED } from '../constants.js';
 import { webSocketManager } from '../websocket/WebSocketManager.js';
 import { earningsAccumulator } from './earningsAccumulator.js';
 
@@ -192,7 +193,7 @@ export class SlotEarningsService {
       }
 
       let totalClaimedAmount = 0;
-      const claimedSlots = [];
+      const claimedSlots: any[] = [];
 
       await prisma.$transaction(async (tx) => {
         for (const slot of user.miningSlots) {
@@ -227,7 +228,7 @@ export class SlotEarningsService {
           await tx.activityLog.create({
             data: {
               userId: user.id,
-              type: ActivityLogType.EARNINGS_CLAIMED,
+              type: ActivityLogType.CLAIM,
               amount: expectedEarnings,
               description: `Claimed earnings from slot: ${expectedEarnings.toFixed(2)} USD`,
               ipAddress: ipAddress,
@@ -245,19 +246,16 @@ export class SlotEarningsService {
 
       // Send notification
       try {
-        await sendInvestmentSlotCompletedNotification(user.telegramId, totalClaimedAmount);
+        await sendInvestmentSlotCompletedNotification(user.telegramId, 'batch-claim', 0, totalClaimedAmount);
       } catch (notificationError) {
         console.error('Failed to send notification:', notificationError);
       }
 
       // Update WebSocket
       try {
-        webSocketManager.broadcastToUser(user.telegramId, {
-          type: 'earnings_claimed',
-          data: {
-            totalAmount: totalClaimedAmount,
-            slotsClaimed: claimedSlots.length
-          }
+        webSocketManager.sendToUser(user.telegramId, 'EARNINGS_CLAIMED', {
+          totalAmount: totalClaimedAmount,
+          slotsClaimed: claimedSlots.length
         });
       } catch (wsError) {
         console.error('Failed to send WebSocket update:', wsError);
@@ -347,7 +345,7 @@ export class SlotEarningsService {
         prisma.activityLog.create({
           data: {
             userId: user.id,
-            type: ActivityLogType.EARNINGS_CLAIMED,
+            type: ActivityLogType.CLAIM,
             amount: expectedEarnings,
             description: `Claimed earnings from slot: ${expectedEarnings.toFixed(2)} USD`,
             ipAddress: ipAddress,
@@ -357,19 +355,16 @@ export class SlotEarningsService {
 
       // Send notification
       try {
-        await sendInvestmentSlotCompletedNotification(user.telegramId, expectedEarnings);
+        await sendInvestmentSlotCompletedNotification(user.telegramId, 'auto-claim', 0, expectedEarnings);
       } catch (notificationError) {
         console.error('Failed to send notification:', notificationError);
       }
 
       // Update WebSocket
       try {
-        webSocketManager.broadcastToUser(user.telegramId, {
-          type: 'slot_earnings_claimed',
-          data: {
-            slotId: slotId,
-            amount: expectedEarnings
-          }
+        webSocketManager.sendToUser(user.telegramId, 'SLOT_EARNINGS_CLAIMED', {
+          slotId: slotId,
+          amount: expectedEarnings
         });
       } catch (wsError) {
         console.error('Failed to send WebSocket update:', wsError);
@@ -437,7 +432,7 @@ export class SlotEarningsService {
               prisma.activityLog.create({
                 data: {
                   userId: slot.userId,
-                  type: ActivityLogType.EARNINGS_CLAIMED,
+                  type: ActivityLogType.CLAIM,
                   amount: expectedEarnings,
                   description: `Auto-claimed earnings from expired slot: ${expectedEarnings.toFixed(2)} USD`,
                   ipAddress: 'system'
@@ -447,7 +442,7 @@ export class SlotEarningsService {
 
             // Send notification
             try {
-              await sendInvestmentSlotCompletedNotification(slot.user.telegramId, expectedEarnings);
+              await sendInvestmentSlotCompletedNotification(slot.user.telegramId, slot.id, slot.principal, expectedEarnings);
             } catch (notificationError) {
               console.error('Failed to send notification:', notificationError);
             }

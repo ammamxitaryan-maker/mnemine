@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Loader2, History } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { useLotteryHistory } from '@/hooks/useLotteryHistory';
-import { LotteryHistoryCard } from '@/components/LotteryHistoryCard';
+import { LotteryHistoryCard } from '@/components/features/LotteryHistoryCard';
 
 const LotteryHistory = () => {
   const { t } = useTranslation();

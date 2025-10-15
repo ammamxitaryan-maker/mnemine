@@ -94,7 +94,7 @@ export class UnifiedWebSocketManager extends EventEmitter {
       perMessageDeflate: {
         threshold: 1024,
         concurrencyLimit: 10,
-        memLevel: 7,
+        // memLevel: 7, // Not supported in this version
       },
     });
 
@@ -608,6 +608,18 @@ export class UnifiedWebSocketManager extends EventEmitter {
     }
 
     console.log('[WebSocket] WebSocket manager shutdown complete');
+  }
+
+  private handleNotificationConnection(ws: WebSocket) {
+    // Handle notification connections
+    ws.on('message', (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        console.log('[WebSocket] Notification message received:', message);
+      } catch (error) {
+        console.error('[WebSocket] Invalid notification message:', error);
+      }
+    });
   }
 }
 

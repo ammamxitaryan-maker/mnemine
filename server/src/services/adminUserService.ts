@@ -206,8 +206,8 @@ export class AdminUserService {
           await prisma.accountFreeze.create({
             data: {
               userId: userId,
-              reason: reason,
-              frozenBy: 'ADMIN',
+              reason: reason as any,
+              adminId: 'ADMIN',
               frozenAt: new Date()
             }
           });
@@ -299,7 +299,7 @@ export class AdminUserService {
         prisma.swapTransaction.deleteMany({ where: { userId: userId } }),
         prisma.withdrawal.deleteMany({ where: { userId: userId } }),
         prisma.investment.deleteMany({ where: { userId: userId } }),
-        prisma.payout.deleteMany({ where: { userId: userId } }),
+        // prisma.payout.deleteMany({ where: { userId: userId } }), // Model doesn't exist
         prisma.wallet.deleteMany({ where: { userId: userId } }),
         prisma.miningSlot.deleteMany({ where: { userId: userId } }),
         prisma.accountFreeze.deleteMany({ where: { userId: userId } }),
@@ -404,8 +404,8 @@ export class AdminUserService {
     await prisma.accountFreeze.create({
       data: {
         userId: userId,
-        reason: reason,
-        frozenBy: 'ADMIN',
+        reason: reason as any,
+        adminId: 'ADMIN',
         frozenAt: new Date()
       }
     });

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, ArrowLeftRight, ChevronDown, ChevronUp, Info, TrendingUp, DollarSign } from 'lucide-react';
-import { FlippableCard } from '@/components/FlippableCard';
+import { FlippableCard } from '@/components/common/FlippableCard';
 import { useSwapLogic } from '@/hooks/useSwapLogic';
 // swap-interface.css removed - no longer needed
 

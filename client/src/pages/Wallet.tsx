@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useActivityData, Activity } from '@/hooks/useActivityData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ActivityCard } from '@/components/ActivityCard';
+import { ActivityCard } from '@/components/common/ActivityCard';
 import { useUserData, UserData } from '@/hooks/useUserData';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useExchangeRate } from '@/hooks/useSwap';
 import { PageHeader } from '@/components/PageHeader';
-import { EarningsChart } from '@/components/EarningsChart';
+import { EarningsChart } from '@/components/common/EarningsChart';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'; // Import Accordion components
 
 const Wallet = () => {

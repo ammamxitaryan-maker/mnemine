@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { MiningSlot } from '@/hooks/useSlotsData'; // Use the unified MiningSlot interface
 import { Loader2, Server, TrendingUp, DollarSign, Clock, BarChart3 } from 'lucide-react';
