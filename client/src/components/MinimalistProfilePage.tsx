@@ -27,6 +27,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { BackButton } from './BackButton';
 
 export const MinimalistProfilePage = () => {
   const { t } = useTranslation();
@@ -114,6 +115,7 @@ export const MinimalistProfilePage = () => {
       {/* Header */}
       <header className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3">
+          <BackButton />
           <div className="p-2 bg-primary/10 rounded-xl">
             <User className="w-6 h-6 text-primary" />
           </div>

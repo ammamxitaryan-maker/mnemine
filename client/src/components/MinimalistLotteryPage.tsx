@@ -17,6 +17,7 @@ import { BuyTicketCard } from '@/components/features/BuyTicketCard';
 import { LotteryTicketCard } from '@/components/features/LotteryTicketCard';
 import { LastDrawResults } from '@/components/features/LastDrawResults';
 import { Button } from '@/components/ui/button';
+import { BackButton } from './BackButton';
 
 export const MinimalistLotteryPage = () => {
   const { t } = useTranslation();
@@ -51,6 +52,7 @@ export const MinimalistLotteryPage = () => {
       <header className="px-6 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <BackButton />
             <div className="p-2 bg-accent/10 rounded-xl">
               <Ticket className="w-6 h-6 text-accent" />
             </div>

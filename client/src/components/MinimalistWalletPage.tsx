@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ActivityCard } from '@/components/common/ActivityCard';
 import { EarningsChart } from '@/components/common/EarningsChart';
 import { SimpleBalance } from './SimpleBalance';
+import { BackButton } from './BackButton';
 
 export const MinimalistWalletPage = () => {
   const { t } = useTranslation();
@@ -67,6 +68,7 @@ export const MinimalistWalletPage = () => {
       {/* Header */}
       <header className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3">
+          <BackButton />
           <div className="p-2 bg-primary/10 rounded-xl">
             <WalletIcon className="w-6 h-6 text-primary" />
           </div>

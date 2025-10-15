@@ -18,6 +18,9 @@ import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RealTimeEarnings } from './RealTimeEarnings';
+import { EarningsDetails } from './EarningsDetails';
+import { BackButton } from './BackButton';
+import { calculateSlotEarnings, formatTime } from '@/utils/earningsCalculator';
 
 const buyNewSlot = async ({ telegramId, amount }: { telegramId: string, amount: number }) => {
   const { data } = await api.post(`/user/${telegramId}/slots/buy`, { amount });
@@ -106,6 +109,7 @@ export const MinimalistSlotsPage = () => {
       {/* Header */}
       <header className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3">
+          <BackButton />
           <div className="p-2 bg-primary/10 rounded-xl">
             <Server className="w-6 h-6 text-primary" />
           </div>
@@ -122,6 +126,13 @@ export const MinimalistSlotsPage = () => {
       {activeSlots.length > 0 && (
         <div className="px-6 mb-6">
           <RealTimeEarnings telegramId={user?.telegramId || ''} />
+        </div>
+      )}
+
+      {/* Earnings Details */}
+      {activeSlots.length > 0 && (
+        <div className="px-6 mb-6">
+          <EarningsDetails telegramId={user?.telegramId || ''} />
         </div>
       )}
 
@@ -184,44 +195,65 @@ export const MinimalistSlotsPage = () => {
         <div className="px-6 mb-6">
           <h2 className="text-lg font-medium text-foreground mb-4">Active Slots</h2>
           <div className="space-y-3">
-            {activeSlots.map((slot: MiningSlot) => (
-              <div key={slot.id} className="minimal-card">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-xl">
-                      <Zap className="w-4 h-4 text-primary" />
+            {activeSlots.map((slot: MiningSlot) => {
+              const slotEarnings = calculateSlotEarnings(slot);
+              const expectedReturn = slot.principal * 1.3; // 30% return
+              const timeToComplete = formatTime(slotEarnings.remainingSeconds);
+              
+              return (
+                <div key={slot.id} className="minimal-card">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-xl">
+                        <Zap className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">Slot #{slot.id.slice(-4)}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {slot.principal.toFixed(2)} MNE invested
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-foreground">Slot #{slot.id.slice(-4)}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {slot.principal.toFixed(2)} MNE invested
-                      </p>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-primary">
+                        +{slotEarnings.perSecondRate.toFixed(6)} MNE/s
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {slotEarnings.dailyReturn.toFixed(4)} MNE/day
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-primary">
-                      +{((slot.effectiveWeeklyRate / 7) * slot.principal).toFixed(4)} MNE/day
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div className="text-center p-2 bg-muted/20 rounded-lg">
+                      <div className="text-sm font-medium text-accent">
+                        {expectedReturn.toFixed(2)} MNE
+                      </div>
+                      <div className="text-xs text-muted-foreground">Expected Return</div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {((slot.effectiveWeeklyRate * 100)).toFixed(2)}% weekly
+                    <div className="text-center p-2 bg-muted/20 rounded-lg">
+                      <div className="text-sm font-medium text-primary">
+                        {timeToComplete}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Time Left</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        Expires: {new Date(slot.expiresAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                      <span className="text-primary text-xs">Active</span>
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      Expires: {new Date(slot.expiresAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                    <span className="text-primary text-xs">Active</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

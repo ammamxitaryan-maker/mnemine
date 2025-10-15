@@ -38,6 +38,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { Shield } from 'lucide-react';
 
 interface ExpandedHomePageProps {
   user: AuthenticatedUser;
@@ -49,6 +50,12 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
   const { totalUsers, onlineUsers } = useWebSocketUserStats();
   const { hapticLight, hapticWarning } = useHapticFeedback();
+
+  // Check if user is admin
+  const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+    ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
+    : ['6760298907'];
+  const isAdmin = ADMIN_TELEGRAM_IDS.includes(user.telegramId);
 
   const displayName = user.firstName || user.username || t('profile.user');
   const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'U';
@@ -250,6 +257,22 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
+
+            {isAdmin && (
+              <Link 
+                to="/admin" 
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors"
+                onClick={() => hapticLight()}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500/10 rounded-xl">
+                    <Shield className="w-4 h-4 text-purple-500" />
+                  </div>
+                  <span className="text-foreground">Admin Panel</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </Link>
+            )}
 
             <Button
               onClick={handleLogout}

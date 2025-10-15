@@ -41,6 +41,7 @@ import { AppInitializer } from "./components/AppInitializer"; // Import the new 
 import { ViewportOptimizer } from "./components/ViewportOptimizer"; // Import the new component
 import { LocalDevAuth } from "./components/LocalDevAuth"; // Import the local dev auth component
 import { DevWarning } from "./components/DevWarning"; // Import the dev warning component
+import { EarningsWrapper } from "./components/EarningsWrapper";
 
 const queryClient = new QueryClient();
 
@@ -61,7 +62,8 @@ const App = () => {
           <AppInitializer /> {/* Render AppInitializer inside BrowserRouter */}
           <ViewportOptimizer /> {/* Render ViewportOptimizer for Telegram Web App */}
           <LocalDevAuth /> {/* Local development auth switcher */}
-          <Routes>
+          <EarningsWrapper>
+            <Routes>
             {/* Routes with the minimalist layout */}
             <Route element={<MinimalistLayout />}>
               <Route path="/" element={<Index />} />
@@ -114,7 +116,8 @@ const App = () => {
 
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </EarningsWrapper>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
