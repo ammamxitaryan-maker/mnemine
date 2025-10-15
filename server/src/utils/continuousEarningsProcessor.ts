@@ -112,7 +112,7 @@ export class ContinuousEarningsProcessor {
             await prisma.wallet.updateMany({
               where: {
                 userId: userId,
-                currency: 'USD'
+                currency: 'MNE'
               },
               data: {
                 balance: {
@@ -127,7 +127,7 @@ export class ContinuousEarningsProcessor {
                 userId: userId,
                 type: 'EARNINGS',
                 amount: totalEarnings,
-                description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} USD`
+                description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} MNE`
               }
             });
           }
@@ -142,7 +142,7 @@ export class ContinuousEarningsProcessor {
         ));
 
         const totalEarnings = slotEarnings.reduce((sum, slot) => sum + slot.earnings, 0);
-        console.log(`[EARNINGS] Processed and persisted earnings for ${slotsToUpdate.length} slots, total: ${totalEarnings.toFixed(6)} USD`);
+        console.log(`[EARNINGS] Processed and persisted earnings for ${slotsToUpdate.length} slots, total: ${totalEarnings.toFixed(6)} MNE`);
       }
 
       // Additional persistence every 5 minutes for safety

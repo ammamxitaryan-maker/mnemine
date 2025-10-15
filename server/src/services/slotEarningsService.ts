@@ -5,6 +5,7 @@ import { ActivityLogType } from '@prisma/client';
 import { EARNINGS_CLAIMED } from '../constants.js';
 import { webSocketManager } from '../websocket/WebSocketManager.js';
 import { earningsAccumulator } from './earningsAccumulator.js';
+import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
 
 export class SlotEarningsService {
   // GET /api/user/:telegramId/real-time-income
@@ -16,6 +17,9 @@ export class SlotEarningsService {
     }
 
     try {
+      // Ensure user has all required wallets before processing
+      await ensureUserWalletsByTelegramId(telegramId);
+      
       const user = await prisma.user.findUnique({
         where: { telegramId },
         select: {
@@ -87,6 +91,9 @@ export class SlotEarningsService {
     }
 
     try {
+      // Ensure user has all required wallets before processing
+      await ensureUserWalletsByTelegramId(telegramId);
+      
       const user = await prisma.user.findUnique({
         where: { telegramId },
         select: {
@@ -162,6 +169,9 @@ export class SlotEarningsService {
     }
 
     try {
+      // Ensure user has all required wallets before processing
+      await ensureUserWalletsByTelegramId(telegramId);
+      
       const user = await prisma.user.findUnique({
         where: { telegramId },
         select: {
@@ -208,13 +218,16 @@ export class SlotEarningsService {
             }
           });
 
-          // Update user's USD wallet
-          await tx.wallet.update({
-            where: { id: USDWallet.id },
-            data: {
-              balance: { increment: expectedEarnings }
-            }
-          });
+          // Update user's MNE wallet
+          const MNEWallet = user.wallets.find(w => w.currency === 'MNE');
+          if (MNEWallet) {
+            await tx.wallet.update({
+              where: { id: MNEWallet.id },
+              data: {
+                balance: { increment: expectedEarnings }
+              }
+            });
+          }
 
           // Update user's total earnings
           await tx.user.update({
@@ -230,7 +243,7 @@ export class SlotEarningsService {
               userId: user.id,
               type: ActivityLogType.CLAIM,
               amount: expectedEarnings,
-              description: `Claimed earnings from slot: ${expectedEarnings.toFixed(2)} USD`,
+              description: `Claimed earnings from slot: ${expectedEarnings.toFixed(2)} MNE`,
               ipAddress: ipAddress,
             }
           });

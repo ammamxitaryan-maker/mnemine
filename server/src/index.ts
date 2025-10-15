@@ -614,7 +614,12 @@ async function seedAdmin() {
           username: 'admin_dev',
           role: 'ADMIN',
           referralCode: await generateUniqueReferralCode(),
-          wallets: { create: { currency: 'USD', balance: 0 } },
+          wallets: { 
+            create: [
+              { currency: 'USD', balance: 0 },
+              { currency: 'MNE', balance: 0 }
+            ]
+          },
           miningSlots: {
             create: {
               principal: 1.00,

@@ -60,7 +60,7 @@ export const MainBalanceDisplay = ({
           <h2 className="text-lg font-medium text-foreground">Available Balance</h2>
         </div>
         <div className="text-4xl font-light text-primary mb-1">
-          {availableBalance.toFixed(6)} MNE
+          {(availableBalance || 0).toFixed(6)} MNE
         </div>
         {usdEquivalent > 0 && (
           <div className="text-sm text-accent">
@@ -80,7 +80,7 @@ export const MainBalanceDisplay = ({
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-foreground">
-                {totalBalance.toFixed(6)} MNE
+                {(totalBalance || 0).toFixed(6)} MNE
               </div>
               {totalUsdEquivalent > 0 && (
                 <div className="text-xs text-muted-foreground">
@@ -98,7 +98,7 @@ export const MainBalanceDisplay = ({
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-foreground">
-                {totalInvested.toFixed(6)} MNE
+                {(totalInvested || 0).toFixed(6)} MNE
               </div>
               <div className="text-xs text-muted-foreground">
                 {activeSlotsCount} active slot{activeSlotsCount !== 1 ? 's' : ''}
@@ -107,7 +107,7 @@ export const MainBalanceDisplay = ({
           </div>
 
           {/* Current Earnings */}
-          {totalEarnings > 0 && (
+          {(totalEarnings || 0) > 0 && (
             <div className="flex items-center justify-between p-3 bg-accent/10 rounded-lg">
               <div className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-accent" />
@@ -115,7 +115,7 @@ export const MainBalanceDisplay = ({
               </div>
               <div className="text-right">
                 <div className="text-sm font-medium text-accent">
-                  +{totalEarnings.toFixed(6)} MNE
+                  +{(totalEarnings || 0).toFixed(6)} MNE
                 </div>
                 {earningsUsd > 0 && (
                   <div className="text-xs text-muted-foreground">

@@ -7,6 +7,7 @@ import { isUserEligible } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js';
 import { webSocketManager } from '../websocket/WebSocketManager.js';
 import { earningsAccumulator } from './earningsAccumulator.js';
+import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
 
 export class SlotManagementService {
   // GET /api/user/:telegramId/slots
@@ -15,6 +16,9 @@ export class SlotManagementService {
     if (!telegramId) return res.status(400).json({ error: 'Telegram ID is required' });
 
     try {
+      // Ensure user has all required wallets before processing
+      await ensureUserWalletsByTelegramId(telegramId);
+      
       const user = await prisma.user.findUnique({
         where: { telegramId },
         select: userSelect,

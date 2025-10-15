@@ -121,7 +121,7 @@ export const SlotControlPanel = ({ className = '' }: SlotControlPanelProps) => {
             <span className="text-sm text-muted-foreground">Total Invested</span>
           </div>
           <div className="text-sm font-medium text-foreground">
-            {totalInvested.toFixed(6)} MNE
+            {(totalInvested || 0).toFixed(6)} MNE
           </div>
         </div>
 
@@ -132,7 +132,7 @@ export const SlotControlPanel = ({ className = '' }: SlotControlPanelProps) => {
             <span className="text-sm text-muted-foreground">Current Earnings</span>
           </div>
           <div className="text-sm font-medium text-accent">
-            +{totalEarnings.toFixed(6)} MNE
+            +{(totalEarnings || 0).toFixed(6)} MNE
           </div>
         </div>
 
@@ -143,18 +143,18 @@ export const SlotControlPanel = ({ className = '' }: SlotControlPanelProps) => {
             <span className="text-sm text-muted-foreground">Average Return</span>
           </div>
           <div className="text-sm font-medium text-foreground">
-            {averageReturn.toFixed(2)}%
+            {(averageReturn || 0).toFixed(2)}%
           </div>
         </div>
       </div>
 
       {/* Status Summary */}
-      {expiredSlots > 0 && (
+      {(expiredSlots || 0) > 0 && (
         <div className="mt-4 p-3 bg-muted/20 rounded-lg">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
-              {expiredSlots} expired slot{expiredSlots !== 1 ? 's' : ''} need attention
+              {expiredSlots || 0} expired slot{(expiredSlots || 0) !== 1 ? 's' : ''} need attention
             </span>
           </div>
         </div>

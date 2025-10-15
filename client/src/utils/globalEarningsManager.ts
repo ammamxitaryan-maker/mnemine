@@ -1,4 +1,5 @@
-import { calculateTotalEarnings, MiningSlot } from './earningsCalculator';
+import { calculateTotalEarnings } from './earningsCalculator';
+import { MiningSlot } from '@/hooks/useSlotsData';
 
 interface PersistentEarningsState {
   totalEarnings: number;
@@ -82,7 +83,7 @@ class GlobalEarningsManager {
       effectiveWeeklyRate: slot.effectiveWeeklyRate,
       isActive: slot.isActive,
       expiresAt: slot.expiresAt,
-      lastAccruedAt: slot.lastAccruedAt
+      lastAccruedAt: slot.lastAccruedAt || slot.createdAt
     }));
     return JSON.stringify(slotsData);
   }

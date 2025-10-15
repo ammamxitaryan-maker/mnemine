@@ -92,7 +92,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
             <LanguageSwitcher />
             <ThemeSwitcher />
             <Avatar className="h-10 w-10 border-2 border-primary">
-              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName} />}
+              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName || 'User'} />}
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {fallbackInitial}
               </AvatarFallback>

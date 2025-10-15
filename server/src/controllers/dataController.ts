@@ -6,6 +6,7 @@ import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
 import { userSelect, userSelectWithoutMiningSlots, userSelectMinimal } from '../utils/dbSelects.js';
 import { CacheService } from '../services/cacheService.js';
 import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
+import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
 import { DatabasePerformanceMonitor } from '../optimizations/databaseOptimizations.js';
 
 // GET /api/user/:telegramId/data
@@ -20,6 +21,9 @@ export const getUserData = async (req: Request, res: Response) => {
 
   try {
     const startTime = performance.now();
+    
+    // Ensure user has all required wallets before processing
+    await ensureUserWalletsByTelegramId(telegramId);
     
     // Use optimized cache system with database optimization
     const cachedData = await CacheService.userData.getUserData(telegramId, async () => {

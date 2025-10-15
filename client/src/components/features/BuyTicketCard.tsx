@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Shuffle } from 'lucide-react';
+import { Loader2, Shuffle, Ticket } from 'lucide-react';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 import { getErrorMessage } from '@/types/errors';
 import { LOTTERY_TICKET_COST } from '@/shared/constants';
