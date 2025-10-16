@@ -132,15 +132,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Version Indicator - Temporary for testing */}
-      <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 text-center">
-        <div className="text-green-600 font-semibold text-sm">
-          🚀 ADMIN FRONTEND VERSION: 2024.12.19-16:00
-        </div>
-        <div className="text-green-500/80 text-xs mt-1">
-          Если вы видите эту версию в админке, фронтенд обновлен!
-        </div>
-      </div>
 
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white">
