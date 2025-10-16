@@ -70,11 +70,9 @@ export const MinimalistWalletPage = () => {
       <header className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3">
           <BackButton />
-          <div className="p-2 bg-primary/10 rounded-xl">
-            <WalletIcon className="w-6 h-6 text-primary" />
-          </div>
+          <WalletIcon className="w-5 h-5 text-primary" />
           <div>
-            <h1 className="text-2xl font-light text-foreground">Wallet</h1>
+            <h1 className="text-xl font-medium text-foreground">Wallet</h1>
             <p className="text-sm text-muted-foreground">
               Manage your funds and transactions
             </p>
@@ -89,24 +87,19 @@ export const MinimalistWalletPage = () => {
 
       {/* Quick Actions */}
       <div className="px-6 mb-6">
-        <h2 className="text-lg font-medium text-foreground mb-4">Quick Actions</h2>
-        <div className="quick-actions">
+        <h2 className="text-lg font-medium text-foreground mb-3">Quick Actions</h2>
+        <div className="grid grid-cols-2 gap-3">
           {quickActions.map((action) => (
             <Link 
               key={action.to} 
               to={action.to} 
-              className="quick-action"
+              className="minimal-card p-3 text-center"
               onClick={() => hapticLight()}
             >
-              <div className="p-3 bg-muted/20 rounded-xl mb-3">
-                <action.icon className={`w-6 h-6 mx-auto ${action.color}`} />
-              </div>
-              <h3 className="font-medium text-foreground text-sm mb-1">
+              <action.icon className={`w-5 h-5 mx-auto mb-2 ${action.color}`} />
+              <h3 className="font-medium text-foreground text-sm">
                 {action.label}
               </h3>
-              <p className="text-xs text-muted-foreground">
-                {action.subtitle}
-              </p>
             </Link>
           ))}
         </div>
@@ -116,10 +109,8 @@ export const MinimalistWalletPage = () => {
       {activities && activities.length > 0 && (
         <div className="px-6 mb-6">
           <div className="minimal-card">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-secondary/10 rounded-xl">
-                <TrendingUp className="w-5 h-5 text-secondary" />
-              </div>
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="w-4 h-4 text-secondary" />
               <h3 className="font-medium text-foreground">Balance History</h3>
             </div>
             <EarningsChart activity={activities} />

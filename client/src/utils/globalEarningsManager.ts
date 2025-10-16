@@ -218,7 +218,7 @@ class GlobalEarningsManager {
           this.saveToStorage();
           this.notifyListeners();
         }
-      }, 1000); // Update every second
+      }, 250); // Update 4 times per second (every 250ms)
     }
   }
 

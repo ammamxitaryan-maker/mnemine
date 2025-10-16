@@ -14,11 +14,10 @@ import {
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useSlotsData, MiningSlot } from '@/hooks/useSlotsData';
 import { useUserData } from '@/hooks/useUserData';
+import { useEarnings } from '@/hooks/useEarnings';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { RealTimeEarnings } from './RealTimeEarnings';
-import { EarningsDetails } from './EarningsDetails';
 import { BackButton } from './BackButton';
 import { calculateSlotEarnings, formatTime } from '@/utils/earningsCalculator';
 
@@ -32,8 +31,10 @@ export const MinimalistSlotsPage = () => {
   const { user } = useTelegramAuth();
   const { data: slotsData, isLoading: slotsLoading, error } = useSlotsData(user?.telegramId);
   const { data: userData, isLoading: userDataLoading } = useUserData(user?.telegramId);
+  const { totalEarnings: liveEarnings, perSecondRate, isActive } = useEarnings();
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
 
   const isLoading = slotsLoading || userDataLoading;
   const currentBalance = userData?.mneBalance ?? 0;
@@ -108,62 +109,79 @@ export const MinimalistSlotsPage = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="px-6 pt-6 pb-4">
-        <div className="flex items-center gap-3">
-          <BackButton />
-          <div className="p-2 bg-primary/10 rounded-xl">
-            <Server className="w-6 h-6 text-primary" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <Server className="w-5 h-5 text-primary" />
+            <div>
+              <h1 className="text-xl font-medium text-foreground">Mining Slots</h1>
+              <p className="text-sm text-muted-foreground">
+                {activeSlots.length} active slots
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-light text-foreground">Mining Slots</h1>
-            <p className="text-sm text-muted-foreground">
-              {activeSlots.length} active • {inactiveSlots.length} completed
-            </p>
-          </div>
+          {inactiveSlots.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowHistory(!showHistory)}
+              className="h-8"
+            >
+              History ({inactiveSlots.length})
+            </Button>
+          )}
         </div>
       </header>
 
-      {/* Real-time Earnings */}
-      {activeSlots.length > 0 && (
-        <div className="px-6 mb-6">
-          <RealTimeEarnings />
-        </div>
-      )}
-
-      {/* Earnings Details */}
-      {activeSlots.length > 0 && (
-        <div className="px-6 mb-6">
-          <EarningsDetails telegramId={user?.telegramId || ''} />
+      {/* Live Earnings Display */}
+      {isActive && (liveEarnings || 0) > 0 && (
+        <div className="px-6 mb-4">
+          <div className="minimal-card p-3 bg-accent/10 border border-accent/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-accent animate-pulse" />
+                <span className="text-sm font-medium text-accent">Live Earnings</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
+                  <span className="text-xs text-accent">Live</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-medium text-accent">
+                  +{(liveEarnings || 0).toFixed(3)} MNE
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {perSecondRate.toFixed(6)} MNE/sec
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Buy New Slot */}
       <div className="px-6 mb-6">
         <div className="minimal-card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-secondary/10 rounded-xl">
-              <Plus className="w-5 h-5 text-secondary" />
-            </div>
-            <div>
-              <h3 className="font-medium text-foreground">Buy New Slot</h3>
-              <p className="text-sm text-muted-foreground">
-                Available: {currentBalance.toFixed(2)} MNE
-              </p>
-            </div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium text-foreground">Buy New Slot</h3>
+            <span className="text-sm text-muted-foreground">
+              {currentBalance.toFixed(2)} MNE available
+            </span>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex gap-3">
+          <div className="space-y-3">
+            <div className="flex gap-2">
               <Input
                 type="number"
                 placeholder="Amount (MNE)"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="flex-1 bg-muted/20 border-border"
+                className="flex-1 h-9"
               />
               <Button
                 variant="outline"
                 onClick={() => setAmount(currentBalance.toFixed(4))}
-                className="px-4"
+                className="h-9 px-3"
               >
                 Max
               </Button>
@@ -172,7 +190,7 @@ export const MinimalistSlotsPage = () => {
             <Button
               onClick={handleBuySlot}
               disabled={mutation.isPending || !canInvest}
-              className="w-full primary-btn"
+              className="w-full h-9"
             >
               {mutation.isPending ? (
                 <>
@@ -193,8 +211,8 @@ export const MinimalistSlotsPage = () => {
       {/* Active Slots */}
       {activeSlots.length > 0 && (
         <div className="px-6 mb-6">
-          <h2 className="text-lg font-medium text-foreground mb-4">Active Slots</h2>
-          <div className="space-y-3">
+          <h2 className="text-lg font-medium text-foreground mb-3">Active Slots</h2>
+          <div className="space-y-2">
             {activeSlots.map((slot: MiningSlot) => {
               const slotEarnings = calculateSlotEarnings(slot);
               const expectedReturn = slot.principal * 1.3; // 30% return
@@ -202,53 +220,20 @@ export const MinimalistSlotsPage = () => {
               
               return (
                 <div key={slot.id} className="minimal-card">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-xl">
-                        <Zap className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-foreground">Slot #{slot.id.slice(-4)}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {slot.principal.toFixed(2)} MNE invested
-                        </p>
-                      </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium text-foreground">Slot #{slot.id.slice(-4)}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {slot.principal.toFixed(2)} MNE • {timeToComplete} left
+                      </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium text-primary">
-                        +{slotEarnings.perSecondRate.toFixed(3)} MNE/s
+                      <div className="text-sm font-medium text-primary animate-pulse">
+                        {slotEarnings.totalReturn.toFixed(3)} MNE
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {slotEarnings.dailyReturn.toFixed(4)} MNE/day
+                        → {expectedReturn.toFixed(2)} MNE
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-3">
-                    <div className="text-center p-2 bg-muted/20 rounded-lg">
-                      <div className="text-sm font-medium text-accent">
-                        {expectedReturn.toFixed(2)} MNE
-                      </div>
-                      <div className="text-xs text-muted-foreground">Expected Return</div>
-                    </div>
-                    <div className="text-center p-2 bg-muted/20 rounded-lg">
-                      <div className="text-sm font-medium text-primary">
-                        {timeToComplete}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Time Left</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">
-                        Expires: {new Date(slot.expiresAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                      <span className="text-primary text-xs">Active</span>
                     </div>
                   </div>
                 </div>
@@ -258,24 +243,19 @@ export const MinimalistSlotsPage = () => {
         </div>
       )}
 
-      {/* Inactive Slots */}
-      {inactiveSlots.length > 0 && (
-        <div className="px-6 mb-8">
-          <h2 className="text-lg font-medium text-foreground mb-4">Completed Slots</h2>
-          <div className="space-y-3">
-            {inactiveSlots.slice(0, 3).map((slot: MiningSlot) => (
+      {/* History Section */}
+      {showHistory && inactiveSlots.length > 0 && (
+        <div className="px-6 mb-6">
+          <h2 className="text-lg font-medium text-foreground mb-3">History</h2>
+          <div className="space-y-2">
+            {inactiveSlots.map((slot: MiningSlot) => (
               <div key={slot.id} className="minimal-card opacity-60">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-muted/20 rounded-xl">
-                      <Server className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-foreground">Slot #{slot.id.slice(-4)}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {slot.principal.toFixed(2)} MNE
-                      </p>
-                    </div>
+                  <div>
+                    <h3 className="font-medium text-foreground">Slot #{slot.id.slice(-4)}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {slot.principal.toFixed(2)} MNE
+                    </p>
                   </div>
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground">Completed</div>
@@ -286,11 +266,6 @@ export const MinimalistSlotsPage = () => {
                 </div>
               </div>
             ))}
-            {inactiveSlots.length > 3 && (
-              <div className="text-center text-sm text-muted-foreground py-2">
-                +{inactiveSlots.length - 3} more completed slots
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -298,17 +273,15 @@ export const MinimalistSlotsPage = () => {
       {/* Empty State */}
       {activeSlots.length === 0 && inactiveSlots.length === 0 && (
         <div className="px-6 mb-8">
-          <div className="minimal-card text-center py-12">
-            <div className="p-4 bg-muted/20 rounded-2xl w-fit mx-auto mb-4">
-              <Server className="w-8 h-8 text-muted-foreground" />
-            </div>
+          <div className="minimal-card text-center py-8">
+            <Server className="w-6 h-6 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-medium text-foreground mb-2">No Slots Yet</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Start mining by purchasing your first slot
             </p>
             <Button
               onClick={() => setAmount('10')}
-              className="primary-btn"
+              className="h-9"
             >
               <Plus className="w-4 h-4 mr-2" />
               Buy First Slot
