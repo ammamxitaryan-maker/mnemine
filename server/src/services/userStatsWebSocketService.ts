@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { logger } from '../utils/logger.js';
+import { logger, LogContext } from '../utils/logger.js';
 import { UserStatsService } from './userStatsService.js';
 
 interface ConnectedClient {
@@ -44,7 +44,7 @@ export class UserStatsWebSocketService {
     // Отправляем текущую статистику новому клиенту
     this.sendStatsToClient(clientId);
 
-    logger.debug(`User stats client connected: ${clientId}. Total clients: ${this.clients.size}`);
+    logger.debug(LogContext.WEBSOCKET, `User stats client connected: ${clientId}. Total clients: ${this.clients.size}`);
   }
 
   /**
@@ -55,7 +55,7 @@ export class UserStatsWebSocketService {
     if (client) {
       client.ws.close();
       this.clients.delete(clientId);
-      logger.debug(`User stats client disconnected: ${clientId}. Total clients: ${this.clients.size}`);
+      logger.debug(LogContext.WEBSOCKET, `User stats client disconnected: ${clientId}. Total clients: ${this.clients.size}`);
     }
   }
 
@@ -80,7 +80,7 @@ export class UserStatsWebSocketService {
 
       client.ws.send(JSON.stringify(message));
     } catch (error) {
-      logger.error(`Error sending stats to client ${clientId}:`, error);
+      logger.error(LogContext.WEBSOCKET, `Error sending stats to client ${clientId}:`, error);
       this.removeClient(clientId);
     }
   }
@@ -113,7 +113,7 @@ export class UserStatsWebSocketService {
           disconnectedClients.push(clientId);
         }
       } catch (error) {
-        logger.error(`Error broadcasting to client ${clientId}:`, error);
+        logger.error(LogContext.WEBSOCKET, `Error broadcasting to client ${clientId}:`, error);
         disconnectedClients.push(clientId);
       }
     });
@@ -124,7 +124,7 @@ export class UserStatsWebSocketService {
     });
 
     if (this.clients.size > 0) {
-      logger.debug(`Broadcasted user stats to ${this.clients.size} clients`);
+      logger.debug(LogContext.WEBSOCKET, `Broadcasted user stats to ${this.clients.size} clients`);
     }
   }
 
@@ -173,7 +173,7 @@ export class UserStatsWebSocketService {
           disconnectedClients.push(clientId);
         }
       } catch (error) {
-        logger.error(`Error pinging client ${clientId}:`, error);
+        logger.error(LogContext.WEBSOCKET, `Error pinging client ${clientId}:`, error);
         disconnectedClients.push(clientId);
       }
     });
@@ -209,10 +209,10 @@ export class UserStatsWebSocketService {
           this.sendStatsToClient(clientId);
           break;
         default:
-          logger.debug(`Unknown message type from client ${clientId}: ${data.type}`);
+          logger.debug(LogContext.WEBSOCKET, `Unknown message type from client ${clientId}: ${data.type}`);
       }
     } catch (error) {
-      logger.error(`Error handling message from client ${clientId}:`, error);
+      logger.error(LogContext.WEBSOCKET, `Error handling message from client ${clientId}:`, error);
     }
   }
 

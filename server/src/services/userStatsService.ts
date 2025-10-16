@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { logger } from '../utils/logger.js';
+import { logger, LogContext } from '../utils/logger.js';
 
 interface UserStats {
   totalUsers: number;
@@ -75,7 +75,7 @@ export class UserStatsService {
 
     this.stats.lastUpdate = now.toISOString();
 
-    logger.debug('User stats updated', {
+    logger.debug(LogContext.SERVER, 'User stats updated', {
       totalUsers: this.stats.totalUsers,
       onlineUsers: this.stats.onlineUsers,
       newUsersToday: this.stats.newUsersToday,
@@ -133,7 +133,7 @@ export class UserStatsService {
       minOnline + Math.random() * (maxOnline - minOnline)
     );
 
-    logger.debug(`Online users updated for hour ${hour}: ${this.stats.onlineUsers} (range: ${minOnline}-${maxOnline})`);
+    logger.debug(LogContext.SERVER, `Online users updated for hour ${hour}: ${this.stats.onlineUsers} (range: ${minOnline}-${maxOnline})`);
   }
 
   /**
@@ -167,7 +167,7 @@ export class UserStatsService {
         }
       });
     } catch (error) {
-      logger.error('Error fetching user stats:', error);
+      logger.error(LogContext.SERVER, 'Error fetching user stats:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to fetch user statistics'
