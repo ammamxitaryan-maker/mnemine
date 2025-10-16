@@ -67,7 +67,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
       <div className="px-6 pt-4 pb-2">
         <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 text-center">
           <div className="text-green-600 font-semibold text-sm">
-            🚀 FRONTEND VERSION: 2024.12.19-15:30
+            🚀 FRONTEND VERSION: 2024.12.19-16:00
           </div>
           <div className="text-green-500/80 text-xs mt-1">
             Если вы видите эту версию, фронтенд обновлен!

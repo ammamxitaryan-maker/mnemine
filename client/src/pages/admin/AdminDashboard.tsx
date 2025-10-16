@@ -135,7 +135,7 @@ const AdminDashboard = () => {
       {/* Version Indicator - Temporary for testing */}
       <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 text-center">
         <div className="text-green-600 font-semibold text-sm">
-          🚀 ADMIN FRONTEND VERSION: 2024.12.19-15:30
+          🚀 ADMIN FRONTEND VERSION: 2024.12.19-16:00
         </div>
         <div className="text-green-500/80 text-xs mt-1">
           Если вы видите эту версию в админке, фронтенд обновлен!
