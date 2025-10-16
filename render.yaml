@@ -33,6 +33,44 @@ services:
         sync: false
       - key: WEBAPP_URL
         value: fastmine-telegram-simulator.onrender.com
+      # Frontend Environment Variables
+      - key: VITE_BACKEND_URL
+        value: https://fastmine-telegram-simulator.onrender.com
+      - key: VITE_WS_URL
+        value: wss://fastmine-telegram-simulator.onrender.com/ws
+      - key: VITE_APP_NAME
+        value: FastMine
+      - key: VITE_APP_VERSION
+        value: 1.0.0
+      - key: VITE_ADMIN_TELEGRAM_IDS
+        value: "6760298907"
+      # Security Keys
+      - key: JWT_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_TELEGRAM_ID
+        value: "6760298907"
+      - key: ADMIN_TELEGRAM_IDS
+        value: "6760298907"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        sync: false
+      - key: TELEGRAM_WEBHOOK_URL
+        value: https://fastmine-telegram-simulator.onrender.com/api/webhook
+      - key: BACKEND_URL
+        value: https://fastmine-telegram-simulator.onrender.com
+      - key: FRONTEND_URL
+        value: https://fastmine-telegram-simulator.onrender.com
+      - key: LOCAL_DEV_MODE
+        value: "false"
+      - key: ENABLE_FALLBACK_AUTH
+        value: "false"
 
 # Using existing database - no new database needed
 # databases:
