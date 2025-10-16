@@ -24,6 +24,7 @@ export default defineConfig(() => {
       },
     },
     build: {
+      outDir: '../server/public', // Build to server public directory
       sourcemap: false, // Disable source maps for production
       minify: 'terser',
       rollupOptions: {
