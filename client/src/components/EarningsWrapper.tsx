@@ -11,12 +11,10 @@ interface EarningsWrapperProps {
 export const EarningsWrapper = ({ children }: EarningsWrapperProps) => {
   const { user } = useTelegramAuth();
 
-  if (!user?.telegramId) {
-    return <>{children}</>;
-  }
-
+  // Always provide the EarningsProvider, even if user is not available yet
+  // The EarningsProvider will handle the case where telegramId is empty
   return (
-    <EarningsProvider telegramId={user.telegramId}>
+    <EarningsProvider telegramId={user?.telegramId || ''}>
       {children}
     </EarningsProvider>
   );

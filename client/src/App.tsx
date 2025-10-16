@@ -64,7 +64,6 @@ const App = () => {
                  <ViewportOptimizer /> {/* Render ViewportOptimizer for Telegram Web App */}
                  <LocalDevAuth /> {/* Local development auth switcher */}
                  <AutoLanguageInitializer> {/* Auto language detection */}
-                 <EarningsWrapper>
             <Routes>
             {/* Routes with the minimalist layout */}
             <Route element={<MinimalistLayout />}>
@@ -119,7 +118,6 @@ const App = () => {
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
             </Routes>
-                 </EarningsWrapper>
                  </AutoLanguageInitializer>
                </BrowserRouter>
       </TooltipProvider>
