@@ -87,9 +87,6 @@ export const MainBalanceDisplay = ({
           <div className="text-3xl font-light text-yellow-500 mb-1">
             +{(liveEarnings || 0).toFixed(6)} MNE
           </div>
-          <div className="text-sm text-muted-foreground mb-1">
-            {perSecondRate.toFixed(8)} MNE/sec
-          </div>
           {convertMNEToUSD(liveEarnings || 0) > 0 && (
             <div className="text-sm text-muted-foreground">
               ≈ +${convertMNEToUSD(liveEarnings || 0).toFixed(2)} USD
