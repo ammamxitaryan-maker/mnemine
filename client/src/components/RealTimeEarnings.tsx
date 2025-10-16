@@ -26,11 +26,11 @@ export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
     <div className={`minimal-card ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-primary animate-pulse" />
+          <Zap className="w-4 h-4 text-yellow-500 animate-pulse" />
           <span className="text-sm font-medium text-foreground">Live Earnings</span>
         </div>
         <div className="text-right">
-          <div className="text-lg font-medium text-primary">
+          <div className="text-lg font-medium text-yellow-500">
             +{totalEarnings.toFixed(6)} MNE
           </div>
           {usdEquivalent > 0 && (

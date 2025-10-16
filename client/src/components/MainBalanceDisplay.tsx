@@ -75,16 +75,16 @@ export const MainBalanceDisplay = ({
 
       {/* Live Earnings - Prominent Display */}
       {isActive && (liveEarnings || 0) > 0 && (
-        <div className="text-center mb-6 p-4 bg-accent/10 rounded-xl border border-accent/20">
+        <div className="text-center mb-6 p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Zap className="w-5 h-5 text-accent animate-pulse" />
-            <h3 className="text-lg font-medium text-accent">{t('liveEarnings')}</h3>
+            <Zap className="w-5 h-5 text-yellow-500 animate-pulse" />
+            <h3 className="text-lg font-medium text-yellow-500">{t('liveEarnings')}</h3>
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-              <span className="text-xs text-accent">Live</span>
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+              <span className="text-xs text-yellow-500">Live</span>
             </div>
           </div>
-          <div className="text-3xl font-light text-accent mb-1">
+          <div className="text-3xl font-light text-yellow-500 mb-1">
             +{(liveEarnings || 0).toFixed(6)} MNE
           </div>
           <div className="text-sm text-muted-foreground mb-1">

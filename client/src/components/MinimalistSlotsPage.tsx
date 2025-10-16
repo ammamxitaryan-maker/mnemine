@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BackButton } from './BackButton';
 import { calculateSlotEarnings, formatTime } from '@/utils/earningsCalculator';
+import { RealTimeEarnings } from './RealTimeEarnings';
 
 const buyNewSlot = async ({ telegramId, amount }: { telegramId: string, amount: number }) => {
   const { data } = await api.post(`/user/${telegramId}/slots/buy`, { amount });
@@ -134,30 +135,9 @@ export const MinimalistSlotsPage = () => {
       </header>
 
       {/* Live Earnings Display */}
-      {isActive && (liveEarnings || 0) > 0 && (
-        <div className="px-6 mb-4">
-          <div className="minimal-card p-3 bg-accent/10 border border-accent/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-accent animate-pulse" />
-                <span className="text-sm font-medium text-accent">Live Earnings</span>
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
-                  <span className="text-xs text-accent">Live</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-medium text-accent">
-                  +{(liveEarnings || 0).toFixed(3)} MNE
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {perSecondRate.toFixed(6)} MNE/sec
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="px-6 mb-4">
+        <RealTimeEarnings />
+      </div>
 
       {/* Buy New Slot */}
       <div className="px-6 mb-6">
@@ -208,6 +188,33 @@ export const MinimalistSlotsPage = () => {
         </div>
       </div>
 
+      {/* Active Slots Summary */}
+      {activeSlots.length > 0 && (
+        <div className="px-6 mb-4">
+          <div className="minimal-card p-4 bg-yellow-500/5 border border-yellow-500/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Server className="w-4 h-4 text-yellow-500" />
+                <span className="text-sm font-medium text-foreground">Total Active Earnings</span>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-medium text-yellow-500">
+                  {activeSlots.reduce((sum, slot) => {
+                    const slotEarnings = calculateSlotEarnings(slot);
+                    return sum + slotEarnings.totalReturn;
+                  }, 0).toFixed(6)} MNE
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {activeSlots.reduce((sum, slot) => {
+                    return sum + (slot.principal * slot.effectiveWeeklyRate / (7 * 24 * 60 * 60));
+                  }, 0).toFixed(8)} MNE/sec total
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Active Slots */}
       {activeSlots.length > 0 && (
         <div className="px-6 mb-6">
@@ -229,10 +236,14 @@ export const MinimalistSlotsPage = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium text-primary animate-pulse">
-                        {slotEarnings.totalReturn.toFixed(3)} MNE
+                        {slotEarnings.totalReturn.toFixed(6)} MNE
                       </div>
                       <div className="text-xs text-muted-foreground">
                         → {expectedReturn.toFixed(2)} MNE
+                      </div>
+                      <div className="text-xs text-yellow-500 flex items-center gap-1 mt-1">
+                        <Zap className="w-3 h-3" />
+                        {(slot.principal * slot.effectiveWeeklyRate / (7 * 24 * 60 * 60)).toFixed(8)} MNE/sec
                       </div>
                     </div>
                   </div>
