@@ -8,6 +8,7 @@ import {
   freezeAccounts,
   getDashboardStats,
   deleteUser,
+  deleteAllUsers,
   bulkUserActions,
   resetDatabase
 } from '../controllers/adminController.js';
@@ -32,6 +33,9 @@ router.get('/dashboard-stats', isAdmin, getDashboardStats);
 
 // Удаление пользователя
 router.delete('/delete-user/:userId', isAdmin, deleteUser);
+
+// Удаление всех пользователей
+router.delete('/delete-all-users', isAdmin, deleteAllUsers);
 
 // Bulk user operations
 router.post('/users/bulk-actions', isAdmin, bulkUserActions);

@@ -327,6 +327,96 @@ export class AdminUserService {
     }
   }
 
+  // DELETE /api/admin/delete-all-users - Удаление всех пользователей
+  static async deleteAllUsers(req: Request, res: Response) {
+    try {
+      const { reason } = req.body;
+
+      if (!reason) {
+        return res.status(400).json({
+          success: false,
+          error: 'Reason is required for deleting all users'
+        });
+      }
+
+      // Получаем всех пользователей для логирования
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          telegramId: true,
+          username: true,
+          firstName: true
+        }
+      });
+
+      if (allUsers.length === 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'No users found to delete',
+          data: { deletedCount: 0 }
+        });
+      }
+
+      // Проверяем, есть ли активные слоты у пользователей
+      const activeSlots = await prisma.miningSlot.findMany({
+        where: { isActive: true },
+        select: { userId: true }
+      });
+
+      if (activeSlots.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot delete all users while there are active mining slots. Please wait for slots to expire or manually deactivate them first.'
+        });
+      }
+
+      // Удаляем всех пользователей и связанные данные в транзакции
+      const result = await prisma.$transaction(async (tx) => {
+        // Удаляем все связанные записи
+        await tx.activityLog.deleteMany({});
+        await tx.referralEarning.deleteMany({});
+        await tx.notification.deleteMany({});
+        await tx.completedTask.deleteMany({});
+        await tx.lotteryTicket.deleteMany({});
+        await tx.swapTransaction.deleteMany({});
+        await tx.withdrawal.deleteMany({});
+        await tx.investment.deleteMany({});
+        await tx.wallet.deleteMany({});
+        await tx.miningSlot.deleteMany({});
+        await tx.accountFreeze.deleteMany({});
+        
+        // Удаляем всех пользователей
+        const deletedUsers = await tx.user.deleteMany({});
+
+        return deletedUsers;
+      });
+
+      // Логируем действие администратора
+      console.log(`[ADMIN ACTION] All users deleted by admin. Reason: ${reason}. Deleted ${result.count} users.`);
+
+      res.status(200).json({
+        success: true,
+        message: `Successfully deleted all ${result.count} users`,
+        data: {
+          deletedCount: result.count,
+          reason: reason,
+          deletedUsers: allUsers.map(user => ({
+            id: user.id,
+            telegramId: user.telegramId,
+            username: user.username,
+            firstName: user.firstName
+          }))
+        }
+      });
+    } catch (error) {
+      console.error('Error deleting all users:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete all users'
+      });
+    }
+  }
+
   // POST /api/admin/bulk-user-actions - Массовые действия с пользователями
   static async bulkUserActions(req: Request, res: Response) {
     try {

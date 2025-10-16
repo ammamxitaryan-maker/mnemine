@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Users, DollarSign, TrendingUp, UserX, Gift, ArrowLeftRight } from 'lucide-react';
+import { Loader2, Users, DollarSign, TrendingUp, UserX, Gift, ArrowLeftRight, Trash2 } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 interface DashboardStats {
@@ -99,6 +99,38 @@ const AdminDashboardCompact = () => {
     try {
       await api.delete(`/admin/delete-user/${userId}`, { data: { adminId: 'ADMIN' } });
       showSuccess(t('admin.userManagement.deleteSuccess'));
+      fetchData();
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      showError(error.response?.data?.error || t('admin.error'));
+    }
+  };
+
+  const handleDeleteAllUsers = async () => {
+    const confirmText = 'DELETE ALL USERS';
+    const userInput = prompt(
+      `⚠️ CRITICAL ACTION ⚠️\n\n` +
+      `This will permanently delete ALL users and their data.\n` +
+      `This action CANNOT be undone!\n\n` +
+      `Type "${confirmText}" to confirm:`
+    );
+
+    if (userInput !== confirmText) {
+      showError('Action cancelled. You must type the exact confirmation text.');
+      return;
+    }
+
+    const reason = prompt('Enter reason for deleting all users:');
+    if (!reason) {
+      showError('Reason is required for this action.');
+      return;
+    }
+
+    try {
+      await api.delete('/admin/delete-all-users', { 
+        data: { reason: reason } 
+      });
+      showSuccess('All users have been successfully deleted.');
       fetchData();
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
@@ -218,7 +250,18 @@ const AdminDashboardCompact = () => {
           <TabsContent value="inactive" className="mt-3">
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader className="py-2 px-3">
-                <CardTitle className="text-sm">{t('admin.userManagement.inactiveUsers')} ({inactiveUsers.length})</CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-sm">{t('admin.userManagement.inactiveUsers')} ({inactiveUsers.length})</CardTitle>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className="h-7 text-xs"
+                    onClick={handleDeleteAllUsers}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Delete All
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="p-2 max-h-80 overflow-y-auto">
                 {inactiveUsers.length === 0 ? (

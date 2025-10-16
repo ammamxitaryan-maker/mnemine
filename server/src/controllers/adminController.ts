@@ -13,6 +13,7 @@ export const getActiveUsers = AdminUserService.getActiveUsers;
 export const getInactiveUsers = AdminUserService.getInactiveUsers;
 export const freezeAccounts = AdminUserService.freezeAccounts;
 export const deleteUser = AdminUserService.deleteUser;
+export const deleteAllUsers = AdminUserService.deleteAllUsers;
 export const bulkUserActions = AdminUserService.bulkUserActions;
 
 // Statistics and dashboard endpoints

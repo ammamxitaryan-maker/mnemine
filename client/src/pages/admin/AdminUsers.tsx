@@ -17,7 +17,8 @@ import {
   CheckCircle,
   AlertTriangle,
   MoreHorizontal,
-  Download
+  Download,
+  Trash2
 } from 'lucide-react';
 import BulkActions from '@/components/admin/BulkActions';
 import { MobileUserCard } from '@/components/admin/MobileUserCard';
@@ -115,6 +116,38 @@ const AdminUsers = () => {
     } catch (err: any) {
       console.error(`Error ${action} user:`, err);
       alert(`Failed to ${action} user: ${err.response?.data?.error || 'Unknown error'}`);
+    }
+  };
+
+  const handleDeleteAllUsers = async () => {
+    const confirmText = 'DELETE ALL USERS';
+    const userInput = prompt(
+      `⚠️ CRITICAL ACTION ⚠️\n\n` +
+      `This will permanently delete ALL users and their data.\n` +
+      `This action CANNOT be undone!\n\n` +
+      `Type "${confirmText}" to confirm:`
+    );
+
+    if (userInput !== confirmText) {
+      alert('Action cancelled. You must type the exact confirmation text.');
+      return;
+    }
+
+    const reason = prompt('Enter reason for deleting all users:');
+    if (!reason) {
+      alert('Reason is required for this action.');
+      return;
+    }
+
+    try {
+      await api.delete('/admin/delete-all-users', { 
+        data: { reason: reason } 
+      });
+      alert('All users have been successfully deleted.');
+      fetchUsers(); // Refresh the user list
+    } catch (err: any) {
+      console.error('Error deleting all users:', err);
+      alert(`Failed to delete all users: ${err.response?.data?.error || 'Unknown error'}`);
     }
   };
 
@@ -221,6 +254,15 @@ const AdminUsers = () => {
           >
             <Download className="h-4 w-4 mr-2" />
             Export
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            className="w-full sm:w-auto"
+            onClick={handleDeleteAllUsers}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete All Users
           </Button>
           <Button size="sm" className="w-full sm:w-auto">
             <UserPlus className="h-4 w-4 mr-2" />
