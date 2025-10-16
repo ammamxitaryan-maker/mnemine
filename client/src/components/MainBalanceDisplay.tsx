@@ -84,10 +84,6 @@ export const MainBalanceDisplay = ({
               <span className="text-xs text-accent">Live</span>
             </div>
           </div>
-          {/* Debug info - remove in production */}
-          <div className="text-xs text-gray-500 mt-2">
-            Debug: {liveEarnings.toFixed(8)} MNE | Rate: {perSecondRate.toFixed(10)}/sec | Active: {isActive ? 'Yes' : 'No'} | Lang: {i18n.language}
-          </div>
           <div className="text-3xl font-light text-accent mb-1">
             +{(liveEarnings || 0).toFixed(6)} MNE
           </div>

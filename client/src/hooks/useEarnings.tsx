@@ -7,12 +7,6 @@ export const useEarnings = () => {
     throw new Error('useEarnings must be used within an EarningsProvider');
   }
   
-  // Debug logging
-  console.log('[useEarnings] Current state:', {
-    totalEarnings: context.totalEarnings,
-    perSecondRate: context.perSecondRate,
-    isActive: context.isActive
-  });
   
   return context;
 };
