@@ -40,7 +40,7 @@ i18n
     },
   });
 
-// Override language for admin panel
+// Override language for admin panel only
 const originalChangeLanguage = i18n.changeLanguage;
 i18n.changeLanguage = (lng, callback) => {
   if (isAdminPanel()) {
@@ -49,11 +49,14 @@ i18n.changeLanguage = (lng, callback) => {
   return originalChangeLanguage(lng, callback);
 };
 
-// Force Armenian language on initialization (except for admin panel)
+// Only set default language if no language is stored and not in admin panel
 if (!isAdminPanel()) {
-  // Set Armenian in localStorage to persist the choice
-  localStorage.setItem('mnemine-language', 'hy');
-  i18n.changeLanguage('hy');
+  const storedLanguage = localStorage.getItem('mnemine-language');
+  if (!storedLanguage) {
+    // Only set Armenian as default if no language preference exists
+    localStorage.setItem('mnemine-language', 'hy');
+    i18n.changeLanguage('hy');
+  }
 }
 
 export default i18n;
