@@ -11,6 +11,11 @@ interface EarningsWrapperProps {
 export const EarningsWrapper = ({ children }: EarningsWrapperProps) => {
   const { user } = useTelegramAuth();
 
+  console.log('[EarningsWrapper] Rendering with user:', {
+    hasUser: !!user,
+    telegramId: user?.telegramId
+  });
+
   // Always provide the EarningsProvider, even if user is not available yet
   // The EarningsProvider will handle the case where telegramId is empty
   return (

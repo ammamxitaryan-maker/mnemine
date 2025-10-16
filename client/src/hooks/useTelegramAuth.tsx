@@ -125,6 +125,14 @@ export const useTelegramAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authAttempted, setAuthAttempted] = useState(false);
+  
+  console.log('[useTelegramAuth] Current state:', {
+    hasUser: !!user,
+    telegramId: user?.telegramId,
+    loading,
+    error,
+    authAttempted
+  });
   const [initData, setInitData] = useState<string | null>(null);
 
   // Helper function to set user and cache

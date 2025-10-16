@@ -26,15 +26,34 @@ export interface RealTimeSlotData {
 }
 
 const fetchSlotsData = async (telegramId?: string): Promise<MiningSlot[]> => {
+  console.log('[useSlotsData] Fetching slots data for telegramId:', telegramId);
+  
   if (!telegramId) {
+    console.log('[useSlotsData] No telegramId provided, returning empty array');
     return [];
   }
-  const { data } = await api.get(`/user/${telegramId}/slots`);
-  // Ensure earningsPerSecond is always provided
-  return data.map((slot: MiningSlot) => ({
-    ...slot,
-    earningsPerSecond: slot.earningsPerSecond || 0
-  }));
+  
+  try {
+    const { data } = await api.get(`/user/${telegramId}/slots`);
+    console.log('[useSlotsData] Fetched slots data:', {
+      count: data?.length || 0,
+      slots: data?.map((slot: any) => ({
+        id: slot.id,
+        principal: slot.principal,
+        isActive: slot.isActive,
+        effectiveWeeklyRate: slot.effectiveWeeklyRate
+      }))
+    });
+    
+    // Ensure earningsPerSecond is always provided
+    return data.map((slot: MiningSlot) => ({
+      ...slot,
+      earningsPerSecond: slot.earningsPerSecond || 0
+    }));
+  } catch (error) {
+    console.error('[useSlotsData] Error fetching slots:', error);
+    return [];
+  }
 };
 
 export const useSlotsData = (telegramId?: string) => {

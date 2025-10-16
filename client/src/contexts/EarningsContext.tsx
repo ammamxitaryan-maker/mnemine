@@ -52,10 +52,28 @@ export const EarningsProvider = ({ children, telegramId }: EarningsProviderProps
 
   // Update global manager when slots data or server earnings change
   useEffect(() => {
-    if (slotsData) {
+    console.log('[EarningsContext] Update effect triggered:', {
+      telegramId,
+      hasSlotsData: !!slotsData,
+      slotsCount: slotsData?.length || 0,
+      serverEarnings: serverEarnings?.totalEarnings,
+      userEarnings: userData?.accruedEarnings
+    });
+    
+    if (slotsData && telegramId) {
       // Use server earnings if available, otherwise fall back to user data
       const earnings = serverEarnings?.totalEarnings || userData?.accruedEarnings || 0;
+      console.log('[EarningsContext] Updating global manager with:', {
+        telegramId,
+        slotsCount: slotsData.length,
+        earnings
+      });
       globalEarningsManager.updateSlotsData(telegramId, slotsData, earnings);
+    } else {
+      console.log('[EarningsContext] Skipping update - missing data:', {
+        hasSlotsData: !!slotsData,
+        hasTelegramId: !!telegramId
+      });
     }
   }, [slotsData, telegramId, serverEarnings?.totalEarnings, userData?.accruedEarnings]);
 

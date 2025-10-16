@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { DebugEarnings } from './DebugEarnings';
 import { 
   CircleDot, 
   Server, 
@@ -251,6 +252,9 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
 
       {/* Bottom spacing */}
       <div className="h-8" />
+      
+      {/* Debug component - remove in production */}
+      <DebugEarnings />
     </div>
   );
 };

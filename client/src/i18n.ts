@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Check if we're in admin panel
 const isAdminPanel = () => {
+  if (typeof window === 'undefined') return false;
   return window.location.pathname.startsWith('/admin') && !window.location.pathname.includes('/admin-login');
 };
 
@@ -50,7 +51,7 @@ i18n.changeLanguage = (lng, callback) => {
 };
 
 // Only set default language if no language is stored and not in admin panel
-if (!isAdminPanel()) {
+if (typeof window !== 'undefined' && !isAdminPanel()) {
   const storedLanguage = localStorage.getItem('mnemine-language');
   if (!storedLanguage) {
     // Only set Armenian as default if no language preference exists

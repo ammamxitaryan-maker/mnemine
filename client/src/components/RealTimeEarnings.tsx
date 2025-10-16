@@ -11,15 +11,22 @@ interface RealTimeEarningsProps {
 }
 
 export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useTelegramAuth();
   const { convertMNEToUSD } = useCachedExchangeRate(user?.telegramId || '');
   const { totalEarnings, perSecondRate, isActive } = useEarnings();
 
   const usdEquivalent = convertMNEToUSD(totalEarnings);
 
+  // Debug: Always show component to test
   if (!isActive || perSecondRate === 0) {
-    return null;
+    return (
+      <div className={`minimal-card ${className}`}>
+        <div className="text-center text-xs text-gray-500">
+          Debug: No active earnings | isActive: {isActive ? 'Yes' : 'No'} | Rate: {perSecondRate.toFixed(8)} | Lang: {i18n.language}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -39,6 +46,10 @@ export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
             </div>
           )}
         </div>
+      </div>
+      {/* Debug info - remove in production */}
+      <div className="text-xs text-gray-500 mt-2 text-center">
+        Debug: {totalEarnings.toFixed(6)} MNE | Rate: {perSecondRate.toFixed(8)}/sec | Active: {isActive ? 'Yes' : 'No'} | Lang: {i18n.language}
       </div>
     </div>
   );
