@@ -94,7 +94,7 @@ export const useSlotControl = (telegramId: string | undefined) => {
       if (context?.toastId) {
         dismissToast(context.toastId);
       }
-      showSuccess(`Earnings claimed successfully! +${data.amount?.toFixed(6)} MNE`);
+      showSuccess(`Earnings claimed successfully! +${data.amount?.toFixed(3)} MNE`);
       
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['userSlots', telegramId] });
@@ -124,7 +124,7 @@ export const useSlotControl = (telegramId: string | undefined) => {
       if (context?.toastId) {
         dismissToast(context.toastId);
       }
-      showSuccess(`Slot extended successfully! +${variables.amount.toFixed(6)} MNE`);
+      showSuccess(`Slot extended successfully! +${variables.amount.toFixed(3)} MNE`);
       
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['userSlots', telegramId] });
@@ -154,7 +154,7 @@ export const useSlotControl = (telegramId: string | undefined) => {
       if (context?.toastId) {
         dismissToast(context.toastId);
       }
-      showSuccess(`Slot cancelled successfully! Refunded ${data.refundAmount?.toFixed(6)} MNE`);
+      showSuccess(`Slot cancelled successfully! Refunded ${data.refundAmount?.toFixed(3)} MNE`);
       
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['userSlots', telegramId] });

@@ -109,6 +109,9 @@ import { validateEnvironment } from './utils/validation.js';
 import { ProductionHealthCheck } from './utils/productionHealthCheck.js';
 import { requestLogger, websocketLogger, authLogger, businessLogger } from './middleware/requestLogger.js';
 import { MemoryMonitoringService } from './services/memoryMonitoringService.js';
+import { UserStatsService } from './services/userStatsService.js';
+import { UserStatsWebSocketService } from './services/userStatsWebSocketService.js';
+import userStatsRoutes from './routes/userStatsRoutes.js';
 import './utils/slotProcessor.js';
 
 // Validate environment variables
@@ -470,6 +473,7 @@ if (token && bot) {
 
 // API routes
 app.use('/api', apiRoutes);
+app.use('/api/stats', userStatsRoutes);
 
 // Static file serving
 const projectRoot = process.cwd();
@@ -720,6 +724,11 @@ async function startServer() {
       // Initialize memory monitoring
       const memoryMonitor = MemoryMonitoringService.getInstance();
       logger.server('Memory monitoring service initialized');
+      
+      // Initialize user stats services
+      UserStatsService.initialize();
+      UserStatsWebSocketService.initialize();
+      logger.server('User stats services initialized');
       
       try {
         const wsServer = new WebSocketServer(server);

@@ -64,7 +64,7 @@ export const MainBalanceDisplay = ({
           <h2 className="text-lg font-medium text-foreground">Available Balance</h2>
         </div>
         <div className="text-4xl font-light text-primary mb-1">
-          {(availableBalance || 0).toFixed(6)} MNE
+          {(availableBalance || 0).toFixed(3)} MNE
         </div>
         {usdEquivalent > 0 && (
           <div className="text-sm text-accent">
@@ -85,7 +85,7 @@ export const MainBalanceDisplay = ({
             </div>
           </div>
           <div className="text-3xl font-light text-accent mb-1">
-            +{(liveEarnings || 0).toFixed(6)} MNE
+            +{(liveEarnings || 0).toFixed(3)} MNE
           </div>
           {convertMNEToUSD(liveEarnings || 0) > 0 && (
             <div className="text-sm text-muted-foreground">
@@ -106,7 +106,7 @@ export const MainBalanceDisplay = ({
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-foreground">
-                {(totalBalance || 0).toFixed(6)} MNE
+                {(totalBalance || 0).toFixed(3)} MNE
               </div>
               {totalUsdEquivalent > 0 && (
                 <div className="text-xs text-muted-foreground">
@@ -124,7 +124,7 @@ export const MainBalanceDisplay = ({
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-foreground">
-                {(totalInvested || 0).toFixed(6)} MNE
+                {(totalInvested || 0).toFixed(3)} MNE
               </div>
               <div className="text-xs text-muted-foreground">
                 {activeSlotsCount} active slot{activeSlotsCount !== 1 ? 's' : ''}

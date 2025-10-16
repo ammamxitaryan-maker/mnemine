@@ -2,6 +2,7 @@
 import { IncomingMessage } from 'http';
 import { URL } from 'url';
 import prisma from '../prisma.js';
+import { UserStatsWebSocketService } from '../services/userStatsWebSocketService.js';
 
 interface AuthenticatedWebSocket extends WebSocket {
   telegramId?: string;
@@ -42,6 +43,12 @@ export class WebSocketServer {
       if (!telegramId || telegramId === 'notifications') {
         // Handle notification connections
         this.handleNotificationConnection(ws);
+        return;
+      }
+
+      if (telegramId === 'userstats') {
+        // Handle user stats connections
+        this.handleUserStatsConnection(ws);
         return;
       }
 
@@ -113,6 +120,38 @@ export class WebSocketServer {
     ws.on('message', (data: any) => this.handleNotificationMessage(ws, data as Buffer));
     ws.on('close', () => console.log('[WebSocket] Notification client disconnected'));
     ws.on('error', (error: any) => console.error('[WebSocket] Notification error:', error));
+  }
+
+  private handleUserStatsConnection(ws: AuthenticatedWebSocket) {
+    const clientId = `userstats_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    console.log('[WebSocket] User stats client connected:', clientId);
+
+    // Add client to user stats service
+    UserStatsWebSocketService.addClient(ws, clientId);
+
+    ws.on('message', (data: any) => {
+      try {
+        const message = data.toString();
+        UserStatsWebSocketService.handleMessage(clientId, message);
+      } catch (error) {
+        console.error('[WebSocket] Error handling user stats message:', error);
+      }
+    });
+
+    ws.on('close', () => {
+      console.log('[WebSocket] User stats client disconnected:', clientId);
+      UserStatsWebSocketService.removeClient(clientId);
+    });
+
+    ws.on('pong', () => {
+      UserStatsWebSocketService.handlePong(clientId);
+    });
+
+    ws.on('error', (error) => {
+      console.error('[WebSocket] User stats client error:', error);
+      UserStatsWebSocketService.removeClient(clientId);
+    });
   }
 
   private async sendInitialGlobalData(ws: AuthenticatedWebSocket) {

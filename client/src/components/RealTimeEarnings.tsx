@@ -39,7 +39,7 @@ export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
 
              <div className="text-center">
                <div className="text-2xl font-light text-primary mb-1">
-                 +{totalEarnings.toFixed(6)} MNE
+                 +{totalEarnings.toFixed(3)} MNE
                </div>
                {usdEquivalent > 0 && (
                  <div className="text-sm text-accent">

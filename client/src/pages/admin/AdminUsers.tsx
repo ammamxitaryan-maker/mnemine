@@ -91,6 +91,7 @@ const AdminUsers = () => {
           if (freezeReason !== null) { // User didn't cancel
             await api.post(`/admin/users/${userId}/freeze`, { reason: freezeReason });
             alert(`Account for ${userName} has been frozen successfully.`);
+            await fetchUsers(); // Обновляем список после успешного действия
           }
           break;
         }
@@ -98,6 +99,7 @@ const AdminUsers = () => {
           if (window.confirm(`Are you sure you want to unfreeze ${userName}'s account?`)) {
             await api.post(`/admin/users/${userId}/unfreeze`);
             alert(`Account for ${userName} has been unfrozen successfully.`);
+            await fetchUsers();
           }
           break;
         case 'ban': {
@@ -106,6 +108,7 @@ const AdminUsers = () => {
             if (window.confirm(`Are you sure you want to ban ${userName}? This action will prevent them from accessing the platform.`)) {
               await api.post(`/admin/users/${userId}/ban`, { reason: banReason });
               alert(`Account for ${userName} has been banned successfully.`);
+              await fetchUsers();
             }
           }
           break;
@@ -114,29 +117,51 @@ const AdminUsers = () => {
           if (window.confirm(`Are you sure you want to unban ${userName}'s account?`)) {
             await api.post(`/admin/users/${userId}/unban`);
             alert(`Account for ${userName} has been unbanned successfully.`);
+            await fetchUsers();
           }
           break;
-        case 'delete':
-          if (window.confirm(`⚠️ CRITICAL ACTION ⚠️\n\nAre you sure you want to permanently delete ${userName}'s account?\n\nThis action CANNOT be undone and will remove all user data including:\n- Account information\n- Transaction history\n- Investment records\n- Referral data\n\nType "DELETE" to confirm:`)) {
+        case 'delete': {
+          // Упрощенная логика подтверждения
+          const confirmDelete = window.confirm(
+            `⚠️ CRITICAL ACTION ⚠️\n\n` +
+            `Are you sure you want to permanently delete ${userName}'s account?\n\n` +
+            `This action CANNOT be undone and will remove ALL user data including:\n` +
+            `• Account information\n` +
+            `• Transaction history\n` +
+            `• Investment records\n` +
+            `• Referral data\n\n` +
+            `Click OK to proceed with deletion.`
+          );
+          
+          if (confirmDelete) {
             const deleteReason = prompt(`Enter reason for deleting ${userName}'s account:`);
             if (deleteReason && deleteReason.trim()) {
-              const finalConfirm = prompt(`Final confirmation: Type "PERMANENTLY DELETE" to confirm deletion of ${userName}'s account:`);
-              if (finalConfirm === "PERMANENTLY DELETE") {
-                await api.delete(`/admin/delete-user/${userId}`, { 
-                  data: { reason: deleteReason } 
-                });
-                alert(`Account for ${userName} has been permanently deleted.`);
+              // Выполняем удаление
+              const response = await api.delete(`/admin/delete-user/${userId}`, { 
+                data: { reason: deleteReason } 
+              });
+              
+              if (response.data.success) {
+                alert(`✅ Account for ${userName} has been permanently deleted.`);
+                await fetchUsers(); // Обновляем список только после успешного удаления
               } else {
-                alert('Deletion cancelled. Confirmation text did not match.');
+                alert(`❌ Failed to delete account: ${response.data.error || 'Unknown error'}`);
               }
+            } else {
+              alert('❌ Deletion cancelled. Reason is required.');
             }
           }
           break;
+        }
       }
-      fetchUsers();
     } catch (err: any) {
       console.error(`Error ${action} user:`, err);
       alert(`Failed to ${action} user: ${err.response?.data?.error || 'Unknown error'}`);
+      
+      // Обновляем список только если это не было удаление (чтобы показать актуальное состояние)
+      if (action !== 'delete') {
+        await fetchUsers();
+      }
     }
   };
 
@@ -161,14 +186,19 @@ const AdminUsers = () => {
     }
 
     try {
-      await api.delete('/admin/delete-all-users', { 
+      const response = await api.delete('/admin/delete-all-users', { 
         data: { reason: reason } 
       });
-      alert('All users have been successfully deleted.');
-      fetchUsers(); // Refresh the user list
+      
+      if (response.data.success) {
+        alert('✅ All users have been successfully deleted.');
+        await fetchUsers(); // Refresh the user list only after successful deletion
+      } else {
+        alert(`❌ Failed to delete all users: ${response.data.error || 'Unknown error'}`);
+      }
     } catch (err: any) {
       console.error('Error deleting all users:', err);
-      alert(`Failed to delete all users: ${err.response?.data?.error || 'Unknown error'}`);
+      alert(`❌ Failed to delete all users: ${err.response?.data?.error || 'Unknown error'}`);
     }
   };
 

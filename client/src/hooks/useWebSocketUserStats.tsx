@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 
 interface UserStats {
   totalUsers: number;
@@ -9,6 +10,9 @@ interface UserStats {
   activeUsers: number;
   lastUpdate: string;
   isFictitious: boolean;
+  userGrowthRate?: number;
+  peakHours?: { start: number; end: number; description: string };
+  timezone?: string;
 }
 
 // Global state to ensure all components see the same data
@@ -23,26 +27,49 @@ let globalUserStats: UserStats = {
 
 const globalListeners: Set<() => void> = new Set();
 
-// Centralized update function that all components will use
-const updateGlobalStats = () => {
-  const baseTotalUsers = 1250;
-  const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50;
-  const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
-  
-  const onlinePercentage = 0.08 + (Math.random() * 0.07);
-  const onlineUsers = Math.floor(totalUsers * onlinePercentage);
-  
-  const newUsersToday = Math.floor(totalUsers * (0.02 + Math.random() * 0.03));
-  const activeUsers = Math.floor(totalUsers * (0.25 + Math.random() * 0.15));
+// Fetch stats from server
+const fetchServerStats = async (): Promise<UserStats | null> => {
+  try {
+    const response = await api.get('/stats/users');
+    if (response.data.success) {
+      return response.data.data;
+    }
+  } catch (error) {
+    console.error('[UserStats] Failed to fetch server stats:', error);
+  }
+  return null;
+};
 
-  globalUserStats = {
-    totalUsers,
-    onlineUsers,
-    newUsersToday,
-    activeUsers,
-    lastUpdate: new Date().toISOString(),
-    isFictitious: true
-  };
+// Centralized update function that fetches from server
+const updateGlobalStats = async () => {
+  const serverStats = await fetchServerStats();
+  
+  if (serverStats) {
+    globalUserStats = {
+      ...serverStats,
+      isFictitious: false // Server stats are real
+    };
+  } else {
+    // Fallback to local calculation if server is unavailable
+    const baseTotalUsers = 1250;
+    const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50;
+    const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
+    
+    const onlinePercentage = 0.08 + (Math.random() * 0.07);
+    const onlineUsers = Math.floor(totalUsers * onlinePercentage);
+    
+    const newUsersToday = Math.floor(totalUsers * (0.02 + Math.random() * 0.03));
+    const activeUsers = Math.floor(totalUsers * (0.25 + Math.random() * 0.15));
+
+    globalUserStats = {
+      totalUsers,
+      onlineUsers,
+      newUsersToday,
+      activeUsers,
+      lastUpdate: new Date().toISOString(),
+      isFictitious: true
+    };
+  }
 
   // Notify all listeners
   globalListeners.forEach(listener => listener());
@@ -68,11 +95,69 @@ const stopGlobalUpdates = () => {
 export const useWebSocketUserStats = () => {
   const [userStats, setUserStats] = useState<UserStats>(globalUserStats);
   const [isConnected, setIsConnected] = useState(false);
+  const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
 
   useEffect(() => {
-    // Start global updates if not already running
-    startGlobalUpdates();
-    setIsConnected(true);
+    // Try to connect to WebSocket for real-time updates
+    const connectWebSocket = () => {
+      try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
+        const wsUrl = backendUrl.replace('http', 'ws') + '/ws/userstats';
+        
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          console.log('[UserStats] WebSocket connected');
+          setIsConnected(true);
+          setWsConnection(ws);
+          
+          // Request initial stats
+          ws.send(JSON.stringify({ type: 'requestStats' }));
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'userStats') {
+              globalUserStats = {
+                ...data.data,
+                isFictitious: false
+              };
+              setUserStats({ ...globalUserStats });
+              globalListeners.forEach(listener => listener());
+            }
+          } catch (error) {
+            console.error('[UserStats] Error parsing WebSocket message:', error);
+          }
+        };
+        
+        ws.onclose = () => {
+          console.log('[UserStats] WebSocket disconnected');
+          setIsConnected(false);
+          setWsConnection(null);
+          
+          // Fallback to HTTP polling
+          startGlobalUpdates();
+        };
+        
+        ws.onerror = (error) => {
+          console.error('[UserStats] WebSocket error:', error);
+          setIsConnected(false);
+          setWsConnection(null);
+          
+          // Fallback to HTTP polling
+          startGlobalUpdates();
+        };
+        
+      } catch (error) {
+        console.error('[UserStats] Failed to create WebSocket connection:', error);
+        // Fallback to HTTP polling
+        startGlobalUpdates();
+      }
+    };
+
+    // Try WebSocket connection first
+    connectWebSocket();
 
     // Add this component as a listener
     const listener = () => setUserStats({ ...globalUserStats });
@@ -80,6 +165,13 @@ export const useWebSocketUserStats = () => {
 
     return () => {
       globalListeners.delete(listener);
+      
+      // Close WebSocket connection
+      if (wsConnection) {
+        wsConnection.close();
+        setWsConnection(null);
+      }
+      
       // Only stop global updates if no other components are listening
       if (globalListeners.size === 0) {
         stopGlobalUpdates();
@@ -94,6 +186,9 @@ export const useWebSocketUserStats = () => {
     newUsersToday: userStats.newUsersToday,
     activeUsers: userStats.activeUsers,
     isConnected,
-    lastUpdate: userStats.lastUpdate
+    lastUpdate: userStats.lastUpdate,
+    userGrowthRate: userStats.userGrowthRate,
+    peakHours: userStats.peakHours,
+    timezone: userStats.timezone
   };
 };

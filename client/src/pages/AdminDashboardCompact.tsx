@@ -97,9 +97,14 @@ const AdminDashboardCompact = () => {
   const handleDelete = async (userId: string) => {
     if (window.prompt(t('admin.userManagement.confirmDelete')) !== 'DELETE') return;
     try {
-      await api.delete(`/admin/delete-user/${userId}`, { data: { adminId: 'ADMIN' } });
-      showSuccess(t('admin.userManagement.deleteSuccess'));
-      fetchData();
+      const response = await api.delete(`/admin/delete-user/${userId}`, { data: { adminId: 'ADMIN' } });
+      
+      if (response.data.success) {
+        showSuccess(t('admin.userManagement.deleteSuccess'));
+        await fetchData(); // Обновляем данные только после успешного удаления
+      } else {
+        showError(response.data.error || t('admin.error'));
+      }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
       showError(error.response?.data?.error || t('admin.error'));
@@ -127,11 +132,16 @@ const AdminDashboardCompact = () => {
     }
 
     try {
-      await api.delete('/admin/delete-all-users', { 
+      const response = await api.delete('/admin/delete-all-users', { 
         data: { reason: reason } 
       });
-      showSuccess('All users have been successfully deleted.');
-      fetchData();
+      
+      if (response.data.success) {
+        showSuccess('All users have been successfully deleted.');
+        await fetchData(); // Обновляем данные только после успешного удаления
+      } else {
+        showError(response.data.error || t('admin.error'));
+      }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
       showError(error.response?.data?.error || t('admin.error'));

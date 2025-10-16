@@ -216,7 +216,7 @@ export const MinimalistSlotsPage = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium text-primary">
-                        +{slotEarnings.perSecondRate.toFixed(6)} MNE/s
+                        +{slotEarnings.perSecondRate.toFixed(3)} MNE/s
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {slotEarnings.dailyReturn.toFixed(4)} MNE/day

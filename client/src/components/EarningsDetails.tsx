@@ -63,7 +63,7 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
             <span className="text-sm text-foreground">{t('dailyRate')}</span>
           </div>
           <span className="text-sm font-medium text-primary">
-            +{totalDailyReturn.toFixed(6)} MNE
+            +{totalDailyReturn.toFixed(3)} MNE
           </span>
         </div>
         
@@ -108,7 +108,7 @@ export const EarningsDetails = ({ telegramId, className = '' }: EarningsDetailsP
               </div>
               <div className="text-right">
                 <div className="text-sm font-medium text-primary">
-                  +{slotEarnings.perSecondRate.toFixed(6)}/s
+                  +{slotEarnings.perSecondRate.toFixed(3)}/s
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {slotEarnings.principal > 0 ? ((slotEarnings.totalReturn - slotEarnings.principal) / slotEarnings.principal * 100).toFixed(1) : 0}%
