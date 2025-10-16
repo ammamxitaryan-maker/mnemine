@@ -57,6 +57,8 @@ const AdminTransactions = () => {
       setTransactions(response.data.data.transactions || []);
     } catch (err: any) {
       console.error('Error fetching transactions:', err);
+      // Show user-friendly error message
+      alert('Failed to load transactions. Please try again later.');
     } finally {
       setLoading(false);
     }

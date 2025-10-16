@@ -93,26 +93,61 @@ const AdminSettings = () => {
       setMessage(null);
 
       let payload = {};
+      const validationErrors: string[] = [];
       
       switch (section) {
-        case 'exchange':
-          payload = { exchangeRate: parseFloat(exchangeRate) };
+        case 'exchange': {
+          const rate = parseFloat(exchangeRate);
+          if (isNaN(rate) || rate <= 0) {
+            validationErrors.push('Exchange rate must be a positive number');
+          }
+          if (rate < 0.0001 || rate > 100) {
+            validationErrors.push('Exchange rate must be between 0.0001 and 100');
+          }
+          if (validationErrors.length === 0) {
+            payload = { exchangeRate: rate };
+          }
           break;
-        case 'limits':
-          payload = {
-            minDeposit: parseFloat(minDeposit),
-            maxDeposit: parseFloat(maxDeposit),
-            minWithdrawal: parseFloat(minWithdrawal),
-            maxWithdrawal: parseFloat(maxWithdrawal),
-            dailyWithdrawalLimit: parseFloat(dailyWithdrawalLimit)
-          };
+        }
+        case 'limits': {
+          const minDep = parseFloat(minDeposit);
+          const maxDep = parseFloat(maxDeposit);
+          const minWith = parseFloat(minWithdrawal);
+          const maxWith = parseFloat(maxWithdrawal);
+          const dailyLimit = parseFloat(dailyWithdrawalLimit);
+          
+          if (isNaN(minDep) || minDep <= 0) validationErrors.push('Minimum deposit must be a positive number');
+          if (isNaN(maxDep) || maxDep <= 0) validationErrors.push('Maximum deposit must be a positive number');
+          if (isNaN(minWith) || minWith <= 0) validationErrors.push('Minimum withdrawal must be a positive number');
+          if (isNaN(maxWith) || maxWith <= 0) validationErrors.push('Maximum withdrawal must be a positive number');
+          if (isNaN(dailyLimit) || dailyLimit <= 0) validationErrors.push('Daily withdrawal limit must be a positive number');
+          
+          if (minDep > maxDep) validationErrors.push('Minimum deposit cannot be greater than maximum deposit');
+          if (minWith > maxWith) validationErrors.push('Minimum withdrawal cannot be greater than maximum withdrawal');
+          if (maxWith > dailyLimit) validationErrors.push('Maximum withdrawal cannot be greater than daily limit');
+          
+          if (validationErrors.length === 0) {
+            payload = {
+              minDeposit: minDep,
+              maxDeposit: maxDep,
+              minWithdrawal: minWith,
+              maxWithdrawal: maxWith,
+              dailyWithdrawalLimit: dailyLimit
+            };
+          }
           break;
+        }
         default:
           return;
       }
 
+      if (validationErrors.length > 0) {
+        setMessage({ type: 'error', text: validationErrors.join(', ') });
+        return;
+      }
+
       await api.post('/admin/settings/update', payload);
-      setMessage({ type: 'success', text: 'Settings saved successfully' });
+      setMessage({ type: 'success', text: `${section.charAt(0).toUpperCase() + section.slice(1)} settings saved successfully` });
       fetchSettings();
     } catch (err: unknown) {
       console.error('Failed to save settings:', err);

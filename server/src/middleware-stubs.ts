@@ -29,7 +29,12 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     const adminIdsString = process.env.ADMIN_TELEGRAM_IDS || '6760298907';
     const ADMIN_TELEGRAM_IDS = adminIdsString.split(',').map(id => id.trim());
     
+    console.log('[ADMIN_MIDDLEWARE] Request path:', req.path);
+    console.log('[ADMIN_MIDDLEWARE] Telegram init data:', telegramInitData);
+    console.log('[ADMIN_MIDDLEWARE] Admin IDs:', ADMIN_TELEGRAM_IDS);
+    
     if (!telegramInitData) {
+      console.log('[ADMIN_MIDDLEWARE] No Telegram init data provided');
       return res.status(401).json({
         success: false,
         error: 'No Telegram authentication data provided'
@@ -40,7 +45,10 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     const urlParams = new URLSearchParams(telegramInitData as string);
     const userStr = urlParams.get('user');
     
+    console.log('[ADMIN_MIDDLEWARE] User string from init data:', userStr);
+    
     if (!userStr) {
+      console.log('[ADMIN_MIDDLEWARE] No user data in Telegram init data');
       return res.status(401).json({
         success: false,
         error: 'No user data in Telegram init data'
@@ -50,16 +58,21 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     let user;
     try {
       user = JSON.parse(userStr);
+      console.log('[ADMIN_MIDDLEWARE] Parsed user:', user);
     } catch (parseError) {
+      console.log('[ADMIN_MIDDLEWARE] Failed to parse user data:', parseError);
       return res.status(401).json({
         success: false,
         error: 'Invalid user data format'
       });
     }
     const userTelegramId = user.id?.toString();
+    console.log('[ADMIN_MIDDLEWARE] User Telegram ID:', userTelegramId);
+    console.log('[ADMIN_MIDDLEWARE] Is user in admin list?', ADMIN_TELEGRAM_IDS.includes(userTelegramId));
 
     // Check if the user's Telegram ID is in the admin list
     if (!ADMIN_TELEGRAM_IDS.includes(userTelegramId)) {
+      console.log('[ADMIN_MIDDLEWARE] Access denied - user not in admin list');
       return res.status(403).json({
         success: false,
         error: 'Access denied. Admin privileges required.'
@@ -74,6 +87,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
       firstName: user.first_name,
       username: user.username
     };
+    console.log('[ADMIN_MIDDLEWARE] Admin access granted for user:', userTelegramId);
     next();
   } catch (error) {
     console.error('Admin authentication error:', error);

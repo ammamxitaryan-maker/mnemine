@@ -11,6 +11,14 @@ interface TestUser {
 
 const TEST_USERS: TestUser[] = [
   {
+    id: 6760298907,
+    telegramId: '6760298907',
+    first_name: 'Admin',
+    last_name: 'User',
+    username: 'admin_test',
+    language_code: 'en'
+  },
+  {
     id: 123456789,
     telegramId: '123456789',
     first_name: 'Test',
@@ -21,17 +29,17 @@ const TEST_USERS: TestUser[] = [
   {
     id: 987654321,
     telegramId: '987654321',
-    first_name: 'Admin',
+    first_name: 'Regular',
     last_name: 'User',
-    username: 'adminuser',
+    username: 'regularuser',
     language_code: 'en'
   },
   {
     id: 555666777,
     telegramId: '555666777',
-    first_name: 'Regular',
+    first_name: 'Russian',
     last_name: 'User',
-    username: 'regularuser',
+    username: 'russianuser',
     language_code: 'ru'
   }
 ];

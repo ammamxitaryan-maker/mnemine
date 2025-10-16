@@ -60,12 +60,12 @@ const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void, setUserA
   }
   
   if (!testUserData) {
-    // Create a default test user
+    // Create a default test user with admin ID for development
     testUserData = {
-      id: 123456789,
-      first_name: 'Test',
+      id: 6760298907, // Use admin ID for development
+      first_name: 'Admin',
       last_name: 'User',
-      username: 'testuser'
+      username: 'admin_test'
     };
     localStorage.setItem('testUser', JSON.stringify(testUserData));
   }

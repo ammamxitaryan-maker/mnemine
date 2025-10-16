@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ErrorBoundary } from '@/components/admin/ErrorBoundary';
 
 interface AdminNavItem {
   path: string;
@@ -202,7 +203,9 @@ export const AdminLayout = () => {
 
         {/* Page content */}
         <main className="p-4 sm:p-6 pb-20 sm:pb-6">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
 

@@ -81,33 +81,54 @@ const AdminUsers = () => {
   };
 
   const handleUserAction = async (userId: string, action: string) => {
+    const user = users.find(u => u.id === userId);
+    const userName = user?.firstName || user?.username || `User ${user?.telegramId}`;
+    
     try {
       switch (action) {
         case 'freeze': {
-          const freezeReason = prompt('Enter reason for freezing account (optional):');
-          await api.post(`/admin/users/${userId}/freeze`, { reason: freezeReason });
+          const freezeReason = prompt(`Enter reason for freezing ${userName}'s account (optional):`);
+          if (freezeReason !== null) { // User didn't cancel
+            await api.post(`/admin/users/${userId}/freeze`, { reason: freezeReason });
+            alert(`Account for ${userName} has been frozen successfully.`);
+          }
           break;
         }
         case 'unfreeze':
-          await api.post(`/admin/users/${userId}/unfreeze`);
+          if (window.confirm(`Are you sure you want to unfreeze ${userName}'s account?`)) {
+            await api.post(`/admin/users/${userId}/unfreeze`);
+            alert(`Account for ${userName} has been unfrozen successfully.`);
+          }
           break;
         case 'ban': {
-          const banReason = prompt('Enter reason for banning account:');
-          if (banReason) {
-            await api.post(`/admin/users/${userId}/ban`, { reason: banReason });
+          const banReason = prompt(`Enter reason for banning ${userName}'s account:`);
+          if (banReason && banReason.trim()) {
+            if (window.confirm(`Are you sure you want to ban ${userName}? This action will prevent them from accessing the platform.`)) {
+              await api.post(`/admin/users/${userId}/ban`, { reason: banReason });
+              alert(`Account for ${userName} has been banned successfully.`);
+            }
           }
           break;
         }
         case 'unban':
-          await api.post(`/admin/users/${userId}/unban`);
+          if (window.confirm(`Are you sure you want to unban ${userName}'s account?`)) {
+            await api.post(`/admin/users/${userId}/unban`);
+            alert(`Account for ${userName} has been unbanned successfully.`);
+          }
           break;
         case 'delete':
-          if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-            const deleteReason = prompt('Enter reason for deleting account:');
-            if (deleteReason) {
-              await api.delete(`/admin/delete-user/${userId}`, { 
-                data: { reason: deleteReason } 
-              });
+          if (window.confirm(`⚠️ CRITICAL ACTION ⚠️\n\nAre you sure you want to permanently delete ${userName}'s account?\n\nThis action CANNOT be undone and will remove all user data including:\n- Account information\n- Transaction history\n- Investment records\n- Referral data\n\nType "DELETE" to confirm:`)) {
+            const deleteReason = prompt(`Enter reason for deleting ${userName}'s account:`);
+            if (deleteReason && deleteReason.trim()) {
+              const finalConfirm = prompt(`Final confirmation: Type "PERMANENTLY DELETE" to confirm deletion of ${userName}'s account:`);
+              if (finalConfirm === "PERMANENTLY DELETE") {
+                await api.delete(`/admin/delete-user/${userId}`, { 
+                  data: { reason: deleteReason } 
+                });
+                alert(`Account for ${userName} has been permanently deleted.`);
+              } else {
+                alert('Deletion cancelled. Confirmation text did not match.');
+              }
             }
           }
           break;
