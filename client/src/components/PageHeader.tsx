@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { cn } from '@/lib/utils'; // Import cn utility
 
 interface PageHeaderProps {
@@ -18,11 +19,7 @@ export const PageHeader = ({ titleKey, backTo = '/', titleClassName }: PageHeade
   return (
     <header className="flex items-center justify-between mb-4 h-10">
       <div className="w-1/4">
-        <Link to={backTo}>
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="w-6 h-6" />
-          </Button>
-        </Link>
+        <BackButton fallbackPath={backTo} />
       </div>
       <div className="w-1/2 text-center">
         <h1 className={cn("text-xl font-bold truncate", titleClassName)}>{t(titleKey)}</h1>

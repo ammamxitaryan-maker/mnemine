@@ -162,7 +162,7 @@ const AdminLottery = () => {
             <div>
                 <div className="text-sm text-gray-400">Jackpot</div>
                 <div className="text-lg font-bold text-gold">
-                  {lotteryData?.lottery.jackpot.toFixed(2) || '0.00'} USD
+                  {lotteryData?.lottery.jackpot.toFixed(0) || '0'} MNE
                 </div>
             </div>
             <div>

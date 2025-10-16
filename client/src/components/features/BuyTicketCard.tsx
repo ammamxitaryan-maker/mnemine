@@ -28,14 +28,14 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
   const mutation = useMutation({
     mutationFn: buyTicket,
     onMutate: async () => {
-      const toastId = showLoading('Purchasing ticket...');
+      const toastId = showLoading(t('lottery.purchasingTicket'));
       return { toastId };
     },
     onSuccess: (data) => {
       if (mutation.context?.toastId) {
         dismissToast(mutation.context.toastId);
       }
-      showSuccess('Ticket purchased successfully!');
+      showSuccess(t('lottery.ticketPurchasedSuccess'));
       setSelectedNumbers([]);
       queryClient.invalidateQueries({ queryKey: ['userLotteryTickets', telegramId] }); // Use prop telegramId
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] }); // Use prop telegramId
@@ -46,7 +46,7 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       if (mutation.context?.toastId) {
         dismissToast(mutation.context.toastId);
       }
-      const errorMessage = getErrorMessage(error, 'Failed to purchase ticket.');
+      const errorMessage = getErrorMessage(error, t('lottery.failedToPurchaseTicket'));
       showError(errorMessage);
     },
   });
@@ -71,19 +71,19 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
 
   const handleBuy = () => {
     if (!telegramId) {
-      showError('User not authenticated');
+      showError(t('lottery.userNotAuthenticated'));
       return;
     }
     
     if (selectedNumbers.length !== numbersToPick) {
-      showError(`Please select exactly ${numbersToPick} numbers`);
+      showError(t('lottery.selectExactly', { count: numbersToPick }));
       return;
     }
 
     // Validate numbers are unique
     const uniqueNumbers = new Set(selectedNumbers);
     if (uniqueNumbers.size !== selectedNumbers.length) {
-      showError('Please select unique numbers');
+      showError(t('lottery.selectUnique'));
       return;
     }
 
@@ -98,14 +98,14 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
           {t('lottery.buyTicket')}
         </CardTitle>
         <CardDescription className="text-gray-400">
-          {t('lottery.pickNumbers', { count: numbersToPick })} • Cost: {LOTTERY_TICKET_COST.toFixed(2)} USD
+          {t('lottery.pickNumbers', { count: numbersToPick })} • {t('lottery.cost')} {LOTTERY_TICKET_COST.toFixed(0)} MNE
         </CardDescription>
       </CardHeader>
       <CardContent>
         {/* Selected numbers display */}
         {selectedNumbers.length > 0 && (
           <div className="mb-4 p-3 bg-muted/20 rounded-lg">
-            <div className="text-sm text-muted-foreground mb-2">Selected Numbers:</div>
+            <div className="text-sm text-muted-foreground mb-2">{t('lottery.selectedNumbers')}</div>
             <div className="flex flex-wrap gap-2">
               {selectedNumbers.sort((a, b) => a - b).map(num => (
                 <div key={num} className="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center text-sm font-bold">
@@ -114,7 +114,7 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
               ))}
             </div>
             <div className="text-xs text-muted-foreground mt-2">
-              {selectedNumbers.length} of {numbersToPick} selected
+              {t('lottery.ofSelected', { total: numbersToPick })}
             </div>
           </div>
         )}
@@ -155,12 +155,12 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
           {mutation.isPending ? (
             <>
               <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              Purchasing...
+              {t('lottery.purchasing')}
             </>
           ) : (
             <>
               <Ticket className="w-5 h-5 mr-2" />
-              Buy Ticket for {LOTTERY_TICKET_COST.toFixed(2)} USD
+              {t('lottery.buyTicketFor', { cost: LOTTERY_TICKET_COST.toFixed(0) })}
             </>
           )}
         </Button>

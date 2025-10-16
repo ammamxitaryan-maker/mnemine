@@ -19,7 +19,7 @@ export const LotteryHistoryCard = ({ draw }: LotteryHistoryCardProps) => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-lg">
           <span>{t('lottery.drawOf', { date: format(new Date(draw.drawDate), 'MMM d, yyyy') })}</span>
-          <span className="text-yellow-400 font-bold">{draw.jackpot.toFixed(2)} USD</span>
+          <span className="text-yellow-400 font-bold">{draw.jackpot.toFixed(0)} MNE</span>
         </CardTitle>
         <CardDescription className="text-gray-400">{t('lottery.winningNumbers')}</CardDescription>
         <div className="flex flex-wrap gap-2 justify-center pt-2">
