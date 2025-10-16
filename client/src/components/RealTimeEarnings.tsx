@@ -23,7 +23,10 @@ export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
     return (
       <div className={`minimal-card ${className}`}>
         <div className="text-center text-xs text-gray-500">
-          Debug: No active earnings | isActive: {isActive ? 'Yes' : 'No'} | Rate: {perSecondRate.toFixed(8)} | Lang: {i18n.language}
+          Debug: No active earnings | isActive: {isActive ? 'Yes' : 'No'} | Rate: {perSecondRate.toFixed(8)} | Total: {totalEarnings.toFixed(6)} | Lang: {i18n.language}
+        </div>
+        <div className="text-center text-xs text-blue-500 mt-2">
+          WebSocket: Check console for connection status
         </div>
       </div>
     );
@@ -38,7 +41,7 @@ export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
         </div>
         <div className="text-right">
           <div className="text-lg font-medium text-primary">
-            +{totalEarnings.toFixed(3)} MNE
+            +{totalEarnings.toFixed(6)} MNE
           </div>
           {usdEquivalent > 0 && (
             <div className="text-xs text-muted-foreground">
@@ -49,7 +52,7 @@ export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
       </div>
       {/* Debug info - remove in production */}
       <div className="text-xs text-gray-500 mt-2 text-center">
-        Debug: {totalEarnings.toFixed(6)} MNE | Rate: {perSecondRate.toFixed(8)}/sec | Active: {isActive ? 'Yes' : 'No'} | Lang: {i18n.language}
+        Debug: {totalEarnings.toFixed(8)} MNE | Rate: {perSecondRate.toFixed(10)}/sec | Active: {isActive ? 'Yes' : 'No'} | Lang: {i18n.language}
       </div>
     </div>
   );

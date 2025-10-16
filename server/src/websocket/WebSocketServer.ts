@@ -52,6 +52,12 @@ export class WebSocketServer {
         return;
       }
 
+      if (telegramId === 'earnings') {
+        // Handle earnings connections
+        this.handleEarningsConnection(ws);
+        return;
+      }
+
       // Authenticate user
       this.authenticateUser(ws, telegramId);
     });
@@ -152,6 +158,84 @@ export class WebSocketServer {
       console.error('[WebSocket] User stats client error:', error);
       UserStatsWebSocketService.removeClient(clientId);
     });
+  }
+
+  private handleEarningsConnection(ws: AuthenticatedWebSocket) {
+    console.log('[WebSocket] Earnings client connected');
+    
+    ws.isAlive = true;
+    ws.subscriptions = new Set(['earnings', 'slot_earnings']);
+
+    ws.on('message', (data: any) => {
+      try {
+        const message = JSON.parse(data.toString());
+        console.log('[WebSocket] Earnings message received:', message);
+        
+        if (message.type === 'auth' && message.telegramId) {
+          // Authenticate the user
+          ws.telegramId = message.telegramId;
+          console.log(`[WebSocket] Earnings client authenticated for user: ${message.telegramId}`);
+          
+          // Add to clients map for this user
+          if (!this.clients.has(message.telegramId)) {
+            this.clients.set(message.telegramId, new Set());
+          }
+          this.clients.get(message.telegramId)!.add(ws);
+          
+          // Send initial earnings data
+          this.sendInitialEarningsData(ws, message.telegramId);
+        }
+      } catch (error) {
+        console.error('[WebSocket] Error handling earnings message:', error);
+      }
+    });
+
+    ws.on('close', () => {
+      console.log('[WebSocket] Earnings client disconnected');
+      // Remove from clients map if authenticated
+      if (ws.telegramId && this.clients.has(ws.telegramId)) {
+        this.clients.get(ws.telegramId)!.delete(ws);
+        if (this.clients.get(ws.telegramId)!.size === 0) {
+          this.clients.delete(ws.telegramId);
+        }
+      }
+    });
+
+    ws.on('error', (error) => {
+      console.error('[WebSocket] Earnings client error:', error);
+    });
+
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
+  }
+
+  private async sendInitialEarningsData(ws: AuthenticatedWebSocket, telegramId: string) {
+    try {
+      // Get user's current earnings data
+      const userData = await this.getUserData(telegramId);
+      if (userData) {
+        this.sendToClient(ws, {
+          type: 'earnings_update',
+          data: {
+            earnings: userData.accruedEarnings,
+            balance: userData.balance,
+            lastUpdate: userData.lastUpdate
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Get slots data
+      const slotsData = await this.getSlotsData(telegramId);
+      this.sendToClient(ws, {
+        type: 'slots_data_update',
+        data: slotsData,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('[WebSocket] Error sending initial earnings data:', error);
+    }
   }
 
   private async sendInitialGlobalData(ws: AuthenticatedWebSocket) {

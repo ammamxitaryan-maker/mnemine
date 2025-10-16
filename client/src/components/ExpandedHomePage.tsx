@@ -22,6 +22,7 @@ import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { MainBalanceDisplay } from './MainBalanceDisplay';
 import { QuickActions } from './QuickActions';
 import { SimpleStats } from './SimpleStats';
+import { WebSocketTest } from './WebSocketTest';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
@@ -100,6 +101,11 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
       {/* Main Balance Display */}
       <div className="px-6 mb-6">
         <MainBalanceDisplay />
+      </div>
+
+      {/* WebSocket Test - Temporary */}
+      <div className="px-6 mb-6">
+        <WebSocketTest />
       </div>
 
       {/* Main Actions */}

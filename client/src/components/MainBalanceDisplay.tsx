@@ -86,13 +86,13 @@ export const MainBalanceDisplay = ({
           </div>
           {/* Debug info - remove in production */}
           <div className="text-xs text-gray-500 mt-2">
-            Debug: {liveEarnings.toFixed(6)} MNE | Rate: {perSecondRate.toFixed(8)}/sec | Active: {isActive ? 'Yes' : 'No'} | Lang: {i18n.language}
+            Debug: {liveEarnings.toFixed(8)} MNE | Rate: {perSecondRate.toFixed(10)}/sec | Active: {isActive ? 'Yes' : 'No'} | Lang: {i18n.language}
           </div>
           <div className="text-3xl font-light text-accent mb-1">
-            +{(liveEarnings || 0).toFixed(4)} MNE
+            +{(liveEarnings || 0).toFixed(6)} MNE
           </div>
           <div className="text-sm text-muted-foreground mb-1">
-            {perSecondRate.toFixed(6)} MNE/sec
+            {perSecondRate.toFixed(8)} MNE/sec
           </div>
           {convertMNEToUSD(liveEarnings || 0) > 0 && (
             <div className="text-sm text-muted-foreground">

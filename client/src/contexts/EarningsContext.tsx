@@ -5,6 +5,7 @@ import { globalEarningsManager } from '@/utils/globalEarningsManager';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useUserData } from '@/hooks/useUserData';
 import { useServerEarnings } from '@/hooks/useServerEarnings';
+import { useWebSocketEarnings } from '@/hooks/useWebSocketEarnings';
 
 interface PersistentEarningsState {
   totalEarnings: number;
@@ -40,6 +41,9 @@ export const EarningsProvider = ({ children, telegramId }: EarningsProviderProps
   const { data: slotsData, refetch: refetchSlots } = useSlotsData(telegramId);
   const { data: userData, refetch: refetchUserData } = useUserData(telegramId);
   const { data: serverEarnings, refetch: refetchServerEarnings } = useServerEarnings(telegramId);
+  
+  // Connect to WebSocket for real-time earnings updates
+  const { isConnected: isWebSocketConnected, lastUpdate: wsLastUpdate } = useWebSocketEarnings(telegramId);
 
   // Subscribe to global earnings manager
   useEffect(() => {

@@ -249,8 +249,43 @@ class GlobalEarningsManager {
     return this.state;
   }
 
-  public resetEarnings(): void {
-    this.resetState();
+  public resetEarnings(telegramId?: string): void {
+    if (!telegramId || this.state?.telegramId === telegramId) {
+      this.resetState();
+    }
+  }
+
+  public updateServerEarnings(telegramId: string, serverEarnings: number): void {
+    if (this.state && this.state.telegramId === telegramId) {
+      const now = Date.now();
+      const timeElapsedSeconds = (now - this.state.lastUpdateTime) / 1000;
+      const accumulatedEarnings = this.state.perSecondRate * timeElapsedSeconds;
+      
+      this.state = {
+        ...this.state,
+        totalEarnings: serverEarnings + accumulatedEarnings,
+        lastUpdateTime: now,
+        serverEarnings: serverEarnings,
+        serverSyncTime: now,
+      };
+      
+      console.log('[EarningsManager] Updated with server earnings:', {
+        serverEarnings,
+        totalEarnings: this.state.totalEarnings,
+        accumulatedEarnings
+      });
+      
+      this.saveToStorage();
+      this.notifyListeners();
+    }
+  }
+
+  public forceServerSync(telegramId: string): void {
+    if (this.state && this.state.telegramId === telegramId) {
+      // Mark that we need a server sync
+      this.state.serverSyncTime = 0; // This will trigger a sync on next update
+      console.log('[EarningsManager] Forced server sync requested');
+    }
   }
 
   public destroy(): void {
