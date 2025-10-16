@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, Server } from 'lucide-react';
 import { useUserData } from '@/hooks/useUserData';
 import { useSlotsData } from '@/hooks/useSlotsData';
@@ -11,6 +12,7 @@ interface SimpleStatsProps {
 }
 
 export const SimpleStats = ({ telegramId, className = '' }: SimpleStatsProps) => {
+  const { t } = useTranslation();
   const { data: userData } = useUserData(telegramId);
   const { data: slotsData } = useSlotsData(telegramId);
   const { data: referralStats } = useReferralStats(telegramId);
@@ -41,13 +43,13 @@ export const SimpleStats = ({ telegramId, className = '' }: SimpleStatsProps) =>
           <div className="text-2xl font-light text-primary mb-1">
             30.0%
           </div>
-          <div className="text-xs text-muted-foreground">Mining Power</div>
+          <div className="text-xs text-muted-foreground">{t('miningPower')}</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-light text-primary mb-1">
             {activeSlots.length}
           </div>
-          <div className="text-xs text-muted-foreground">Active Slots</div>
+          <div className="text-xs text-muted-foreground">{t('activeSlots')}</div>
         </div>
       </div>
       
@@ -58,9 +60,9 @@ export const SimpleStats = ({ telegramId, className = '' }: SimpleStatsProps) =>
             <div className="text-2xl font-light text-accent mb-1">
               +{referralIncomePercentage.toFixed(1)}%
             </div>
-            <div className="text-xs text-muted-foreground">Referral Income</div>
+            <div className="text-xs text-muted-foreground">{t('referralIncome')}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {referralStats?.activeReferralsCount || 0} active referrals
+              {referralStats?.activeReferralsCount || 0} {t('activeReferrals')}
             </div>
           </div>
         </div>

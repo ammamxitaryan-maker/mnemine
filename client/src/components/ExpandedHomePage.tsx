@@ -68,6 +68,9 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
       <header className="px-6 pt-4 pb-4">
         <div className="flex items-center justify-between">
           <div>
+            <div className="text-sm font-medium text-primary mb-1">
+              {t('appName')}
+            </div>
             <h1 className="text-2xl font-light text-foreground">
               {displayName}
             </h1>
@@ -87,7 +90,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
             <LanguageSwitcher />
             <ThemeSwitcher />
             <Avatar className="h-10 w-10 border-2 border-primary">
-              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName || 'User'} />}
+              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName || t('profile.user')} />}
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {fallbackInitial}
               </AvatarFallback>

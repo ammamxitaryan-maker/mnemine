@@ -134,7 +134,7 @@ const AdminCustomReports = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Custom Reports</h1>
+          <h1 className="text-2xl font-bold text-white">Reports</h1>
           <p className="text-gray-400">Generate detailed analytics and insights</p>
         </div>
         <div className="flex space-x-2">
@@ -240,7 +240,7 @@ const AdminCustomReports = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Custom Date Range
+                Date Range
               </label>
               <div className="flex space-x-2">
                 <Button
@@ -249,7 +249,7 @@ const AdminCustomReports = () => {
                   onClick={() => setUseCustomDates(!useCustomDates)}
                 >
                   <Calendar className="h-4 w-4 mr-2" />
-                  Custom
+                  Range
                 </Button>
               </div>
             </div>

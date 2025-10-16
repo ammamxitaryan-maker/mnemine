@@ -39,7 +39,7 @@ export const MainBalanceDisplay = ({
       <div className={`minimal-card ${className}`}>
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading balance...</p>
+          <p className="text-muted-foreground">{t('loadingBalance')}</p>
         </div>
       </div>
     );
@@ -49,7 +49,7 @@ export const MainBalanceDisplay = ({
     return (
       <div className={`minimal-card ${className}`}>
         <div className="text-center">
-          <p className="text-destructive">Failed to load balance</p>
+          <p className="text-destructive">{t('failedToLoadBalance')}</p>
         </div>
       </div>
     );
@@ -61,7 +61,7 @@ export const MainBalanceDisplay = ({
       <div className="text-center mb-6">
         <div className="flex items-center justify-center gap-2 mb-2">
           <Wallet className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-medium text-foreground">Available Balance</h2>
+          <h2 className="text-lg font-medium text-foreground">{t('availableBalance')}</h2>
         </div>
         <div className="text-4xl font-light text-primary mb-1">
           {(availableBalance || 0).toFixed(3)} MNE
@@ -81,7 +81,7 @@ export const MainBalanceDisplay = ({
             <h3 className="text-lg font-medium text-yellow-500">{t('liveEarnings')}</h3>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-              <span className="text-xs text-yellow-500">Live</span>
+              <span className="text-xs text-yellow-500">{t('live')}</span>
             </div>
           </div>
           <div className="text-3xl font-light text-yellow-500 mb-1">
@@ -102,7 +102,7 @@ export const MainBalanceDisplay = ({
           <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
             <div className="flex items-center gap-2">
               <Coins className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Total Balance</span>
+              <span className="text-sm text-muted-foreground">{t('totalBalance')}</span>
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-foreground">
@@ -120,14 +120,14 @@ export const MainBalanceDisplay = ({
           <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Invested in Slots</span>
+              <span className="text-sm text-muted-foreground">{t('investedInSlots')}</span>
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-foreground">
                 {(totalInvested || 0).toFixed(3)} MNE
               </div>
               <div className="text-xs text-muted-foreground">
-                {activeSlotsCount} active slot{activeSlotsCount !== 1 ? 's' : ''}
+                {activeSlotsCount} {activeSlotsCount !== 1 ? t('activeSlots') : t('activeSlot')}
               </div>
             </div>
           </div>

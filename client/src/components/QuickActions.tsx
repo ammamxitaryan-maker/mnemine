@@ -25,21 +25,21 @@ export const QuickActions = ({ telegramId, className = '' }: QuickActionsProps) 
       to: '/slots',
       icon: Server,
       label: t('slots.title'),
-      subtitle: `${activeSlots.length} active`,
+      subtitle: `${activeSlots.length} ${t('active')}`,
       color: 'text-primary'
     },
     {
       to: '/lottery',
       icon: Ticket,
       label: t('lottery.title'),
-      subtitle: 'Jackpot',
+      subtitle: t('jackpot'),
       color: 'text-accent'
     },
     {
       to: '/wallet',
       icon: ArrowLeftRight,
       label: t('swap.title'),
-      subtitle: 'Exchange',
+      subtitle: t('exchange'),
       color: 'text-secondary'
     }
   ];

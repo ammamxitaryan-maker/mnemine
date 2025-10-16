@@ -41,7 +41,7 @@ const adminNavItems: AdminNavItem[] = [
   { path: '/admin/users', label: 'Users', icon: Users, description: 'User management' },
   { path: '/admin/transactions', label: 'Transactions', icon: CreditCard, description: 'Payment and transaction logs' },
   { path: '/admin/analytics', label: 'Analytics', icon: BarChart3, description: 'Performance metrics' },
-  { path: '/admin/custom-reports', label: 'Custom Reports', icon: BarChart3, description: 'Detailed analytics and insights' },
+  { path: '/admin/custom-reports', label: 'Reports', icon: BarChart3, description: 'Detailed analytics and insights' },
   { path: '/admin/system-monitoring', label: 'System Monitor', icon: Database, description: 'Real-time system monitoring' },
   { path: '/admin/queue-management', label: 'Queue Manager', icon: Cog, description: 'Queue management and monitoring' },
   { path: '/admin/lottery', label: 'Lottery', icon: Ticket, description: 'Lottery management' },

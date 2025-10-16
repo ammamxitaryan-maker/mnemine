@@ -70,7 +70,7 @@ export const LocalDevAuth: React.FC = () => {
       const customUser: TestUser = {
         id: parseInt(customId),
         telegramId: customId,
-        first_name: 'Custom',
+        first_name: 'User',
         last_name: 'User',
         username: `user${customId}`,
         language_code: 'en'
@@ -108,7 +108,7 @@ export const LocalDevAuth: React.FC = () => {
               onClick={handleCustomUser}
               className="w-full text-left p-2 bg-gray-700 hover:bg-gray-600 rounded text-white text-sm border-t border-gray-600 mt-2 pt-2"
             >
-              + Custom User ID
+              + User ID
             </button>
           </div>
           
