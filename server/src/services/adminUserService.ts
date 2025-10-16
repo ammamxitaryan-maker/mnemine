@@ -279,14 +279,8 @@ export class AdminUserService {
         });
       }
 
-      // Проверяем, есть ли активные инвестиции
-      const activeSlots = user.miningSlots.filter(slot => slot.isActive);
-      if (activeSlots.length > 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'Cannot delete user with active mining slots'
-        });
-      }
+      // Admin can delete users regardless of mining slot status
+      // All mining slots will be automatically deleted in the transaction below
 
       // Удаляем пользователя и связанные данные
       await prisma.$transaction([
@@ -357,18 +351,8 @@ export class AdminUserService {
         });
       }
 
-      // Проверяем, есть ли активные слоты у пользователей
-      const activeSlots = await prisma.miningSlot.findMany({
-        where: { isActive: true },
-        select: { userId: true }
-      });
-
-      if (activeSlots.length > 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'Cannot delete all users while there are active mining slots. Please wait for slots to expire or manually deactivate them first.'
-        });
-      }
+      // Admin can delete all users regardless of mining slot status
+      // All mining slots will be automatically deleted in the transaction below
 
       // Удаляем всех пользователей и связанные данные в транзакции
       const result = await prisma.$transaction(async (tx) => {
