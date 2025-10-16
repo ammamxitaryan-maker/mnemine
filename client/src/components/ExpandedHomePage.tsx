@@ -63,8 +63,20 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Version Indicator - Temporary for testing */}
+      <div className="px-6 pt-4 pb-2">
+        <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 text-center">
+          <div className="text-green-600 font-semibold text-sm">
+            🚀 FRONTEND VERSION: 2024.12.19-15:30
+          </div>
+          <div className="text-green-500/80 text-xs mt-1">
+            Если вы видите эту версию, фронтенд обновлен!
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
-      <header className="px-6 pt-6 pb-4">
+      <header className="px-6 pt-4 pb-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-light text-foreground">
