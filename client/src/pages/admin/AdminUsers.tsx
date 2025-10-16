@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   MoreHorizontal,
   Download,
-  Trash2
+  Trash2,
+  ArrowLeft
 } from 'lucide-react';
 import BulkActions from '@/components/admin/BulkActions';
 import { MobileUserCard } from '@/components/admin/MobileUserCard';
@@ -287,106 +288,99 @@ const AdminUsers = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
-        <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">User Management</h1>
-          <p className="text-gray-400 text-xs sm:text-sm">
-            Manage users, roles, and permissions • {totalUsers.toLocaleString()} total users
-          </p>
+    <div className="space-y-2 p-1">
+      {/* Ultra Compact Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-md p-2 text-white">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/admin')}
+              className="text-white hover:bg-white/20 h-6 w-6 p-0"
+            >
+              <ArrowLeft className="h-3 w-3" />
+            </Button>
+            <h1 className="text-lg font-bold">User Management</h1>
+          </div>
+          <div className="text-xs text-blue-100">
+            {totalUsers.toLocaleString()} users
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full sm:w-auto"
-            onClick={handleExportUsers}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            className="w-full sm:w-auto"
-            onClick={handleDeleteAllUsers}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete All Users
-          </Button>
-          <Button size="sm" className="w-full sm:w-auto">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
-        </div>
+        <p className="text-blue-100 text-xs">
+          Manage users, roles, and permissions
+        </p>
       </div>
 
-      {/* Filters */}
-      <Card className="bg-gray-900 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-sm">Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1); // Reset to first page when searching
-                }}
-                className="pl-10 bg-gray-800 border-gray-600"
-              />
-            </div>
-            <select
-              value={filterRole}
-              onChange={(e) => {
-                setFilterRole(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
-            >
-              <option value="all">All Roles</option>
-              <option value="ADMIN">Admin</option>
-              <option value="STAFF">Staff</option>
-              <option value="USER">User</option>
-            </select>
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="frozen">Frozen</option>
-              <option value="suspicious">Suspicious</option>
-            </select>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
-            >
-              <option value={25}>25 per page</option>
-              <option value={50}>50 per page</option>
-              <option value={100}>100 per page</option>
-              <option value={200}>200 per page</option>
-            </select>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              More Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Ultra Compact Action Buttons */}
+      <div className="grid grid-cols-3 gap-1">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleExportUsers}
+          className="h-8 text-xs border-gray-600"
+        >
+          <Download className="h-3 w-3 mr-1" />
+          Export
+        </Button>
+        <Button 
+          variant="destructive" 
+          size="sm" 
+          onClick={handleDeleteAllUsers}
+          className="h-8 text-xs"
+        >
+          <Trash2 className="h-3 w-3 mr-1" />
+          Delete All
+        </Button>
+        <Button size="sm" className="h-8 text-xs bg-blue-600">
+          <UserPlus className="h-3 w-3 mr-1" />
+          Add User
+        </Button>
+      </div>
+
+      {/* Ultra Compact Search and Filters */}
+      <div className="grid grid-cols-1 gap-1">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
+          <Input
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="pl-7 bg-gray-900 border-gray-700 text-white h-8 text-xs"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-1">
+          <select
+            value={filterRole}
+            onChange={(e) => {
+              setFilterRole(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="bg-gray-900 border border-gray-700 rounded-md px-2 py-1 text-white text-xs h-8"
+          >
+            <option value="all">All Roles</option>
+            <option value="ADMIN">Admin</option>
+            <option value="STAFF">Staff</option>
+            <option value="USER">User</option>
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="bg-gray-900 border border-gray-700 rounded-md px-2 py-1 text-white text-xs h-8"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="frozen">Frozen</option>
+            <option value="suspicious">Suspicious</option>
+          </select>
+        </div>
+      </div>
 
       {/* Users Table */}
       <Card className="bg-gray-900 border-gray-700">

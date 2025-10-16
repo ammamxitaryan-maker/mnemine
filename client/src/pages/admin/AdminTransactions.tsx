@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,8 @@ import {
   Clock,
   DollarSign,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  ArrowLeft
 } from 'lucide-react';
 
 interface Transaction {
@@ -39,6 +41,7 @@ interface Transaction {
 }
 
 const AdminTransactions = () => {
+  const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -135,93 +138,78 @@ const AdminTransactions = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Transaction Management</h1>
-          <p className="text-gray-400">Monitor and manage all financial transactions</p>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gray-900 border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Total Transactions</p>
-                <p className="text-2xl font-bold text-white">{filteredTransactions.length}</p>
-              </div>
-              <CreditCard className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900 border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Total Amount</p>
-                <p className="text-2xl font-bold text-yellow-400">{totalAmount.toFixed(2)} USD</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-yellow-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900 border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Pending</p>
-                <p className="text-2xl font-bold text-yellow-400">{pendingCount}</p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900 border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Completed</p>
-                <p className="text-2xl font-bold text-green-400">{completedCount}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card className="bg-gray-900 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-sm">Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search transactions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-gray-800 border-gray-600"
-              />
-            </div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
+    <div className="space-y-2 p-1">
+      {/* Ultra Compact Header */}
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-md p-2 text-white">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/admin')}
+              className="text-white hover:bg-white/20 h-6 w-6 p-0"
             >
+              <ArrowLeft className="h-3 w-3" />
+            </Button>
+            <h1 className="text-lg font-bold">Transaction Management</h1>
+          </div>
+          <div className="text-xs text-green-100">
+            {transactions.length} transactions
+          </div>
+        </div>
+        <p className="text-green-100 text-xs">
+          Monitor and manage all financial transactions
+        </p>
+      </div>
+
+      {/* Ultra Compact Action Buttons */}
+      <div className="grid grid-cols-1 gap-1">
+        <Button variant="outline" size="sm" className="h-8 text-xs border-gray-600">
+          <Download className="h-3 w-3 mr-1" />
+          Export Transactions
+        </Button>
+      </div>
+
+      {/* Ultra Compact Stats */}
+      <div className="grid grid-cols-2 gap-1">
+        <Card className="bg-gray-900 border-gray-700 p-2">
+          <div className="flex items-center gap-1">
+            <CreditCard className="h-3 w-3 text-blue-400" />
+            <div>
+              <div className="text-xs text-gray-400">Total</div>
+              <div className="text-sm font-bold text-white">{filteredTransactions.length}</div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="bg-gray-900 border-gray-700 p-2">
+          <div className="flex items-center gap-1">
+            <DollarSign className="h-3 w-3 text-yellow-400" />
+            <div>
+              <div className="text-xs text-gray-400">Amount</div>
+              <div className="text-sm font-bold text-yellow-400">{totalAmount.toFixed(0)}</div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Ultra Compact Filters */}
+      <div className="grid grid-cols-1 gap-1">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
+          <Input
+            placeholder="Search transactions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-7 bg-gray-900 border-gray-700 text-white h-8 text-xs"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-1">
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="bg-gray-900 border border-gray-700 rounded-md px-2 py-1 text-white text-xs h-8"
+          >
               <option value="all">All Types</option>
               <option value="DEPOSIT">Deposit</option>
               <option value="WITHDRAWAL">Withdrawal</option>
@@ -230,24 +218,19 @@ const AdminTransactions = () => {
               <option value="REFERRAL">Referral</option>
               <option value="BONUS">Bonus</option>
             </select>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white text-sm"
-            >
-              <option value="all">All Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="FAILED">Failed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Date Range
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="bg-gray-900 border border-gray-700 rounded-md px-2 py-1 text-white text-xs h-8"
+          >
+            <option value="all">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="FAILED">Failed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+      </div>
 
       {/* Transactions Table */}
       <Card className="bg-gray-900 border-gray-700">

@@ -21,7 +21,10 @@ import AdminLottery from "./pages/AdminLottery";
 import AdminPanel from "./pages/AdminPanel";
 import AdminDashboardCompact from "./pages/AdminDashboardCompact";
 import { AdminLayout } from "./components/layout/AdminLayout";
+import { AdminLayoutCompact } from "./components/layout/AdminLayoutCompact";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDashboardMinimal from "./pages/admin/AdminDashboardMinimal";
+import AdminDashboardUltraCompact from "./pages/admin/AdminDashboardUltraCompact";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
@@ -91,8 +94,8 @@ const App = () => {
             {/* Admin Routes - Protected by AdminRoute component */}
             {/* Only user with Telegram ID '6760298907' can access these routes */}
             <Route element={<AdminRoute />}>
-              <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<AdminDashboard />} />
+              <Route element={<AdminLayoutCompact />}>
+                <Route path="/admin" element={<AdminDashboardUltraCompact />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/transactions" element={<AdminTransactions />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />

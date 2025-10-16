@@ -1,7 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import HttpApi from 'i18next-http-backend';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Check if we're in admin panel
 const isAdminPanel = () => {
@@ -9,12 +8,12 @@ const isAdminPanel = () => {
   return window.location.pathname.startsWith('/admin') && !window.location.pathname.includes('/admin-login');
 };
 
-// Force English for admin panel
+// Force English for admin panel, Armenian for regular app
 const getInitialLanguage = () => {
   if (isAdminPanel()) {
     return 'en';
   }
-  return 'hy'; // Default for regular app
+  return 'hy'; // Always Armenian for regular app
 };
 
 i18n
@@ -25,11 +24,6 @@ i18n
     fallbackLng: 'hy',
     lng: getInitialLanguage(),
     debug: false,
-    detection: {
-      order: ['localStorage', 'queryString', 'cookie'],
-      caches: ['localStorage', 'cookie'],
-      lookupLocalStorage: 'mnemine-language',
-    },
     backend: {
       loadPath: '/locales/{{lng}}/translation.json',
     },
@@ -50,14 +44,10 @@ i18n.changeLanguage = (lng, callback) => {
   return originalChangeLanguage(lng, callback);
 };
 
-// Only set default language if no language is stored and not in admin panel
+// Set Armenian as default language for regular app
 if (typeof window !== 'undefined' && !isAdminPanel()) {
-  const storedLanguage = localStorage.getItem('mnemine-language');
-  if (!storedLanguage) {
-    // Only set Armenian as default if no language preference exists
-    localStorage.setItem('mnemine-language', 'hy');
-    i18n.changeLanguage('hy');
-  }
+  localStorage.setItem('mnemine-language', 'hy');
+  i18n.changeLanguage('hy');
 }
 
 export default i18n;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,8 @@ import {
   Crown,
   Award,
   User,
-  Filter
+  Filter,
+  ArrowLeft
 } from 'lucide-react';
 
 interface LotteryData {
@@ -54,6 +56,7 @@ interface LotteryTicket {
 }
 
 const AdminLottery = () => {
+  const navigate = useNavigate();
   const [lottery, setLottery] = useState<LotteryData | null>(null);
   const [tickets, setTickets] = useState<LotteryTicket[]>([]);
   const [filteredTickets, setFilteredTickets] = useState<LotteryTicket[]>([]);
@@ -208,9 +211,19 @@ const AdminLottery = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
-        <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">🎰 Lottery Management</h1>
-          <p className="text-gray-400 text-xs sm:text-sm">Управление лотереей и выбором победителей</p>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/admin')}
+            className="text-gray-300 hover:text-white h-8 w-8 p-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">🎰 Lottery Management</h1>
+            <p className="text-gray-400 text-xs sm:text-sm">Управление лотереей и выбором победителей</p>
+          </div>
         </div>
         <div className="flex space-x-2">
           <Button

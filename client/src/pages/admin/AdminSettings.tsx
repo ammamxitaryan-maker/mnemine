@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,8 @@ import {
   Globe,
   Key,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  ArrowLeft
 } from 'lucide-react';
 
 interface SystemSettings {
@@ -48,6 +50,7 @@ interface SystemSettings {
 }
 
 const AdminSettings = () => {
+  const navigate = useNavigate();
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -184,9 +187,19 @@ const AdminSettings = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">System Settings</h1>
-          <p className="text-gray-400">Configure system parameters and features</p>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/admin')}
+            className="text-gray-300 hover:text-white h-8 w-8 p-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">System Settings</h1>
+            <p className="text-gray-400">Configure system parameters and features</p>
+          </div>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={fetchSettings} disabled={loading}>
