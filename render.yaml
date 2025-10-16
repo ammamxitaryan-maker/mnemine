@@ -5,23 +5,15 @@ services:
     env: node
     plan: starter
     buildCommand: |
-      # Install dependencies for both client and server
-      npm install
-      cd client && npm install && cd ..
-      cd server && npm install && cd ..
+      # Install dependencies using pnpm
+      pnpm install
       
-      # Build frontend
-      cd client
-      npm run build:prod
-      cd ..
+      # Build frontend and backend
+      pnpm run build:prod
       
-      # Build backend
-      cd server
-      npm run build:prod
-      npm run prisma:generate:prod
-      npm run prisma:push:prod
-      cd ..
-    startCommand: cd server && npm run start:prod
+      # Setup database
+      pnpm run prisma:push:prod
+    startCommand: pnpm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
