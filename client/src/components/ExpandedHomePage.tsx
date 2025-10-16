@@ -68,7 +68,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
       <header className="px-6 pt-4 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm font-medium text-primary mb-1">
+            <div className="text-lg font-bold text-white mb-1 professional-glow hover:professional-scale transition-all duration-500 ease-in-out">
               {t('appName')}
             </div>
             <h1 className="text-2xl font-light text-foreground">

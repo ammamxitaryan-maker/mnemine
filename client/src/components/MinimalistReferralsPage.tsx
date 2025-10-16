@@ -45,8 +45,8 @@ export const MinimalistReferralsPage = () => {
     if (referralData?.referralLink && navigator.share) {
       try {
         await navigator.share({
-          title: 'Միացեք FastMine-ին',
-          text: 'Միացեք FastMine-ին և սկսեք վաստակել!',
+          title: 'Միացեք MNEMINE-ին',
+          text: 'Միացեք MNEMINE-ին և սկսեք վաստակել!',
           url: referralData.referralLink,
         });
         hapticLight();
