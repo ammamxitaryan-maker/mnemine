@@ -32,12 +32,12 @@ services:
       - key: BOT_TOKEN
         sync: false
       - key: WEBAPP_URL
-        value: fastmine-telegram-simulator.onrender.com
+        value: mnemine-fanp.onrender.com
       # Frontend Environment Variables
       - key: VITE_BACKEND_URL
-        value: https://fastmine-telegram-simulator.onrender.com
+        value: https://mnemine-fanp.onrender.com
       - key: VITE_WS_URL
-        value: wss://fastmine-telegram-simulator.onrender.com/ws
+        value: wss://mnemine-fanp.onrender.com/ws
       - key: VITE_APP_NAME
         value: FastMine
       - key: VITE_APP_VERSION
@@ -62,11 +62,11 @@ services:
       - key: TELEGRAM_WEBHOOK_SECRET
         sync: false
       - key: TELEGRAM_WEBHOOK_URL
-        value: https://fastmine-telegram-simulator.onrender.com/api/webhook
+        value: https://mnemine-fanp.onrender.com/api/webhook
       - key: BACKEND_URL
-        value: https://fastmine-telegram-simulator.onrender.com
+        value: https://mnemine-fanp.onrender.com
       - key: FRONTEND_URL
-        value: https://fastmine-telegram-simulator.onrender.com
+        value: https://mnemine-fanp.onrender.com
       - key: LOCAL_DEV_MODE
         value: "false"
       - key: ENABLE_FALLBACK_AUTH

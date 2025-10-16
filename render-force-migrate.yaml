@@ -23,7 +23,7 @@ services:
       - key: BOT_TOKEN
         sync: false
       - key: WEBAPP_URL
-        value: fastmine-telegram-simulator.onrender.com
+        value: mnemine-fanp.onrender.com
 
 # Если основная конфигурация не работает, используйте эту
 # Просто переименуйте render-force-migrate.yaml в render.yaml

@@ -22,7 +22,7 @@ services:
       - key: BOT_TOKEN
         sync: false
       - key: WEBAPP_URL
-        value: fastmine-telegram-simulator.onrender.com
+        value: mnemine-fanp.onrender.com
 
 # Если база данных уже существует, используйте эту конфигурацию
 # Просто переименуйте render-alternative.yaml в render.yaml
