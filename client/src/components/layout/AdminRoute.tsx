@@ -13,15 +13,16 @@ const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS
 export const AdminRoute = () => {
   const { user, loading } = useTelegramAuth();
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Check if password was already verified in this session
   useEffect(() => {
     const passwordVerified = isAdminPasswordVerified();
     setIsPasswordVerified(passwordVerified);
+    setIsInitialized(true);
   }, []);
 
-  if (loading) {
+  if (loading || !isInitialized) {
     return <SplashScreen />;
   }
 
@@ -46,15 +47,10 @@ export const AdminRoute = () => {
 
   // Show password modal if not verified yet
   if (!isPasswordVerified) {
-    if (!showPasswordModal) {
-      setShowPasswordModal(true);
-    }
-
     return (
       <AdminPasswordModal
         onPasswordCorrect={() => {
           setIsPasswordVerified(true);
-          setShowPasswordModal(false);
         }}
       />
     );
