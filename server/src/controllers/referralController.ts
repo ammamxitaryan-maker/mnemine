@@ -1,9 +1,24 @@
-﻿import { Request, Response } from 'express';
+﻿import { ActivityLogType, Wallet } from '@prisma/client';
+import { Request, Response } from 'express';
+import { RANK_REFERRAL_BONUS_PERCENTAGE, REFERRAL_3_IN_3_DAYS_BONUS } from '../constants.js';
 import prisma from '../prisma.js';
-import { REFERRAL_3_IN_3_DAYS_BONUS, RANK_REFERRAL_BONUS_PERCENTAGE } from '../constants.js';
-import { ActivityLogType, Wallet } from '@prisma/client';
-import { isUserEligible } from '../utils/helpers.js';
 import { userSelectWithoutMiningSlots } from '../utils/dbSelects.js'; // Import userSelect
+import { isUserEligible } from '../utils/helpers.js';
+
+// Function to get bot username
+async function getBotUsername(): Promise<string> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return 'mnemine'; // fallback
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const data = await response.json();
+    return data.result?.username || 'mnemine';
+  } catch (error) {
+    console.error('Failed to get bot username:', error);
+    return 'mnemine'; // fallback
+  }
+}
 
 // GET /api/user/:telegramId/referrals
 export const getReferralData = async (req: Request, res: Response) => {
@@ -11,15 +26,17 @@ export const getReferralData = async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { telegramId }, include: { _count: { select: { referrals: true } } } });
     if (!user) return res.status(404).json({ error: 'User not found' });
-    
-    // Generate individual referral link
-    // Use the proper format for Telegram Web App deep linking
-    const referralLink = `https://t.me/mnemine/app?startapp=${user.referralCode}`;
-    
-    res.status(200).json({ 
-      referralCode: user.referralCode, 
+
+    // Generate individual referral link with correct bot username
+    const botUsername = await getBotUsername();
+    const referralLink = `https://t.me/${botUsername}/app?startapp=${user.referralCode}`;
+
+    console.log(`[REFERRAL] Generated link for user ${telegramId}: ${referralLink}`);
+
+    res.status(200).json({
+      referralCode: user.referralCode,
       referralLink: referralLink,
-      referralCount: user._count.referrals 
+      referralCount: user._count.referrals
     });
   } catch (error) {
     console.error(`Error fetching referral data for user ${telegramId}:`, error);
@@ -98,7 +115,7 @@ export const getReferralStats = async (req: Request, res: Response) => {
 
     const l2Referrals = await prisma.user.findMany({ where: { referredById: { in: l1Ids } }, select: { id: true } });
     const l2Ids = l2Referrals.map(r => r.id);
-    
+
     const l3ReferralsCount = await prisma.user.count({ where: { referredById: { in: l2Ids } } });
 
     const referralsByLevel = {
@@ -161,8 +178,8 @@ export const claimReferralStreakBonus = async (req: Request, res: Response) => {
   const ipAddress = req.ip;
 
   try {
-    const user = await prisma.user.findUnique({ 
-      where: { telegramId }, 
+    const user = await prisma.user.findUnique({
+      where: { telegramId },
       select: userSelectWithoutMiningSlots, // Use the reusable userSelect
     });
     if (!user) return res.status(404).json({ error: 'User not found' });

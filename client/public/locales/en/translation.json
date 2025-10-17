@@ -437,7 +437,8 @@
     "yourEarnings": "Your earnings",
     "noFriendsYet": "No friends yet",
     "shareToInvite": "Share your referral link to invite friends and start earning!",
-    "linkInstructions": "Share this link with friends. When they click it, they'll be taken to Telegram to open the app."
+    "linkInstructions": "Share this link with friends. When they click it, they'll be taken to Telegram to open the app.",
+    "linkNote": "Note: If the link opens a chat instead of the app, make sure you're using the correct bot username."
   },
   "referrals.title": "Referrals",
   "referrals.subtitle": "Invite friends and earn together",
@@ -460,6 +461,7 @@
   "referrals.noFriendsYet": "No friends yet",
   "referrals.shareToInvite": "Share your referral link to invite friends and start earning!",
   "referrals.linkInstructions": "Share this link with friends. When they click it, they'll be taken to Telegram to open the app.",
+  "referrals.linkNote": "Note: If the link opens a chat instead of the app, make sure you're using the correct bot username.",
   "inviteFriendsAndEarn": "Invite friends and earn together",
   "totalEarnings": "Total Earnings",
   "activeReferrals": "Active Referrals",

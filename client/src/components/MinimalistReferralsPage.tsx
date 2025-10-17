@@ -153,6 +153,9 @@ export const MinimalistReferralsPage = () => {
             <p className="text-xs text-muted-foreground mt-2">
               {t('referrals.linkInstructions')}
             </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {t('referrals.linkNote')}
+            </p>
           </div>
 
           <div className="flex gap-2">

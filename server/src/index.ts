@@ -1,8 +1,8 @@
 ﻿import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { logger, LogContext, LogLevel } from './utils/logger.js';
 import { smartConsoleReplacement } from './utils/consoleReplacer.js';
+import { LogContext, logger, LogLevel } from './utils/logger.js';
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +36,7 @@ if (process.env.NODE_ENV === 'production') {
       logger.debug(LogContext.SERVER, `Failed to load from ${envPath}, trying next...`);
     }
   }
-  
+
   dotenv.config();
 }
 
@@ -91,28 +91,27 @@ logger.server('Environment configuration loaded', {
   port: process.env.PORT,
 });
 
+import compression from 'compression';
 import express from 'express';
-import { createServer } from 'http';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import compression from 'compression';
+import { createServer } from 'http';
 import morgan from 'morgan';
-import prisma from './prisma.js';
-import { tasks } from './constants.js';
-import apiRoutes from './routes/index.js';
 import { Telegraf } from 'telegraf';
-import { generateUniqueReferralCode } from './utils/helpers.js';
-import { SLOT_WEEKLY_RATE, WELCOME_BONUS_AMOUNT } from './constants.js';
-import { WebSocketServer } from './websocket/WebSocketServer.js';
-import { webSocketManager } from './websocket/WebSocketManager.js';
-import { validateEnvironment } from './utils/validation.js';
-import { ProductionHealthCheck } from './utils/productionHealthCheck.js';
-import { requestLogger, websocketLogger, authLogger, businessLogger } from './middleware/requestLogger.js';
+import { SLOT_WEEKLY_RATE, tasks } from './constants.js';
+import { authLogger, businessLogger, requestLogger, websocketLogger } from './middleware/requestLogger.js';
+import prisma from './prisma.js';
+import apiRoutes from './routes/index.js';
+import userStatsRoutes from './routes/userStatsRoutes.js';
 import { MemoryMonitoringService } from './services/memoryMonitoringService.js';
 import { UserStatsService } from './services/userStatsService.js';
 import { UserStatsWebSocketService } from './services/userStatsWebSocketService.js';
-import userStatsRoutes from './routes/userStatsRoutes.js';
+import { generateUniqueReferralCode } from './utils/helpers.js';
+import { ProductionHealthCheck } from './utils/productionHealthCheck.js';
 import './utils/slotProcessor.js';
+import { validateEnvironment } from './utils/validation.js';
+import { webSocketManager } from './websocket/WebSocketManager.js';
+import { WebSocketServer } from './websocket/WebSocketServer.js';
 
 // Validate environment variables
 validateEnvironment();
@@ -214,61 +213,61 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   const userAgent = req.get('User-Agent') || 'Unknown';
   const referer = req.get('Referer') || 'None';
-  
+
   console.log(`[REQUEST] ${req.method} ${req.path}`);
   console.log(`[REQUEST] Origin: ${origin || 'undefined (direct access)'}`);
   console.log(`[REQUEST] User-Agent: ${userAgent}`);
   console.log(`[REQUEST] Referer: ${referer}`);
   console.log(`[REQUEST] Content-Type: ${req.get('Content-Type') || 'None'}`);
   console.log(`[REQUEST] IP: ${req.ip}`);
-  
+
   // Detect Telegram WebApp requests
   const isTelegramBot = userAgent.includes('TelegramBot');
-  const isTelegramWebApp = userAgent.includes('TelegramWebApp') || 
-                          userAgent.includes('Telegram') ||
-                          referer.includes('t.me') || 
-                          origin?.includes('telegram') ||
-                          req.query.tgWebAppData ||
-                          req.headers['x-telegram-init-data'];
-  
+  const isTelegramWebApp = userAgent.includes('TelegramWebApp') ||
+    userAgent.includes('Telegram') ||
+    referer.includes('t.me') ||
+    origin?.includes('telegram') ||
+    req.query.tgWebAppData ||
+    req.headers['x-telegram-init-data'];
+
   if (isTelegramBot) {
     console.log(`[TELEGRAM] Telegram Bot request detected`);
   }
-  
+
   if (isTelegramWebApp) {
     console.log(`[TELEGRAM] Telegram WebApp request detected`);
     console.log(`[TELEGRAM] WebApp Data: ${req.query.tgWebAppData || 'None'}`);
     console.log(`[TELEGRAM] Init Data Header: ${req.headers['x-telegram-init-data'] || 'None'}`);
   }
-  
+
   // CORS handling
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, x-telegram-init-data');
   res.header('Access-Control-Allow-Credentials', 'true');
-  
+
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     console.log(`[CORS] Handling preflight request for ${req.path} from origin: ${origin || 'undefined'}`);
     res.status(200).end();
     return;
   }
-  
+
   // Log response when finished
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     console.log(`[RESPONSE] ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
-    
+
     if (res.statusCode >= 400) {
       console.error(`[ERROR] ${req.method} ${req.path} returned ${res.statusCode}`);
     }
   });
-  
+
   next();
 });
 
 // Body parsing middleware
-app.use(express.json({ 
+app.use(express.json({
   limit: '10mb',
   verify: (req: any, res: any, buf: Buffer) => {
     (req as any).rawBody = buf;
@@ -289,12 +288,12 @@ app.use((req: any, res: any, next: any) => {
 app.get('/health', async (req: any, res: any) => {
   try {
     const dbCheckPromise = prisma.$queryRaw`SELECT 1`;
-    const dbTimeoutPromise = new Promise((_, reject) => 
+    const dbTimeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Database timeout')), 5000)
     );
-    
+
     await Promise.race([dbCheckPromise, dbTimeoutPromise]);
-    
+
     res.status(200).json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -318,20 +317,35 @@ app.get('/health', async (req: any, res: any) => {
 
 // Initialize bot and setup webhook
 let bot: Telegraf | null = null;
+let botUsername: string | null = null;
 if (token && token.length > 0) {
   bot = new Telegraf(token);
-  
+
+  // Get bot information
+  bot.telegram.getMe().then((botInfo) => {
+    botUsername = botInfo.username;
+    console.log(`[BOT] Bot username: @${botUsername}`);
+    console.log(`[BOT] Bot name: ${botInfo.first_name}`);
+  }).catch((err) => {
+    console.error('[BOT] Failed to get bot info:', err);
+  });
+
   bot.start((ctx) => {
     const startParam = ctx.startPayload;
     console.log(`[BOT] /start command received from user: ${ctx.from?.id} (${ctx.from?.username || ctx.from?.first_name})`);
     console.log(`[BOT] Start parameter: ${startParam || 'none'}`);
     console.log(`[BOT] Frontend URL: ${frontendUrl}`);
-    
+    console.log(`[BOT] Bot username: @${botUsername || 'unknown'}`);
+
     // If there's a start parameter (referral code), include it in the web app URL
     const webAppUrl = startParam ? `${frontendUrl}?ref=${startParam}` : frontendUrl;
     console.log(`[BOT] WebApp URL with referral: ${webAppUrl}`);
-    
-    ctx.reply("🚀 Добро пожаловать в Mnemine Mining!\n\nНажмите кнопку ниже, чтобы запустить приложение:", {
+
+    const welcomeMessage = startParam
+      ? `🚀 Добро пожаловать в Mnemine Mining!\n\nВы перешли по реферальной ссылке от друга!\nНажмите кнопку ниже, чтобы запустить приложение:`
+      : "🚀 Добро пожаловать в Mnemine Mining!\n\nНажмите кнопку ниже, чтобы запустить приложение:";
+
+    ctx.reply(welcomeMessage, {
       reply_markup: {
         keyboard: [
           [{ text: "🚀 Запустить WebApp", web_app: { url: webAppUrl } }]
@@ -345,7 +359,7 @@ if (token && token.length > 0) {
       console.error(`[BOT] Failed to send launch message to user ${ctx.from?.id}:`, err);
     });
   });
-  
+
   bot.command('app', (ctx) => {
     console.log(`[BOT] /app command received from user: ${ctx.from?.id}`);
     ctx.reply("🚀 Запустить приложение:", {
@@ -362,13 +376,13 @@ if (token && token.length > 0) {
       console.error(`[BOT] Failed to send app message to user ${ctx.from?.id}:`, err);
     });
   });
-  
+
   bot.action(/webapp/, (ctx) => {
     console.log(`[BOT] WebApp button clicked by user: ${ctx.from?.id}`);
     console.log(`[BOT] Callback data: ${(ctx.callbackQuery as any)?.data}`);
     console.log(`[BOT] Opening WebApp with URL: ${frontendUrl}`);
   });
-  
+
   bot.command('help', (ctx) => {
     console.log(`[BOT] /help command received from user: ${ctx.from?.id}`);
     const helpText = `🤖 *Mnemine Mining Bot*
@@ -392,11 +406,11 @@ if (token && token.length > 0) {
       console.error(`[BOT] Failed to send help message to user ${ctx.from?.id}:`, err);
     });
   });
-  
+
   bot.catch((err, ctx) => {
     console.error(`[BOT] Error occurred for user ${ctx.from?.id}:`, err);
   });
-  
+
   logger.telegram("Bot initialized successfully");
 } else {
   logger.warn(LogContext.TELEGRAM, "Telegram bot token is not provided. Bot features will be disabled.");
@@ -407,17 +421,17 @@ if (token && bot) {
   const webhookPath = `/api/webhook`;
   const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL || `${backendUrl}${webhookPath}`;
   const webhookDelayMs = parseInt(process.env.WEBHOOK_DELAY_MS || '0', 10);
-  
+
   console.log(`[BOT] Webhook delay configured: ${webhookDelayMs}ms`);
   console.log(`[BOT] Webhook path: ${webhookPath}`);
   console.log(`[BOT] Webhook URL: ${webhookUrl}`);
-  
+
   const manualWebhookHandler = async (req: any, res: any) => {
     try {
       console.log(`[WEBHOOK] Manual handler processing update`);
       console.log(`[WEBHOOK] Bot instance available:`, !!bot);
       console.log(`[WEBHOOK] Bot token:`, token ? `${token.substring(0, 10)}...` : 'Not available');
-      
+
       const update = req.body;
       if (update) {
         console.log(`[WEBHOOK] Processing update ID:`, update.update_id);
@@ -434,13 +448,13 @@ if (token && bot) {
       res.status(500).json({ error: 'Update processing failed' });
     }
   };
-  
+
   if (webhookDelayMs > 0) {
     app.use(webhookPath, async (req, res, next) => {
       console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
       console.log(`[WEBHOOK] Request body:`, JSON.stringify(req.body, null, 2));
       await new Promise(resolve => setTimeout(resolve, webhookDelayMs));
-      
+
       try {
         await manualWebhookHandler(req, res);
       } catch (error) {
@@ -454,14 +468,14 @@ if (token && bot) {
       console.log(`[WEBHOOK] Method: ${req.method}`);
       console.log(`[WEBHOOK] Headers:`, JSON.stringify(req.headers, null, 2));
       console.log(`[WEBHOOK] Body:`, JSON.stringify(req.body, null, 2));
-      
+
       const originalSend = res.send;
-      res.send = function(data) {
+      res.send = function (data) {
         console.log(`[WEBHOOK] Response status: ${res.statusCode}`);
         console.log(`[WEBHOOK] Response data:`, data);
         return originalSend.call(this, data);
       };
-      
+
       try {
         await manualWebhookHandler(req, res);
       } catch (error) {
@@ -472,7 +486,7 @@ if (token && bot) {
       }
     });
   }
-  
+
   console.log(`[BOT] Webhook endpoint registered at: ${webhookPath}`);
 }
 
@@ -484,7 +498,7 @@ app.use('/api/stats', userStatsRoutes);
 const projectRoot = process.cwd();
 console.log(`[SERVER] Current working directory: ${projectRoot}`);
 
-const publicPath = projectRoot.endsWith('/server') || projectRoot.endsWith('\\server') 
+const publicPath = projectRoot.endsWith('/server') || projectRoot.endsWith('\\server')
   ? path.join(projectRoot, 'public')
   : path.join(projectRoot, 'server/public');
 console.log(`[SERVER] Public path: ${publicPath}`);
@@ -512,10 +526,10 @@ app.get('*', (req: any, res: any) => {
   console.log(`[SPA] User-Agent: ${req.get('User-Agent') || 'Unknown'}`);
   console.log(`[SPA] Origin: ${req.get('Origin') || 'None'}`);
   console.log(`[SPA] Referer: ${req.get('Referer') || 'None'}`);
-  
+
   const indexPath = path.join(publicPath, 'index.html');
   console.log(`[SPA] Index file path: ${indexPath}`);
-  
+
   res.sendFile(indexPath, (err: any) => {
     if (err) {
       console.error(`[SPA] Error serving index.html:`, err);
@@ -569,7 +583,7 @@ async function seedBoosters() {
 async function ensureDatabaseSchema() {
   try {
     console.log('[SEED] Ensuring database schema is complete...');
-    
+
     try {
       await prisma.$executeRaw`
         CREATE TABLE IF NOT EXISTS "ExchangeRate" (
@@ -594,7 +608,7 @@ async function ensureDatabaseSchema() {
     }
 
     const existingRate = await prisma.exchangeRate.findFirst();
-    
+
     if (!existingRate) {
       await prisma.exchangeRate.create({
         data: {
@@ -607,7 +621,7 @@ async function ensureDatabaseSchema() {
     } else {
       console.log('[SEED] Exchange rate already exists');
     }
-    
+
     console.log('[SEED] Database schema verification completed');
   } catch (error) {
     console.warn('[SEED] Could not ensure database schema:', error);
@@ -630,7 +644,7 @@ async function seedAdmin() {
           username: 'admin_dev',
           role: 'ADMIN',
           referralCode: await generateUniqueReferralCode(),
-          wallets: { 
+          wallets: {
             create: [
               { currency: 'USD', balance: 0 },
               { currency: 'MNE', balance: 0 }
@@ -688,10 +702,10 @@ async function seedAdmin() {
 // Graceful shutdown handler
 const gracefulShutdown = async (signal: string) => {
   logger.server(`Received ${signal}. Starting graceful shutdown...`);
-  
+
   server.close(async () => {
     logger.server('HTTP server closed');
-    
+
     try {
       await prisma.$disconnect();
       logger.database('Database connection closed');
@@ -701,7 +715,7 @@ const gracefulShutdown = async (signal: string) => {
       process.exit(1);
     }
   });
-  
+
   setTimeout(() => {
     logger.error(LogContext.SERVER, 'Forced shutdown after timeout');
     process.exit(1);
@@ -712,10 +726,10 @@ async function startServer() {
   try {
     console.log('[SERVER] Testing database connection...');
     const dbConnectionPromise = prisma.$connect();
-    const dbTimeoutPromise = new Promise((_, reject) => 
+    const dbTimeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Database connection timeout')), 10000)
     );
-    
+
     await Promise.race([dbConnectionPromise, dbTimeoutPromise]);
     logger.database('Database connection successful');
 
@@ -723,18 +737,18 @@ async function startServer() {
       logger.server(`Backend server listening on port ${port}`);
       logger.websocket(`WebSocket server available at ws://localhost:${port}/ws`);
       logger.server(`Frontend URL for bot: ${frontendUrl}`);
-      
+
       ProductionHealthCheck.markAsHealthy();
-      
+
       // Initialize memory monitoring
       const memoryMonitor = MemoryMonitoringService.getInstance();
       logger.server('Memory monitoring service initialized');
-      
+
       // Initialize user stats services
       UserStatsService.initialize();
       UserStatsWebSocketService.initialize();
       logger.server('User stats services initialized');
-      
+
       try {
         const wsServer = new WebSocketServer(server);
         webSocketManager.setWebSocketServer(wsServer);
@@ -755,7 +769,7 @@ async function startServer() {
 
         if (webhookUrl.startsWith('https://')) {
           console.log(`[BOT] Setting webhook to: ${webhookUrl}`);
-          
+
           bot.telegram.setWebhook(webhookUrl)
             .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
             .catch((err: any) => console.error('[BOT] ❌ Failed to set webhook:', err));
@@ -763,7 +777,7 @@ async function startServer() {
           console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
         }
       }
-      
+
       try {
         const { continuousEarningsProcessor } = await import('./utils/continuousEarningsProcessor.js');
         await continuousEarningsProcessor.start();
@@ -771,7 +785,7 @@ async function startServer() {
       } catch (error) {
         logger.error(LogContext.BUSINESS, 'Failed to start continuous earnings processor', error);
       }
-      
+
       try {
         const { slotExpirationProcessor } = await import('./utils/slotExpirationProcessor.js');
         await slotExpirationProcessor.start();
@@ -779,7 +793,7 @@ async function startServer() {
       } catch (error) {
         logger.error(LogContext.BUSINESS, 'Failed to start slot expiration processor', error);
       }
-      
+
       try {
         const { autoClaimProcessor } = await import('./utils/autoClaimProcessor.js');
         await autoClaimProcessor.start();
