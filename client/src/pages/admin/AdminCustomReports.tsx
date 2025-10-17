@@ -1,23 +1,21 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  BarChart3, 
-  Download, 
-  Calendar, 
-  TrendingUp, 
-  Users, 
-  DollarSign,
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { api } from '@/lib/api';
+import {
   Activity,
+  Calendar,
+  DollarSign,
+  Download,
+  Filter,
   RefreshCw,
-  Filter
+  Users
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { useEffect, useState } from 'react';
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface CustomReportData {
   timeframe: {
@@ -348,17 +346,17 @@ const AdminCustomReports = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis dataKey="date" stroke="#9CA3AF" />
                       <YAxis stroke="#9CA3AF" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1F2937', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1F2937',
                           border: '1px solid #374151',
                           borderRadius: '6px'
-                        }} 
+                        }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="#10B981" 
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#10B981"
                         strokeWidth={2}
                         dot={{ fill: '#10B981' }}
                       />
@@ -414,24 +412,24 @@ const AdminCustomReports = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis dataKey="date" stroke="#9CA3AF" />
                       <YAxis stroke="#9CA3AF" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1F2937', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1F2937',
                           border: '1px solid #374151',
                           borderRadius: '6px'
-                        }} 
+                        }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="total" 
-                        stroke="#3B82F6" 
+                      <Line
+                        type="monotone"
+                        dataKey="total"
+                        stroke="#3B82F6"
                         strokeWidth={2}
                         name="Total Activities"
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="uniqueUsers" 
-                        stroke="#8B5CF6" 
+                      <Line
+                        type="monotone"
+                        dataKey="uniqueUsers"
+                        stroke="#8B5CF6"
                         strokeWidth={2}
                         name="Unique Users"
                       />
@@ -487,12 +485,12 @@ const AdminCustomReports = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis dataKey="date" stroke="#9CA3AF" />
                       <YAxis stroke="#9CA3AF" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1F2937', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1F2937',
                           border: '1px solid #374151',
                           borderRadius: '6px'
-                        }} 
+                        }}
                       />
                       <Bar dataKey="value" fill="#8B5CF6" />
                     </BarChart>

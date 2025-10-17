@@ -1,7 +1,6 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import HttpApi from 'i18next-http-backend';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import { initReactI18next } from 'react-i18next';
 
 // Check if we're in admin panel
 const isAdminPanel = () => {
@@ -9,11 +8,24 @@ const isAdminPanel = () => {
   return window.location.pathname.startsWith('/admin') && !window.location.pathname.includes('/admin-login');
 };
 
-// Force English for admin panel
+// Force English for admin panel, otherwise use stored language or default to Armenian
 const getInitialLanguage = () => {
-  const initialLang = isAdminPanel() ? 'en' : 'hy';
-  console.log(`[i18n] getInitialLanguage: isAdminPanel=${isAdminPanel()}, returning=${initialLang}`);
-  return initialLang;
+  if (isAdminPanel()) {
+    console.log(`[i18n] getInitialLanguage: isAdminPanel=true, returning=en`);
+    return 'en';
+  }
+
+  // Check for stored language
+  if (typeof window !== 'undefined') {
+    const storedLanguage = localStorage.getItem('mnemine-language');
+    if (storedLanguage) {
+      console.log(`[i18n] getInitialLanguage: found stored language=${storedLanguage}`);
+      return storedLanguage;
+    }
+  }
+
+  console.log(`[i18n] getInitialLanguage: no stored language, returning=hy`);
+  return 'hy';
 };
 
 i18n
@@ -72,17 +84,12 @@ i18n.changeLanguage = (lng, callback) => {
   return originalChangeLanguage(lng, callback);
 };
 
-// Only set default language if no language is stored and not in admin panel
+// Set default language in localStorage if none exists and not in admin panel
 if (typeof window !== 'undefined' && !isAdminPanel()) {
   const storedLanguage = localStorage.getItem('mnemine-language');
-  console.log(`[i18n] Stored language check: storedLanguage=${storedLanguage}, isAdminPanel=${isAdminPanel()}`);
   if (!storedLanguage) {
-    // Only set Armenian as default if no language preference exists
     console.log(`[i18n] No stored language found, setting default to 'hy'`);
     localStorage.setItem('mnemine-language', 'hy');
-    i18n.changeLanguage('hy');
-  } else {
-    console.log(`[i18n] Found stored language: ${storedLanguage}`);
   }
 }
 
