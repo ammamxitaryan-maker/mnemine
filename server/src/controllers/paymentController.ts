@@ -40,7 +40,7 @@ export const createPayment = async (req: Request, res: Response) => {
         amount,
         currency,
         description,
-        status: 'pending',
+        status: 'PENDING',
         paymentMethod: 'amerpay'
       }
     });
@@ -77,7 +77,7 @@ export const createPayment = async (req: Request, res: Response) => {
       // Update payment record as failed
       await prisma.payment.update({
         where: { id: payment.id },
-        data: { status: 'failed' }
+        data: { status: 'FAILED' }
       });
 
       res.status(400).json({
@@ -214,7 +214,7 @@ export const refundPayment = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Payment not found' });
     }
 
-    if (payment.status !== 'completed') {
+    if (payment.status !== 'COMPLETED') {
       return res.status(400).json({
         error: 'Only completed payments can be refunded'
       });
@@ -224,7 +224,7 @@ export const refundPayment = async (req: Request, res: Response) => {
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
-        status: 'refunded',
+        status: 'REFUNDED',
         refundReason: reason
       }
     });
@@ -309,11 +309,11 @@ export const addFundsToWallet = async (req: Request, res: Response) => {
     await prisma.transaction.create({
       data: {
         userId: user.id,
-        type: 'deposit',
+        type: 'DEPOSIT',
         amount,
         currency,
         description: 'Funds added via Amer Pay',
-        status: 'completed'
+        status: 'COMPLETED'
       }
     });
 
