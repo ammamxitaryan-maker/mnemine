@@ -13,6 +13,7 @@ export const getReferralData = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     
     // Generate individual referral link
+    // Use the proper format for Telegram Web App deep linking
     const referralLink = `https://t.me/mnemine/app?startapp=${user.referralCode}`;
     
     res.status(200).json({ 

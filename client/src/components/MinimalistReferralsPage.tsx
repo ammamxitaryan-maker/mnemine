@@ -33,10 +33,10 @@ export const MinimalistReferralsPage = () => {
     if (referralData?.referralLink) {
       try {
         await navigator.clipboard.writeText(referralData.referralLink);
-        showSuccess('Ուղեգրային հղումը պատճենվեց!');
+        showSuccess(t('referrals.linkCopied'));
         hapticLight();
       } catch (error) {
-        showError('Չհաջողվեց պատճենել հղումը');
+        showError(t('referrals.copyFailed'));
       }
     }
   };
@@ -45,8 +45,8 @@ export const MinimalistReferralsPage = () => {
     if (referralData?.referralLink && navigator.share) {
       try {
         await navigator.share({
-          title: 'Միացեք MNEMINE-ին',
-          text: 'Միացեք MNEMINE-ին և սկսեք վաստակել!',
+          title: t('referrals.shareTitle'),
+          text: t('referrals.shareText'),
           url: referralData.referralLink,
         });
         hapticLight();
@@ -64,7 +64,7 @@ export const MinimalistReferralsPage = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading referrals...</p>
+          <p className="text-muted-foreground">{t('referrals.loading')}</p>
         </div>
       </div>
     );
@@ -80,9 +80,9 @@ export const MinimalistReferralsPage = () => {
             <Users className="w-6 h-6 text-emerald-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-light text-foreground">Referrals</h1>
+            <h1 className="text-2xl font-light text-foreground">{t('referrals.title')}</h1>
             <p className="text-sm text-muted-foreground">
-              Invite friends and earn together
+              {t('referrals.subtitle')}
             </p>
           </div>
         </div>
@@ -98,7 +98,7 @@ export const MinimalistReferralsPage = () => {
             <div className="text-2xl font-light text-emerald-500 mb-1">
               ${referralStats?.totalReferralEarnings.toFixed(2) || '0.00'}
             </div>
-            <div className="text-xs text-muted-foreground">Total Earnings</div>
+            <div className="text-xs text-muted-foreground">{t('referrals.totalEarnings')}</div>
           </div>
           
           <div className="minimal-card text-center">
@@ -108,14 +108,14 @@ export const MinimalistReferralsPage = () => {
             <div className="text-2xl font-light text-primary mb-1">
               {referralList?.length || 0}
             </div>
-            <div className="text-xs text-muted-foreground">Friends Invited</div>
+            <div className="text-xs text-muted-foreground">{t('referrals.friendsInvited')}</div>
           </div>
         </div>
       </div>
 
       {/* Referral Link */}
       <div className="px-6 mb-6">
-        <h2 className="text-lg font-medium text-foreground mb-4">Your Referral Link</h2>
+        <h2 className="text-lg font-medium text-foreground mb-4">{t('referrals.yourReferralLink')}</h2>
         <div className="minimal-card">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-secondary/10 rounded-xl">
@@ -123,17 +123,20 @@ export const MinimalistReferralsPage = () => {
             </div>
             <div className="flex-1">
               <h3 className="font-medium text-foreground text-sm mb-1">
-                Share Your Link
+                {t('referrals.shareYourLink')}
               </h3>
               <p className="text-xs text-muted-foreground">
-                Earn 10% from your friends' investments
+                {t('referrals.earnFromFriends')}
               </p>
             </div>
           </div>
           
           <div className="bg-muted/20 rounded-lg p-3 mb-4">
             <p className="text-xs text-muted-foreground break-all">
-              {referralData?.referralLink || 'Loading...'}
+              {referralData?.referralLink || t('referrals.loading')}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {t('referrals.linkInstructions')}
             </p>
           </div>
           
@@ -143,14 +146,14 @@ export const MinimalistReferralsPage = () => {
               className="flex-1 minimal-btn py-2 flex items-center justify-center gap-2"
             >
               <Copy className="w-4 h-4" />
-              Copy
+              {t('referrals.copy')}
             </button>
             <button
               onClick={shareReferralLink}
               className="flex-1 primary-btn py-2 flex items-center justify-center gap-2"
             >
               <Share2 className="w-4 h-4" />
-              Share
+              {t('referrals.share')}
             </button>
           </div>
         </div>
@@ -158,7 +161,7 @@ export const MinimalistReferralsPage = () => {
 
       {/* Referral List */}
       <div className="px-6 mb-6">
-        <h2 className="text-lg font-medium text-foreground mb-4">Your Friends</h2>
+        <h2 className="text-lg font-medium text-foreground mb-4">{t('referrals.yourFriends')}</h2>
         {referralList && referralList.length > 0 ? (
           <div className="space-y-3">
             {referralList.map((friend) => (
@@ -170,10 +173,10 @@ export const MinimalistReferralsPage = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-foreground text-sm">
-                        {friend.firstName || 'Friend'}
+                        {friend.firstName || t('referrals.friend')}
                       </h3>
                       <p className="text-xs text-muted-foreground">
-                        Joined {new Date(friend.createdAt).toLocaleDateString()}
+                        {t('referrals.joined')} {new Date(friend.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -182,7 +185,7 @@ export const MinimalistReferralsPage = () => {
                       ${friend.totalEarnings?.toFixed(2) || '0.00'}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Your earnings
+                      {t('referrals.yourEarnings')}
                     </div>
                   </div>
                 </div>
@@ -194,9 +197,9 @@ export const MinimalistReferralsPage = () => {
             <div className="p-4 bg-muted/20 rounded-xl mb-4 w-fit mx-auto">
               <Users className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="font-medium text-foreground mb-2">No friends yet</h3>
+            <h3 className="font-medium text-foreground mb-2">{t('referrals.noFriendsYet')}</h3>
             <p className="text-sm text-muted-foreground">
-              Share your referral link to invite friends and start earning!
+              {t('referrals.shareToInvite')}
             </p>
           </div>
         )}

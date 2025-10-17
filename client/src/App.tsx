@@ -64,6 +64,7 @@ const App = () => {
             {/* Routes with the minimalist layout */}
             <Route element={<MinimalistLayout />}>
               <Route path="/" element={<Index />} />
+              <Route path="/referrals" element={<Referrals />} />
             </Route>
 
             {/* Individual page routes */}
@@ -74,7 +75,6 @@ const App = () => {
 
             {/* Routes with the main layout for other pages */}
             <Route element={<MainLayout />}>
-              <Route path="/referrals" element={<Referrals />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/investment-slots" element={<InvestmentSlots />} />
               <Route path="/stats" element={<Stats />} />

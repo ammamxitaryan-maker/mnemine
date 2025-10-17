@@ -206,8 +206,9 @@ export const useTelegramAuth = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const tgWebAppData = urlParams.get('tgWebAppData');
       const tgWebAppStartParam = urlParams.get('tgWebAppStartParam');
+      const refParam = urlParams.get('ref'); // Referral code from bot
       
-      console.log('[AUTH] URL parameters - tgWebAppData:', tgWebAppData, 'tgWebAppStartParam:', tgWebAppStartParam);
+      console.log('[AUTH] URL parameters - tgWebAppData:', tgWebAppData, 'tgWebAppStartParam:', tgWebAppStartParam, 'ref:', refParam);
       
       // In production, we prefer Telegram WebApp data but allow fallback for testing
       if (isProduction && !isTelegramWebApp && !tgWebAppData && !tgWebAppStartParam) {
@@ -235,13 +236,17 @@ export const useTelegramAuth = () => {
         setInitData(tg.initData);
         
         try {
+          // Use start_param from Telegram WebApp, or fallback to ref parameter from URL
+          const referralCode = tg.initDataUnsafe.start_param || refParam;
+          console.log('[AUTH] Using referral code:', referralCode);
+          
           // Call backend validation endpoint to create/update user in database
           const response = await fetch(`${backendUrl}/api/auth/validate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
               initData: tg.initData,
-              startParam: tg.initDataUnsafe.start_param
+              startParam: referralCode
             })
           });
           

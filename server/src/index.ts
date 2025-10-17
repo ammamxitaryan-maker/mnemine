@@ -322,14 +322,19 @@ if (token && token.length > 0) {
   bot = new Telegraf(token);
   
   bot.start((ctx) => {
+    const startParam = ctx.startPayload;
     console.log(`[BOT] /start command received from user: ${ctx.from?.id} (${ctx.from?.username || ctx.from?.first_name})`);
+    console.log(`[BOT] Start parameter: ${startParam || 'none'}`);
     console.log(`[BOT] Frontend URL: ${frontendUrl}`);
-    console.log(`[BOT] Sending WebApp button with URL: ${frontendUrl}`);
+    
+    // If there's a start parameter (referral code), include it in the web app URL
+    const webAppUrl = startParam ? `${frontendUrl}?ref=${startParam}` : frontendUrl;
+    console.log(`[BOT] WebApp URL with referral: ${webAppUrl}`);
     
     ctx.reply("🚀 Добро пожаловать в Mnemine Mining!\n\nНажмите кнопку ниже, чтобы запустить приложение:", {
       reply_markup: {
         keyboard: [
-          [{ text: "🚀 Запустить WebApp", web_app: { url: frontendUrl } }]
+          [{ text: "🚀 Запустить WebApp", web_app: { url: webAppUrl } }]
         ],
         resize_keyboard: true,
         one_time_keyboard: false
