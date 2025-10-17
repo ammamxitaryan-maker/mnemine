@@ -102,6 +102,9 @@ dist
 # Gatsby files
 .cache/
 public
+!client/public/
+!client/public/locales/
+!client/public/locales/**/*
 
 # Storybook build outputs
 .out
@@ -223,6 +226,58 @@ false/
 # Documentation that might be temporary
 *.md
 !README.md
+!docs/*.md
+!PROJECT_NOTES.md
+!DEPLOYMENT_GUIDE*.md
+!TECHNICAL_IMPLEMENTATION_GUIDE.md
+!ENHANCED_DOCUMENTATION.md
+!PRODUCTION_CHECKLIST.md
+!QUICK_START.md
+!LOCAL_DEVELOPMENT.md
+!API.md
+!CHANGELOG*.md
+!ENHANCEMENT_SUMMARY.md
+!INVESTMENT_SLOTS_IMPLEMENTATION.md
+!LOGGING_SYSTEM.md
+!MINING_POWER_FIX.md
+!PERFORMANCE_AUDIT.md
+!TYPING_SYSTEM.md
+!AUDIT_REPORT.md
+!AUDIT_POLZOVATELSKOGO_OPYTA_RU.md
+!ADMIN_PANEL_ENHANCEMENTS.md
+!PERFORMANCE_OPTIMIZATIONS.md
+!LANGUAGE_SWITCHING_DEBUG.md
+!IMPLEMENTATION_SUMMARY_RU.md
+!OPTIMIZATION_SUMMARY.md
+!README_NEW_FEATURES.md
+!CURSOR_TESTING_GUIDE.md
+!DEPLOYMENT_FIX.md
 
-# Scripts that might be temporary
+# Localization files - keep them in Git
+!client/public/locales/
+!client/public/locales/**/*
+!client/dist/locales/
+!client/dist/locales/**/*
+
+# Scripts that might be temporary (keep important deployment scripts)
 scripts/
+!scripts/deploy-*.sh
+!scripts/deploy-*.ps1
+!scripts/deploy-*.js
+!scripts/deploy-*.bat
+!scripts/quick-*.ps1
+!scripts/quick-*.bat
+!scripts/setup-*.ps1
+!scripts/setup-*.bat
+!scripts/create-tables-*.ps1
+!scripts/create-tables-*.js
+!scripts/force-*.js
+!scripts/test-*.js
+!scripts/verify-*.js
+!scripts/check-*.js
+!scripts/copy-*.js
+!scripts/diagnose-*.js
+!scripts/manual-*.md
+!scripts/render-*.md
+!scripts/get-*.md
+!scripts/setup-*.md
