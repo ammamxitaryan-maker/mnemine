@@ -9,7 +9,7 @@ import { isUserEligible } from '../utils/helpers.js';
 async function getBotUsername(): Promise<string> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return 'MnemineBot'; // fallback
-  
+
   try {
     const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
     const data = await response.json();
@@ -34,7 +34,7 @@ export const getReferralData = async (req: Request, res: Response) => {
     // Generate individual referral link with correct bot username
     const botUsername = await getBotUsername();
     const referralLink = `https://t.me/${botUsername}?startapp=${user.referralCode}`;
-    
+
     console.log(`[REFERRAL] Generated link for user ${telegramId}: ${referralLink}`);
     console.log(`[REFERRAL] Bot username used: ${botUsername}`);
 
