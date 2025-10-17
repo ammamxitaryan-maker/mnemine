@@ -14,7 +14,7 @@ import {
   Bell,
   CheckCircle,
   Info,
-  MarkAsRead,
+  Check,
   Trash2,
   X
 } from 'lucide-react';
@@ -178,7 +178,7 @@ const NotificationItem = ({ notification, onRemove, onMarkAsRead }: Notification
               onClick={() => onMarkAsRead(notification.id)}
               className="h-6 w-6 p-0 text-gray-400 hover:text-white"
             >
-              <MarkAsRead className="h-3 w-3" />
+              <Check className="h-3 w-3" />
             </Button>
           )}
           <Button
@@ -261,7 +261,7 @@ export const NotificationCenter = ({
                       onClick={onMarkAllAsRead}
                       className="h-6 w-6 p-0 text-gray-400 hover:text-white"
                     >
-                      <MarkAsRead className="h-3 w-3" />
+                      <Check className="h-3 w-3" />
                     </Button>
                   )}
                   <Button
