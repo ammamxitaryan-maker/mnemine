@@ -1,14 +1,10 @@
 import { AdminPasswordModal } from '@/components/AdminPasswordModal';
 import { SplashScreen } from '@/components/SplashScreen';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { isAdminPasswordVerified } from '@/utils/adminAuth';
+import { isAdminPasswordVerified, isAdminUser, getLockoutInfo } from '@/utils/adminAuth';
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-
-// Get admin IDs from environment variable, fallback to default for development
-const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS
-  ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
-  : ['6760298907'];
+import { ADMIN_CONFIG } from '@/config/adminConfig';
 
 export const AdminRoute = () => {
   const { user, loading } = useTelegramAuth();
@@ -43,7 +39,7 @@ export const AdminRoute = () => {
   }
 
   // After password verification, check if user is admin
-  const isAdmin = ADMIN_TELEGRAM_IDS.includes(user.telegramId);
+  const isAdmin = isAdminUser(user.telegramId);
 
   if (!isAdmin) {
     console.log('[ADMIN_ROUTE] User is not admin, access denied');
