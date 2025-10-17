@@ -31,6 +31,18 @@ export const AdminRoute = () => {
     return <Navigate to="/" replace />;
   }
 
+  // First check password for everyone trying to access admin panel
+  if (!isPasswordVerified) {
+    return (
+      <AdminPasswordModal
+        onPasswordCorrect={() => {
+          setIsPasswordVerified(true);
+        }}
+      />
+    );
+  }
+
+  // After password verification, check if user is admin
   const isAdmin = ADMIN_TELEGRAM_IDS.includes(user.telegramId);
 
   if (!isAdmin) {
@@ -42,17 +54,6 @@ export const AdminRoute = () => {
           <p className="text-gray-400">You don't have permission to access the admin panel.</p>
         </div>
       </div>
-    );
-  }
-
-  // Show password modal if not verified yet
-  if (!isPasswordVerified) {
-    return (
-      <AdminPasswordModal
-        onPasswordCorrect={() => {
-          setIsPasswordVerified(true);
-        }}
-      />
     );
   }
 

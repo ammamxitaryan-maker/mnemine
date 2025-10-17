@@ -1,12 +1,13 @@
 "use client";
 
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { 
+import { ErrorBoundary } from '@/components/admin/ErrorBoundary';
+import { Button } from '@/components/ui/button';
+import { clearAdminPasswordVerification } from '@/utils/adminAuth';
+import {
   ArrowLeft,
   LogOut
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ErrorBoundary } from '@/components/admin/ErrorBoundary';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export const AdminLayoutCompact = () => {
   const location = useLocation();
@@ -40,33 +41,36 @@ export const AdminLayoutCompact = () => {
             )}
             <div className="min-w-0 flex-1">
               <h2 className="text-sm font-semibold text-white truncate">
-                {currentPath === '/admin' ? 'Admin Panel' : 
-                 currentPath.includes('/users') ? 'Users' :
-                 currentPath.includes('/transactions') ? 'Transactions' :
-                 currentPath.includes('/analytics') ? 'Analytics' :
-                 currentPath.includes('/lottery') ? 'Lottery' :
-                 currentPath.includes('/notifications') ? 'Notifications' :
-                 currentPath.includes('/processing') ? 'Processing' :
-                 currentPath.includes('/exchange') ? 'Exchange' :
-                 currentPath.includes('/logs') ? 'Logs' :
-                 currentPath.includes('/settings') ? 'Settings' :
-                 currentPath.includes('/staff') ? 'Staff' :
-                 'Admin Panel'}
+                {currentPath === '/admin' ? 'Admin Panel' :
+                  currentPath.includes('/users') ? 'Users' :
+                    currentPath.includes('/transactions') ? 'Transactions' :
+                      currentPath.includes('/analytics') ? 'Analytics' :
+                        currentPath.includes('/lottery') ? 'Lottery' :
+                          currentPath.includes('/notifications') ? 'Notifications' :
+                            currentPath.includes('/processing') ? 'Processing' :
+                              currentPath.includes('/exchange') ? 'Exchange' :
+                                currentPath.includes('/logs') ? 'Logs' :
+                                  currentPath.includes('/settings') ? 'Settings' :
+                                    currentPath.includes('/staff') ? 'Staff' :
+                                      'Admin Panel'}
               </h2>
             </div>
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
-              localStorage.removeItem('admin_token');
-              navigate('/admin-login');
+              // Clear password verification
+              clearAdminPasswordVerification();
+              console.log('[ADMIN_LOGOUT] Password verification cleared');
+              // Navigate to main page
+              navigate('/');
             }}
             className="border-red-600 text-red-400 hover:bg-red-600/10 h-7 px-2 text-xs"
           >
             <LogOut className="h-3 w-3 mr-1" />
-            Logout
+            Выйти
           </Button>
         </div>
       </div>

@@ -46,7 +46,8 @@ export const AdminPasswordModal = ({ onPasswordCorrect }: AdminPasswordModalProp
           </div>
           <CardTitle className="text-xl text-white">Доступ к админ панели</CardTitle>
           <CardDescription className="text-gray-400">
-            Введите пароль для доступа к административной панели
+            Введите пароль для доступа к административной панели.<br />
+            Пароль будет запомнен на время текущей сессии.
           </CardDescription>
         </CardHeader>
         <CardContent>
