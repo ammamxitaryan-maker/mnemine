@@ -40,7 +40,7 @@ The application uses the following environment files:
 
 ```bash
 # Database (using production database for testing)
-DATABASE_URL="postgresql://NONMINE_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a/NONMINE_zupy"
+DATABASE_URL="mnemineNMINE_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a/NONMINE_zupy"
 
 # Security Keys
 JWT_SECRET="+j/7gDO4Fd/P7DPpLrCbm1YgW4GwDP+9cn3p8g7GpOo="
