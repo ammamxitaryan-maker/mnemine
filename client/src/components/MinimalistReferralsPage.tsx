@@ -1,27 +1,29 @@
 "use client";
 
-import { useTranslation } from 'react-i18next';
-import { 
-  Users, 
-  DollarSign, 
-  UserCheck, 
-  Network, 
-  Copy, 
-  Share2,
-  Loader2,
-  ChevronRight
-} from 'lucide-react';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useReferralData } from '@/hooks/useReferralData';
 import { useReferralList } from '@/hooks/useReferralList';
 import { useReferralStats } from '@/hooks/useReferralStats';
-import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { showError, showSuccess } from '@/utils/toast';
+import {
+  Copy,
+  DollarSign,
+  Network,
+  Share2,
+  UserCheck,
+  Users
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { BackButton } from './BackButton';
-import { showSuccess, showError } from '@/utils/toast';
 
 export const MinimalistReferralsPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useTelegramAuth();
+
+  // Debug: Log current language and test translation
+  console.log('[REFERRALS] Current language:', i18n.language);
+  console.log('[REFERRALS] Test translation:', t('referrals.title'));
   const { hapticLight } = useHapticFeedback();
   const { data: referralData, isLoading: referralDataLoading } = useReferralData(user?.telegramId);
   const { data: referralList, isLoading: referralListLoading } = useReferralList(user?.telegramId);
@@ -84,6 +86,19 @@ export const MinimalistReferralsPage = () => {
             <p className="text-sm text-muted-foreground">
               {t('referrals.subtitle')}
             </p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs text-muted-foreground/50">
+                Language: {i18n.language}
+              </p>
+              {i18n.language !== 'hy' && (
+                <button
+                  onClick={() => i18n.changeLanguage('hy')}
+                  className="text-xs text-emerald-500 hover:text-emerald-400 underline"
+                >
+                  Switch to Armenian
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -100,7 +115,7 @@ export const MinimalistReferralsPage = () => {
             </div>
             <div className="text-xs text-muted-foreground">{t('referrals.totalEarnings')}</div>
           </div>
-          
+
           <div className="minimal-card text-center">
             <div className="p-3 bg-primary/10 rounded-xl mb-3">
               <UserCheck className="w-6 h-6 text-primary mx-auto" />
@@ -130,7 +145,7 @@ export const MinimalistReferralsPage = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="bg-muted/20 rounded-lg p-3 mb-4">
             <p className="text-xs text-muted-foreground break-all">
               {referralData?.referralLink || t('referrals.loading')}
@@ -139,7 +154,7 @@ export const MinimalistReferralsPage = () => {
               {t('referrals.linkInstructions')}
             </p>
           </div>
-          
+
           <div className="flex gap-2">
             <button
               onClick={copyReferralLink}
