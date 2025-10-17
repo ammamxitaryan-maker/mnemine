@@ -1,24 +1,26 @@
 "use client";
 
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { 
-  Wallet as WalletIcon, 
-  ArrowDownToLine, 
-  ArrowUpFromLine, 
-  History,
-  Loader2,
-  TrendingUp
-} from 'lucide-react';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { useUserData } from '@/hooks/useUserData';
-import { useActivityData, Activity } from '@/hooks/useActivityData';
-import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { Button } from '@/components/ui/button';
 import { ActivityCard } from '@/components/common/ActivityCard';
 import { EarningsChart } from '@/components/common/EarningsChart';
-import { SimpleBalance } from './SimpleBalance';
+import { Button } from '@/components/ui/button';
+import { Activity, useActivityData } from '@/hooks/useActivityData';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { useUserData } from '@/hooks/useUserData';
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  History,
+  TrendingUp,
+  Wallet as WalletIcon
+} from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { BackButton } from './BackButton';
+import { PaymentHistory } from './PaymentHistory';
+import { PaymentModal } from './PaymentModal';
+import { SimpleBalance } from './SimpleBalance';
 
 export const MinimalistWalletPage = () => {
   const { t } = useTranslation();
@@ -26,15 +28,17 @@ export const MinimalistWalletPage = () => {
   const { data: userData, isLoading: userDataLoading } = useUserData(user?.telegramId);
   const { data: activities, isLoading: activityLoading } = useActivityData(user?.telegramId);
   const { hapticLight } = useHapticFeedback();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isPaymentHistoryOpen, setIsPaymentHistoryOpen] = useState(false);
 
   const isLoading = userDataLoading || activityLoading;
 
   const quickActions = [
     {
-      to: '/deposit',
+      action: () => setIsPaymentModalOpen(true),
       icon: ArrowDownToLine,
-      label: t('deposit'),
-      subtitle: 'Add funds',
+      label: t('payment.title'),
+      subtitle: t('payment.method'),
       color: 'text-primary'
     },
     {
@@ -45,9 +49,9 @@ export const MinimalistWalletPage = () => {
       color: 'text-secondary'
     },
     {
-      to: '/wallet',
+      action: () => setIsPaymentHistoryOpen(true),
       icon: History,
-      label: 'History',
+      label: t('payment.history'),
       subtitle: 'Transactions',
       color: 'text-accent'
     }
@@ -89,18 +93,40 @@ export const MinimalistWalletPage = () => {
       <div className="px-6 mb-6">
         <h2 className="text-lg font-medium text-foreground mb-3">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-3">
-          {quickActions.map((action) => (
-            <Link 
-              key={action.to} 
-              to={action.to} 
-              className="minimal-card p-3 text-center"
-              onClick={() => hapticLight()}
-            >
-              <action.icon className={`w-5 h-5 mx-auto mb-2 ${action.color}`} />
-              <h3 className="font-medium text-foreground text-sm">
-                {action.label}
-              </h3>
-            </Link>
+          {quickActions.map((action, index) => (
+            action.to ? (
+              <Link
+                key={action.to}
+                to={action.to}
+                className="minimal-card p-3 text-center"
+                onClick={() => hapticLight()}
+              >
+                <action.icon className={`w-5 h-5 mx-auto mb-2 ${action.color}`} />
+                <h3 className="font-medium text-foreground text-sm">
+                  {action.label}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {action.subtitle}
+                </p>
+              </Link>
+            ) : (
+              <button
+                key={index}
+                onClick={() => {
+                  hapticLight();
+                  action.action?.();
+                }}
+                className="minimal-card p-3 text-center w-full"
+              >
+                <action.icon className={`w-5 h-5 mx-auto mb-2 ${action.color}`} />
+                <h3 className="font-medium text-foreground text-sm">
+                  {action.label}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {action.subtitle}
+                </p>
+              </button>
+            )
           ))}
         </div>
       </div>
@@ -159,6 +185,21 @@ export const MinimalistWalletPage = () => {
 
       {/* Bottom spacing */}
       <div className="h-20" />
+
+      {/* Payment Modals */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onSuccess={() => {
+          // Refresh user data after successful payment
+          window.location.reload();
+        }}
+      />
+
+      <PaymentHistory
+        isOpen={isPaymentHistoryOpen}
+        onClose={() => setIsPaymentHistoryOpen(false)}
+      />
     </div>
   );
 };

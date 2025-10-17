@@ -10,6 +10,7 @@ import { AdminRoute } from "./components/layout/AdminRoute";
 import { MainLayout } from "./components/layout/MainLayout";
 import { MinimalistLayout } from "./components/layout/MinimalistLayout";
 import { LocalDevAuth } from "./components/LocalDevAuth"; // Import the local dev auth component
+import { PaymentSuccess } from "./components/PaymentSuccess";
 import { ViewportOptimizer } from "./components/ViewportOptimizer"; // Import the new component
 import WaveBackground from "./components/WaveBackground";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
@@ -65,6 +66,7 @@ const App = () => {
             <Route element={<MinimalistLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/referrals" element={<Referrals />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
             </Route>
 
             {/* Individual page routes */}

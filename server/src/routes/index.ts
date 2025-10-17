@@ -1,20 +1,21 @@
 import { Router } from 'express';
-import authRoutes from './auth.js';
-import loginRoutes from './login.js'; // Import login routes
-import userRoutes from './user.js';
-import taskRoutes from './tasks.js';
-import leaderboardRoutes from './leaderboard.js';
-import lotteryRoutes from './lottery.js';
 import adminRoutes from './admin.js'; // Import admin routes
-import realTimeRoutes from './realTime.js'; // Import real-time routes
-import exchangeRoutes from './exchange.js'; // Import exchange routes
-import adminLotteryRoutes from './adminLottery.js'; // Import admin lottery routes
-import swapRoutes from './swap.js'; // Import swap routes
-import notificationRoutes from './notifications.js'; // Import notification routes
-import processingRoutes from './processing.js'; // Import processing routes
 import adminAuthRoutes from './adminAuth.js'; // Import admin auth routes
-import performanceRoutes from './performance.js'; // Import performance routes
+import adminLotteryRoutes from './adminLottery.js'; // Import admin lottery routes
+import authRoutes from './auth.js';
+import exchangeRoutes from './exchange.js'; // Import exchange routes
+import leaderboardRoutes from './leaderboard.js';
+import loginRoutes from './login.js'; // Import login routes
+import lotteryRoutes from './lottery.js';
 import memoryMonitoringRoutes from './memoryMonitoring.js'; // Import memory monitoring routes
+import notificationRoutes from './notifications.js'; // Import notification routes
+import paymentRoutes from './paymentRoutes.js'; // Import payment routes
+import performanceRoutes from './performance.js'; // Import performance routes
+import processingRoutes from './processing.js'; // Import processing routes
+import realTimeRoutes from './realTime.js'; // Import real-time routes
+import swapRoutes from './swap.js'; // Import swap routes
+import taskRoutes from './tasks.js';
+import userRoutes from './user.js';
 import webSocketMonitoringRoutes from './webSocketMonitoring.js'; // Import WebSocket monitoring routes
 
 const router = Router();
@@ -30,7 +31,7 @@ router.post('/webhook', (req: any, res: any) => {
   console.log('[WEBHOOK] Method:', req.method);
   console.log('[WEBHOOK] Headers:', JSON.stringify(req.headers, null, 2));
   console.log('[WEBHOOK] Body:', JSON.stringify(req.body, null, 2));
-  
+
   // Simple response for now
   res.status(200).json({ ok: true, message: 'Webhook received' });
 });
@@ -52,5 +53,6 @@ router.use('/admin', adminAuthRoutes); // Add admin auth routes
 router.use('/performance', performanceRoutes); // Add performance routes
 router.use('/admin/memory', memoryMonitoringRoutes); // Add memory monitoring routes
 router.use('/admin/websocket', webSocketMonitoringRoutes); // Add WebSocket monitoring routes
+router.use('/payments', paymentRoutes); // Add payment routes
 
 export default router;
