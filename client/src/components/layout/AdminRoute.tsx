@@ -1,14 +1,25 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { AdminPasswordModal } from '@/components/AdminPasswordModal';
 import { SplashScreen } from '@/components/SplashScreen';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { isAdminPasswordVerified } from '@/utils/adminAuth';
+import { useEffect, useState } from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 
 // Get admin IDs from environment variable, fallback to default for development
-const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS
   ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
   : ['6760298907'];
 
 export const AdminRoute = () => {
   const { user, loading } = useTelegramAuth();
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  // Check if password was already verified in this session
+  useEffect(() => {
+    const passwordVerified = isAdminPasswordVerified();
+    setIsPasswordVerified(passwordVerified);
+  }, []);
 
   if (loading) {
     return <SplashScreen />;
@@ -33,6 +44,22 @@ export const AdminRoute = () => {
     );
   }
 
-  console.log('[ADMIN_ROUTE] Admin access granted');
+  // Show password modal if not verified yet
+  if (!isPasswordVerified) {
+    if (!showPasswordModal) {
+      setShowPasswordModal(true);
+    }
+
+    return (
+      <AdminPasswordModal
+        onPasswordCorrect={() => {
+          setIsPasswordVerified(true);
+          setShowPasswordModal(false);
+        }}
+      />
+    );
+  }
+
+  console.log('[ADMIN_ROUTE] Admin access granted with password verification');
   return <Outlet />;
 };
