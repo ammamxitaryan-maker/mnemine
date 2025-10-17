@@ -53,7 +53,7 @@ if (!process.env.DATABASE_URL) {
     logger.error(LogContext.SERVER, 'CRITICAL: DATABASE_URL not set in production!');
     throw new Error('DATABASE_URL must be set in production environment');
   }
-  process.env.DATABASE_URL = 'postgresql://localhost:5432/mnemine_dev';
+  process.env.DATABASE_URL = 'postgresql://localhost:5432/nonmine_dev';
 }
 
 if (!process.env.JWT_SECRET) {
@@ -328,8 +328,8 @@ if (token && token.length > 0) {
     console.log(`[BOT] Bot name: ${botInfo.first_name}`);
   }).catch((err) => {
     console.error('[BOT] Failed to get bot info:', err);
-    console.log('[BOT] Using fallback username: MnemineBot');
-    botUsername = 'MnemineBot';
+    console.log('[BOT] Using fallback username: NONMINEBot');
+    botUsername = 'NONMINEBot';
   });
 
   bot.start((ctx) => {
@@ -344,8 +344,8 @@ if (token && token.length > 0) {
     console.log(`[BOT] WebApp URL with referral: ${webAppUrl}`);
 
     const welcomeMessage = startParam
-      ? `🚀 Добро пожаловать в Mnemine Mining!\n\nВы перешли по реферальной ссылке от друга!\nНажмите кнопку ниже, чтобы запустить приложение:`
-      : "🚀 Добро пожаловать в Mnemine Mining!\n\nНажмите кнопку ниже, чтобы запустить приложение:";
+      ? `🚀 Добро пожаловать в NONMINE Mining!\n\nВы перешли по реферальной ссылке от друга!\nНажмите кнопку ниже, чтобы запустить приложение:`
+      : "🚀 Добро пожаловать в NONMINE Mining!\n\nНажмите кнопку ниже, чтобы запустить приложение:";
 
     ctx.reply(welcomeMessage, {
       reply_markup: {
@@ -387,7 +387,7 @@ if (token && token.length > 0) {
 
   bot.command('help', (ctx) => {
     console.log(`[BOT] /help command received from user: ${ctx.from?.id}`);
-    const helpText = `🤖 *Mnemine Mining Bot*
+    const helpText = `🤖 *NONMINE Mining Bot*
 
 *Доступные команды:*
 /start - Запустить приложение

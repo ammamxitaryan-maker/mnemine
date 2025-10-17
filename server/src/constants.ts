@@ -16,10 +16,7 @@ export const WELCOME_BONUS_AMOUNT = 3.0; // New constant for welcome bonus
 export const DAILY_BONUS_AMOUNT = 0.15;
 export const ACTIVITY_TYPE_DAILY_BONUS = 'DAILY_BONUS';
 
-// НОВЫЕ КОНСТАНТЫ ДЛЯ ОБНОВЛЕННОЙ ЛОГИКИ
-export const AUTO_INVEST_WELCOME_AMOUNT = 3.0; // Автоматическая инвестиция приветственного бонуса
-export const WELCOME_SLOT_DURATION_DAYS = 7; // Длительность приветственного слота
-export const WELCOME_SLOT_RATE = 0.3; // 30% доходность приветственного слота
+// Welcome bonus is now added directly to MNE wallet balance instead of auto-investment // 30% доходность приветственного слота
 
 // Минимальные инвестиции
 export const MINIMUM_SLOT_INVESTMENT = 3.0; // Минимальная инвестиция в слот

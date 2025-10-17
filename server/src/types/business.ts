@@ -1,9 +1,9 @@
 /**
- * Business logic types for Mnemine application
+ * Business logic types for NONMINE application
  * Defines all business entities and operations
  */
 
-import { UserRole, InvestmentType, InvestmentStatus, WithdrawalStatus, WithdrawalType } from '@prisma/client';
+import { InvestmentStatus, InvestmentType, UserRole, WithdrawalStatus, WithdrawalType } from '@prisma/client';
 
 // User types
 export interface UserProfile {
@@ -114,7 +114,7 @@ export interface TransactionInfo {
   updatedAt: Date;
 }
 
-export type TransactionType = 
+export type TransactionType =
   | 'DEPOSIT'
   | 'WITHDRAWAL'
   | 'SLOT_PURCHASE'
@@ -126,7 +126,7 @@ export type TransactionType =
   | 'ADMIN_ADJUSTMENT'
   | 'SYSTEM_BONUS';
 
-export type TransactionStatus = 
+export type TransactionStatus =
   | 'PENDING'
   | 'PROCESSING'
   | 'COMPLETED'
@@ -226,7 +226,7 @@ export interface ReferralInfo {
   createdAt: Date;
 }
 
-export type ReferralEarningType = 
+export type ReferralEarningType =
   | 'SIGNUP_BONUS'
   | 'DEPOSIT_COMMISSION'
   | 'EARNINGS_COMMISSION'
@@ -261,7 +261,7 @@ export interface ActivityLogInfo {
   ipAddress: string | null;
 }
 
-export type ActivityLogType = 
+export type ActivityLogType =
   | 'DEPOSIT'
   | 'WITHDRAWAL'
   | 'CLAIM'

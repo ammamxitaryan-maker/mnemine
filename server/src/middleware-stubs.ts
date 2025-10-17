@@ -1,5 +1,5 @@
 // Middleware stubs - all middleware functionality removed
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 // Extend the Request interface to include user property
@@ -23,30 +23,71 @@ export const extractUserIdFromParams = (req: Request, res: Response, next: NextF
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Check Telegram init data for admin access
+    // Check for admin token first (for admin panel access)
+    const adminToken = req.headers.authorization?.replace('Bearer ', '');
     const telegramInitData = req.headers['x-telegram-init-data'];
+
     // Get admin IDs from environment variable, fallback to default for development
     const adminIdsString = process.env.ADMIN_TELEGRAM_IDS || '6760298907';
     const ADMIN_TELEGRAM_IDS = adminIdsString.split(',').map(id => id.trim());
-    
+
     console.log('[ADMIN_MIDDLEWARE] Request path:', req.path);
-    console.log('[ADMIN_MIDDLEWARE] Telegram init data:', telegramInitData);
+    console.log('[ADMIN_MIDDLEWARE] Admin token:', adminToken ? 'Present' : 'Not present');
+    console.log('[ADMIN_MIDDLEWARE] Telegram init data:', telegramInitData ? 'Present' : 'Not present');
     console.log('[ADMIN_MIDDLEWARE] Admin IDs:', ADMIN_TELEGRAM_IDS);
-    
+
+    // Check admin token first (for admin panel)
+    if (adminToken) {
+      try {
+        // Try to decode as base64 first (client-side token)
+        try {
+          const decoded = JSON.parse(Buffer.from(adminToken, 'base64').toString());
+          if (decoded.isAdmin && decoded.telegramId && ADMIN_TELEGRAM_IDS.includes(decoded.telegramId)) {
+            req.user = {
+              adminId: decoded.telegramId,
+              permissions: ['all'],
+              telegramId: decoded.telegramId,
+              firstName: decoded.firstName,
+              username: decoded.username
+            };
+            console.log('[ADMIN_MIDDLEWARE] Admin access granted via base64 token for user:', decoded.telegramId);
+            return next();
+          }
+        } catch (base64Error) {
+          // Fallback to JWT verification
+          const decoded = jwt.verify(adminToken, JWT_SECRET) as any;
+          if (decoded.isAdmin && decoded.telegramId && ADMIN_TELEGRAM_IDS.includes(decoded.telegramId)) {
+            req.user = {
+              adminId: decoded.telegramId,
+              permissions: ['all'],
+              telegramId: decoded.telegramId,
+              firstName: decoded.firstName,
+              username: decoded.username
+            };
+            console.log('[ADMIN_MIDDLEWARE] Admin access granted via JWT token for user:', decoded.telegramId);
+            return next();
+          }
+        }
+      } catch (tokenError) {
+        console.log('[ADMIN_MIDDLEWARE] Invalid admin token:', tokenError);
+      }
+    }
+
+    // Fallback to Telegram init data
     if (!telegramInitData) {
-      console.log('[ADMIN_MIDDLEWARE] No Telegram init data provided');
+      console.log('[ADMIN_MIDDLEWARE] No authentication data provided');
       return res.status(401).json({
         success: false,
-        error: 'No Telegram authentication data provided'
+        error: 'No authentication data provided'
       });
     }
 
     // Parse Telegram init data to get user information
     const urlParams = new URLSearchParams(telegramInitData as string);
     const userStr = urlParams.get('user');
-    
+
     console.log('[ADMIN_MIDDLEWARE] User string from init data:', userStr);
-    
+
     if (!userStr) {
       console.log('[ADMIN_MIDDLEWARE] No user data in Telegram init data');
       return res.status(401).json({
@@ -80,8 +121,8 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     }
 
     // Set admin user data
-    req.user = { 
-      adminId: userTelegramId, 
+    req.user = {
+      adminId: userTelegramId,
       permissions: ['all'],
       telegramId: userTelegramId,
       firstName: user.first_name,

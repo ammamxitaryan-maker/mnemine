@@ -17,7 +17,7 @@ const getInitialLanguage = () => {
 
   // Check for stored language
   if (typeof window !== 'undefined') {
-    const storedLanguage = localStorage.getItem('mnemine-language');
+    const storedLanguage = localStorage.getItem('nonmine-language');
     if (storedLanguage) {
       console.log(`[i18n] getInitialLanguage: found stored language=${storedLanguage}`);
       return storedLanguage;
@@ -81,10 +81,10 @@ i18n.changeLanguage = (lng, callback) => {
 
 // Set default language in localStorage if none exists and not in admin panel
 if (typeof window !== 'undefined' && !isAdminPanel()) {
-  const storedLanguage = localStorage.getItem('mnemine-language');
+  const storedLanguage = localStorage.getItem('nonmine-language');
   if (!storedLanguage) {
     console.log(`[i18n] No stored language found, setting default to 'hy'`);
-    localStorage.setItem('mnemine-language', 'hy');
+    localStorage.setItem('nonmine-language', 'hy');
   }
 }
 

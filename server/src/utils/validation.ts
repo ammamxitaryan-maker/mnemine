@@ -4,7 +4,7 @@
   ];
 
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-  
+
   if (missingVars.length > 0) {
     throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
   }
@@ -17,7 +17,7 @@
   ];
 
   const missingRecommended = recommendedEnvVars.filter(varName => !process.env[varName]);
-  
+
   if (missingRecommended.length > 0) {
     console.warn(`[VALIDATION] Missing recommended environment variables: ${missingRecommended.join(', ')}`);
     console.warn('[VALIDATION] These variables will use default values, which is not recommended for production');
@@ -33,7 +33,7 @@
     console.error('[ENV] ENCRYPTION_KEY value:', process.env.ENCRYPTION_KEY);
     console.error('[ENV] ENCRYPTION_KEY length:', process.env.ENCRYPTION_KEY.length);
     console.warn('[ENV] ENCRYPTION_KEY is not 32 characters, using fallback');
-    process.env.ENCRYPTION_KEY = 'mnemine-encryption-key-32chars-1234';
+    process.env.ENCRYPTION_KEY = 'nonmine-encryption-key-32chars-1234';
   }
 
   // Validate database URL format
@@ -45,11 +45,11 @@
 }
 
 export function validateAmount(amount: any): boolean {
-  return typeof amount === 'number' && 
-         !isNaN(amount) && 
-         isFinite(amount) && 
-         amount >= 0.001 && // Very low minimum
-         amount <= 1000000; // Max 1M USD
+  return typeof amount === 'number' &&
+    !isNaN(amount) &&
+    isFinite(amount) &&
+    amount >= 0.001 && // Very low minimum
+    amount <= 1000000; // Max 1M USD
 }
 
 export function validateAddress(address: string): boolean {
@@ -59,13 +59,13 @@ export function validateAddress(address: string): boolean {
 
 export function sanitizeInput(input: string): string | null {
   if (!input || typeof input !== 'string') return null;
-  
+
   // Remove potentially dangerous characters
   const sanitized = input
     .replace(/[<>"'%;()&+]/g, '') // Remove dangerous characters
     .trim()
     .substring(0, 1000); // Limit length
-  
+
   return sanitized.length > 0 ? sanitized : null;
 }
 

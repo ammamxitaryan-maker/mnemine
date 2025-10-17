@@ -8,7 +8,7 @@ import { isUserEligible } from '../utils/helpers.js';
 // Function to get bot username
 async function getBotUsername(): Promise<string> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return 'MnemineBot'; // fallback
+  if (!token) return 'NONMINEBot'; // fallback
 
   try {
     const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
@@ -17,10 +17,10 @@ async function getBotUsername(): Promise<string> {
       return data.result.username;
     }
     console.warn('Bot API response not ok, using fallback username');
-    return 'MnemineBot'; // fallback
+    return 'NONMINEBot'; // fallback
   } catch (error) {
     console.error('Failed to get bot username:', error);
-    return 'MnemineBot'; // fallback
+    return 'NONMINEBot'; // fallback
   }
 }
 

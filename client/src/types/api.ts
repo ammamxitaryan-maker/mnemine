@@ -1,5 +1,5 @@
 /**
- * Client-side API types for Mnemine application
+ * Client-side API types for NONMINE application
  * Synchronized with server types for type safety
  */
 
@@ -95,7 +95,7 @@ export interface TransactionInfo {
   updatedAt: Date;
 }
 
-export type TransactionType = 
+export type TransactionType =
   | 'DEPOSIT'
   | 'WITHDRAWAL'
   | 'SLOT_PURCHASE'
@@ -107,7 +107,7 @@ export type TransactionType =
   | 'ADMIN_ADJUSTMENT'
   | 'SYSTEM_BONUS';
 
-export type TransactionStatus = 
+export type TransactionStatus =
   | 'PENDING'
   | 'PROCESSING'
   | 'COMPLETED'
@@ -201,7 +201,7 @@ export interface ActivityLogInfo {
   ipAddress: string | null;
 }
 
-export type ActivityLogType = 
+export type ActivityLogType =
   | 'DEPOSIT'
   | 'WITHDRAWAL'
   | 'CLAIM'

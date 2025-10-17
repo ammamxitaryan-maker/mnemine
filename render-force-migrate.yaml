@@ -2,7 +2,7 @@
 services:
   # Backend Service
   - type: web
-    name: mnemine-backend
+    name: NONMINE-backend
     env: node
     plan: starter
     buildCommand: |

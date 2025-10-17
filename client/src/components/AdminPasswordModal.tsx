@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { verifyAdminPassword, getLockoutInfo } from '@/utils/adminAuth';
-import { Eye, EyeOff, Lock, Shield, AlertTriangle, Clock } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { getLockoutInfo, setAdminPasswordVerified, verifyAdminPassword } from '@/utils/adminAuth';
+import { AlertTriangle, Clock, Eye, EyeOff, Lock, Shield } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface AdminPasswordModalProps {
   onPasswordCorrect: () => void;
@@ -22,21 +22,21 @@ export const AdminPasswordModal = ({ onPasswordCorrect }: AdminPasswordModalProp
       const info = getLockoutInfo();
       setLockoutInfo(info);
     };
-    
+
     checkLockout();
     const interval = setInterval(checkLockout, 1000); // Проверяем каждую секунду
-    
+
     return () => clearInterval(interval);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (lockoutInfo.isLocked) {
       setError('Аккаунт заблокирован из-за слишком большого количества неудачных попыток.');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
 
@@ -44,11 +44,12 @@ export const AdminPasswordModal = ({ onPasswordCorrect }: AdminPasswordModalProp
     await new Promise(resolve => setTimeout(resolve, 500));
 
     if (verifyAdminPassword(password)) {
+      setAdminPasswordVerified();
       onPasswordCorrect();
     } else {
       const newLockoutInfo = getLockoutInfo();
       setLockoutInfo(newLockoutInfo);
-      
+
       if (newLockoutInfo.isLocked) {
         setError('Аккаунт заблокирован из-за слишком большого количества неудачных попыток.');
       } else {

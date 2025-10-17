@@ -1,6 +1,6 @@
-# Mnemine Layout Template System
+# NONMINE Layout Template System
 
-This layout system provides a comprehensive, responsive template for the entire Mnemine application based on modern CSS Grid and Flexbox patterns.
+This layout system provides a comprehensive, responsive template for the entire NONMINE application based on modern CSS Grid and Flexbox patterns.
 
 ## Core Components
 

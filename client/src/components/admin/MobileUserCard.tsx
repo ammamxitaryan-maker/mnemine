@@ -1,9 +1,9 @@
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Calendar, DollarSign, MoreHorizontal, User } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, User, Calendar, DollarSign } from 'lucide-react';
 
 interface User {
   id: string;
@@ -15,6 +15,7 @@ interface User {
   isActive: boolean;
   isFrozen: boolean;
   isSuspicious: boolean;
+  isOnline: boolean;
   balance: number;
   totalInvested: number;
   createdAt: string;
@@ -36,6 +37,14 @@ export const MobileUserCard = ({ user, isSelected, onSelect, onUserAction }: Mob
   const getStatusBadge = (user: User) => {
     if (user.isFrozen) return <Badge variant="destructive" className="text-xs">Frozen</Badge>;
     if (user.isSuspicious) return <Badge variant="destructive" className="text-xs">Suspicious</Badge>;
+    if (user.isOnline) {
+      return (
+        <div className="flex items-center">
+          <span className="online-dot online-indicator"></span>
+          <Badge variant="default" className="bg-green-600 text-xs">Online</Badge>
+        </div>
+      );
+    }
     if (user.isActive) return <Badge variant="default" className="text-xs">Active</Badge>;
     return <Badge variant="secondary" className="text-xs">Inactive</Badge>;
   };
@@ -59,9 +68,8 @@ export const MobileUserCard = ({ user, isSelected, onSelect, onUserAction }: Mob
   };
 
   return (
-    <Card className={`bg-gray-800 border-gray-700 transition-all duration-200 ${
-      isSelected ? 'ring-2 ring-purple-400 bg-purple-900/20' : 'hover:bg-gray-700/50'
-    }`}>
+    <Card className={`bg-gray-800 border-gray-700 transition-all duration-200 ${isSelected ? 'ring-2 ring-purple-400 bg-purple-900/20' : 'hover:bg-gray-700/50'
+      }`}>
       <CardContent className="p-4">
         {/* Header with checkbox and user info */}
         <div className="flex items-start justify-between mb-3">
@@ -89,7 +97,7 @@ export const MobileUserCard = ({ user, isSelected, onSelect, onUserAction }: Mob
             {getStatusBadge(user)}
           </div>
         </div>
-        
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-gray-900/50 rounded-lg p-3">
@@ -111,13 +119,13 @@ export const MobileUserCard = ({ user, isSelected, onSelect, onUserAction }: Mob
             </div>
           </div>
         </div>
-        
+
         {/* Additional Info */}
         <div className="flex justify-between items-center text-xs text-gray-400 mb-3">
           <span>Joined {new Date(user.createdAt).toLocaleDateString()}</span>
           <span>{user.referralCount} referrals</span>
         </div>
-        
+
         {/* Actions */}
         <div className="flex justify-between items-center">
           <Button
@@ -137,7 +145,7 @@ export const MobileUserCard = ({ user, isSelected, onSelect, onUserAction }: Mob
             >
               <MoreHorizontal className="h-3 w-3" />
             </Button>
-            
+
             {showActions && (
               <div className="absolute right-0 top-full mt-1 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
                 <div className="py-1">

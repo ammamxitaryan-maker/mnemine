@@ -1,37 +1,40 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#1e3a8a" />
-    <meta name="apple-mobile-web-app-title" content="Mnemine" />
-    <title>Mnemine - Telegram Mining App</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <script src="https://telegram.org/js/telegram-web-app.js" crossorigin="anonymous"></script>
-    <script>
-      // Fallback for when Telegram script fails to load
-      if (typeof window.Telegram === 'undefined') {
-        console.warn('[TelegramWebApp] Telegram script failed to load, creating fallback');
-        window.Telegram = {
-          WebApp: {
-            ready: function() { console.log('[TelegramWebApp] Fallback ready() called'); },
-            expand: function() { console.log('[TelegramWebApp] Fallback expand() called'); },
-            initDataUnsafe: null,
-            initData: null,
-            isClosingConfirmationEnabled: false,
-            disableVerticalSwipes: function() {},
-            enableClosingConfirmation: function() {}
-          }
-        };
-      }
-    </script>
-  </head>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <meta name="apple-mobile-web-app-title" content="Mnemine" />
+  <title>Mnemine - Telegram Mining App</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <script src="https://telegram.org/js/telegram-web-app.js" crossorigin="anonymous"></script>
+  <script>
+    // Fallback for when Telegram script fails to load
+    if (typeof window.Telegram === 'undefined') {
+      console.warn('[TelegramWebApp] Telegram script failed to load, creating fallback');
+      window.Telegram = {
+        WebApp: {
+          ready: function () { console.log('[TelegramWebApp] Fallback ready() called'); },
+          expand: function () { console.log('[TelegramWebApp] Fallback expand() called'); },
+          initDataUnsafe: null,
+          initData: null,
+          isClosingConfirmationEnabled: false,
+          disableVerticalSwipes: function () { },
+          enableClosingConfirmation: function () { }
+        }
+      };
+    }
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

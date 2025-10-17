@@ -1,6 +1,6 @@
-﻿import { WebSocketServer as WSWebSocketServer, WebSocket } from 'ws';
-import { IncomingMessage } from 'http';
+﻿import { IncomingMessage } from 'http';
 import { URL } from 'url';
+import { WebSocketServer as WSWebSocketServer, WebSocket } from 'ws';
 import prisma from '../prisma.js';
 import { UserStatsWebSocketService } from '../services/userStatsWebSocketService.js';
 
@@ -22,7 +22,7 @@ export class WebSocketServer {
   private broadcastIntervals: Map<string, NodeJS.Timeout> = new Map();
 
   constructor(server: any) {
-    this.wss = new WSWebSocketServer({ 
+    this.wss = new WSWebSocketServer({
       server,
       path: '/ws'
     });
@@ -34,7 +34,7 @@ export class WebSocketServer {
   private setupWebSocketServer() {
     this.wss.on('connection', (ws: AuthenticatedWebSocket, request: IncomingMessage) => {
       console.log('[WebSocket] New connection attempt');
-      
+
       // Extract telegramId from URL
       const url = new URL(request.url || '', `http://${request.headers.host}`);
       const pathParts = url.pathname.split('/');
@@ -86,6 +86,14 @@ export class WebSocketServer {
 
       console.log(`[WebSocket] User ${telegramId} connected`);
 
+      // Update user's last activity
+      try {
+        const { AuthService } = await import('../services/authService.js');
+        await AuthService.updateLastSeen(user.id);
+      } catch (error) {
+        console.error('[WebSocket] Error updating user activity:', error);
+      }
+
       // Send initial data
       await this.sendInitialData(ws, telegramId);
 
@@ -130,7 +138,7 @@ export class WebSocketServer {
 
   private handleUserStatsConnection(ws: AuthenticatedWebSocket) {
     const clientId = `userstats_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     console.log('[WebSocket] User stats client connected:', clientId);
 
     // Add client to user stats service
@@ -162,7 +170,7 @@ export class WebSocketServer {
 
   private handleEarningsConnection(ws: AuthenticatedWebSocket) {
     console.log('[WebSocket] Earnings client connected');
-    
+
     ws.isAlive = true;
     ws.subscriptions = new Set(['earnings', 'slot_earnings']);
 
@@ -170,18 +178,18 @@ export class WebSocketServer {
       try {
         const message = JSON.parse(data.toString());
         console.log('[WebSocket] Earnings message received:', message);
-        
+
         if (message.type === 'auth' && message.telegramId) {
           // Authenticate the user
           ws.telegramId = message.telegramId;
           console.log(`[WebSocket] Earnings client authenticated for user: ${message.telegramId}`);
-          
+
           // Add to clients map for this user
           if (!this.clients.has(message.telegramId)) {
             this.clients.set(message.telegramId, new Set());
           }
           this.clients.get(message.telegramId)!.add(ws);
-          
+
           // Send initial earnings data
           this.sendInitialEarningsData(ws, message.telegramId);
         }
@@ -300,10 +308,23 @@ export class WebSocketServer {
     }
   }
 
-  private handleMessage(ws: AuthenticatedWebSocket, data: Buffer) {
+  private async handleMessage(ws: AuthenticatedWebSocket, data: Buffer) {
     try {
       const message = JSON.parse(data.toString());
-      
+
+      // Update user's last activity when they send messages
+      if (ws.telegramId) {
+        try {
+          const { AuthService } = await import('../services/authService.js');
+          const user = await prisma.user.findUnique({ where: { telegramId: ws.telegramId } });
+          if (user) {
+            await AuthService.updateLastSeen(user.id);
+          }
+        } catch (error) {
+          console.error('[WebSocket] Error updating user activity on message:', error);
+        }
+      }
+
       switch (message.type) {
         case 'subscribe':
           if (message.data?.types && Array.isArray(message.data.types)) {
@@ -312,7 +333,7 @@ export class WebSocketServer {
             });
           }
           break;
-          
+
         case 'unsubscribe':
           if (message.data?.types && Array.isArray(message.data.types)) {
             message.data.types.forEach((type: string) => {
@@ -320,7 +341,7 @@ export class WebSocketServer {
             });
           }
           break;
-          
+
         case 'ping':
           this.sendToClient(ws, {
             type: 'pong',
@@ -337,7 +358,7 @@ export class WebSocketServer {
   private handleNotificationMessage(ws: AuthenticatedWebSocket, data: Buffer) {
     try {
       const message = JSON.parse(data.toString());
-      
+
       switch (message.type) {
         case 'mark_read':
           // Handle marking notification as read
@@ -353,7 +374,7 @@ export class WebSocketServer {
 
   private handleDisconnect(ws: AuthenticatedWebSocket, telegramId: string) {
     console.log(`[WebSocket] User ${telegramId} disconnected`);
-    
+
     if (this.clients.has(telegramId)) {
       this.clients.get(telegramId)!.delete(ws);
       if (this.clients.get(telegramId)!.size === 0) {
@@ -385,14 +406,14 @@ export class WebSocketServer {
     const balance = wallet ? wallet.balance : 0;
 
     // Calculate real-time earnings (this is for display only, actual earnings are persisted by the processor)
-    const activeSlots = user.miningSlots.filter(slot => 
+    const activeSlots = user.miningSlots.filter(slot =>
       slot.isActive && new Date(slot.expiresAt) > new Date()
     );
 
     // Calculate earnings directly from user data for better performance
     const currentTime = new Date();
     let totalEarnings = 0;
-    
+
     for (const slot of activeSlots) {
       const timeElapsedMs = currentTime.getTime() - slot.lastAccruedAt.getTime();
       if (timeElapsedMs > 0) {
@@ -427,16 +448,16 @@ export class WebSocketServer {
       const lastAccrued = new Date(slot.lastAccruedAt);
       const timeDiff = currentTime.getTime() - lastAccrued.getTime();
       const secondsDiff = timeDiff / 1000;
-      
+
       const weeklyRate = 0.3; // Always 30% for all slots
       const earningsPerSecond = (slot.principal * weeklyRate) / (7 * 24 * 60 * 60);
       const currentEarnings = earningsPerSecond * secondsDiff;
-      
+
       return {
         ...slot,
         currentEarnings,
         earningsPerSecond,
-        timeRemaining: slot.isActive ? 
+        timeRemaining: slot.isActive ?
           Math.max(0, new Date(slot.expiresAt).getTime() - currentTime.getTime()) : 0
       };
     });
@@ -476,9 +497,9 @@ export class WebSocketServer {
       try {
         // Only broadcast to users with active connections
         const activeUsers = Array.from(this.clients.entries()).filter(([_, clients]) => clients.size > 0);
-        
+
         if (activeUsers.length === 0) return;
-        
+
         const promises = activeUsers.map(async ([telegramId, clients]) => {
           try {
             const userData = await this.getUserData(telegramId);
@@ -486,7 +507,7 @@ export class WebSocketServer {
               // Send comprehensive earnings data
               this.broadcastToUser(telegramId, {
                 type: 'earnings_update',
-                data: { 
+                data: {
                   earnings: userData.accruedEarnings,
                   balance: userData.balance,
                   lastUpdate: userData.lastUpdate
@@ -506,7 +527,7 @@ export class WebSocketServer {
             console.error(`[WebSocket] Error broadcasting earnings for user ${telegramId}:`, error);
           }
         });
-        
+
         await Promise.allSettled(promises);
       } catch (error) {
         console.error('[WebSocket] Error broadcasting earnings:', error);
@@ -571,7 +592,7 @@ export class WebSocketServer {
 
   private async getPriceData() {
     let basePrice = 1.0;
-    
+
     try {
       // Get current exchange rate
       const exchangeRate = await prisma.exchangeRate.findFirst({
@@ -584,12 +605,12 @@ export class WebSocketServer {
       console.warn('[WebSocket] ExchangeRate table not available, using default price');
       basePrice = 1.0;
     }
-    
+
     // Simulate realistic price movements (0.8x to 1.2x of base price)
     const volatility = 0.02; // 2% volatility
     const change = (Math.random() - 0.5) * 2 * volatility;
     const currentPrice = basePrice * (1 + change);
-    
+
     // Ensure price stays within reasonable bounds
     const minPrice = basePrice * 0.8;
     const maxPrice = basePrice * 1.2;
@@ -609,14 +630,14 @@ export class WebSocketServer {
     const baseTotalUsers = 1250; // Base number of users
     const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50; // Hourly variation
     const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
-    
+
     // Online users: 8-15% of total users with realistic variation
     const onlinePercentage = 0.08 + (Math.random() * 0.07); // 8-15%
     const onlineUsers = Math.floor(totalUsers * onlinePercentage);
-    
+
     // New users today: 2-5% of total users
     const newUsersToday = Math.floor(totalUsers * (0.02 + Math.random() * 0.03));
-    
+
     // Active users: 25-40% of total users
     const activeUsers = Math.floor(totalUsers * (0.25 + Math.random() * 0.15));
 
@@ -661,7 +682,7 @@ export class WebSocketServer {
         data: balanceData,
         timestamp: new Date().toISOString()
       };
-      
+
       this.broadcastToUser(telegramId, message);
       console.log(`[WebSocket] Balance update broadcasted to user ${telegramId}:`, balanceData);
     } catch (error) {
@@ -677,7 +698,7 @@ export class WebSocketServer {
         data: slotData,
         timestamp: new Date().toISOString()
       };
-      
+
       this.broadcastToUser(telegramId, message);
       console.log(`[WebSocket] Slot update broadcasted to user ${telegramId}:`, slotData);
     } catch (error) {

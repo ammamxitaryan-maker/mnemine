@@ -31,7 +31,7 @@ export const getAuthState = (): AuthState => {
       clearAuthState();
     }
   }
-  
+
   return {
     isVerified: false,
     lastVerified: null,
@@ -55,25 +55,25 @@ export const setAuthState = (state: Partial<AuthState>): void => {
  */
 export const isAdminPasswordVerified = (): boolean => {
   const state = getAuthState();
-  
+
   // Проверяем, не истекла ли сессия
   if (state.lastVerified) {
     const lastVerified = new Date(state.lastVerified);
     const now = new Date();
     const timeDiff = now.getTime() - lastVerified.getTime();
-    
+
     if (timeDiff > ADMIN_CONFIG.SESSION.TIMEOUT) {
       console.log('[ADMIN_AUTH] Session expired, clearing verification');
       clearAuthState();
       return false;
     }
   }
-  
+
   // Проверяем, не заблокирован ли аккаунт
   if (state.lockedUntil) {
     const lockUntil = new Date(state.lockedUntil);
     const now = new Date();
-    
+
     if (now < lockUntil) {
       console.log('[ADMIN_AUTH] Account is locked until:', state.lockedUntil);
       return false;
@@ -82,7 +82,7 @@ export const isAdminPasswordVerified = (): boolean => {
       setAuthState({ lockedUntil: null, attempts: 0 });
     }
   }
-  
+
   const verified = state.isVerified;
   console.log('[ADMIN_AUTH] Password verified:', verified);
   return verified;
@@ -98,7 +98,44 @@ export const setAdminPasswordVerified = (): void => {
     attempts: 0,
     lockedUntil: null,
   });
+
+  // Create and store admin token
+  createAdminToken();
+
   console.log('[ADMIN_AUTH] Password verification set to true');
+};
+
+/**
+ * Создать админский токен
+ */
+export const createAdminToken = (): string | null => {
+  try {
+    // Get user data from Telegram
+    const tg = window.Telegram?.WebApp;
+    if (tg?.initData) {
+      const urlParams = new URLSearchParams(tg.initData);
+      const userStr = urlParams.get('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+
+        // Create a simple admin token (in production, use proper JWT)
+        const adminToken = btoa(JSON.stringify({
+          isAdmin: true,
+          telegramId: user.id.toString(),
+          firstName: user.first_name,
+          username: user.username,
+          timestamp: Date.now()
+        }));
+
+        localStorage.setItem('admin_token', adminToken);
+        console.log('[ADMIN_AUTH] Admin token created and stored');
+        return adminToken;
+      }
+    }
+  } catch (error) {
+    console.error('[ADMIN_AUTH] Error creating admin token:', error);
+  }
+  return null;
 };
 
 /**
@@ -122,20 +159,20 @@ export const clearAuthState = (): void => {
  */
 export const verifyAdminPassword = (password: string): boolean => {
   const state = getAuthState();
-  
+
   // Проверяем, не заблокирован ли аккаунт
   if (state.lockedUntil) {
     const lockUntil = new Date(state.lockedUntil);
     const now = new Date();
-    
+
     if (now < lockUntil) {
       console.log('[ADMIN_AUTH] Account is locked, cannot verify password');
       return false;
     }
   }
-  
+
   const isValid = password === ADMIN_CONFIG.PASSWORD;
-  
+
   if (isValid) {
     // Успешная аутентификация
     setAuthState({
@@ -149,19 +186,19 @@ export const verifyAdminPassword = (password: string): boolean => {
     // Неудачная попытка
     const newAttempts = state.attempts + 1;
     let lockedUntil: string | null = null;
-    
+
     if (newAttempts >= ADMIN_CONFIG.SECURITY.MAX_LOGIN_ATTEMPTS) {
       lockedUntil = new Date(Date.now() + ADMIN_CONFIG.SECURITY.LOCKOUT_DURATION).toISOString();
       console.log('[ADMIN_AUTH] Account locked due to too many failed attempts');
     }
-    
+
     setAuthState({
       attempts: newAttempts,
       lockedUntil,
     });
     console.log('[ADMIN_AUTH] Password verification failed, attempts:', newAttempts);
   }
-  
+
   return isValid;
 };
 
@@ -170,18 +207,18 @@ export const verifyAdminPassword = (password: string): boolean => {
  */
 export const getLockoutInfo = (): { isLocked: boolean; remainingTime?: number } => {
   const state = getAuthState();
-  
+
   if (!state.lockedUntil) {
     return { isLocked: false };
   }
-  
+
   const lockUntil = new Date(state.lockedUntil);
   const now = new Date();
-  
+
   if (now >= lockUntil) {
     return { isLocked: false };
   }
-  
+
   const remainingTime = lockUntil.getTime() - now.getTime();
   return { isLocked: true, remainingTime };
 };
@@ -198,15 +235,15 @@ export const isAdminUser = (telegramId: string): boolean => {
  */
 export const getSessionTimeRemaining = (): number | null => {
   const state = getAuthState();
-  
+
   if (!state.lastVerified) {
     return null;
   }
-  
+
   const lastVerified = new Date(state.lastVerified);
   const now = new Date();
   const timeDiff = now.getTime() - lastVerified.getTime();
   const remaining = ADMIN_CONFIG.SESSION.TIMEOUT - timeDiff;
-  
+
   return remaining > 0 ? remaining : 0;
 };

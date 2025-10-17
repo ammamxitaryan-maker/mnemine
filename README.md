@@ -1,4 +1,4 @@
-# Mnemine - Professional Telegram Financial Simulator
+﻿# NONMINE - Professional Telegram Financial Simulator
 
 A sophisticated, professional-grade Telegram-based financial simulation platform with real-time synchronization, advanced analytics, and enterprise-level security features.
 
@@ -85,7 +85,7 @@ Create `.env` in the root directory:
 # Frontend Configuration
 VITE_BACKEND_URL=http://localhost:10112
 VITE_WS_URL=ws://localhost:10112/ws
-VITE_APP_NAME=Mnemine
+VITE_APP_NAME=NONMINE
 VITE_APP_VERSION=1.0.0
 
 # Development Mode
@@ -179,7 +179,7 @@ pnpm --prefix server run dev
 ## 🏗 Project Architecture
 
 ```
-mnemine/
+NONMINE/
 ├── src/                           # Frontend source
 │   ├── components/                # React components
 │   │   ├── ProfessionalTheme.tsx  # Professional design system
@@ -315,10 +315,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- 📧 Email: support@mnemine.com
-- 💬 Telegram: @mnemine_support
-- 📖 Documentation: [docs.mnemine.com](https://docs.mnemine.com)
-- 🐛 Issues: [GitHub Issues](https://github.com/mnemine/issues)
+- 📧 Email: support@NONMINE.com
+- 💬 Telegram: @NONMINE_support
+- 📖 Documentation: [docs.NONMINE.com](https://docs.NONMINE.com)
+- 🐛 Issues: [GitHub Issues](https://github.com/NONMINE/issues)
 
 ---
 

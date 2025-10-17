@@ -1,4 +1,4 @@
-
+﻿
 
 #### 3.3 Проблемы с памятью
 - **Проблема**: LRU кеш без ограничений по памяти
@@ -26,7 +26,7 @@
 - **Проблема**: Секреты в `env.example` файле
   ```bash
   TELEGRAM_BOT_TOKEN=8422118658:AAHQHHJbO8CszCJRY8J0Rk8AQKVmqFp6HbE
-  DATABASE_URL="postgresql://mnemine_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a/mnemine_zupy"
+  DATABASE_URL="postgresql://NONMINE_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a/NONMINE_zupy"
   ```
 - **Решение**: Удалить все секреты из примера, использовать placeholder'ы
 
@@ -146,3 +146,4 @@
 - **Производительность**: Улучшение на 40-60%
 - **Поддерживаемость**: Снижение сложности кода на 50%
 - **Масштабируемость**: Подготовка к росту пользователей в 10x
+

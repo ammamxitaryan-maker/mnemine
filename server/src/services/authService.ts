@@ -1,15 +1,11 @@
+import { ActivityLogType } from '@prisma/client';
 import crypto from 'crypto';
+import {
+  REFERRAL_SIGNUP_BONUS,
+  WELCOME_BONUS_AMOUNT
+} from '../constants.js';
 import prisma from '../prisma.js';
 import { generateUniqueReferralCode } from '../utils/helpers.js';
-import { 
-  REFERRAL_SIGNUP_BONUS, 
-  SLOT_WEEKLY_RATE, 
-  WELCOME_BONUS_AMOUNT, 
-  AUTO_INVEST_WELCOME_AMOUNT, 
-  WELCOME_SLOT_DURATION_DAYS, 
-  WELCOME_SLOT_RATE 
-} from '../constants.js';
-import { ActivityLogType } from '@prisma/client';
 
 export interface TelegramUserData {
   id: number;
@@ -40,7 +36,7 @@ export class AuthService {
     const params = new URLSearchParams(initData);
     const hash = params.get('hash');
     const userData = JSON.parse(params.get('user') || '{}');
-    
+
     if (!hash || !userData.id) {
       return { isValid: false, error: 'Invalid initData structure' };
     }
@@ -61,7 +57,7 @@ export class AuthService {
     try {
       const secretKey = crypto.createHmac('sha256', 'WebAppData').update(this.botToken).digest();
       const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
-      
+
       if (calculatedHash !== hash) {
         return { isValid: false, error: 'Authentication failed: Hash mismatch' };
       }
@@ -93,17 +89,17 @@ export class AuthService {
    * Finds or creates a user with full data loading
    */
   static async findOrCreateUser(
-    userData: TelegramUserData, 
+    userData: TelegramUserData,
     referredByCode?: string
   ): Promise<AuthResult> {
     try {
-      const referredByUser = referredByCode ? 
-        await prisma.user.findUnique({ where: { referralCode: referredByCode } }) : 
+      const referredByUser = referredByCode ?
+        await prisma.user.findUnique({ where: { referralCode: referredByCode } }) :
         null;
 
       let user = await prisma.user.findUnique({
         where: { telegramId: String(userData.id) },
-        include: { 
+        include: {
           wallets: true,
           miningSlots: true,
           referrals: true,
@@ -117,7 +113,7 @@ export class AuthService {
       if (!user) {
         // Create new user
         const referralCode = await generateUniqueReferralCode();
-        
+
         user = await prisma.user.create({
           data: {
             telegramId: String(userData.id),
@@ -134,11 +130,11 @@ export class AuthService {
             wallets: {
               create: [
                 { currency: 'USD', balance: 0 },
-                { currency: 'MNE', balance: 0 }
+                { currency: 'MNE', balance: WELCOME_BONUS_AMOUNT } // Give 3 MNE as welcome bonus
               ]
             }
           },
-          include: { 
+          include: {
             wallets: true,
             miningSlots: true,
             referrals: true,
@@ -149,8 +145,15 @@ export class AuthService {
           }
         });
 
-        // Create welcome bonus slot
-        await this.createWelcomeBonusSlot(user.id);
+        // Log welcome bonus
+        await prisma.activityLog.create({
+          data: {
+            userId: user.id,
+            type: ActivityLogType.WELCOME_BONUS,
+            amount: WELCOME_BONUS_AMOUNT,
+            description: `Welcome bonus of ${WELCOME_BONUS_AMOUNT} MNE added to balance`
+          }
+        });
 
         // Handle referral bonus
         if (referredByUser) {
@@ -179,7 +182,7 @@ export class AuthService {
             lastSeenAt: new Date(),
             lastActivityAt: new Date()
           },
-          include: { 
+          include: {
             wallets: true,
             miningSlots: true,
             referrals: true,
@@ -208,33 +211,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Creates welcome bonus slot for new users
-   */
-  private static async createWelcomeBonusSlot(userId: string): Promise<void> {
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + WELCOME_SLOT_DURATION_DAYS);
-
-    await prisma.miningSlot.create({
-      data: {
-        userId,
-        principal: WELCOME_BONUS_AMOUNT,
-        startAt: startDate,
-        lastAccruedAt: startDate,
-        effectiveWeeklyRate: WELCOME_SLOT_RATE,
-        expiresAt: endDate,
-        isActive: true,
-        type: 'welcome_bonus'
-      }
-    });
-
-    // Add welcome bonus to USD wallet
-    await prisma.wallet.updateMany({
-      where: { userId, currency: 'USD' },
-      data: { balance: { increment: WELCOME_BONUS_AMOUNT } }
-    });
-  }
 
   /**
    * Handles referral bonus for referrer
@@ -265,7 +241,7 @@ export class AuthService {
     try {
       await prisma.user.update({
         where: { id: userId },
-        data: { 
+        data: {
           lastSeenAt: new Date(),
           lastActivityAt: new Date()
         }

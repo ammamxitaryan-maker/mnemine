@@ -1,13 +1,13 @@
+import { ActivityLogType } from '@prisma/client';
 import { Request, Response } from 'express';
 import prisma from '../prisma.js';
-import { ActivityLogType } from '@prisma/client';
 
 export class AdminUserService {
   // GET /api/admin/active-users - Активные пользователи
   static async getActiveUsers(req: Request, res: Response) {
     try {
       const { days = 7, minActivityScore = 0 } = req.query;
-      
+
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - parseInt(days as string));
 
@@ -50,7 +50,7 @@ export class AdminUserService {
 
       // Анализируем качество рефералов
       const usersWithGoodReferrals = activeUsers.filter(user => {
-        const goodReferrals = user.referrals.filter(ref => 
+        const goodReferrals = user.referrals.filter(ref =>
           ref.hasMadeDeposit && ref.totalInvested > 0
         );
         return goodReferrals.length > 0;
@@ -61,8 +61,8 @@ export class AdminUserService {
         data: {
           totalActiveUsers: activeUsers.length,
           usersWithGoodReferrals: usersWithGoodReferrals.length,
-          averageActivityScore: activeUsers.length > 0 
-            ? activeUsers.reduce((sum, u) => sum + u.activityScore, 0) / activeUsers.length 
+          averageActivityScore: activeUsers.length > 0
+            ? activeUsers.reduce((sum, u) => sum + u.activityScore, 0) / activeUsers.length
             : 0,
           users: activeUsers,
           topUsers: activeUsers.slice(0, 10)
@@ -81,7 +81,7 @@ export class AdminUserService {
   static async getInactiveUsers(req: Request, res: Response) {
     try {
       const { days = 30, maxActivityScore = 10 } = req.query;
-      
+
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - parseInt(days as string));
 
@@ -130,10 +130,10 @@ export class AdminUserService {
 
       // Категоризируем пользователей
       const neverActive = inactiveUsers.filter(user => !user.lastActivityAt);
-      const lowActivity = inactiveUsers.filter(user => 
+      const lowActivity = inactiveUsers.filter(user =>
         user.lastActivityAt && user.activityScore < 5
       );
-      const dormant = inactiveUsers.filter(user => 
+      const dormant = inactiveUsers.filter(user =>
         user.lastActivityAt && user.activityScore >= 5
       );
 
@@ -284,7 +284,12 @@ export class AdminUserService {
 
       // Удаляем пользователя и связанные данные
       await prisma.$transaction([
-        // Удаляем связанные записи
+        // Сначала обновляем всех пользователей, которые ссылаются на удаляемого пользователя как реферера
+        prisma.user.updateMany({
+          where: { referredById: userId },
+          data: { referredById: null }
+        }),
+        // Удаляем связанные записи в правильном порядке (сначала дочерние, потом родительские)
         prisma.activityLog.deleteMany({ where: { userId: userId } }),
         prisma.referralEarning.deleteMany({ where: { userId: userId } }),
         prisma.notification.deleteMany({ where: { userId: userId } }),
@@ -293,7 +298,8 @@ export class AdminUserService {
         prisma.swapTransaction.deleteMany({ where: { userId: userId } }),
         prisma.withdrawal.deleteMany({ where: { userId: userId } }),
         prisma.investment.deleteMany({ where: { userId: userId } }),
-        // prisma.payout.deleteMany({ where: { userId: userId } }), // Model doesn't exist
+        prisma.payment.deleteMany({ where: { userId: userId } }),
+        prisma.transaction.deleteMany({ where: { userId: userId } }),
         prisma.wallet.deleteMany({ where: { userId: userId } }),
         prisma.miningSlot.deleteMany({ where: { userId: userId } }),
         prisma.accountFreeze.deleteMany({ where: { userId: userId } }),
@@ -314,9 +320,16 @@ export class AdminUserService {
       });
     } catch (error) {
       console.error('Error deleting user:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: (error as any)?.code,
+        meta: (error as any)?.meta,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to delete user'
+        error: 'Failed to delete user',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -368,7 +381,7 @@ export class AdminUserService {
         await tx.wallet.deleteMany({});
         await tx.miningSlot.deleteMany({});
         await tx.accountFreeze.deleteMany({});
-        
+
         // Удаляем всех пользователей
         const deletedUsers = await tx.user.deleteMany({});
 
@@ -439,10 +452,10 @@ export class AdminUserService {
 
           results.push({ userId, action, result });
         } catch (error) {
-          errors.push({ 
-            userId, 
-            action, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+          errors.push({
+            userId,
+            action,
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       }

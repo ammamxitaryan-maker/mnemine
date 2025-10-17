@@ -1,4 +1,4 @@
-# Mnemine Production Deployment Guide
+﻿# mnemine Production Deployment Guide
 
 ## 🚀 Render Deployment Configuration
 
@@ -33,7 +33,7 @@ ENABLE_FALLBACK_AUTH=false
 ```bash
 VITE_BACKEND_URL=https://mnemine-backend.onrender.com
 VITE_WS_URL=wss://mnemine-backend.onrender.com/ws
-VITE_APP_NAME=Mnemine
+VITE_APP_NAME=NONMINE
 VITE_APP_VERSION=1.0.0
 VITE_ADMIN_TELEGRAM_IDS=6760298907
 LOCAL_DEV_MODE=false
@@ -208,3 +208,4 @@ For deployment issues:
 - CORS is properly configured
 - Security headers are enabled
 - Database connections are encrypted
+

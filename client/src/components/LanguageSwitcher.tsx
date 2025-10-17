@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -6,7 +5,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Globe, Check } from 'lucide-react';
+import { Check, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const languages = [
   { code: 'hy', name: 'Հայերեն', flag: '🇦🇲' },
@@ -19,10 +19,10 @@ export const LanguageSwitcher = () => {
 
   const changeLanguage = (lng: string) => {
     if (i18n.language === lng) return;
-    
+
     // Store in localStorage
-    localStorage.setItem('mnemine-language', lng);
-    
+    localStorage.setItem('nonmine-language', lng);
+
     i18n.changeLanguage(lng).catch((error) => {
       console.error(`[LanguageSwitcher] Failed to change language:`, error);
     });
@@ -37,9 +37,9 @@ export const LanguageSwitcher = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         {languages.map((lang) => (
-          <DropdownMenuItem 
-            key={lang.code} 
-            onClick={() => changeLanguage(lang.code)} 
+          <DropdownMenuItem
+            key={lang.code}
+            onClick={() => changeLanguage(lang.code)}
             className="cursor-pointer"
           >
             <span className="mr-2">{lang.flag}</span>

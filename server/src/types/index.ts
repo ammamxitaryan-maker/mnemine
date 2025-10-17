@@ -1,9 +1,9 @@
 /**
- * Centralized type exports for Mnemine server
+ * Centralized type exports for NONMINE server
  * Provides all types in a single import point
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 // API types
 export * from './api.js';
@@ -16,32 +16,10 @@ export * from './websocket.js';
 
 // Re-export Prisma types for convenience
 export type {
-  User,
-  Wallet,
-  MiningSlot,
-  Task,
-  CompletedTask,
-  ActivityLog,
-  Lottery,
-  LotteryTicket,
-  ExchangeRate,
-  SwapTransaction,
-  Notification,
-  UserRole,
-  Investment,
-  Withdrawal,
-  ReferralEarning,
-  DailyPayout,
-  DailyPayoutDetail,
-  AccountFreeze,
-  InvestmentType,
-  InvestmentStatus,
-  WithdrawalStatus,
-  WithdrawalType,
-  ReferralEarningType,
-  PayoutStatus,
-  FreezeReason,
-  ActivityLogType,
+  AccountFreeze, ActivityLog, ActivityLogType, CompletedTask, DailyPayout,
+  DailyPayoutDetail, ExchangeRate, FreezeReason, Investment, InvestmentStatus, InvestmentType, Lottery,
+  LotteryTicket, MiningSlot, Notification, PayoutStatus, ReferralEarning, ReferralEarningType, SwapTransaction, Task, User, UserRole, Wallet, Withdrawal, WithdrawalStatus,
+  WithdrawalType
 } from '@prisma/client';
 
 // Common utility types
@@ -66,7 +44,7 @@ export type ServiceResponse<T> = {
   message?: string;
 };
 
-export type ServiceResult<T> = 
+export type ServiceResult<T> =
   | { success: true; data: T }
   | { success: false; error: string; code?: string };
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides comprehensive documentation for the enhanced Mnemine application, including all optimizations, improvements, and new features while strictly preserving all existing functionality.
+This document provides comprehensive documentation for the enhanced NONMINE application, including all optimizations, improvements, and new features while strictly preserving all existing functionality.
 
 ## Table of Contents
 

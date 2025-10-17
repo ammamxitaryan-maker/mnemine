@@ -5,7 +5,7 @@ export const SplashScreen = () => {
     <div className="splash-screen">
       <div className="splash-content">
         <GradientSpinner />
-        <h1 className="splash-title">MNEMINE</h1>
+        <h1 className="splash-title">NONMINE</h1>
       </div>
     </div>
   );

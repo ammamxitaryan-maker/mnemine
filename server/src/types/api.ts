@@ -1,5 +1,5 @@
 /**
- * Centralized API types for Mnemine application
+ * Centralized API types for NONMINE application
  * Provides strict typing for all API requests and responses
  */
 

@@ -46,7 +46,7 @@
 ### Проверка localStorage:
 1. Откройте DevTools (F12)
 2. Перейдите в Application/Storage → Local Storage
-3. Найдите ключ `mnemine-language`
+3. Найдите ключ `NONMINE-language`
 4. Значение должно изменяться при переключении языков
 
 ## Возможные проблемы

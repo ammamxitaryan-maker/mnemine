@@ -1,15 +1,15 @@
 ﻿import { Router } from 'express';
 import {
+  bulkUserActions,
+  deleteAllUsers,
+  deleteUser,
+  freezeAccounts,
+  getActiveUsers,
   getDailyPayouts,
+  getDashboardStats,
+  getInactiveUsers,
   getTodayPayouts,
   processTodayPayouts,
-  getActiveUsers,
-  getInactiveUsers,
-  freezeAccounts,
-  getDashboardStats,
-  deleteUser,
-  deleteAllUsers,
-  bulkUserActions,
   resetDatabase
 } from '../controllers/adminController.js';
 import { setExchangeRate } from '../controllers/exchangeController.js';
@@ -46,11 +46,11 @@ router.post('/rate', isAdmin, setExchangeRate);
 // Custom reports endpoints
 router.get('/custom-reports', isAdmin, async (req, res) => {
   try {
-    const { 
-      metrics = 'earnings,activity,referrals', 
+    const {
+      metrics = 'earnings,activity,referrals',
       timeframe = '7d',
       startDate,
-      endDate 
+      endDate
     } = req.query;
 
     const metricsArray = (metrics as string).split(',');
@@ -221,17 +221,17 @@ router.get('/custom-reports', isAdmin, async (req, res) => {
 router.get('/notifications', isAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 50, type, status } = req.query;
-    
+
     const whereClause: any = {};
-    
+
     if (type && type !== 'all') {
       whereClause.type = type;
     }
-    
+
     if (status && status !== 'all') {
       whereClause.status = status;
     }
-    
+
     const notifications = await prisma.notification.findMany({
       where: whereClause,
       include: {
@@ -248,11 +248,11 @@ router.get('/notifications', isAdmin, async (req, res) => {
       skip: (parseInt(page as string) - 1) * parseInt(limit as string),
       take: parseInt(limit as string)
     });
-    
+
     const totalNotifications = await prisma.notification.count({
       where: whereClause
     });
-    
+
     res.json({
       success: true,
       data: {
@@ -269,32 +269,32 @@ router.get('/notifications', isAdmin, async (req, res) => {
 
 router.post('/notifications/send', isAdmin, async (req, res) => {
   try {
-    const { 
-      userIds, 
-      type, 
-      title, 
-      message, 
+    const {
+      userIds,
+      type,
+      title,
+      message,
       priority = 'normal',
       scheduledFor,
-      adminId 
+      adminId
     } = req.body;
-    
+
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
       return res.status(400).json({
         success: false,
         error: 'User IDs are required'
       });
     }
-    
+
     if (!type || !title || !message) {
       return res.status(400).json({
         success: false,
         error: 'Type, title, and message are required'
       });
     }
-    
+
     const notifications = [];
-    
+
     for (const userId of userIds) {
       const notification = await prisma.notification.create({
         data: {
@@ -311,10 +311,10 @@ router.post('/notifications/send', isAdmin, async (req, res) => {
           }
         }
       });
-      
+
       notifications.push(notification);
     }
-    
+
     // Log the admin action - using first user's ID since we need a valid userId
     if (userIds.length > 0) {
       await prisma.activityLog.create({
@@ -327,7 +327,7 @@ router.post('/notifications/send', isAdmin, async (req, res) => {
         }
       });
     }
-    
+
     res.json({
       success: true,
       message: `Sent ${notifications.length} notifications successfully`,
@@ -341,26 +341,26 @@ router.post('/notifications/send', isAdmin, async (req, res) => {
 
 router.post('/notifications/broadcast', isAdmin, async (req, res) => {
   try {
-    const { 
-      type, 
-      title, 
-      message, 
+    const {
+      type,
+      title,
+      message,
       priority = 'normal',
       targetUsers = 'all',
       filters = {},
-      adminId 
+      adminId
     } = req.body;
-    
+
     if (!type || !title || !message) {
       return res.status(400).json({
         success: false,
         error: 'Type, title, and message are required'
       });
     }
-    
+
     // Build user filter based on targetUsers and filters
     let userWhereClause: any = {};
-    
+
     if (targetUsers === 'active') {
       userWhereClause.isActive = true;
       userWhereClause.isFrozen = false;
@@ -370,7 +370,7 @@ router.post('/notifications/broadcast', isAdmin, async (req, res) => {
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       userWhereClause.createdAt = { gte: weekAgo };
     }
-    
+
     // Apply additional filters
     if (filters.minInvestment) {
       userWhereClause.totalInvested = { gte: filters.minInvestment };
@@ -381,22 +381,22 @@ router.post('/notifications/broadcast', isAdmin, async (req, res) => {
     if (filters.role) {
       userWhereClause.role = filters.role;
     }
-    
+
     // Get target users
     const targetUsersList = await prisma.user.findMany({
       where: userWhereClause,
       select: { id: true }
     });
-    
+
     if (targetUsersList.length === 0) {
       return res.status(400).json({
         success: false,
         error: 'No users match the specified criteria'
       });
     }
-    
+
     const notifications = [];
-    
+
     for (const user of targetUsersList) {
       const notification = await prisma.notification.create({
         data: {
@@ -413,10 +413,10 @@ router.post('/notifications/broadcast', isAdmin, async (req, res) => {
           }
         }
       });
-      
+
       notifications.push(notification);
     }
-    
+
     // Log the broadcast action - using first target user's ID since we need a valid userId
     if (targetUsersList.length > 0) {
       await prisma.activityLog.create({
@@ -429,7 +429,7 @@ router.post('/notifications/broadcast', isAdmin, async (req, res) => {
         }
       });
     }
-    
+
     res.json({
       success: true,
       message: `Broadcast sent to ${notifications.length} users successfully`,
@@ -447,18 +447,18 @@ router.post('/notifications/broadcast', isAdmin, async (req, res) => {
 router.post('/notifications/:notificationId/retry', isAdmin, async (req, res) => {
   try {
     const { notificationId } = req.params;
-    
+
     const notification = await prisma.notification.findUnique({
       where: { id: notificationId }
     });
-    
+
     if (!notification) {
       return res.status(404).json({
         success: false,
         error: 'Notification not found'
       });
     }
-    
+
     await prisma.notification.update({
       where: { id: notificationId },
       data: {
@@ -468,7 +468,7 @@ router.post('/notifications/:notificationId/retry', isAdmin, async (req, res) =>
         error: null
       }
     });
-    
+
     res.json({
       success: true,
       message: 'Notification queued for retry'
@@ -482,11 +482,11 @@ router.post('/notifications/:notificationId/retry', isAdmin, async (req, res) =>
 router.delete('/notifications/:notificationId', isAdmin, async (req, res) => {
   try {
     const { notificationId } = req.params;
-    
+
     await prisma.notification.delete({
       where: { id: notificationId }
     });
-    
+
     res.json({
       success: true,
       message: 'Notification deleted successfully'
@@ -505,13 +505,13 @@ router.get('/analytics', isAdmin, async (req, res) => {
     const today = new Date();
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-    
+
     // Get user statistics
     const totalUsers = await prisma.user.count();
     const activeUsers = await prisma.user.count({
       where: { isActive: true, isFrozen: false }
     });
-    
+
     const newToday = await prisma.user.count({
       where: {
         createdAt: {
@@ -519,24 +519,24 @@ router.get('/analytics', isAdmin, async (req, res) => {
         }
       }
     });
-    
+
     const newThisWeek = await prisma.user.count({
       where: { createdAt: { gte: weekAgo } }
     });
-    
+
     const newThisMonth = await prisma.user.count({
       where: { createdAt: { gte: monthAgo } }
     });
-    
+
     // Get financial statistics
     const totalInvested = await prisma.user.aggregate({
       _sum: { totalInvested: true }
     });
-    
+
     const totalEarnings = await prisma.user.aggregate({
       _sum: { totalEarnings: true }
     });
-    
+
     // Get activity statistics
     const dailyActiveUsers = await prisma.user.count({
       where: {
@@ -546,43 +546,43 @@ router.get('/analytics', isAdmin, async (req, res) => {
         }
       }
     });
-    
+
     const weeklyActiveUsers = await prisma.user.count({
       where: {
         isActive: true,
         lastActivityAt: { gte: weekAgo }
       }
     });
-    
+
     const monthlyActiveUsers = await prisma.user.count({
       where: {
         isActive: true,
         lastActivityAt: { gte: monthAgo }
       }
     });
-    
+
     // Calculate performance metrics
     const usersWithInvestments = await prisma.user.count({
       where: { totalInvested: { gt: 0 } }
     });
-    
+
     const conversionRate = totalUsers > 0 ? (usersWithInvestments / totalUsers) * 100 : 0;
-    
+
     const usersWithReferrals = await prisma.user.count({
       where: {
         referrals: { some: {} }
       }
     });
-    
+
     const referralRate = totalUsers > 0 ? (usersWithReferrals / totalUsers) * 100 : 0;
-    
+
     const activeSlots = await prisma.miningSlot.count({
       where: { isActive: true }
     });
-    
+
     const totalSlots = await prisma.miningSlot.count();
     const slotUtilization = totalSlots > 0 ? (activeSlots / totalSlots) * 100 : 0;
-    
+
     const analytics = {
       users: {
         total: totalUsers,
@@ -611,7 +611,7 @@ router.get('/analytics', isAdmin, async (req, res) => {
         slotUtilization: Math.round(slotUtilization * 10) / 10
       }
     };
-    
+
     res.json({ success: true, data: analytics });
   } catch (error) {
     console.error('Error fetching analytics:', error);
@@ -624,42 +624,42 @@ router.get('/logs', isAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 50, days = 7, type, search } = req.query;
     const daysAgo = new Date(Date.now() - parseInt(days as string) * 24 * 60 * 60 * 1000);
-    
+
     const whereClause: any = {
       createdAt: { gte: daysAgo }
     };
-    
+
     if (type && type !== 'all') {
       whereClause.type = type;
     }
-    
+
     if (search) {
       whereClause.OR = [
         { description: { contains: search, mode: 'insensitive' } },
         { userId: { contains: search, mode: 'insensitive' } }
       ];
     }
-    
+
     const logs = await prisma.activityLog.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
       skip: (parseInt(page as string) - 1) * parseInt(limit as string),
       take: parseInt(limit as string)
     });
-    
+
     const totalLogs = await prisma.activityLog.count({
       where: whereClause
     });
-    
+
     const totalPages = Math.ceil(totalLogs / parseInt(limit as string));
-    
-    res.json({ 
-      success: true, 
-      data: { 
-        logs, 
+
+    res.json({
+      success: true,
+      data: {
+        logs,
         totalPages,
         totalLogs
-      } 
+      }
     });
   } catch (error) {
     console.error('Error fetching logs:', error);
@@ -671,9 +671,9 @@ router.get('/logs', isAdmin, async (req, res) => {
 router.get('/users', isAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 50, search, role, status } = req.query;
-    
+
     const whereClause: any = {};
-    
+
     if (search) {
       whereClause.OR = [
         { firstName: { contains: search, mode: 'insensitive' } },
@@ -681,11 +681,11 @@ router.get('/users', isAdmin, async (req, res) => {
         { telegramId: { contains: search } }
       ];
     }
-    
+
     if (role && role !== 'all') {
       whereClause.role = role;
     }
-    
+
     if (status && status !== 'all') {
       if (status === 'active') {
         whereClause.isActive = true;
@@ -694,9 +694,15 @@ router.get('/users', isAdmin, async (req, res) => {
         whereClause.isFrozen = true;
       } else if (status === 'suspicious') {
         whereClause.isSuspicious = true;
+      } else if (status === 'online') {
+        // Filter for users active within last 5 minutes
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        whereClause.lastActivityAt = {
+          gte: fiveMinutesAgo
+        };
       }
     }
-    
+
     const users = await prisma.user.findMany({
       where: whereClause,
       include: {
@@ -714,28 +720,35 @@ router.get('/users', isAdmin, async (req, res) => {
       skip: (parseInt(page as string) - 1) * parseInt(limit as string),
       take: parseInt(limit as string)
     });
-    
+
     const totalUsers = await prisma.user.count({
       where: whereClause
     });
-    
-    const formattedUsers = users.map(user => ({
-      id: user.id,
-      telegramId: user.telegramId,
-      firstName: user.firstName,
-      username: user.username,
-      email: (user as any).email || null,
-      role: user.role,
-      isActive: user.isActive,
-      isFrozen: user.isFrozen,
-      isSuspicious: user.isSuspicious,
-      balance: user.wallets[0]?.balance || 0,
-      totalInvested: user.totalInvested,
-      createdAt: user.createdAt,
-      lastSeenAt: user.lastActivityAt,
-      referralCount: user._count.referrals
-    }));
-    
+
+    const formattedUsers = users.map(user => {
+      // Calculate if user is online (active within last 5 minutes)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const isOnline = user.lastActivityAt ? new Date(user.lastActivityAt) > fiveMinutesAgo : false;
+
+      return {
+        id: user.id,
+        telegramId: user.telegramId,
+        firstName: user.firstName,
+        username: user.username,
+        email: (user as any).email || null,
+        role: user.role,
+        isActive: user.isActive,
+        isFrozen: user.isFrozen,
+        isSuspicious: user.isSuspicious,
+        isOnline: isOnline,
+        balance: user.wallets[0]?.balance || 0,
+        totalInvested: user.totalInvested,
+        createdAt: user.createdAt,
+        lastSeenAt: user.lastActivityAt,
+        referralCount: user._count.referrals
+      };
+    });
+
     res.json({
       success: true,
       data: {
@@ -754,24 +767,24 @@ router.get('/users', isAdmin, async (req, res) => {
 router.get('/transactions', isAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 50, type, status, search } = req.query;
-    
+
     const whereClause: any = {};
-    
+
     if (type && type !== 'all') {
       whereClause.type = type;
     }
-    
+
     if (status && status !== 'all') {
       whereClause.status = status;
     }
-    
+
     if (search) {
       whereClause.OR = [
         { description: { contains: search, mode: 'insensitive' } },
         { userId: { contains: search, mode: 'insensitive' } }
       ];
     }
-    
+
     // Get transactions from activity logs
     const transactions = await prisma.activityLog.findMany({
       where: {
@@ -794,7 +807,7 @@ router.get('/transactions', isAdmin, async (req, res) => {
       skip: (parseInt(page as string) - 1) * parseInt(limit as string),
       take: parseInt(limit as string)
     });
-    
+
     const totalTransactions = await prisma.activityLog.count({
       where: {
         ...whereClause,
@@ -803,7 +816,7 @@ router.get('/transactions', isAdmin, async (req, res) => {
         }
       }
     });
-    
+
     const formattedTransactions = transactions.map(log => ({
       id: log.id,
       userId: log.userId,
@@ -817,7 +830,7 @@ router.get('/transactions', isAdmin, async (req, res) => {
       completedAt: log.createdAt,
       metadata: {}
     }));
-    
+
     res.json({
       success: true,
       data: {
@@ -842,7 +855,7 @@ router.get('/settings', isAdmin, async (req, res) => {
     const exchangeRate = await prisma.exchangeRate.findFirst({
       orderBy: { createdAt: 'desc' }
     });
-    
+
     const settings = {
       exchangeRate: {
         current: exchangeRate?.rate || 1.0,
@@ -868,7 +881,7 @@ router.get('/settings', isAdmin, async (req, res) => {
         adminAlerts: true
       }
     };
-    
+
     res.json({ success: true, data: settings });
   } catch (error) {
     console.error('Error fetching settings:', error);
@@ -879,7 +892,7 @@ router.get('/settings', isAdmin, async (req, res) => {
 router.post('/settings/update', isAdmin, async (req, res) => {
   try {
     const { exchangeRate, limits } = req.body;
-    
+
     if (exchangeRate !== undefined) {
       await prisma.exchangeRate.create({
         data: {
@@ -888,10 +901,10 @@ router.post('/settings/update', isAdmin, async (req, res) => {
         }
       });
     }
-    
+
     // In a real implementation, you would store limits and other settings in a settings table
     // For now, we'll just return success
-    
+
     res.json({ success: true, message: 'Settings updated successfully' });
   } catch (error) {
     console.error('Error updating settings:', error);
@@ -902,7 +915,7 @@ router.post('/settings/update', isAdmin, async (req, res) => {
 router.post('/system/:action', isAdmin, async (req, res) => {
   try {
     const { action } = req.params;
-    
+
     switch (action) {
       case 'backup':
         // Implement database backup logic
@@ -934,7 +947,7 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
     const { reason } = req.body;
-    
+
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -943,7 +956,7 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
         isActive: false
       }
     });
-    
+
     // Log the action
     await prisma.activityLog.create({
       data: {
@@ -954,7 +967,7 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
         sourceUserId: (req as any).user?.adminId
       }
     });
-    
+
     res.json({ success: true, message: 'User account frozen successfully' });
   } catch (error) {
     console.error('Error freezing user:', error);
@@ -965,7 +978,7 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
 router.post('/users/:userId/unfreeze', isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -974,7 +987,7 @@ router.post('/users/:userId/unfreeze', isAdmin, async (req, res) => {
         isActive: true
       }
     });
-    
+
     // Log the action
     await prisma.activityLog.create({
       data: {
@@ -985,7 +998,7 @@ router.post('/users/:userId/unfreeze', isAdmin, async (req, res) => {
         sourceUserId: (req as any).user?.adminId
       }
     });
-    
+
     res.json({ success: true, message: 'User account unfrozen successfully' });
   } catch (error) {
     console.error('Error unfreezing user:', error);
@@ -997,7 +1010,7 @@ router.post('/users/:userId/ban', isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
     const { reason } = req.body;
-    
+
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -1006,7 +1019,7 @@ router.post('/users/:userId/ban', isAdmin, async (req, res) => {
         isSuspicious: true
       }
     });
-    
+
     // Log the action
     await prisma.activityLog.create({
       data: {
@@ -1017,7 +1030,7 @@ router.post('/users/:userId/ban', isAdmin, async (req, res) => {
         sourceUserId: (req as any).user?.adminId
       }
     });
-    
+
     res.json({ success: true, message: 'User account banned successfully' });
   } catch (error) {
     console.error('Error banning user:', error);
@@ -1028,7 +1041,7 @@ router.post('/users/:userId/ban', isAdmin, async (req, res) => {
 router.post('/users/:userId/unban', isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -1037,7 +1050,7 @@ router.post('/users/:userId/unban', isAdmin, async (req, res) => {
         isSuspicious: false
       }
     });
-    
+
     // Log the action
     await prisma.activityLog.create({
       data: {
@@ -1048,7 +1061,7 @@ router.post('/users/:userId/unban', isAdmin, async (req, res) => {
         sourceUserId: (req as any).user?.adminId
       }
     });
-    
+
     res.json({ success: true, message: 'User account unbanned successfully' });
   } catch (error) {
     console.error('Error unbanning user:', error);

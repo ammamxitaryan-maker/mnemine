@@ -1,4 +1,4 @@
-# 🚀 Mnemine Production Deployment Checklist
+﻿# 🚀 NONMINE Production Deployment Checklist
 
 ## Pre-Deployment Setup
 
@@ -30,7 +30,7 @@
 
 ## Render Deployment
 
-### ✅ Backend Service (mnemine-backend)
+### ✅ Backend Service (NONMINE-backend)
 - [ ] Service type: Web Service
 - [ ] Environment: Node.js
 - [ ] Build command: `cd server && npm install && npm run build:prod && npm run prisma:generate:prod`
@@ -38,7 +38,7 @@
 - [ ] Port: 10000
 - [ ] Plan: Starter or higher
 
-### ✅ Frontend Service (mnemine-frontend)
+### ✅ Frontend Service (NONMINE-frontend)
 - [ ] Service type: Static Site
 - [ ] Build command: `cd client && npm install && npm run build`
 - [ ] Publish directory: `client/dist`
@@ -47,8 +47,8 @@
 ### ✅ Database Service
 - [ ] Database type: PostgreSQL
 - [ ] Plan: Starter or higher
-- [ ] Database name: mnemine_production
-- [ ] User: mnemine_user
+- [ ] Database name: NONMINE_production
+- [ ] User: NONMINE_user
 
 ## Environment Variables
 
@@ -74,9 +74,9 @@ ENABLE_FALLBACK_AUTH=false
 
 ### ✅ Frontend Environment Variables
 ```bash
-VITE_BACKEND_URL=https://mnemine-backend.onrender.com
-VITE_WS_URL=wss://mnemine-backend.onrender.com/ws
-VITE_APP_NAME=Mnemine
+VITE_BACKEND_URL=https://NONMINE-backend.onrender.com
+VITE_WS_URL=wss://NONMINE-backend.onrender.com/ws
+VITE_APP_NAME=NONMINE
 VITE_APP_VERSION=1.0.0
 VITE_ADMIN_TELEGRAM_IDS=6760298907
 LOCAL_DEV_MODE=false
@@ -118,9 +118,9 @@ ENABLE_FALLBACK_AUTH=false
 ## URLs and Access
 
 ### ✅ Application URLs
-- **Frontend**: `https://mnemine-frontend.onrender.com`
-- **Backend**: `https://mnemine-backend.onrender.com`
-- **Admin Panel**: `https://mnemine-frontend.onrender.com/admin`
+- **Frontend**: `https://NONMINE-frontend.onrender.com`
+- **Backend**: `https://NONMINE-backend.onrender.com`
+- **Admin Panel**: `https://NONMINE-frontend.onrender.com/admin`
 
 ### ✅ Admin Access
 - **Password**: `nemesisN3M3616`
@@ -191,7 +191,7 @@ ENABLE_FALLBACK_AUTH=false
 
 ## 🎉 Deployment Complete!
 
-Your Mnemine application is now ready for production deployment on Render with the admin password `nemesisN3M3616`.
+Your NONMINE application is now ready for production deployment on Render with the admin password `nemesisN3M3616`.
 
 ### Quick Commands
 ```bash
@@ -211,3 +211,4 @@ pnpm run verify:production
 - Test database connectivity
 - Review security configuration
 - Monitor performance metrics
+

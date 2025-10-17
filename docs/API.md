@@ -1,8 +1,8 @@
-﻿# Mnemine API Documentation
+﻿# NONMINE API Documentation
 
 ## Overview
 
-The Mnemine API provides comprehensive endpoints for managing users, mining slots, tasks, lottery, and real-time features.
+The NONMINE API provides comprehensive endpoints for managing users, mining slots, tasks, lottery, and real-time features.
 
 ## Base URL
 
@@ -511,9 +511,9 @@ Lottery updates.
 ### JavaScript/TypeScript
 
 ```typescript
-import { MnemineAPI } from '@mnemine/api-client';
+import { mnemineAPI } from '@mnemine/api-client';
 
-const api = new MnemineAPI({
+const api = new mnemineAPI({
   baseURL: 'https://mnemine-backend-7b4y.onrender.com/api',
   token: 'your_jwt_token'
 });
@@ -537,7 +537,7 @@ const result = await api.tasks.complete('daily_login');
 ```python
 import requests
 
-class MnemineAPI:
+class NONMINEAPI:
     def __init__(self, base_url, token):
         self.base_url = base_url
         self.headers = {
@@ -553,7 +553,7 @@ class MnemineAPI:
         return response.json()
 
 # Usage
-api = MnemineAPI('https://mnemine-backend-7b4y.onrender.com/api', 'your_token')
+api = mnemineAPI('https://mnemine-backend-7b4y.onrender.com/api', 'your_token')
 user = api.get_user('123456789')
 ```
 
@@ -572,4 +572,5 @@ curl -X POST "https://mnemine-backend-7b4y.onrender.com/api/slots/purchase" \
   -H "Content-Type: application/json" \
   -d '{"principal": 100, "duration": 30, "type": "standard"}'
 ```
+
 

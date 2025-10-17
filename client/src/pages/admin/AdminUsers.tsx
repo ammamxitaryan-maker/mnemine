@@ -1,28 +1,24 @@
 ﻿"use client";
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  UserPlus, 
-  UserX, 
-  Ban, 
-  CheckCircle,
-  AlertTriangle,
-  MoreHorizontal,
-  Download,
-  Trash2,
-  ArrowLeft
-} from 'lucide-react';
 import BulkActions from '@/components/admin/BulkActions';
-import { MobileUserCard } from '@/components/admin/MobileUserCard';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { api } from '@/lib/api';
+import {
+  ArrowLeft,
+  Ban,
+  CheckCircle,
+  Download,
+  Search,
+  Trash2,
+  UserPlus,
+  Users,
+  UserX
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   id: string;
@@ -34,6 +30,7 @@ interface User {
   isActive: boolean;
   isFrozen: boolean;
   isSuspicious: boolean;
+  isOnline: boolean;
   balance: number;
   totalInvested: number;
   createdAt: string;
@@ -69,7 +66,7 @@ const AdminUsers = () => {
         ...(filterRole !== 'all' && { role: filterRole }),
         ...(filterStatus !== 'all' && { status: filterStatus })
       });
-      
+
       const response = await api.get(`/admin/users?${params}`);
       setUsers(response.data.data.users || []);
       setTotalPages(response.data.data.totalPages || 1);
@@ -84,7 +81,7 @@ const AdminUsers = () => {
   const handleUserAction = async (userId: string, action: string) => {
     const user = users.find(u => u.id === userId);
     const userName = user?.firstName || user?.username || `User ${user?.telegramId}`;
-    
+
     try {
       switch (action) {
         case 'freeze': {
@@ -133,15 +130,15 @@ const AdminUsers = () => {
             `• Referral data\n\n` +
             `Click OK to proceed with deletion.`
           );
-          
+
           if (confirmDelete) {
             const deleteReason = prompt(`Enter reason for deleting ${userName}'s account:`);
             if (deleteReason && deleteReason.trim()) {
               // Выполняем удаление
-              const response = await api.delete(`/admin/delete-user/${userId}`, { 
-                data: { reason: deleteReason } 
+              const response = await api.delete(`/admin/delete-user/${userId}`, {
+                data: { reason: deleteReason }
               });
-              
+
               if (response.data.success) {
                 alert(`✅ Account for ${userName} has been permanently deleted.`);
                 await fetchUsers(); // Обновляем список только после успешного удаления
@@ -158,7 +155,7 @@ const AdminUsers = () => {
     } catch (err: any) {
       console.error(`Error ${action} user:`, err);
       alert(`Failed to ${action} user: ${err.response?.data?.error || 'Unknown error'}`);
-      
+
       // Обновляем список только если это не было удаление (чтобы показать актуальное состояние)
       if (action !== 'delete') {
         await fetchUsers();
@@ -187,10 +184,10 @@ const AdminUsers = () => {
     }
 
     try {
-      const response = await api.delete('/admin/delete-all-users', { 
-        data: { reason: reason } 
+      const response = await api.delete('/admin/delete-all-users', {
+        data: { reason: reason }
       });
-      
+
       if (response.data.success) {
         alert('✅ All users have been successfully deleted.');
         await fetchUsers(); // Refresh the user list only after successful deletion
@@ -259,6 +256,14 @@ const AdminUsers = () => {
   const getStatusBadge = (user: User) => {
     if (user.isFrozen) return <Badge variant="destructive">Frozen</Badge>;
     if (user.isSuspicious) return <Badge variant="destructive">Suspicious</Badge>;
+    if (user.isOnline) {
+      return (
+        <div className="flex items-center">
+          <span className="online-dot online-indicator"></span>
+          <Badge variant="default" className="bg-green-600">Online</Badge>
+        </div>
+      );
+    }
     if (user.isActive) return <Badge variant="default">Active</Badge>;
     return <Badge variant="secondary">Inactive</Badge>;
   };
@@ -314,18 +319,18 @@ const AdminUsers = () => {
 
       {/* Ultra Compact Action Buttons */}
       <div className="grid grid-cols-3 gap-1">
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleExportUsers}
           className="h-8 text-xs border-gray-600"
         >
           <Download className="h-3 w-3 mr-1" />
           Export
         </Button>
-        <Button 
-          variant="destructive" 
-          size="sm" 
+        <Button
+          variant="destructive"
+          size="sm"
           onClick={handleDeleteAllUsers}
           className="h-8 text-xs"
         >
@@ -375,6 +380,7 @@ const AdminUsers = () => {
             className="bg-gray-900 border border-gray-700 rounded-md px-2 py-1 text-white text-xs h-8"
           >
             <option value="all">All Status</option>
+            <option value="online">Online</option>
             <option value="active">Active</option>
             <option value="frozen">Frozen</option>
             <option value="suspicious">Suspicious</option>
@@ -387,7 +393,7 @@ const AdminUsers = () => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-sm">
             <span>
-              Users ({users.length} of {totalUsers.toLocaleString()}) • 
+              Users ({users.length} of {totalUsers.toLocaleString()}) •
               Page {currentPage} of {totalPages}
             </span>
             <div className="flex space-x-2">
@@ -424,7 +430,13 @@ const AdminUsers = () => {
                   </th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">User</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Role</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Status</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">
+                    Status
+                    <div className="text-xs text-gray-500 mt-1 flex items-center">
+                      <span className="online-dot online-indicator"></span>
+                      <span>Online</span>
+                    </div>
+                  </th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Balance</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Joined</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Actions</th>
@@ -546,7 +558,7 @@ const AdminUsers = () => {
               </tbody>
             </table>
           </div>
-          
+
           {/* Mobile View */}
           <div className="md:hidden space-y-4">
             {users.map((user) => (
@@ -584,7 +596,7 @@ const AdminUsers = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-3">
                   <div>
                     <div className="text-xs text-gray-400">Role</div>
@@ -595,7 +607,7 @@ const AdminUsers = () => {
                     <div>{getStatusBadge(user)}</div>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-3">
                   <div>
                     <div className="text-xs text-gray-400">Balance</div>
@@ -616,7 +628,7 @@ const AdminUsers = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex space-x-2 pt-2 border-t border-gray-700">
                   {user.isFrozen ? (
                     <Button
@@ -674,7 +686,7 @@ const AdminUsers = () => {
             ))}
           </div>
         </CardContent>
-        
+
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-700">

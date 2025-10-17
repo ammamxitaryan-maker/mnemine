@@ -14,7 +14,7 @@
 ## 🏗 СТРУКТУРА ПРОЕКТА
 
 ```
-mnemine/
+NONMINE/
 ├── client/                    # Frontend (React + TypeScript)
 │   ├── src/
 │   │   ├── components/       # React компоненты
@@ -46,7 +46,7 @@ mnemine/
 
 ```bash
 # База данных
-DATABASE_URL="postgresql://user:password@localhost:5432/mnemine"
+DATABASE_URL="postgresql://user:password@localhost:5432/NONMINE"
 
 # Telegram Bot
 TELEGRAM_BOT_TOKEN="your_bot_token"
@@ -684,7 +684,7 @@ npx prisma migrate deploy
 
 ```bash
 # .env (based on env.example)
-DATABASE_URL="postgresql://user:password@prod-db:5432/mnemine"
+DATABASE_URL="postgresql://user:password@prod-db:5432/NONMINE"
 NODE_ENV=production
 PORT=10112
 TELEGRAM_BOT_TOKEN="production_bot_token"
@@ -727,7 +727,7 @@ services:
   db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=mnemine
+      - POSTGRES_DB=NONMINE
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
     volumes:
@@ -939,4 +939,5 @@ export const userSelect = {
 - **Оптимизации** производительности
 
 Все компоненты системы интегрированы и готовы к использованию в продакшене.
+
 

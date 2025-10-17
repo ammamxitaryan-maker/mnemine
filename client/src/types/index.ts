@@ -1,5 +1,5 @@
 /**
- * Centralized type exports for Mnemine client
+ * Centralized type exports for NONMINE client
  * Provides all types in a single import point
  */
 
@@ -14,5 +14,5 @@ export * from './errors.js';
 
 // Re-export commonly used types for convenience
 export type {
-  ApiError,
+  ApiError
 } from './api.js';

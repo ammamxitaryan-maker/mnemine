@@ -1,5 +1,5 @@
 /**
- * Centralized logging system for Mnemine application
+ * Centralized logging system for NONMINE application
  * Provides structured logging with different levels and contexts
  */
 
@@ -60,13 +60,13 @@ class Logger {
 
   private formatMessage(entry: LogEntry): string {
     const { timestamp, level, context, message, data, userId, requestId, duration } = entry;
-    
+
     let formatted = `[${timestamp}] [${LogLevel[level]}] [${context}] ${message}`;
-    
+
     if (userId) formatted += ` | User: ${userId}`;
     if (requestId) formatted += ` | Request: ${requestId}`;
     if (duration !== undefined) formatted += ` | Duration: ${duration}ms`;
-    
+
     return formatted;
   }
 
@@ -134,7 +134,7 @@ class Logger {
       stack: error.stack,
       name: error.name,
     } : error;
-    
+
     this.log(LogLevel.ERROR, context, message, errorData, meta);
   }
 
@@ -181,15 +181,15 @@ export const logger = Logger.getInstance();
 
 // Export convenience functions
 export const log = {
-  debug: (context: LogContext, message: string, data?: any, meta?: any) => 
+  debug: (context: LogContext, message: string, data?: any, meta?: any) =>
     logger.debug(context, message, data, meta),
-  info: (context: LogContext, message: string, data?: any, meta?: any) => 
+  info: (context: LogContext, message: string, data?: any, meta?: any) =>
     logger.info(context, message, data, meta),
-  warn: (context: LogContext, message: string, data?: any, meta?: any) => 
+  warn: (context: LogContext, message: string, data?: any, meta?: any) =>
     logger.warn(context, message, data, meta),
-  error: (context: LogContext, message: string, error?: Error | any, meta?: any) => 
+  error: (context: LogContext, message: string, error?: Error | any, meta?: any) =>
     logger.error(context, message, error, meta),
-  
+
   // Context-specific shortcuts
   server: (message: string, data?: any, meta?: any) => logger.server(message, data, meta),
   database: (message: string, data?: any, meta?: any) => logger.database(message, data, meta),

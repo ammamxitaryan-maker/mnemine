@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { useUserData } from './useUserData';
-import { useSlotsData } from './useSlotsData';
 import { useCachedExchangeRate } from './useCachedExchangeRate';
+import { useSlotsData } from './useSlotsData';
+import { useUserData } from './useUserData';
 
 interface MainBalanceData {
   availableBalance: number; // Available balance not invested in slots
@@ -32,20 +32,20 @@ export const useMainBalance = (telegramId: string | undefined) => {
       }
 
       const totalBalance = userData.mneBalance || 0;
-      
+
       // Calculate total invested in active slots
-      const activeSlots = slotsData.filter(slot => 
+      const activeSlots = slotsData.filter(slot =>
         slot.isActive && new Date(slot.expiresAt) > new Date()
       );
-      
+
       const totalInvested = activeSlots.reduce((sum, slot) => sum + (slot.principal || 0), 0);
-      
+
       // Calculate total earnings from slots
       const totalEarnings = activeSlots.reduce((sum, slot) => {
         const now = new Date();
         const lastAccrued = new Date(slot.lastAccruedAt);
         const timeElapsed = (now.getTime() - lastAccrued.getTime()) / 1000; // seconds
-        
+
         if (timeElapsed > 0) {
           const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
           const earnings = earningsPerSecond * timeElapsed;
@@ -55,7 +55,8 @@ export const useMainBalance = (telegramId: string | undefined) => {
       }, 0);
 
       // Available balance = total balance - invested amount
-      const availableBalance = Math.max(0, totalBalance - totalInvested);
+      // If totalInvested > totalBalance, it means there's a data inconsistency
+      const availableBalance = totalBalance - totalInvested;
 
       return {
         availableBalance,

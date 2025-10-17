@@ -1,8 +1,8 @@
-# Mnemine Deployment Guide
+﻿# NONMINE Deployment Guide
 
 ## Overview
 
-This guide covers deploying the Mnemine application to production environments, including Render.com, Vercel, and Docker.
+This guide covers deploying the NONMINE application to production environments, including Render.com, Vercel, and Docker.
 
 ## Prerequisites
 
@@ -129,17 +129,17 @@ ERROR_REPORTING_ENABLED=true
 
 ```bash
 # Build optimized image
-docker build -f Dockerfile.optimized -t mnemine:latest .
+docker build -f Dockerfile.optimized -t nonmine:latest .
 
 # Run container
 docker run -d \
-  --name mnemine \
+  --name nonmine \
   -p 10112:10112 \
   -e NODE_ENV=production \
   -e DATABASE_URL=postgresql://user:password@host:port/database \
   -e JWT_SECRET=your-secret \
   -e TELEGRAM_BOT_TOKEN=your-token \
-  mnemine:latest
+  nonmine:latest
 ```
 
 #### Docker Compose
@@ -156,7 +156,7 @@ services:
       - "10112:10112"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:password@db:5432/mnemine
+      - DATABASE_URL=postgresql://postgres:password@db:5432/nonmine
       - JWT_SECRET=your-super-secure-jwt-secret
       - TELEGRAM_BOT_TOKEN=your-telegram-bot-token
     depends_on:
@@ -166,7 +166,7 @@ services:
   db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=mnemine
+      - POSTGRES_DB=NONMINE
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     volumes:
@@ -204,8 +204,8 @@ volumes:
 
 2. **Clone Repository**
    ```bash
-   git clone https://github.com/your-username/mnemine.git
-   cd mnemine
+   git clone https://github.com/your-username/NONMINE.git
+   cd NONMINE
    ```
 
 3. **Install Dependencies**
@@ -221,7 +221,7 @@ volumes:
 5. **Setup Database**
    ```bash
    # Create database
-   sudo -u postgres createdb mnemine
+   sudo -u postgres createdb NONMINE
 
    # Run migrations
    cd server
@@ -238,9 +238,9 @@ volumes:
    cat > ecosystem.config.js << EOF
    module.exports = {
      apps: [{
-       name: 'mnemine',
+       name: 'NONMINE',
        script: 'server/dist/index.js',
-       cwd: '/path/to/mnemine',
+       cwd: '/path/to/NONMINE',
        instances: 'max',
        exec_mode: 'cluster',
        env: {
@@ -265,7 +265,7 @@ volumes:
 
        # Frontend
        location / {
-           root /path/to/mnemine/server/public;
+           root /path/to/NONMINE/server/public;
            try_files $uri $uri/ /index.html;
        }
 
@@ -302,9 +302,9 @@ volumes:
 
 1. **Create Database**
    ```sql
-   CREATE DATABASE mnemine;
-   CREATE USER mnemine_user WITH PASSWORD 'secure_password';
-   GRANT ALL PRIVILEGES ON DATABASE mnemine TO mnemine_user;
+   CREATE DATABASE NONMINE;
+   CREATE USER NONMINE_user WITH PASSWORD 'secure_password';
+   GRANT ALL PRIVILEGES ON DATABASE NONMINE TO NONMINE_user;
    ```
 
 2. **Run Migrations**
@@ -411,15 +411,15 @@ server {
 
 2. **Database Health**
    ```bash
-   pg_isready -h localhost -p 5432 -U mnemine_user
+   pg_isready -h localhost -p 5432 -U NONMINE_user
    ```
 
 ### Logging
 
 1. **Log Rotation**
    ```bash
-   # /etc/logrotate.d/mnemine
-   /var/log/mnemine/*.log {
+   # /etc/logrotate.d/NONMINE
+   /var/log/NONMINE/*.log {
        daily
        missingok
        rotate 52
@@ -466,22 +466,22 @@ server {
 # backup.sh
 
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/backups/mnemine"
-DB_NAME="mnemine"
+BACKUP_DIR="/backups/NONMINE"
+DB_NAME="NONMINE"
 
 # Create backup directory
 mkdir -p $BACKUP_DIR
 
 # Create backup
-pg_dump -h localhost -U mnemine_user -d $DB_NAME > $BACKUP_DIR/mnemine_$DATE.sql
+pg_dump -h localhost -U NONMINE_user -d $DB_NAME > $BACKUP_DIR/NONMINE_$DATE.sql
 
 # Compress backup
-gzip $BACKUP_DIR/mnemine_$DATE.sql
+gzip $BACKUP_DIR/NONMINE_$DATE.sql
 
 # Remove old backups (keep 30 days)
 find $BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
 
-echo "Backup completed: mnemine_$DATE.sql.gz"
+echo "Backup completed: NONMINE_$DATE.sql.gz"
 ```
 
 ### Automated Backups
@@ -497,7 +497,7 @@ echo "Backup completed: mnemine_$DATE.sql.gz"
 
 1. **Load Balancer**
    ```nginx
-   upstream mnemine_backend {
+   upstream NONMINE_backend {
        server 127.0.0.1:10112;
        server 127.0.0.1:10113;
        server 127.0.0.1:10114;
@@ -505,7 +505,7 @@ echo "Backup completed: mnemine_$DATE.sql.gz"
 
    server {
        location /api {
-           proxy_pass http://mnemine_backend;
+           proxy_pass http://NONMINE_backend;
        }
    }
    ```
@@ -515,7 +515,7 @@ echo "Backup completed: mnemine_$DATE.sql.gz"
    // ecosystem.config.js
    module.exports = {
      apps: [{
-       name: 'mnemine',
+       name: 'NONMINE',
        script: 'server/dist/index.js',
        instances: 'max',
        exec_mode: 'cluster',
@@ -568,7 +568,7 @@ echo "Backup completed: mnemine_$DATE.sql.gz"
 1. **Database Connection Issues**
    ```bash
    # Check database connection
-   psql -h localhost -U mnemine_user -d mnemine -c "SELECT 1;"
+   psql -h localhost -U NONMINE_user -d NONMINE -c "SELECT 1;"
    ```
 
 2. **Memory Issues**
@@ -577,7 +577,7 @@ echo "Backup completed: mnemine_$DATE.sql.gz"
    pm2 monit
    
    # Restart if needed
-   pm2 restart mnemine
+   pm2 restart NONMINE
    ```
 
 3. **SSL Issues**
@@ -599,7 +599,7 @@ echo "Backup completed: mnemine_$DATE.sql.gz"
 2. **High CPU Usage**
    ```bash
    # Monitor CPU usage
-   top -p $(pgrep -f "node.*mnemine")
+   top -p $(pgrep -f "node.*NONMINE")
    ```
 
 ## Security Checklist
@@ -633,3 +633,4 @@ echo "Backup completed: mnemine_$DATE.sql.gz"
    - Security audit
    - Performance optimization
    - Disaster recovery test
+

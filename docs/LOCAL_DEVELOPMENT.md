@@ -1,6 +1,6 @@
-# Local Development Setup
+﻿# Local Development Setup
 
-This guide will help you set up the Mnemine application for local development.
+This guide will help you set up the NONMINE application for local development.
 
 ## Quick Start
 
@@ -40,7 +40,7 @@ The application uses the following environment files:
 
 ```bash
 # Database (using production database for testing)
-DATABASE_URL="postgresql://mnemine_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a/mnemine_zupy"
+DATABASE_URL="postgresql://NONMINE_user:2DpMhmihzMUXfaVlksxOaWvYvNlB2YtL@dpg-d38dq93e5dus73a34u3g-a/NONMINE_zupy"
 
 # Security Keys
 JWT_SECRET="+j/7gDO4Fd/P7DPpLrCbm1YgW4GwDP+9cn3p8g7GpOo="
@@ -61,7 +61,7 @@ VITE_BACKEND_URL=http://localhost:10112
 VITE_WS_URL=ws://localhost:10112/ws
 
 # App Information
-VITE_APP_NAME=Mnemine
+VITE_APP_NAME=NONMINE
 VITE_APP_VERSION=1.0.0
 VITE_ADMIN_TELEGRAM_IDS="6760298907"
 ```
@@ -150,3 +150,4 @@ If you encounter issues:
 3. Ensure database connectivity
 4. Try clearing browser cache
 5. Restart the development server
+
