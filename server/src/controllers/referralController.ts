@@ -8,15 +8,19 @@ import { isUserEligible } from '../utils/helpers.js';
 // Function to get bot username
 async function getBotUsername(): Promise<string> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return 'mnemine'; // fallback
-
+  if (!token) return 'MnemineBot'; // fallback
+  
   try {
     const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
     const data = await response.json();
-    return data.result?.username || 'mnemine';
+    if (data.ok && data.result?.username) {
+      return data.result.username;
+    }
+    console.warn('Bot API response not ok, using fallback username');
+    return 'MnemineBot'; // fallback
   } catch (error) {
     console.error('Failed to get bot username:', error);
-    return 'mnemine'; // fallback
+    return 'MnemineBot'; // fallback
   }
 }
 
@@ -29,9 +33,10 @@ export const getReferralData = async (req: Request, res: Response) => {
 
     // Generate individual referral link with correct bot username
     const botUsername = await getBotUsername();
-    const referralLink = `https://t.me/${botUsername}/app?startapp=${user.referralCode}`;
-
+    const referralLink = `https://t.me/${botUsername}?startapp=${user.referralCode}`;
+    
     console.log(`[REFERRAL] Generated link for user ${telegramId}: ${referralLink}`);
+    console.log(`[REFERRAL] Bot username used: ${botUsername}`);
 
     res.status(200).json({
       referralCode: user.referralCode,

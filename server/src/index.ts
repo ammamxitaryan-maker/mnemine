@@ -328,6 +328,8 @@ if (token && token.length > 0) {
     console.log(`[BOT] Bot name: ${botInfo.first_name}`);
   }).catch((err) => {
     console.error('[BOT] Failed to get bot info:', err);
+    console.log('[BOT] Using fallback username: MnemineBot');
+    botUsername = 'MnemineBot';
   });
 
   bot.start((ctx) => {
