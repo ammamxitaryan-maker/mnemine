@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "prisma db push && tsc-watch --onSuccess \"node dist/index.js\"",
+    "dev:tsx": "prisma db push && tsx src/index.ts",
     "build": "rm -rf dist && prisma generate && tsc && pnpm run postbuild",
     "build:prod": "rm -rf dist && prisma generate && tsc && pnpm run postbuild",
     "postbuild": "node -e \"const fs = require('fs'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.copyFileSync('dist-package.json', 'dist/package.json');\"",
@@ -25,7 +26,7 @@
     "prisma:migrate:prod": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "db:reset": "node --import tsx/esm src/scripts/resetDatabase.ts",
+    "db:reset": "tsx src/scripts/resetDatabase.ts",
     "clean": "rm -rf dist",
     "validate": "npm run type-check",
     "test": "vitest",

@@ -183,10 +183,6 @@ export const MinimalistLotteryPage = () => {
         {tickets && tickets.length > 0 ? (
           <div className="space-y-2">
             {tickets
-              .sort((a, b) => {
-                // Сортируем билеты: сначала новые (по дате создания), потом старые
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-              })
               .map((ticket, index) => (
                 <div 
                   key={ticket.id} 

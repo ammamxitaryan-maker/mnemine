@@ -19,7 +19,13 @@ export const LanguageSwitcher = () => {
 
   const changeLanguage = (lng: string) => {
     if (i18n.language === lng) return;
-    i18n.changeLanguage(lng);
+    
+    // Store in localStorage
+    localStorage.setItem('mnemine-language', lng);
+    
+    i18n.changeLanguage(lng).catch((error) => {
+      console.error(`[LanguageSwitcher] Failed to change language:`, error);
+    });
   };
 
   return (

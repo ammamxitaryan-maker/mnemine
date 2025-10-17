@@ -1,23 +1,20 @@
 ﻿"use client";
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  DollarSign, 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { api } from '@/lib/api';
+import {
   Activity,
-  Calendar,
+  ArrowLeft,
+  BarChart3,
+  DollarSign,
   Download,
   RefreshCw,
-  ArrowLeft
+  TrendingUp,
+  Users
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface AnalyticsData {
   users: {
@@ -63,7 +60,7 @@ const AdminAnalytics = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Mock analytics data since endpoint might not be fully implemented
       const mockAnalytics = {
         users: {
@@ -93,7 +90,7 @@ const AdminAnalytics = () => {
           slotUtilization: 85.3
         }
       };
-      
+
       // Try to fetch real data first, fallback to mock
       try {
         const response = await api.get(`/admin/analytics?days=${dateRange}`);
@@ -114,7 +111,7 @@ const AdminAnalytics = () => {
       const response = await api.get(`/admin/analytics/export?days=${dateRange}`, {
         responseType: 'blob'
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -217,7 +214,7 @@ const AdminAnalytics = () => {
               {analytics?.users.active.toLocaleString() || 0}
             </div>
             <div className="text-xs text-gray-400 mt-1">
-              {analytics?.users.total && analytics.users.total > 0 ? 
+              {analytics?.users.total && analytics.users.total > 0 ?
                 ((analytics.users.active / analytics.users.total) * 100).toFixed(1) : 0}% of total
             </div>
           </CardContent>
@@ -398,4 +395,3 @@ const AdminAnalytics = () => {
 };
 
 export default AdminAnalytics;
-
