@@ -529,6 +529,98 @@ app.get('*', (req: any, res: any) => {
   console.log(`[SPA] Origin: ${req.get('Origin') || 'None'}`);
   console.log(`[SPA] Referer: ${req.get('Referer') || 'None'}`);
 
+  // Check if user is accessing from browser (not Telegram WebApp)
+  const userAgent = req.get('User-Agent') || '';
+  const isTelegramWebApp = userAgent.includes('TelegramWebApp') ||
+    userAgent.includes('Telegram') ||
+    req.headers['x-telegram-init-data'];
+
+  // If accessing from browser (not Telegram), show error
+  if (!isTelegramWebApp) {
+    return res.status(403).send(`
+      <!DOCTYPE html>
+      <html lang="ru">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Доступ только через Telegram</title>
+          <style>
+              body {
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  min-height: 100vh;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  margin: 0;
+              }
+              .error-container {
+                  background: white;
+                  border-radius: 20px;
+                  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                  padding: 40px;
+                  text-align: center;
+                  max-width: 500px;
+              }
+              .error-icon {
+                  font-size: 4rem;
+                  margin-bottom: 20px;
+              }
+              .error-title {
+                  font-size: 1.5rem;
+                  font-weight: bold;
+                  color: #667eea;
+                  margin-bottom: 15px;
+              }
+              .error-message {
+                  color: #666;
+                  margin-bottom: 20px;
+                  line-height: 1.5;
+              }
+              .telegram-link {
+                  background: #0088cc;
+                  color: white;
+                  border: none;
+                  padding: 15px 30px;
+                  border-radius: 10px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  text-decoration: none;
+                  display: inline-block;
+                  margin: 10px;
+              }
+              .admin-link {
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white;
+                  border: none;
+                  padding: 15px 30px;
+                  border-radius: 10px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  text-decoration: none;
+                  display: inline-block;
+                  margin: 10px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="error-container">
+              <div class="error-icon">📱</div>
+              <div class="error-title">NONMINE Mining</div>
+              <div class="error-message">
+                  Это приложение доступно только через Telegram WebApp.<br>
+                  Для доступа к админ-панели используйте специальную ссылку.
+              </div>
+              <div>
+                  <a href="https://t.me/NONMINEBot" class="telegram-link">Открыть в Telegram</a>
+                  <a href="/admin" class="admin-link">Админ-панель</a>
+              </div>
+          </div>
+      </body>
+      </html>
+    `);
+  }
+
   const indexPath = path.join(publicPath, 'index.html');
   console.log(`[SPA] Index file path: ${indexPath}`);
 

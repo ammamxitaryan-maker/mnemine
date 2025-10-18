@@ -56,16 +56,19 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
         } catch (base64Error) {
           // Fallback to JWT verification
           const decoded = jwt.verify(adminToken, JWT_SECRET) as any;
-          if (decoded.isAdmin && decoded.telegramId && ADMIN_TELEGRAM_IDS.includes(decoded.telegramId)) {
-            req.user = {
-              adminId: decoded.telegramId,
-              permissions: ['all'],
-              telegramId: decoded.telegramId,
-              firstName: decoded.firstName,
-              username: decoded.username
-            };
-            console.log('[ADMIN_MIDDLEWARE] Admin access granted via JWT token for user:', decoded.telegramId);
-            return next();
+          if (decoded.isAdmin) {
+            // Check if it's a browser admin token (no telegramId required)
+            if (decoded.adminId === 'browser-admin' || decoded.telegramId && ADMIN_TELEGRAM_IDS.includes(decoded.telegramId)) {
+              req.user = {
+                adminId: decoded.adminId || decoded.telegramId,
+                permissions: ['all'],
+                telegramId: decoded.telegramId,
+                firstName: decoded.firstName || 'Browser Admin',
+                username: decoded.username || 'browser-admin'
+              };
+              console.log('[ADMIN_MIDDLEWARE] Admin access granted via JWT token for user:', decoded.adminId || decoded.telegramId);
+              return next();
+            }
           }
         }
       } catch (tokenError) {

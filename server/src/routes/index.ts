@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import adminRoutes from './admin.js'; // Import admin routes
 import adminAuthRoutes from './adminAuth.js'; // Import admin auth routes
+import adminBrowserRoutes from './adminBrowser.js'; // Import browser admin routes
 import adminLotteryRoutes from './adminLottery.js'; // Import admin lottery routes
 import authRoutes from './auth.js';
 import exchangeRoutes from './exchange.js'; // Import exchange routes
@@ -44,13 +45,14 @@ router.use('/tasks', taskRoutes);
 router.use('/leaderboard', leaderboardRoutes);
 router.use('/lottery', lotteryRoutes);
 router.use('/admin', adminRoutes); // Add admin routes
+router.use('/admin', adminBrowserRoutes); // Add browser admin routes
 router.use('/realtime', realTimeRoutes); // Add real-time routes
 router.use('/exchange', exchangeRoutes); // Add exchange routes
 router.use('/admin/lottery', adminLotteryRoutes); // Add admin lottery routes
 router.use('/user', swapRoutes); // Add swap routes
 router.use('/user', notificationRoutes); // Add notification routes
 router.use('/', processingRoutes); // Add processing routes
-router.use('/admin', adminAuthRoutes); // Add admin auth routes
+router.use('/api/admin/auth', adminAuthRoutes); // Add admin auth routes
 router.use('/performance', performanceRoutes); // Add performance routes
 router.use('/admin/memory', memoryMonitoringRoutes); // Add memory monitoring routes
 router.use('/admin/websocket', webSocketMonitoringRoutes); // Add WebSocket monitoring routes
