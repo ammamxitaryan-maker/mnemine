@@ -223,6 +223,9 @@ importers:
       '@types/morgan':
         specifier: ^1.9.10
         version: 1.9.10
+      '@types/node':
+        specifier: ^22.18.10
+        version: 22.18.10
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
@@ -263,9 +266,6 @@ importers:
         specifier: ^3.22.4
         version: 3.25.76
     devDependencies:
-      '@types/node':
-        specifier: ^22.18.10
-        version: 22.18.10
       nodemon:
         specifier: ^3.0.1
         version: 3.1.10
