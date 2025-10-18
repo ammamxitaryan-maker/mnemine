@@ -1,30 +1,26 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Ticket, 
-  Users, 
-  DollarSign, 
-  Calendar,
-  RefreshCw,
-  Play,
-  Pause,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Search,
-  Crown,
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { api } from '@/lib/api';
+import {
+  ArrowLeft,
   Award,
+  Calendar,
+  CheckCircle,
+  Crown,
+  DollarSign,
+  Play,
+  RefreshCw,
+  Search,
+  Ticket,
   User,
-  Filter,
-  ArrowLeft
+  Users
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface LotteryData {
   id: string;
@@ -81,7 +77,7 @@ const AdminLottery = () => {
         api.get('/admin/lottery/current'),
         api.get('/admin/lottery/tickets')
       ]);
-      
+
       setLottery(lotteryResponse.data.data);
       setTickets(ticketsResponse.data.data.tickets || []);
     } catch (err: any) {
@@ -95,7 +91,7 @@ const AdminLottery = () => {
     if (!searchTerm.trim()) {
       setFilteredTickets(tickets);
     } else {
-      const filtered = tickets.filter(ticket => 
+      const filtered = tickets.filter(ticket =>
         ticket.user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.user.telegramId.includes(searchTerm)
@@ -108,7 +104,7 @@ const AdminLottery = () => {
     try {
       setActionLoading(true);
       let response;
-      
+
       switch (action) {
         case 'start':
           response = await api.post('/admin/lottery/start');
@@ -118,8 +114,8 @@ const AdminLottery = () => {
             alert('❌ Please select a winner first!');
             return;
           }
-          response = await api.post('/admin/lottery/complete', { 
-            winnerTicketId: selectedWinner 
+          response = await api.post('/admin/lottery/complete', {
+            winnerTicketId: selectedWinner
           });
           break;
         case 'reset':
@@ -130,7 +126,7 @@ const AdminLottery = () => {
         default:
           throw new Error('Invalid action');
       }
-      
+
       if (response.data.success) {
         await fetchLotteryData();
         alert(`✅ ${action} completed successfully!`);
@@ -309,35 +305,38 @@ const AdminLottery = () => {
                 <Button
                   onClick={() => handleLotteryAction('start')}
                   disabled={actionLoading}
-                  className="bg-green-600 hover:bg-green-700 text-white shadow-lg"
+                  size="mobile"
+                  className="bg-green-600 hover:bg-green-700 text-white shadow-lg min-h-[44px] touch-manipulation"
                 >
                   <Play className="h-4 w-4 mr-2" />
                   🚀 Запустить лотерею
                 </Button>
               )}
-              
+
               {lottery.status === 'ACTIVE' && (
                 <Button
                   onClick={() => handleLotteryAction('complete')}
                   disabled={actionLoading || !selectedWinner}
-                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                  size="mobile"
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg min-h-[44px] touch-manipulation"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   🏁 Завершить лотерею
                 </Button>
               )}
-              
+
               <Button
                 onClick={() => handleLotteryAction('reset')}
                 disabled={actionLoading}
                 variant="outline"
-                className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                size="mobile"
+                className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white min-h-[44px] touch-manipulation"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 🔄 Сбросить лотерею
               </Button>
             </div>
-            
+
             {lottery.status === 'ACTIVE' && !selectedWinner && (
               <div className="mt-3 p-3 bg-yellow-900/20 border border-yellow-600 rounded-lg">
                 <p className="text-yellow-400 text-sm">
@@ -455,13 +454,12 @@ const AdminLottery = () => {
               {filteredTickets.map((ticket) => (
                 <div
                   key={ticket.id}
-                  className={`p-4 rounded-lg border transition-all duration-200 ${
-                    ticket.isWinner 
-                      ? 'bg-green-900/20 border-green-700 shadow-lg shadow-green-900/20' 
+                  className={`p-4 rounded-lg border transition-all duration-200 ${ticket.isWinner
+                      ? 'bg-green-900/20 border-green-700 shadow-lg shadow-green-900/20'
                       : selectedWinner === ticket.id
-                      ? 'bg-yellow-900/20 border-yellow-600 shadow-lg shadow-yellow-900/20'
-                      : 'bg-gray-800 border-gray-700 hover:bg-gray-750 hover:border-gray-600'
-                  }`}
+                        ? 'bg-yellow-900/20 border-yellow-600 shadow-lg shadow-yellow-900/20'
+                        : 'bg-gray-800 border-gray-700 hover:bg-gray-750 hover:border-gray-600'
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -472,7 +470,7 @@ const AdminLottery = () => {
                       </div>
                       <div className="flex-1">
                         <div className="font-medium text-white">
-                          👤 {ticket.user.firstName || 'Без имени'} 
+                          👤 {ticket.user.firstName || 'Без имени'}
                           {ticket.user.username && <span className="text-gray-400"> (@{ticket.user.username})</span>}
                         </div>
                         <div className="text-sm text-gray-400">
@@ -497,11 +495,10 @@ const AdminLottery = () => {
                         <Button
                           onClick={() => handleSelectWinner(ticket.id)}
                           size="sm"
-                          className={`${
-                            selectedWinner === ticket.id 
-                              ? 'bg-yellow-600 hover:bg-yellow-700' 
+                          className={`${selectedWinner === ticket.id
+                              ? 'bg-yellow-600 hover:bg-yellow-700'
                               : 'bg-gray-700 hover:bg-gray-600'
-                          } text-white`}
+                            } text-white`}
                         >
                           {selectedWinner === ticket.id ? (
                             <>

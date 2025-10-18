@@ -1,36 +1,32 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '@/lib/api';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LoadingSpinner } from '@/components/admin/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { api } from '@/lib/api';
 import {
-  Users,
-  DollarSign,
-  TrendingUp,
   Activity,
-  Ticket,
-  UserCheck,
   AlertTriangle,
-  CheckCircle,
-  Clock,
+  ArrowUpRight,
   BarChart3,
-  Database,
-  Settings,
   Bell,
-  FileText,
-  CreditCard,
+  CheckCircle,
   Cog,
-  Home,
-  Shield,
+  CreditCard,
+  Database,
+  DollarSign,
+  FileText,
   History,
-  Gift,
-  Ban,
-  ArrowUpRight
+  Settings,
+  Shield,
+  Ticket,
+  TrendingUp,
+  UserCheck,
+  Users
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
   users: {
@@ -123,7 +119,7 @@ const AdminDashboardUltraCompact = () => {
       setLoading(true);
       const response = await api.get('/admin/dashboard-stats');
       const data = response.data.data;
-      
+
       if (data && !data.system) {
         data.system = {
           uptime: '24/7',
@@ -131,7 +127,7 @@ const AdminDashboardUltraCompact = () => {
           alerts: 0
         };
       }
-      
+
       setStats(data);
     } catch (err: any) {
       console.error('Dashboard data fetch error:', err);
@@ -154,7 +150,7 @@ const AdminDashboardUltraCompact = () => {
       <div className="text-center py-4">
         <AlertTriangle className="h-8 w-8 text-red-400 mx-auto mb-2" />
         <p className="text-red-400 mb-2 text-sm">{error}</p>
-        <Button onClick={fetchDashboardData} variant="outline" size="sm">
+        <Button onClick={fetchDashboardData} variant="outline" size="mobile" className="min-h-[44px] touch-manipulation">
           Retry
         </Button>
       </div>
@@ -169,11 +165,11 @@ const AdminDashboardUltraCompact = () => {
           <h1 className="text-lg font-bold">Admin Dashboard</h1>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => navigate('/')}
-            className="text-white hover:bg-white/20 h-6 w-6 p-0"
+            className="text-white hover:bg-white/20 min-h-[44px] min-w-[44px] touch-manipulation"
           >
-            <ArrowUpRight className="h-3 w-3" />
+            <ArrowUpRight className="h-4 w-4" />
           </Button>
         </div>
         <p className="text-purple-100 text-xs">
@@ -236,19 +232,21 @@ const AdminDashboardUltraCompact = () => {
             <Button
               key={func.path}
               onClick={() => navigate(func.path)}
-              className={`h-12 flex-col space-y-0.5 ${func.color} hover:opacity-90 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200`}
+              size="admin-compact"
+              className={`${func.color} hover:opacity-90 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 touch-manipulation`}
             >
               <Icon className="h-4 w-4" />
               <span className="text-xs font-medium leading-tight">{func.shortLabel}</span>
             </Button>
           );
         })}
-        
+
         {/* Database Reset Button */}
         <Button
           onClick={handleResetDatabase}
           disabled={isResetting}
-          className="h-12 flex-col space-y-0.5 bg-red-600 hover:bg-red-700 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50"
+          size="admin-compact"
+          className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 active:scale-95 touch-manipulation"
         >
           <Database className="h-4 w-4" />
           <span className="text-xs font-medium leading-tight">
@@ -314,14 +312,16 @@ const AdminDashboardUltraCompact = () => {
             <Button
               variant="outline"
               onClick={() => setShowResetDialog(false)}
-              className="border-gray-600 text-gray-300 hover:bg-gray-800 text-xs h-8"
+              size="mobile"
+              className="border-gray-600 text-gray-300 hover:bg-gray-800 text-xs min-h-[44px] touch-manipulation"
             >
               Отмена
             </Button>
             <Button
               onClick={confirmResetDatabase}
               disabled={isResetting}
-              className="bg-red-600 hover:bg-red-700 text-white text-xs h-8"
+              size="mobile"
+              className="bg-red-600 hover:bg-red-700 text-white text-xs min-h-[44px] touch-manipulation"
             >
               {isResetting ? 'Сбрасываем...' : 'Подтвердить'}
             </Button>

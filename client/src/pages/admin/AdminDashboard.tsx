@@ -1,26 +1,23 @@
 ﻿"use client";
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LoadingSpinner } from '@/components/admin/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { api } from '@/lib/api';
 import {
-  Users,
-  DollarSign,
-  TrendingUp,
   Activity,
-  Ticket,
-  UserCheck,
   AlertTriangle,
+  BarChart3,
   CheckCircle,
   Clock,
-  BarChart3,
   Database,
-  Trash2
+  DollarSign,
+  Ticket,
+  Users
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
   users: {
@@ -91,7 +88,7 @@ const AdminDashboard = () => {
       setLoading(true);
       const response = await api.get('/admin/dashboard-stats');
       const data = response.data.data;
-      
+
       // Ensure system data exists with defaults
       if (data && !data.system) {
         data.system = {
@@ -100,7 +97,7 @@ const AdminDashboard = () => {
           alerts: 0
         };
       }
-      
+
       setStats(data);
     } catch (err: any) {
       console.error('Dashboard data fetch error:', err);
@@ -123,7 +120,7 @@ const AdminDashboard = () => {
       <div className="text-center py-8">
         <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
         <p className="text-red-400 mb-4">{error}</p>
-        <Button onClick={fetchDashboardData} variant="outline">
+        <Button onClick={fetchDashboardData} variant="outline" size="mobile" className="min-h-[44px] touch-manipulation">
           Retry
         </Button>
       </div>
@@ -145,28 +142,32 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
         <Button
           onClick={() => navigate('/admin/users')}
-          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+          size="admin-grid"
+          className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
         >
           <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
           <span className="text-xs sm:text-sm font-medium">Users</span>
         </Button>
         <Button
           onClick={() => navigate('/admin/transactions')}
-          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+          size="admin-grid"
+          className="bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
         >
           <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
           <span className="text-xs sm:text-sm font-medium">Transactions</span>
         </Button>
         <Button
           onClick={() => navigate('/admin/lottery')}
-          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-purple-600 hover:bg-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+          size="admin-grid"
+          className="bg-purple-600 hover:bg-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
         >
           <Ticket className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
           <span className="text-xs sm:text-sm font-medium">Lottery</span>
         </Button>
         <Button
           onClick={() => navigate('/admin/analytics')}
-          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-orange-600 hover:bg-orange-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+          size="admin-grid"
+          className="bg-orange-600 hover:bg-orange-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
         >
           <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
           <span className="text-xs sm:text-sm font-medium">Analytics</span>
@@ -174,7 +175,8 @@ const AdminDashboard = () => {
         <Button
           onClick={handleResetDatabase}
           disabled={isResetting}
-          className="h-14 sm:h-16 md:h-20 flex-col space-y-1 md:space-y-2 bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+          size="admin-grid"
+          className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 active:scale-95 touch-manipulation"
         >
           <Database className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
           <span className="text-xs sm:text-sm font-medium">

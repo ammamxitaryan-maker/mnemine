@@ -1,36 +1,32 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LoadingSpinner } from '@/components/admin/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { api } from '@/lib/api';
 import {
-  Users,
-  DollarSign,
-  TrendingUp,
   Activity,
-  Ticket,
-  UserCheck,
   AlertTriangle,
+  BarChart3,
+  Bell,
   CheckCircle,
   Clock,
-  BarChart3,
-  Database,
-  Trash2,
-  Settings,
-  Bell,
-  FileText,
-  CreditCard,
   Cog,
-  Home,
-  Shield,
+  CreditCard,
+  Database,
+  DollarSign,
+  FileText,
   History,
-  Gift,
-  Ban
+  Settings,
+  Shield,
+  Ticket,
+  TrendingUp,
+  UserCheck,
+  Users
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
   users: {
@@ -123,7 +119,7 @@ const AdminDashboardMinimal = () => {
       setLoading(true);
       const response = await api.get('/admin/dashboard-stats');
       const data = response.data.data;
-      
+
       if (data && !data.system) {
         data.system = {
           uptime: '24/7',
@@ -131,7 +127,7 @@ const AdminDashboardMinimal = () => {
           alerts: 0
         };
       }
-      
+
       setStats(data);
     } catch (err: any) {
       console.error('Dashboard data fetch error:', err);
@@ -154,7 +150,7 @@ const AdminDashboardMinimal = () => {
       <div className="text-center py-8">
         <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
         <p className="text-red-400 mb-4">{error}</p>
-        <Button onClick={fetchDashboardData} variant="outline">
+        <Button onClick={fetchDashboardData} variant="outline" size="mobile" className="min-h-[44px] touch-manipulation">
           Retry
         </Button>
       </div>
@@ -226,19 +222,21 @@ const AdminDashboardMinimal = () => {
             <Button
               key={func.path}
               onClick={() => navigate(func.path)}
-              className={`h-16 flex-col space-y-1 ${func.color} hover:opacity-90 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200`}
+              size="admin-grid"
+              className={`${func.color} hover:opacity-90 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 touch-manipulation`}
             >
               <Icon className="h-5 w-5" />
               <span className="text-xs font-medium leading-tight">{func.label}</span>
             </Button>
           );
         })}
-        
+
         {/* Database Reset Button */}
         <Button
           onClick={handleResetDatabase}
           disabled={isResetting}
-          className="h-16 flex-col space-y-1 bg-red-600 hover:bg-red-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50"
+          size="admin-grid"
+          className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 active:scale-95 touch-manipulation"
         >
           <Database className="h-5 w-5" />
           <span className="text-xs font-medium leading-tight">
@@ -320,14 +318,16 @@ const AdminDashboardMinimal = () => {
             <Button
               variant="outline"
               onClick={() => setShowResetDialog(false)}
-              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              size="mobile"
+              className="border-gray-600 text-gray-300 hover:bg-gray-800 min-h-[44px] touch-manipulation"
             >
               Отмена
             </Button>
             <Button
               onClick={confirmResetDatabase}
               disabled={isResetting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              size="mobile"
+              className="bg-red-600 hover:bg-red-700 text-white min-h-[44px] touch-manipulation"
             >
               {isResetting ? 'Сбрасываем...' : 'Подтвердить сброс'}
             </Button>

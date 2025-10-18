@@ -229,8 +229,8 @@ const USDTPayment = () => {
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Status:</span>
               <span className={`font-medium ${paymentStatus?.status === 'COMPLETED' ? 'text-green-500' :
-                  paymentStatus?.status === 'FAILED' ? 'text-red-500' :
-                    'text-yellow-500'
+                paymentStatus?.status === 'FAILED' ? 'text-red-500' :
+                  'text-yellow-500'
                 }`}>
                 {paymentStatus?.status || 'PENDING'}
               </span>
@@ -267,7 +267,8 @@ const USDTPayment = () => {
           <Button
             onClick={handleRefresh}
             variant="outline"
-            className="flex-1"
+            size="mobile"
+            className="flex-1 min-h-[44px] touch-manipulation"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Check Status
@@ -275,7 +276,8 @@ const USDTPayment = () => {
           <Button
             onClick={handleBack}
             variant="outline"
-            className="flex-1"
+            size="mobile"
+            className="flex-1 min-h-[44px] touch-manipulation"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back

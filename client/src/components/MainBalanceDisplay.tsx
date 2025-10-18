@@ -4,8 +4,10 @@ import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
 import { useEarnings } from '@/hooks/useEarnings';
 import { useMainBalance } from '@/hooks/useMainBalance';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { Coins, TrendingUp, Wallet, Zap } from 'lucide-react';
+import { TrendingUp, Wallet, Zap, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface MainBalanceDisplayProps {
   className?: string;
@@ -86,6 +88,25 @@ export const MainBalanceDisplay = ({
             ≈ ${usdEquivalent.toFixed(2)} USD
           </div>
         )}
+        
+        {/* Investment Button */}
+        {(availableBalance || 0) > 0 && (
+          <div className="mt-3">
+            <Link to="/slots">
+              <Button 
+                size="mobile"
+                className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                <span className="font-medium">{t('investNow')}</span>
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+            <div className="mt-2 text-xs text-muted-foreground">
+              {t('earn30PercentIn7Days')}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Live Earnings - Compact Display */}
@@ -112,23 +133,7 @@ export const MainBalanceDisplay = ({
 
       {/* Details Section - Compact Grid */}
       {showDetails && (
-        <div className="grid grid-cols-2 gap-3">
-          {/* Total Balance */}
-          <div className="p-3 bg-muted/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-1">
-              <Coins className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{t('totalBalance')}</span>
-            </div>
-            <div className="text-sm font-medium text-foreground">
-              {(totalBalance || 0).toFixed(3)} MNE
-            </div>
-            {totalUsdEquivalent > 0 && (
-              <div className="text-xs text-muted-foreground">
-                ≈ ${totalUsdEquivalent.toFixed(2)} USD
-              </div>
-            )}
-          </div>
-
+        <div className="grid grid-cols-1 gap-3">
           {/* Invested in Slots */}
           <div className="p-3 bg-muted/20 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
