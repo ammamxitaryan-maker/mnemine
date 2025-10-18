@@ -122,28 +122,38 @@ export const createUSDTPayment = async (req: Request, res: Response) => {
 // POST /api/payments/usdt/webhook
 export const handleUSDTWebhook = async (req: Request, res: Response) => {
   try {
-    const signature = req.headers['x-signature'] as string;
+    console.log('[NOWPAYMENTS] Webhook received:', JSON.stringify(req.body, null, 2));
+
+    const signature = req.headers['x-nowpayments-sig'] as string;
     const payload = JSON.stringify(req.body);
 
     // Verify webhook signature
     if (!usdtPaymentService.verifyWebhookSignature(payload, signature)) {
-      console.error('[USDT_PAYMENT] Invalid webhook signature');
+      console.error('[NOWPAYMENTS] Invalid webhook signature');
       return res.status(401).json({ error: 'Invalid signature' });
     }
 
     const webhookData: USDTWebhookData = req.body;
+    console.log('[NOWPAYMENTS] Processing webhook data:', webhookData);
 
     // Process the webhook
     const success = await usdtPaymentService.processWebhook(webhookData);
 
     if (success) {
+      console.log('[NOWPAYMENTS] Webhook processed successfully');
       res.status(200).json({ success: true });
     } else {
+      console.log('[NOWPAYMENTS] Webhook processing failed');
       res.status(400).json({ success: false, error: 'Failed to process webhook' });
     }
   } catch (error) {
-    console.error('[USDT_PAYMENT] Webhook error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('[NOWPAYMENTS] Webhook error:', error);
+    if (error instanceof Error) {
+      console.error('[NOWPAYMENTS] Error stack:', error.stack);
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 };
 

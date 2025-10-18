@@ -21,65 +21,169 @@ export interface USDTPaymentResponse {
 }
 
 export interface USDTWebhookData {
-  paymentId: string;
-  orderId: string;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'completed' | 'failed' | 'expired';
-  transactionHash?: string;
-  timestamp: string;
+  payment_id: string;
+  order_id: string;
+  payment_status: 'waiting' | 'confirming' | 'confirmed' | 'sending' | 'partially_paid' | 'finished' | 'failed' | 'refunded' | 'expired';
+  pay_address?: string;
+  price_amount?: number;
+  price_currency?: string;
+  pay_amount?: number;
+  pay_currency?: string;
+  order_description?: string;
+  purchase_id?: string;
+  outcome_amount?: number;
+  outcome_currency?: string;
+  payin_extra_id?: string;
+  smart_contract?: string;
+  network?: string;
+  network_precision?: number;
+  time_limit?: string;
+  burning_percent?: number;
+  expiration_estimate_date?: string;
+  is_fixed_rate?: boolean;
+  is_fee_paid_by_user?: boolean;
+  valid_until?: string;
+  type?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// NOWPayments API Response interfaces
+interface NOWPaymentsInvoiceResponse {
+  id: string;
+  token_id: string;
+  order_id: string;
+  order_description: string;
+  price_amount: number;
+  price_currency: string;
+  pay_currency: string;
+  ipn_callback_url: string;
+  invoice_url: string;
+  success_url: string;
+  cancel_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface NOWPaymentsPaymentStatusResponse {
+  payment_id: string;
+  payment_status: string;
+  pay_address: string;
+  price_amount: number;
+  price_currency: string;
+  pay_amount: number;
+  pay_currency: string;
+  order_id: string;
+  order_description: string;
+  purchase_id: string;
+  outcome_amount: number;
+  outcome_currency: string;
+  payin_extra_id: string;
+  smart_contract: string;
+  network: string;
+  network_precision: number;
+  time_limit: string;
+  burning_percent: number;
+  expiration_estimate_date: string;
+  is_fixed_rate: boolean;
+  is_fee_paid_by_user: boolean;
+  valid_until: string;
+  type: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export class USDTPaymentService {
   private config: {
     apiKey: string;
-    apiSecret: string;
+    ipnSecret: string;
     baseUrl: string;
-    merchantId: string;
-    webhookSecret: string;
+    sandboxMode: boolean;
   };
 
   constructor() {
     this.config = {
-      apiKey: process.env.USDT_PAYMENT_API_KEY || 'demo_api_key',
-      apiSecret: process.env.USDT_PAYMENT_API_SECRET || 'demo_api_secret',
-      baseUrl: process.env.USDT_PAYMENT_BASE_URL || 'https://api.usdtpayment.com',
-      merchantId: process.env.USDT_PAYMENT_MERCHANT_ID || 'demo_merchant',
-      webhookSecret: process.env.USDT_PAYMENT_WEBHOOK_SECRET || 'demo_webhook_secret'
+      apiKey: process.env.NOWPAYMENTS_API_KEY || '',
+      ipnSecret: process.env.NOWPAYMENTS_IPN_SECRET || '',
+      baseUrl: process.env.NOWPAYMENTS_SANDBOX_MODE === 'true'
+        ? 'https://api-sandbox.nowpayments.io/v1'
+        : 'https://api.nowpayments.io/v1',
+      sandboxMode: process.env.NOWPAYMENTS_SANDBOX_MODE === 'true'
     };
   }
 
   /**
-   * Create a new USDT payment
+   * Create a new USDT payment using NOWPayments API
    */
   async createPayment(request: USDTPaymentRequest): Promise<USDTPaymentResponse> {
     try {
-      console.log(`[USDT_PAYMENT] Creating payment for order ${request.orderId}, amount: ${request.amount} USDT`);
+      console.log(`[NOWPAYMENTS] Creating payment for order ${request.orderId}, amount: ${request.amount} USD`);
 
-      // In a real implementation, this would call the actual payment service API
-      // For now, we'll simulate the response
-      const paymentId = `usdt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      if (!this.config.apiKey) {
+        console.error('[NOWPAYMENTS] API key not configured');
+        return {
+          success: false,
+          error: 'Payment service not configured'
+        };
+      }
 
-      // Generate a mock USDT address (in real implementation, this comes from the payment service)
-      const usdtAddress = this.generateMockUSDTAddress();
+      // Prepare NOWPayments invoice request
+      const invoiceData = {
+        price_amount: request.amount,
+        price_currency: 'usd',
+        pay_currency: 'usdttrc20', // USDT on TRON network
+        order_id: request.orderId,
+        order_description: request.description || `MNE Purchase: ${request.amount} USD`,
+        ipn_callback_url: `${process.env.BACKEND_URL}/api/payments/usdt/webhook`,
+        success_url: request.returnUrl,
+        cancel_url: `${process.env.FRONTEND_URL}/payment/cancel?orderId=${request.orderId}`
+      };
 
-      // Calculate USDT amount (1 USD = 1 USDT for simplicity)
-      const usdtAmount = request.amount;
+      console.log('[NOWPAYMENTS] Invoice data:', invoiceData);
 
-      // Generate QR code data
-      const qrCodeData = `usdt:${usdtAddress}?amount=${usdtAmount}&memo=${request.orderId}`;
+      // Make API request to NOWPayments
+      const response = await fetch(`${this.config.baseUrl}/invoice`, {
+        method: 'POST',
+        headers: {
+          'x-api-key': this.config.apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(invoiceData)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[NOWPAYMENTS] API error:', response.status, errorText);
+        return {
+          success: false,
+          error: `Payment service error: ${response.status}`
+        };
+      }
+
+      const invoiceResponse: NOWPaymentsInvoiceResponse = await response.json();
+      console.log('[NOWPAYMENTS] Invoice created:', invoiceResponse);
+
+      // Get payment details
+      const paymentDetails = await this.getPaymentDetails(invoiceResponse.id);
+
+      if (!paymentDetails) {
+        return {
+          success: false,
+          error: 'Failed to get payment details'
+        };
+      }
 
       return {
         success: true,
-        paymentId,
-        usdtAddress,
-        usdtAmount,
-        qrCode: qrCodeData,
-        paymentUrl: `${this.config.baseUrl}/payment/${paymentId}`
+        paymentId: invoiceResponse.id,
+        paymentUrl: invoiceResponse.invoice_url,
+        usdtAddress: paymentDetails.pay_address,
+        usdtAmount: paymentDetails.pay_amount,
+        qrCode: `usdt:${paymentDetails.pay_address}?amount=${paymentDetails.pay_amount}&memo=${request.orderId}`
       };
 
     } catch (error) {
-      console.error('[USDT_PAYMENT] Error creating payment:', error);
+      console.error('[NOWPAYMENTS] Error creating payment:', error);
       return {
         success: false,
         error: 'Failed to create payment'
@@ -88,11 +192,41 @@ export class USDTPaymentService {
   }
 
   /**
-   * Verify webhook signature
+   * Get payment details from NOWPayments
+   */
+  private async getPaymentDetails(paymentId: string): Promise<NOWPaymentsPaymentStatusResponse | null> {
+    try {
+      const response = await fetch(`${this.config.baseUrl}/payment/${paymentId}`, {
+        method: 'GET',
+        headers: {
+          'x-api-key': this.config.apiKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('[NOWPAYMENTS] Failed to get payment details:', response.status);
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('[NOWPAYMENTS] Error getting payment details:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verify webhook signature from NOWPayments
    */
   verifyWebhookSignature(payload: string, signature: string): boolean {
+    if (!this.config.ipnSecret) {
+      console.warn('[NOWPAYMENTS] IPN secret not configured, skipping signature verification');
+      return true; // Allow in development mode
+    }
+
     const expectedSignature = crypto
-      .createHmac('sha256', this.config.webhookSecret)
+      .createHmac('sha256', this.config.ipnSecret)
       .update(payload)
       .digest('hex');
 
@@ -103,155 +237,151 @@ export class USDTPaymentService {
   }
 
   /**
-   * Process webhook notification
+   * Process webhook notification from NOWPayments
    */
   async processWebhook(webhookData: USDTWebhookData): Promise<boolean> {
     try {
-      console.log(`[USDT_PAYMENT] Processing webhook for payment ${webhookData.paymentId}, status: ${webhookData.status}`);
+      console.log(`[NOWPAYMENTS] Processing webhook for payment ${webhookData.payment_id}, status: ${webhookData.payment_status}`);
 
-      if (webhookData.status === 'completed') {
-        // Import prisma here to avoid circular dependencies
-        const { default: prisma } = await import('../prisma.js');
+      // Import prisma here to avoid circular dependencies
+      const { default: prisma } = await import('../prisma.js');
 
-        // Find the payment record
-        const payment = await prisma.payment.findUnique({
-          where: { orderId: webhookData.orderId },
-          include: { user: { include: { wallets: true } } }
-        });
+      // Find the payment record
+      const payment = await prisma.payment.findUnique({
+        where: { orderId: webhookData.order_id },
+        include: { user: { include: { wallets: true } } }
+      });
 
-        if (!payment) {
-          console.error(`[USDT_PAYMENT] Payment not found for order ${webhookData.orderId}`);
-          return false;
-        }
+      if (!payment) {
+        console.error(`[NOWPAYMENTS] Payment not found for order ${webhookData.order_id}`);
+        return false;
+      }
 
+      // Handle different payment statuses
+      if (webhookData.payment_status === 'finished') {
         if (payment.status === 'COMPLETED') {
-          console.log(`[USDT_PAYMENT] Payment ${webhookData.paymentId} already processed`);
+          console.log(`[NOWPAYMENTS] Payment ${webhookData.payment_id} already processed`);
           return true;
         }
 
-        // Update payment status
-        await prisma.payment.update({
-          where: { orderId: webhookData.orderId },
-          data: {
-            status: 'COMPLETED',
-            paymentId: webhookData.paymentId,
-            transactionHash: webhookData.transactionHash
-          }
-        });
-
-        // Get current exchange rate for MNE conversion
-        const exchangeRate = await prisma.exchangeRate.findFirst({
-          where: { isActive: true },
-          orderBy: { createdAt: 'desc' }
-        });
-
-        if (!exchangeRate) {
-          console.error('[USDT_PAYMENT] Exchange rate not available');
-          return false;
-        }
-
-        // Convert USDT amount to MNE using exchange rate
-        const mneAmount = webhookData.amount * exchangeRate.rate;
-
-        // Add MNE to user's wallet
-        let mneWallet = payment.user.wallets.find(w => w.currency === 'MNE');
-
-        if (!mneWallet) {
-          mneWallet = await prisma.wallet.create({
+        const result = await prisma.$transaction(async (tx) => {
+          // Update payment status
+          await tx.payment.update({
+            where: { orderId: webhookData.order_id },
             data: {
-              userId: payment.userId,
-              currency: 'MNE',
-              balance: 0
+              status: 'COMPLETED',
+              paymentId: webhookData.payment_id,
+              transactionHash: webhookData.payin_extra_id || webhookData.smart_contract
             }
           });
-        }
 
-        // Update MNE balance
-        await prisma.wallet.update({
-          where: { id: mneWallet.id },
-          data: {
-            balance: { increment: mneAmount }
+          // Get current exchange rate for MNE conversion
+          const exchangeRate = await tx.exchangeRate.findFirst({
+            where: { isActive: true },
+            orderBy: { createdAt: 'desc' }
+          });
+
+          if (!exchangeRate) {
+            throw new Error('Exchange rate not available');
           }
+
+          // Convert USD amount to MNE using exchange rate
+          const mneAmount = (webhookData.price_amount || 0) * exchangeRate.rate;
+
+          // Add MNE to user's wallet
+          let mneWallet = payment.user.wallets.find(w => w.currency === 'MNE');
+
+          if (!mneWallet) {
+            mneWallet = await tx.wallet.create({
+              data: {
+                userId: payment.userId,
+                currency: 'MNE',
+                balance: 0
+              }
+            });
+          }
+
+          // Update MNE balance
+          await tx.wallet.update({
+            where: { id: mneWallet.id },
+            data: {
+              balance: { increment: mneAmount }
+            }
+          });
+
+          // Create transaction record
+          await tx.transaction.create({
+            data: {
+              userId: payment.userId,
+              type: 'DEPOSIT',
+              amount: mneAmount,
+              currency: 'MNE',
+              description: `USDT Payment: ${webhookData.price_amount || 0} USD converted to ${mneAmount.toFixed(6)} MNE`,
+              status: 'COMPLETED',
+              referenceId: payment.id
+            }
+          });
+
+          // Update user's total invested
+          await tx.user.update({
+            where: { id: payment.userId },
+            data: {
+              totalInvested: { increment: webhookData.price_amount || 0 },
+              hasMadeDeposit: true,
+              lastDepositAt: new Date()
+            }
+          });
+
+          return { mneAmount, exchangeRate };
         });
 
-        // Create transaction record
-        await prisma.transaction.create({
-          data: {
-            userId: payment.userId,
-            type: 'DEPOSIT',
-            amount: mneAmount,
-            currency: 'MNE',
-            description: `USDT Payment: ${webhookData.amount} USDT converted to ${mneAmount.toFixed(6)} MNE`,
-            status: 'COMPLETED',
-            referenceId: payment.id
-          }
-        });
-
-        // Update user's total invested
-        await prisma.user.update({
-          where: { id: payment.userId },
-          data: {
-            totalInvested: { increment: webhookData.amount },
-            hasMadeDeposit: true,
-            lastDepositAt: new Date()
-          }
-        });
-
-        console.log(`[USDT_PAYMENT] Successfully processed payment ${webhookData.paymentId}: ${webhookData.amount} USDT -> ${mneAmount.toFixed(6)} MNE`);
+        console.log(`[NOWPAYMENTS] Successfully processed payment ${webhookData.payment_id}: ${webhookData.price_amount || 0} USD -> ${result.mneAmount.toFixed(6)} MNE`);
         return true;
 
-      } else if (webhookData.status === 'failed' || webhookData.status === 'expired') {
+      } else if (webhookData.payment_status === 'failed' || webhookData.payment_status === 'expired') {
         // Update payment status to failed
-        const { default: prisma } = await import('../prisma.js');
-
         await prisma.payment.update({
-          where: { orderId: webhookData.orderId },
+          where: { orderId: webhookData.order_id },
           data: {
             status: 'FAILED',
-            paymentId: webhookData.paymentId
+            paymentId: webhookData.payment_id
           }
         });
 
-        console.log(`[USDT_PAYMENT] Payment ${webhookData.paymentId} failed or expired`);
+        console.log(`[NOWPAYMENTS] Payment ${webhookData.payment_id} failed or expired`);
         return true;
       }
 
+      // For other statuses (waiting, confirming, etc.), just log and return true
+      console.log(`[NOWPAYMENTS] Payment ${webhookData.payment_id} status: ${webhookData.payment_status}`);
       return true;
+
     } catch (error) {
-      console.error('[USDT_PAYMENT] Error processing webhook:', error);
+      console.error('[NOWPAYMENTS] Error processing webhook:', error);
       return false;
     }
   }
 
   /**
-   * Get payment status
+   * Get payment status from NOWPayments
    */
   async getPaymentStatus(paymentId: string): Promise<{ status: string; amount?: number; transactionHash?: string }> {
     try {
-      // In a real implementation, this would query the payment service API
-      // For demo purposes, we'll return a mock status
+      const paymentDetails = await this.getPaymentDetails(paymentId);
+
+      if (!paymentDetails) {
+        return { status: 'unknown' };
+      }
+
       return {
-        status: 'completed',
-        amount: 100,
-        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`
+        status: paymentDetails.payment_status,
+        amount: paymentDetails.price_amount,
+        transactionHash: paymentDetails.payin_extra_id || paymentDetails.smart_contract
       };
     } catch (error) {
-      console.error('[USDT_PAYMENT] Error getting payment status:', error);
+      console.error('[NOWPAYMENTS] Error getting payment status:', error);
       return { status: 'unknown' };
     }
-  }
-
-  /**
-   * Generate a mock USDT address for demo purposes
-   */
-  private generateMockUSDTAddress(): string {
-    // Generate a mock TRC20 USDT address
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let address = 'T';
-    for (let i = 0; i < 33; i++) {
-      address += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return address;
   }
 }
 
