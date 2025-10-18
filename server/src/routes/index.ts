@@ -15,6 +15,7 @@ import processingRoutes from './processing.js'; // Import processing routes
 import realTimeRoutes from './realTime.js'; // Import real-time routes
 import swapRoutes from './swap.js'; // Import swap routes
 import taskRoutes from './tasks.js';
+import usdtPaymentRoutes from './usdtPaymentRoutes.js'; // Import USDT payment routes
 import userRoutes from './user.js';
 import webSocketMonitoringRoutes from './webSocketMonitoring.js'; // Import WebSocket monitoring routes
 
@@ -54,5 +55,6 @@ router.use('/performance', performanceRoutes); // Add performance routes
 router.use('/admin/memory', memoryMonitoringRoutes); // Add memory monitoring routes
 router.use('/admin/websocket', webSocketMonitoringRoutes); // Add WebSocket monitoring routes
 router.use('/payments', paymentRoutes); // Add payment routes
+router.use('/payments/usdt', usdtPaymentRoutes); // Add USDT payment routes
 
 export default router;

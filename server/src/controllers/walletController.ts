@@ -1,15 +1,15 @@
-﻿import { Request, Response } from 'express';
+﻿import { ActivityLogType, Wallet } from '@prisma/client';
+import { Request, Response } from 'express';
+import { DIRECT_USD_WITHDRAWAL_DISABLED, FIRST_100_WITHDRAWALS_LIMIT, MINIMUM_DEPOSIT_FOR_WITHDRAWAL, MINIMUM_WITHDRAWAL_FIRST_100, MINIMUM_WITHDRAWAL_REGULAR, REFERRAL_COMMISSIONS_L1, REFERRAL_COMMISSIONS_L2, REFERRAL_DEPOSIT_BONUS, REFERRAL_INCOME_CAP_ENABLED, RESERVE_FUND_PERCENTAGE, WITHDRAWAL_DAILY_LIMIT, WITHDRAWAL_FEE_PERCENTAGE, WITHDRAWAL_MIN_BALANCE_REQUIREMENT, WITHDRAWAL_REFERRAL_REQUIREMENT, WITHDRAWAL_SLOT_REQUIREMENT } from '../constants.js'; // Updated import for ranked commissions
 import prisma from '../prisma.js';
-import { REFERRAL_COMMISSIONS, RESERVE_FUND_PERCENTAGE, MINIMUM_WITHDRAWAL_REGULAR, WITHDRAWAL_FEE_PERCENTAGE, WITHDRAWAL_REFERRAL_REQUIREMENT, WITHDRAWAL_SLOT_REQUIREMENT, REFERRAL_DEPOSIT_BONUS, MINIMUM_WITHDRAWAL_FIRST_100, FIRST_100_WITHDRAWALS_LIMIT, WITHDRAWAL_DAILY_LIMIT, WITHDRAWAL_MIN_BALANCE_REQUIREMENT, REFERRAL_INCOME_CAP_THRESHOLD, REFERRAL_ZERO_IN_7_DAYS_PENALTY_ENABLED, RANKED_REFERRAL_COMMISSIONS_L1, RANKED_REFERRAL_COMMISSIONS_L2, RANKED_REFERRAL_COMMISSIONS_L3, REFERRAL_COMMISSIONS_L1, REFERRAL_COMMISSIONS_L2, REFERRAL_INCOME_CAP_ENABLED, DIRECT_USD_WITHDRAWAL_DISABLED, MINIMUM_DEPOSIT_FOR_WITHDRAWAL } from '../constants.js'; // Updated import for ranked commissions
-import { Wallet, MiningSlot, ActivityLogType } from '@prisma/client';
-import { isUserEligible, hasReferredInLast7Days, isUserSuspicious } from '../utils/helpers.js';
-import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js'; // Import userSelect
-import { validateAmount, validateAddress, sanitizeInput } from '../utils/validation.js';
+import { userSelect } from '../utils/dbSelects.js'; // Import userSelect
+import { isUserSuspicious } from '../utils/helpers.js';
+import { sanitizeInput, validateAddress, validateAmount } from '../utils/validation.js';
 
 // POST /api/user/:telegramId/deposit
 export const depositFunds = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
-  const { amount } = req.body;
+  const { amount, currency = 'USD' } = req.body;
   const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
 
   // Validate input
@@ -33,13 +33,30 @@ export const depositFunds = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const reserveAmount = amount * RESERVE_FUND_PERCENTAGE;
-    const netDeposit = amount - reserveAmount;
+    let usdAmount = amount;
+
+    // If depositing MNE, convert to USD using current exchange rate
+    if (currency === 'MNE') {
+      const exchangeRate = await prisma.exchangeRate.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (!exchangeRate) {
+        return res.status(400).json({ error: 'Exchange rate not available' });
+      }
+
+      // Convert MNE to USD: MNE amount * exchange rate = USD amount
+      usdAmount = amount * exchangeRate.rate;
+    }
+
+    const reserveAmount = usdAmount * RESERVE_FUND_PERCENTAGE;
+    const netDeposit = usdAmount - reserveAmount;
 
     await prisma.$transaction(async (tx) => {
       const depositorWallet = depositor.wallets.find((w: Wallet) => w.currency === 'USD');
       if (!depositorWallet) throw new Error('Depositor USD wallet not found');
-      
+
       await tx.wallet.update({
         where: { id: depositorWallet.id },
         data: { balance: { increment: netDeposit } },
@@ -47,8 +64,8 @@ export const depositFunds = async (req: Request, res: Response) => {
 
       await tx.user.update({
         where: { id: depositor.id },
-        data: { 
-          totalInvested: { increment: amount },
+        data: {
+          totalInvested: { increment: usdAmount },
           lastDepositAt: depositor.lastDepositAt ? depositor.lastDepositAt : new Date(),
         },
       });
@@ -58,7 +75,9 @@ export const depositFunds = async (req: Request, res: Response) => {
           userId: depositor.id,
           type: ActivityLogType.DEPOSIT,
           amount: netDeposit,
-          description: `Deposited ${amount.toFixed(2)} USD (Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`,
+          description: currency === 'MNE'
+            ? `Deposited ${amount.toFixed(6)} MNE (${usdAmount.toFixed(2)} USD, Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`
+            : `Deposited ${amount.toFixed(2)} USD (Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`,
           ipAddress: ipAddress,
         },
       });
@@ -77,8 +96,8 @@ export const depositFunds = async (req: Request, res: Response) => {
         // Определяем процент комиссии (только 2 уровня)
         const commissionRate = level === 0 ? REFERRAL_COMMISSIONS_L1 : REFERRAL_COMMISSIONS_L2;
 
-        let commissionAmount = amount * commissionRate;
-        
+        let commissionAmount = usdAmount * commissionRate;
+
         // Ограничиваем реферальный доход текущим балансом реферера
         if (REFERRAL_INCOME_CAP_ENABLED) {
           const referrerWallet = referrer.wallets.find((w: Wallet) => w.currency === 'USD')?.balance || 0;
@@ -144,8 +163,8 @@ export const withdrawFunds = async (req: Request, res: Response) => {
 
   // Проверяем, разрешен ли прямой вывод USD
   if (DIRECT_USD_WITHDRAWAL_DISABLED) {
-    return res.status(400).json({ 
-      error: 'Direct USD withdrawal is disabled. Please convert to MNE first using the swap function.' 
+    return res.status(400).json({
+      error: 'Direct USD withdrawal is disabled. Please convert to MNE first using the swap function.'
     });
   }
 
@@ -161,7 +180,7 @@ export const withdrawFunds = async (req: Request, res: Response) => {
   // Sanitize inputs
   const sanitizedTelegramId = sanitizeInput(telegramId);
   const sanitizedAddress = sanitizeInput(address);
-  
+
   if (!sanitizedTelegramId || !sanitizedAddress) {
     return res.status(400).json({ error: 'Invalid input data' });
   }
@@ -187,8 +206,8 @@ export const withdrawFunds = async (req: Request, res: Response) => {
     });
 
     if (!hasMinimumDeposit && activeReferralsCount < 3) {
-      return res.status(400).json({ 
-        error: `You need either a minimum deposit of ${MINIMUM_DEPOSIT_FOR_WITHDRAWAL} USD or 3 active referrals to withdraw.` 
+      return res.status(400).json({
+        error: `You need either a minimum deposit of ${MINIMUM_DEPOSIT_FOR_WITHDRAWAL} USD or 3 active referrals to withdraw.`
       });
     }
 
@@ -216,14 +235,14 @@ export const withdrawFunds = async (req: Request, res: Response) => {
       where: { type: ActivityLogType.WITHDRAWAL },
     });
 
-    const minimumWithdrawal = totalWithdrawalsCount < FIRST_100_WITHDRAWALS_LIMIT 
-      ? MINIMUM_WITHDRAWAL_FIRST_100 
+    const minimumWithdrawal = totalWithdrawalsCount < FIRST_100_WITHDRAWALS_LIMIT
+      ? MINIMUM_WITHDRAWAL_FIRST_100
       : MINIMUM_WITHDRAWAL_REGULAR;
 
     if (amount < minimumWithdrawal) return res.status(400).json({ error: `Minimum withdrawal is ${minimumWithdrawal.toFixed(2)} USD` });
 
     if (USDWallet.balance < amount) return res.status(400).json({ error: 'Insufficient balance' });
-    
+
     if (totalWithdrawalsCount >= FIRST_100_WITHDRAWALS_LIMIT) {
       const activeReferralsCount = await prisma.user.count({
         where: {
@@ -251,7 +270,7 @@ export const withdrawFunds = async (req: Request, res: Response) => {
         await prisma.$transaction([
           prisma.user.update({
             where: { id: user.id },
-            data: { 
+            data: {
               isSuspicious: true,
               lastSuspiciousPenaltyAppliedAt: new Date(),
             },
@@ -340,14 +359,14 @@ export const claimEarnings = async (req: Request, res: Response) => {
     if (!USDWallet) return res.status(400).json({ error: 'USD wallet not found' });
 
     await prisma.$transaction(async (tx) => {
-      await tx.wallet.update({ 
-        where: { id: USDWallet.id }, 
-        data: { balance: { increment: totalEarnings } } 
+      await tx.wallet.update({
+        where: { id: USDWallet.id },
+        data: { balance: { increment: totalEarnings } }
       });
       for (const slotData of updatedSlotsData) {
-        await tx.miningSlot.update({ 
-          where: { id: slotData.id }, 
-          data: { lastAccruedAt: slotData.lastAccruedAt } 
+        await tx.miningSlot.update({
+          where: { id: slotData.id },
+          data: { lastAccruedAt: slotData.lastAccruedAt }
         });
       }
       await tx.activityLog.create({

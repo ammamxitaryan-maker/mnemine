@@ -39,6 +39,7 @@ import Referrals from "./pages/Referrals";
 import Settings from "./pages/Settings";
 import Slots from "./pages/Slots";
 import Stats from "./pages/Stats";
+import USDTPayment from "./pages/USDTPayment";
 import Wallet from "./pages/Wallet";
 import Withdraw from "./pages/Withdraw";
 
@@ -84,6 +85,7 @@ const App = () => {
 
             {/* Routes without the main layout (modal-like pages) */}
             <Route path="/deposit" element={<Deposit />} />
+            <Route path="/payment/usdt" element={<USDTPayment />} />
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/lottery-history" element={<LotteryHistory />} />
             <Route path="/settings" element={<Settings />} />

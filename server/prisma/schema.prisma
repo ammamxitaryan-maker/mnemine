@@ -451,6 +451,8 @@ model Payment {
   paymentMethod String    @default("amerpay")
   paymentUrl  String?
   refundReason String?
+  metadata    Json?
+  transactionHash String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   
