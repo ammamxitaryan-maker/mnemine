@@ -154,33 +154,49 @@ export class USDTPaymentService {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('[NOWPAYMENTS] API error:', response.status, errorText);
+
+        let errorMessage = `Payment service error: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (e) {
+          // Use default error message
+        }
+
         return {
           success: false,
-          error: `Payment service error: ${response.status}`
+          error: errorMessage
         };
       }
 
       const invoiceResponse: NOWPaymentsInvoiceResponse = await response.json();
       console.log('[NOWPAYMENTS] Invoice created:', invoiceResponse);
 
-      // Get payment details
+      // Try to get payment details, but don't fail if not available immediately
       const paymentDetails = await this.getPaymentDetails(invoiceResponse.id);
 
-      if (!paymentDetails) {
+      if (paymentDetails) {
         return {
-          success: false,
-          error: 'Failed to get payment details'
+          success: true,
+          paymentId: invoiceResponse.id,
+          paymentUrl: invoiceResponse.invoice_url,
+          usdtAddress: paymentDetails.pay_address,
+          usdtAmount: paymentDetails.pay_amount,
+          qrCode: `usdt:${paymentDetails.pay_address}?amount=${paymentDetails.pay_amount}&memo=${request.orderId}`
+        };
+      } else {
+        // Return basic response without payment details - they will be available later
+        return {
+          success: true,
+          paymentId: invoiceResponse.id,
+          paymentUrl: invoiceResponse.invoice_url,
+          usdtAddress: 'Pending...',
+          usdtAmount: request.amount,
+          qrCode: `Payment URL: ${invoiceResponse.invoice_url}`
         };
       }
-
-      return {
-        success: true,
-        paymentId: invoiceResponse.id,
-        paymentUrl: invoiceResponse.invoice_url,
-        usdtAddress: paymentDetails.pay_address,
-        usdtAmount: paymentDetails.pay_amount,
-        qrCode: `usdt:${paymentDetails.pay_address}?amount=${paymentDetails.pay_amount}&memo=${request.orderId}`
-      };
 
     } catch (error) {
       console.error('[NOWPAYMENTS] Error creating payment:', error);
