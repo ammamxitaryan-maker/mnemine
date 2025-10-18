@@ -224,3 +224,22 @@ export const getUSDTPaymentHistory = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+// GET /api/payments/usdt/config
+export const getUSDTConfig = async (req: Request, res: Response) => {
+  try {
+    const config = {
+      apiKey: process.env.NOWPAYMENTS_API_KEY ? 'Set' : 'Not set',
+      ipnSecret: process.env.NOWPAYMENTS_IPN_SECRET ? 'Set' : 'Not set',
+      sandboxMode: process.env.NOWPAYMENTS_SANDBOX_MODE === 'true',
+      baseUrl: process.env.NOWPAYMENTS_SANDBOX_MODE === 'true' 
+        ? 'https://api-sandbox.nowpayments.io/v1' 
+        : 'https://api.nowpayments.io/v1'
+    };
+
+    res.status(200).json(config);
+  } catch (error) {
+    console.error('[USDT_PAYMENT] Get config error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
