@@ -1,13 +1,13 @@
 "use client";
 
+import { Button } from '@/components/ui/button';
 import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
 import { useEarnings } from '@/hooks/useEarnings';
 import { useMainBalance } from '@/hooks/useMainBalance';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { TrendingUp, Wallet, Zap, ArrowRight } from 'lucide-react';
+import { ArrowRight, TrendingUp, Wallet, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 
 interface MainBalanceDisplayProps {
   className?: string;
@@ -56,23 +56,11 @@ export const MainBalanceDisplay = ({
     );
   }
 
-  // Check for data inconsistency
-  const hasDataInconsistency = (totalInvested || 0) > (totalBalance || 0);
+  // Check for data inconsistency - this should not happen with the new logic
+  const hasDataInconsistency = false; // Removed since we now prevent negative balances
 
   return (
     <div className={`minimal-card ${className}`}>
-      {/* Data Inconsistency Warning */}
-      {hasDataInconsistency && (
-        <div className="mb-4 p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-2 h-2 bg-red-500 rounded-full" />
-            <span className="text-sm font-medium text-red-500">Data Inconsistency</span>
-          </div>
-          <div className="text-xs text-red-500">
-            Invested amount ({totalInvested?.toFixed(3)} MNE) exceeds total balance ({totalBalance?.toFixed(3)} MNE)
-          </div>
-        </div>
-      )}
 
       {/* Main Available Balance - Compact Header */}
       <div className="text-center mb-4">
@@ -80,20 +68,20 @@ export const MainBalanceDisplay = ({
           <Wallet className="w-4 h-4 text-primary" />
           <h2 className="text-base font-medium text-foreground">{t('availableBalance')}</h2>
         </div>
-        <div className={`text-3xl font-light mb-1 ${hasDataInconsistency ? 'text-red-500' : 'text-primary'}`}>
+        <div className="text-3xl font-light mb-1 text-primary">
           {(availableBalance || 0).toFixed(3)} MNE
         </div>
         {usdEquivalent > 0 && (
           <div className="text-sm text-accent">
-            ≈ ${usdEquivalent.toFixed(2)} USD
+            ≈ ${usdEquivalent.toFixed(4)} USD
           </div>
         )}
-        
+
         {/* Investment Button */}
         {(availableBalance || 0) > 0 && (
           <div className="mt-3">
             <Link to="/slots">
-              <Button 
+              <Button
                 size="mobile"
                 className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
               >
@@ -125,30 +113,12 @@ export const MainBalanceDisplay = ({
           </div>
           {convertMNEToUSD(liveEarnings || 0) > 0 && (
             <div className="text-xs text-muted-foreground">
-              ≈ +${convertMNEToUSD(liveEarnings || 0).toFixed(2)} USD
+              ≈ +${convertMNEToUSD(liveEarnings || 0).toFixed(4)} USD
             </div>
           )}
         </div>
       )}
 
-      {/* Details Section - Compact Grid */}
-      {showDetails && (
-        <div className="grid grid-cols-1 gap-3">
-          {/* Invested in Slots */}
-          <div className="p-3 bg-muted/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{t('investedInSlots')}</span>
-            </div>
-            <div className="text-sm font-medium text-foreground">
-              {(totalInvested || 0).toFixed(3)} MNE
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {activeSlotsCount} {activeSlotsCount !== 1 ? t('activeSlots') : t('activeSlot')}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

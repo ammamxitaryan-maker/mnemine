@@ -296,7 +296,7 @@ export const withdrawFunds = async (req: Request, res: Response) => {
     await prisma.$transaction([
       prisma.wallet.update({
         where: { id: USDWallet.id },
-        data: { balance: { decrement: amount } },
+        data: { balance: Math.max(0, USDWallet.balance - amount) },
       }),
       prisma.activityLog.create({
         data: {

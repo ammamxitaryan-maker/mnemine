@@ -1,7 +1,7 @@
-﻿import { Request, Response } from 'express';
+﻿import { ActivityLogType, Wallet } from '@prisma/client';
+import { Request, Response } from 'express';
+import { EXCHANGE_RATE_VARIATION_MAX, EXCHANGE_RATE_VARIATION_MIN, MINIMUM_CONVERSION_AMOUNT, MNE_CURRENCY } from '../constants.js';
 import prisma from '../prisma.js';
-import { MINIMUM_CONVERSION_AMOUNT, MINIMUM_WITHDRAWAL_MNE, EXCHANGE_RATE_VARIATION_MIN, EXCHANGE_RATE_VARIATION_MAX, MNE_CURRENCY } from '../constants.js';
-import { Wallet, ActivityLogType } from '@prisma/client';
 import { userSelectWithoutMiningSlots } from '../utils/dbSelects.js';
 
 // GET /api/user/:telegramId/swap/rate
@@ -78,7 +78,7 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
       // Обновляем USD баланс
       await tx.wallet.update({
         where: { id: USDWallet.id },
-        data: { balance: { decrement: amount } },
+        data: { balance: Math.max(0, USDWallet.balance - amount) },
       });
 
       // Обновляем или создаем MNE кошелек
@@ -148,8 +148,8 @@ export const swapMNEToUSD = async (req: Request, res: Response) => {
     });
 
     if (!userWithSlots || userWithSlots.miningSlots.length === 0) {
-      return res.status(400).json({ 
-        error: 'You must invest in mining slots before converting MNE tokens. This prevents immediate withdrawal of welcome bonus tokens.' 
+      return res.status(400).json({
+        error: 'You must invest in mining slots before converting MNE tokens. This prevents immediate withdrawal of welcome bonus tokens.'
       });
     }
 
@@ -178,7 +178,7 @@ export const swapMNEToUSD = async (req: Request, res: Response) => {
       // Обновляем MNE баланс
       await tx.wallet.update({
         where: { id: MNEWallet.id },
-        data: { balance: { decrement: amount } },
+        data: { balance: Math.max(0, MNEWallet.balance - amount) },
       });
 
       // Обновляем USD кошелек
@@ -214,7 +214,7 @@ export const swapMNEToUSD = async (req: Request, res: Response) => {
 // GET /api/user/:telegramId/swap/history
 export const getSwapHistory = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
-  
+
   try {
     const user = await prisma.user.findUnique({
       where: { telegramId },

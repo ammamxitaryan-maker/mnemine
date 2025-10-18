@@ -544,5 +544,7 @@
   "appVersion": "Հավելվածի տարբերակ",
   "buildInfo": "Կառուցման տեղեկություններ",
   "investNow": "Ներդնել",
-  "earn30PercentIn7Days": "Վաստակեք 30% 7 օրում"
+  "earn30PercentIn7Days": "Վաստակեք 30% 7 օրում",
+  "minimumInvestmentRequired": "Նվազագույն ներդրումը {{minimum}} MNE է",
+  "minimumInvestmentHint": "Նվազագույն ներդրում: {{minimum}} MNE"
 }

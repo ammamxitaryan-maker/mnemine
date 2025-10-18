@@ -40,6 +40,8 @@ export const useMainBalance = (telegramId: string | undefined) => {
 
       const totalInvested = activeSlots.reduce((sum, slot) => sum + (slot.principal || 0), 0);
 
+      // Balance calculation completed
+
       // Calculate total earnings from slots
       const totalEarnings = activeSlots.reduce((sum, slot) => {
         const now = new Date();
@@ -55,8 +57,8 @@ export const useMainBalance = (telegramId: string | undefined) => {
       }, 0);
 
       // Available balance = total balance - invested amount
-      // If totalInvested > totalBalance, it means there's a data inconsistency
-      const availableBalance = totalBalance - totalInvested;
+      // The available balance should never be negative
+      const availableBalance = Math.max(0, totalBalance - totalInvested);
 
       return {
         availableBalance,

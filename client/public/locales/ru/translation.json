@@ -523,5 +523,7 @@
   "appVersion": "Версия приложения",
   "buildInfo": "Информация о сборке",
   "investNow": "Инвестировать",
-  "earn30PercentIn7Days": "Заработайте 30% за 7 дней"
+  "earn30PercentIn7Days": "Заработайте 30% за 7 дней",
+  "minimumInvestmentRequired": "Минимальная сумма инвестиции {{minimum}} MNE",
+  "minimumInvestmentHint": "Минимальная сумма инвестиции: {{minimum}} MNE"
 }

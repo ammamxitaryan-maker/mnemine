@@ -1,9 +1,9 @@
 "use client";
 
-import { useTranslation } from 'react-i18next';
-import { Coins } from 'lucide-react';
-import { useUserData } from '@/hooks/useUserData';
 import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
+import { useUserData } from '@/hooks/useUserData';
+import { Coins } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SimpleBalanceProps {
   telegramId: string;
@@ -31,7 +31,7 @@ export const SimpleBalance = ({ telegramId, className = '' }: SimpleBalanceProps
           </div>
           {usdEquivalent > 0 && (
             <div className="text-sm text-muted-foreground">
-              ≈ ${usdEquivalent.toFixed(2)} USD
+              ≈ ${usdEquivalent.toFixed(4)} USD
             </div>
           )}
         </div>

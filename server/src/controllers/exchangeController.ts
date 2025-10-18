@@ -1,11 +1,11 @@
 ﻿import { Request, Response } from 'express';
-import prisma from '../prisma.js';
-import { 
-  MIN_EXCHANGE_RATE, 
-  MAX_EXCHANGE_RATE, 
+import {
   DEFAULT_EXCHANGE_RATE,
-  MNE_CURRENCY 
+  MAX_EXCHANGE_RATE,
+  MIN_EXCHANGE_RATE,
+  MNE_CURRENCY
 } from '../constants.js';
+import prisma from '../prisma.js';
 // Middleware import removed - using Request directly
 
 // Get current exchange rate
@@ -16,7 +16,7 @@ export const getCurrentExchangeRate = async (req: Request, res: Response) => {
     });
 
     const rate = exchangeRate?.rate || DEFAULT_EXCHANGE_RATE;
-    
+
     res.json({
       success: true,
       rate,
@@ -151,7 +151,7 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
       // Deduct USD from user wallet
       await tx.wallet.update({
         where: { id: USDWallet.id },
-        data: { balance: { decrement: amount } }
+        data: { balance: Math.max(0, USDWallet.balance - amount) }
       });
 
       // Create swap transaction record

@@ -2,9 +2,9 @@
  * Виртуализированный список для больших наборов данных
  */
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { FixedSizeList as List } from 'react-window';
 import { Card, CardContent } from '@/components/ui/card';
+import { useMemo, useRef, useState } from 'react';
+import { List } from 'react-window';
 import { LoadingSpinner } from './LoadingSpinner';
 
 interface VirtualizedListProps<T> {
@@ -28,7 +28,7 @@ export const VirtualizedList = <T,>({
   className = '',
   onScroll,
 }: VirtualizedListProps<T>) => {
-  const listRef = useRef<List>(null);
+  const listRef = useRef<any>(null);
 
   // Обработчик скролла
   const handleScroll = (scrollTop: number) => {
@@ -36,11 +36,19 @@ export const VirtualizedList = <T,>({
   };
 
   // Компонент элемента списка
-  const ItemRenderer = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+  const ItemRenderer = ({ index, style, ariaAttributes }: {
+    index: number;
+    style: React.CSSProperties;
+    ariaAttributes: {
+      "aria-posinset": number;
+      "aria-setsize": number;
+      role: "listitem";
+    };
+  }) => {
     const item = items[index];
-    
+
     return (
-      <div style={style} className="px-2">
+      <div style={style} className="px-2" {...ariaAttributes}>
         {renderItem(item, index)}
       </div>
     );
@@ -69,15 +77,18 @@ export const VirtualizedList = <T,>({
   return (
     <div className={className}>
       <List
-        ref={listRef}
-        height={height}
-        itemCount={items.length}
-        itemSize={itemHeight}
-        onScroll={({ scrollTop }) => handleScroll(scrollTop)}
+        listRef={listRef}
+        rowCount={items.length}
+        rowHeight={itemHeight}
+        rowComponent={ItemRenderer}
+        rowProps={{}}
+        style={{ height }}
+        onScroll={onScroll ? (event: React.UIEvent<HTMLDivElement>) => {
+          const target = event.target as HTMLDivElement;
+          handleScroll(target.scrollTop);
+        } : undefined}
         className="scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
-      >
-        {ItemRenderer}
-      </List>
+      />
     </div>
   );
 };
@@ -112,11 +123,19 @@ export const VirtualizedTable = <T,>({
   const totalWidth = columns.reduce((sum, col) => sum + col.width, 0);
 
   // Компонент строки таблицы
-  const RowRenderer = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+  const RowRenderer = ({ index, style, ariaAttributes }: {
+    index: number;
+    style: React.CSSProperties;
+    ariaAttributes: {
+      "aria-posinset": number;
+      "aria-setsize": number;
+      role: "listitem";
+    };
+  }) => {
     const item = items[index];
-    
+
     return (
-      <div style={style} className="flex border-b border-gray-700 hover:bg-gray-800/50">
+      <div style={style} className="flex border-b border-gray-700 hover:bg-gray-800/50" {...ariaAttributes}>
         {columns.map((column) => (
           <div
             key={column.key}
@@ -164,17 +183,16 @@ export const VirtualizedTable = <T,>({
           </div>
         ))}
       </div>
-      
+
       {/* Виртуализированный контент */}
       <List
-        height={height - 48} // Вычитаем высоту заголовка
-        itemCount={items.length}
-        itemSize={rowHeight}
-        width={totalWidth}
+        rowCount={items.length}
+        rowHeight={rowHeight}
+        rowComponent={RowRenderer}
+        rowProps={{}}
+        style={{ height: height - 48, width: totalWidth }} // Вычитаем высоту заголовка
         className="scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
-      >
-        {RowRenderer}
-      </List>
+      />
     </div>
   );
 };
@@ -182,7 +200,7 @@ export const VirtualizedTable = <T,>({
 /**
  * Хук для виртуализации с пагинацией
  */
-export const useVirtualization = <T>(
+export const useVirtualization = <T,>(
   items: T[],
   options: {
     pageSize?: number;

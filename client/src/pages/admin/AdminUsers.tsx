@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Ban,
   CheckCircle,
+  DollarSign,
   Download,
   Search,
   Trash2,
@@ -19,6 +20,25 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Utility function to format last login time
+const formatLastLogin = (lastSeenAt: string | null) => {
+  if (!lastSeenAt) return 'Never';
+
+  const now = new Date();
+  const lastSeen = new Date(lastSeenAt);
+  const diffMs = now.getTime() - lastSeen.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return lastSeen.toLocaleDateString();
+};
 
 interface User {
   id: string;
@@ -32,7 +52,11 @@ interface User {
   isSuspicious: boolean;
   isOnline: boolean;
   balance: number;
+  mneBalance: number;
+  usdBalance: number;
   totalInvested: number;
+  totalSlotsCount: number;
+  activeSlotsCount: number;
   createdAt: string;
   lastSeenAt: string;
   referralCount: number;
@@ -52,6 +76,7 @@ const AdminUsers = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [pageSize, setPageSize] = useState(50);
 
+
   useEffect(() => {
     fetchUsers();
   }, [currentPage, pageSize, searchTerm, filterRole, filterStatus]);
@@ -68,7 +93,17 @@ const AdminUsers = () => {
       });
 
       const response = await api.get(`/admin/users?${params}`);
-      setUsers(response.data.data.users || []);
+      const users = response.data.data.users || [];
+
+      // Log balance information for debugging
+      console.log('[AdminUsers] Fetched users with balance info:', users.map(user => ({
+        telegramId: user.telegramId,
+        balance: user.balance,
+        mneBalance: user.mneBalance,
+        usdBalance: user.usdBalance
+      })));
+
+      setUsers(users);
       setTotalPages(response.data.data.totalPages || 1);
       setTotalUsers(response.data.data.totalUsers || 0);
     } catch (err: any) {
@@ -118,6 +153,102 @@ const AdminUsers = () => {
             await fetchUsers();
           }
           break;
+        case 'balance': {
+          const currentBalance = user?.mneBalance || 0;
+          const action = prompt(
+            `Balance Management for ${userName}\n\n` +
+            `Current balance: ${currentBalance.toFixed(4)} MNE\n\n` +
+            `Choose action:\n` +
+            `1. Set new balance\n` +
+            `2. Add amount\n` +
+            `3. Subtract amount\n\n` +
+            `Enter: 1, 2, or 3`
+          );
+
+          if (action === '1') {
+            const newBalance = prompt(`Enter new balance for ${userName} (current: ${currentBalance.toFixed(4)} MNE):`);
+            if (newBalance !== null && newBalance.trim() !== '') {
+              const amount = parseFloat(newBalance);
+              if (!isNaN(amount) && amount >= 0) {
+                try {
+                  const response = await api.post(`/admin/users/${userId}/balance`, {
+                    action: 'set',
+                    amount: amount
+                  });
+
+                  if (response.data.success) {
+                    alert(`✅ Balance set to ${amount.toFixed(4)} MNE for ${userName}\nPrevious balance: ${response.data.data.previousBalance.toFixed(4)} MNE`);
+                    await fetchUsers();
+                    // Force refresh user data cache
+                    window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
+                  } else {
+                    alert(`❌ Error: ${response.data.error || 'Unknown error'}`);
+                  }
+                } catch (error: any) {
+                  console.error('Balance update error:', error);
+                  alert(`❌ Error: ${error.response?.data?.error || error.message}`);
+                }
+              } else {
+                alert('❌ Please enter a valid positive number');
+              }
+            }
+          } else if (action === '2') {
+            const addAmount = prompt(`Enter amount to ADD to ${userName}'s balance (current: ${currentBalance.toFixed(4)} MNE):`);
+            if (addAmount !== null && addAmount.trim() !== '') {
+              const amount = parseFloat(addAmount);
+              if (!isNaN(amount) && amount > 0) {
+                try {
+                  const response = await api.post(`/admin/users/${userId}/balance`, {
+                    action: 'add',
+                    amount: amount
+                  });
+
+                  if (response.data.success) {
+                    alert(`✅ Added ${amount.toFixed(4)} MNE to ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} MNE`);
+                    await fetchUsers();
+                    // Force refresh user data cache
+                    window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
+                  } else {
+                    alert(`❌ Error: ${response.data.error || 'Unknown error'}`);
+                  }
+                } catch (error: any) {
+                  console.error('Balance update error:', error);
+                  alert(`❌ Error: ${error.response?.data?.error || error.message}`);
+                }
+              } else {
+                alert('❌ Please enter a valid positive number');
+              }
+            }
+          } else if (action === '3') {
+            const subtractAmount = prompt(`Enter amount to SUBTRACT from ${userName}'s balance (current: ${currentBalance.toFixed(4)} MNE):`);
+            if (subtractAmount !== null && subtractAmount.trim() !== '') {
+              const amount = parseFloat(subtractAmount);
+              if (!isNaN(amount) && amount > 0) {
+                try {
+                  const response = await api.post(`/admin/users/${userId}/balance`, {
+                    action: 'subtract',
+                    amount: amount
+                  });
+
+                  if (response.data.success) {
+                    alert(`✅ Subtracted ${amount.toFixed(4)} MNE from ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} MNE`);
+                    await fetchUsers();
+                    // Force refresh user data cache
+                    window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
+                  } else {
+                    alert(`❌ Error: ${response.data.error || 'Unknown error'}`);
+                  }
+                } catch (error: any) {
+                  console.error('Balance update error:', error);
+                  alert(`❌ Error: ${error.response?.data?.error || error.message}`);
+                }
+              } else {
+                alert('❌ Please enter a valid positive number');
+              }
+            }
+          }
+          break;
+        }
         case 'delete': {
           // Упрощенная логика подтверждения
           const confirmDelete = window.confirm(
@@ -162,6 +293,7 @@ const AdminUsers = () => {
       }
     }
   };
+
 
   const handleDeleteAllUsers = async () => {
     const confirmText = 'DELETE ALL USERS';
@@ -228,7 +360,7 @@ const AdminUsers = () => {
           user.email || '',
           user.role,
           user.isFrozen ? 'Frozen' : user.isSuspicious ? 'Suspicious' : user.isActive ? 'Active' : 'Inactive',
-          user.balance.toFixed(4),
+          user.mneBalance.toFixed(4),
           user.totalInvested.toFixed(2),
           new Date(user.createdAt).toISOString(),
           user.lastSeenAt ? new Date(user.lastSeenAt).toISOString() : '',
@@ -258,9 +390,9 @@ const AdminUsers = () => {
     if (user.isSuspicious) return <Badge variant="destructive">Suspicious</Badge>;
     if (user.isOnline) {
       return (
-        <div className="flex items-center">
-          <span className="online-dot online-indicator"></span>
-          <Badge variant="default" className="bg-green-600">Online</Badge>
+        <div className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <Badge variant="default" className="bg-green-600 text-white">Online</Badge>
         </div>
       );
     }
@@ -438,6 +570,7 @@ const AdminUsers = () => {
                     </div>
                   </th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Balance</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Last Login</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Joined</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Actions</th>
                 </tr>
@@ -480,11 +613,32 @@ const AdminUsers = () => {
                     <td className="py-3 px-4">
                       <div className="text-sm">
                         <div className="font-mono text-yellow-400">
-                          {user.balance.toFixed(4)} USD
+                          {user.mneBalance.toFixed(4)} MNE
                         </div>
                         <div className="text-xs text-gray-400">
                           {user.totalInvested.toFixed(2)} invested
                         </div>
+                        <div className="text-xs text-blue-400">
+                          {user.activeSlotsCount}/{user.totalSlotsCount} slots
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="text-sm text-gray-300">
+                        {formatLastLogin(user.lastSeenAt)}
+                      </div>
+                      <div className="text-xs text-gray-400 flex items-center">
+                        {user.isOnline ? (
+                          <>
+                            <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1 animate-pulse"></div>
+                            Online
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1"></div>
+                            Offline
+                          </>
+                        )}
                       </div>
                     </td>
                     <td className="py-3 px-4">
@@ -542,6 +696,15 @@ const AdminUsers = () => {
                             <Ban className="h-4 w-4" />
                           </Button>
                         )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUserAction(user.id, 'balance')}
+                          className="text-green-400 border-green-600 hover:bg-green-600/10"
+                          title="Manage Balance"
+                        >
+                          <DollarSign className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -612,12 +775,37 @@ const AdminUsers = () => {
                   <div>
                     <div className="text-xs text-gray-400">Balance</div>
                     <div className="font-mono text-yellow-400 text-sm">
-                      {user.balance.toFixed(4)} USD
+                      {user.mneBalance.toFixed(4)} MNE
                     </div>
                     <div className="text-xs text-gray-400">
                       {user.totalInvested.toFixed(2)} invested
                     </div>
+                    <div className="text-xs text-blue-400">
+                      {user.activeSlotsCount}/{user.totalSlotsCount} slots
+                    </div>
                   </div>
+                  <div>
+                    <div className="text-xs text-gray-400">Last Login</div>
+                    <div className="text-sm text-gray-300">
+                      {formatLastLogin(user.lastSeenAt)}
+                    </div>
+                    <div className="text-xs text-gray-400 flex items-center">
+                      {user.isOnline ? (
+                        <>
+                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1 animate-pulse"></div>
+                          Online
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1"></div>
+                          Offline
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-3">
                   <div>
                     <div className="text-xs text-gray-400">Joined</div>
                     <div className="text-sm text-gray-300">
@@ -672,6 +860,15 @@ const AdminUsers = () => {
                       Ban
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleUserAction(user.id, 'balance')}
+                    className="text-green-400 border-green-600 hover:bg-green-600/10 flex-1"
+                  >
+                    <DollarSign className="h-4 w-4 mr-1" />
+                    Balance
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -746,6 +943,7 @@ const AdminUsers = () => {
           }}
         />
       )}
+
     </div>
   );
 };

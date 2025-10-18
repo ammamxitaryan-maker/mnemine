@@ -16,19 +16,19 @@ export const api = axios.create({
 // Request interceptor to add auth tokens
 api.interceptors.request.use((config) => {
   const tg = window.Telegram?.WebApp;
-  
+
   // Add Telegram initData if available
   if (tg?.initData) {
-    console.log('[CLIENT_API] Adding Telegram initData to request');
+    // console.log('[CLIENT_API] Adding Telegram initData to request');
     config.headers['x-telegram-init-data'] = tg.initData;
   } else {
     // Try to get initData from localStorage (fallback mode)
     const storedInitData = localStorage.getItem('telegram_init_data');
     if (storedInitData) {
-      console.log('[CLIENT_API] Using stored Telegram initData');
+      // console.log('[CLIENT_API] Using stored Telegram initData');
       config.headers['x-telegram-init-data'] = storedInitData;
     } else {
-      console.log('[CLIENT_API] No Telegram data available, proceeding without it');
+      // console.log('[CLIENT_API] No Telegram data available, proceeding without it');
     }
   }
 

@@ -843,13 +843,16 @@ async function startServer() {
       UserStatsWebSocketService.initialize();
       logger.server('User stats services initialized');
 
-      try {
-        const wsServer = new WebSocketServer(server);
-        webSocketManager.setWebSocketServer(wsServer);
-        logger.websocket('Unified WebSocket server initialized with connection pooling');
-      } catch (wsError) {
-        logger.error(LogContext.WEBSOCKET, 'Failed to initialize WebSocket server', wsError);
-      }
+      // Initialize WebSocket server with a small delay to ensure HTTP server is ready
+      setTimeout(() => {
+        try {
+          const wsServer = new WebSocketServer(server);
+          webSocketManager.setWebSocketServer(wsServer);
+          logger.websocket('Unified WebSocket server initialized with connection pooling');
+        } catch (wsError) {
+          logger.error(LogContext.WEBSOCKET, 'Failed to initialize WebSocket server', wsError);
+        }
+      }, 100);
 
       if (bot && token && token.length > 0) {
         const webhookPath = `/api/webhook/${token}`;

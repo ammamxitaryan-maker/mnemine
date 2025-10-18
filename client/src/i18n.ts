@@ -11,7 +11,7 @@ const isAdminPanel = () => {
 // Force English for admin panel, otherwise use stored language or default to Armenian
 const getInitialLanguage = () => {
   if (isAdminPanel()) {
-    console.log(`[i18n] getInitialLanguage: isAdminPanel=true, returning=en`);
+    // console.log(`[i18n] getInitialLanguage: isAdminPanel=true, returning=en`);
     return 'en';
   }
 
@@ -19,12 +19,12 @@ const getInitialLanguage = () => {
   if (typeof window !== 'undefined') {
     const storedLanguage = localStorage.getItem('nonmine-language');
     if (storedLanguage) {
-      console.log(`[i18n] getInitialLanguage: found stored language=${storedLanguage}`);
+      // console.log(`[i18n] getInitialLanguage: found stored language=${storedLanguage}`);
       return storedLanguage;
     }
   }
 
-  console.log(`[i18n] getInitialLanguage: no stored language, returning=hy`);
+  // console.log(`[i18n] getInitialLanguage: no stored language, returning=hy`);
   return 'hy';
 };
 
@@ -52,11 +52,11 @@ i18n
 
 // Add event listeners after initialization
 i18n.on('initialized', () => {
-  console.log('[i18n] Initialized with language:', i18n.language);
+  // console.log('[i18n] Initialized with language:', i18n.language);
 });
 
 i18n.on('loaded', (loaded: any) => {
-  console.log('[i18n] Translation loaded:', loaded);
+  // console.log('[i18n] Translation loaded:', loaded);
 });
 
 i18n.on('failedLoading', (lng: string, ns: string, msg: string) => {
@@ -64,18 +64,18 @@ i18n.on('failedLoading', (lng: string, ns: string, msg: string) => {
 });
 
 i18n.on('languageChanged', (lng: string) => {
-  console.log('[i18n] Language changed to:', lng);
+  // console.log('[i18n] Language changed to:', lng);
 });
 
 // Override language for admin panel only
 const originalChangeLanguage = i18n.changeLanguage;
 i18n.changeLanguage = (lng, callback) => {
-  console.log(`[i18n] changeLanguage called with: ${lng}, isAdminPanel: ${isAdminPanel()}`);
-  if (isAdminPanel()) {
-    console.log(`[i18n] Admin panel detected, forcing English`);
-    return originalChangeLanguage('en', callback);
-  }
-  console.log(`[i18n] Regular app, changing to: ${lng}`);
+    // console.log(`[i18n] changeLanguage called with: ${lng}, isAdminPanel: ${isAdminPanel()}`);
+    if (isAdminPanel()) {
+      // console.log(`[i18n] Admin panel detected, forcing English`);
+      return originalChangeLanguage('en', callback);
+    }
+    // console.log(`[i18n] Regular app, changing to: ${lng}`);
   return originalChangeLanguage(lng, callback);
 };
 
@@ -83,7 +83,7 @@ i18n.changeLanguage = (lng, callback) => {
 if (typeof window !== 'undefined' && !isAdminPanel()) {
   const storedLanguage = localStorage.getItem('nonmine-language');
   if (!storedLanguage) {
-    console.log(`[i18n] No stored language found, setting default to 'hy'`);
+    // console.log(`[i18n] No stored language found, setting default to 'hy'`);
     localStorage.setItem('nonmine-language', 'hy');
   }
 }

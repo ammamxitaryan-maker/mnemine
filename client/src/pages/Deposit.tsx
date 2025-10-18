@@ -100,7 +100,7 @@ const Deposit = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-medium text-green-500">
-                      ${usdEquivalent.toFixed(2)} USD
+                      ${usdEquivalent.toFixed(4)} USD
                     </div>
                     {rate > 0 && (
                       <div className="text-xs text-gray-400">

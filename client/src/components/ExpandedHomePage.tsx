@@ -1,29 +1,28 @@
 "use client";
 
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { 
-  CircleDot, 
-  Server, 
-  Ticket, 
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  History,
-  Shield,
-  ChevronRight,
-  UserPlus
-} from 'lucide-react';
-import { AuthenticatedUser } from '@/types/telegram';
-import { useUserData } from '@/hooks/useUserData';
-import { useSlotsData } from '@/hooks/useSlotsData';
-import { useWebSocketUserStats } from '@/hooks/useWebSocketUserStats';
-import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { MainBalanceDisplay } from './MainBalanceDisplay';
-import { QuickActions } from './QuickActions';
-import { SimpleStats } from './SimpleStats';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useSlotsData } from '@/hooks/useSlotsData';
+import { useUserData } from '@/hooks/useUserData';
+import { useWebSocketUserStats } from '@/hooks/useWebSocketUserStats';
+import { AuthenticatedUser } from '@/types/telegram';
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  ChevronRight,
+  CircleDot,
+  History,
+  Server,
+  Shield,
+  Ticket,
+  UserPlus
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { MainBalanceDisplay } from './MainBalanceDisplay';
+import { SimpleStats } from './SimpleStats';
 
 interface ExpandedHomePageProps {
   user: AuthenticatedUser;
@@ -37,15 +36,15 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
   const { hapticLight, hapticWarning } = useHapticFeedback();
 
   // Check if user is admin
-  const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS 
+  const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS
     ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
     : ['6760298907'];
   const isAdmin = ADMIN_TELEGRAM_IDS.includes(user.telegramId);
 
   const displayName = user.firstName || user.username || t('profile.user');
   const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'U';
-  
-  const activeSlots = slotsData?.filter(slot => 
+
+  const activeSlots = slotsData?.filter(slot =>
     slot.isActive && new Date(slot.expiresAt) > new Date()
   ) || [];
 
@@ -64,34 +63,34 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* Header */}
-      <header className="px-6 pt-4 pb-4">
+      {/* Header - Compact */}
+      <header className="px-4 pt-3 pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-lg font-bold text-white mb-1 professional-glow hover:professional-scale transition-all duration-500 ease-in-out">
+            <div className="text-base font-bold text-white mb-1 professional-glow hover:professional-scale transition-all duration-500 ease-in-out">
               {t('appName')}
             </div>
-            <h1 className="text-2xl font-light text-foreground">
+            <h1 className="text-lg font-light text-foreground">
               {displayName}
             </h1>
-            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <CircleDot className="w-3 h-3 text-primary" />
+            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <CircleDot className="w-2 h-2 text-primary" />
                 <span>{onlineUsers.toLocaleString()} {t('online')}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <div className="status-dot online" />
                 <span>{totalUsers.toLocaleString()} {t('users')}</span>
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-1">
             <LanguageSwitcher />
             <ThemeSwitcher />
-            <Avatar className="h-10 w-10 border-2 border-primary">
+            <Avatar className="h-8 w-8 border-2 border-primary">
               {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName || t('profile.user')} />}
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
                 {fallbackInitial}
               </AvatarFallback>
             </Avatar>
@@ -99,23 +98,28 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
         </div>
       </header>
 
-      {/* Main Balance Display */}
-      <div className="px-6 mb-6">
+      {/* Main Balance Display - Compact */}
+      <div className="px-4 mb-4">
         <MainBalanceDisplay />
       </div>
 
-      {/* Main Actions */}
-      <div className="px-6 mb-4">
-        <div className="grid grid-cols-2 gap-3">
-          <Link 
-            to="/slots" 
-            className="minimal-card text-center p-3 hover:scale-105 transition-all duration-200 cursor-pointer"
+      {/* Stats - Mining Power and Active Slots - Very Compact */}
+      <div className="px-4 mb-2">
+        <SimpleStats telegramId={user.telegramId} />
+      </div>
+
+      {/* Main Actions - Compact */}
+      <div className="px-4 mb-3">
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            to="/slots"
+            className="minimal-card text-center p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
             onClick={() => hapticLight()}
           >
-            <div className="p-2 bg-primary/10 rounded-lg mb-2">
-              <Server className="w-5 h-5 mx-auto text-primary" />
+            <div className="p-1.5 bg-primary/10 rounded-lg mb-1">
+              <Server className="w-4 h-4 mx-auto text-primary" />
             </div>
-            <h3 className="font-medium text-foreground text-sm">
+            <h3 className="font-medium text-foreground text-xs">
               {t('miningSlots')}
             </h3>
             <p className="text-xs text-muted-foreground">
@@ -123,15 +127,15 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
             </p>
           </Link>
 
-          <Link 
-            to="/lottery" 
-            className="minimal-card text-center p-3 hover:scale-105 transition-all duration-200 cursor-pointer"
+          <Link
+            to="/lottery"
+            className="minimal-card text-center p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
             onClick={() => hapticLight()}
           >
-            <div className="p-2 bg-accent/10 rounded-lg mb-2">
-              <Ticket className="w-5 h-5 mx-auto text-accent" />
+            <div className="p-1.5 bg-accent/10 rounded-lg mb-1">
+              <Ticket className="w-4 h-4 mx-auto text-accent" />
             </div>
-            <h3 className="font-medium text-foreground text-sm">
+            <h3 className="font-medium text-foreground text-xs">
               {t('dailyLottery')}
             </h3>
             <p className="text-xs text-muted-foreground">
@@ -141,66 +145,42 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
         </div>
       </div>
 
-      {/* Referrals Section */}
-      <div className="px-6 mb-4">
-        <Link 
-          to="/referrals" 
-          className="minimal-card p-3 hover:scale-105 transition-all duration-200 cursor-pointer"
-          onClick={() => hapticLight()}
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/10 rounded-lg">
-              <UserPlus className="w-5 h-5 text-emerald-500" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium text-foreground text-sm">
-                {t('inviteFriends')}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {t('earnFromReferrals')}
-              </p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </div>
-        </Link>
-      </div>
-
-      {/* Wallet Actions */}
-      <div className="px-6 mb-4">
-        <div className="grid grid-cols-3 gap-2">
-          <Link 
-            to="/deposit" 
-            className="minimal-card text-center p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
+      {/* Wallet Actions - Compact */}
+      <div className="px-4 mb-3">
+        <div className="grid grid-cols-3 gap-1.5">
+          <Link
+            to="/deposit"
+            className="minimal-card text-center p-1.5 hover:scale-105 transition-all duration-200 cursor-pointer"
             onClick={() => hapticLight()}
           >
-            <div className="p-1.5 bg-primary/10 rounded-lg mb-1">
-              <ArrowDownToLine className="w-4 h-4 mx-auto text-primary" />
+            <div className="p-1 bg-primary/10 rounded-lg mb-1">
+              <ArrowDownToLine className="w-3 h-3 mx-auto text-primary" />
             </div>
             <h3 className="font-medium text-foreground text-xs">
               {t('deposit')}
             </h3>
           </Link>
 
-          <Link 
-            to="/withdraw" 
-            className="minimal-card text-center p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
+          <Link
+            to="/withdraw"
+            className="minimal-card text-center p-1.5 hover:scale-105 transition-all duration-200 cursor-pointer"
             onClick={() => hapticLight()}
           >
-            <div className="p-1.5 bg-secondary/10 rounded-lg mb-1">
-              <ArrowUpFromLine className="w-4 h-4 mx-auto text-secondary" />
+            <div className="p-1 bg-secondary/10 rounded-lg mb-1">
+              <ArrowUpFromLine className="w-3 h-3 mx-auto text-secondary" />
             </div>
             <h3 className="font-medium text-foreground text-xs">
               {t('withdraw')}
             </h3>
           </Link>
 
-          <Link 
-            to="/wallet" 
-            className="minimal-card text-center p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
+          <Link
+            to="/wallet"
+            className="minimal-card text-center p-1.5 hover:scale-105 transition-all duration-200 cursor-pointer"
             onClick={() => hapticLight()}
           >
-            <div className="p-1.5 bg-accent/10 rounded-lg mb-1">
-              <History className="w-4 h-4 mx-auto text-accent" />
+            <div className="p-1 bg-accent/10 rounded-lg mb-1">
+              <History className="w-3 h-3 mx-auto text-accent" />
             </div>
             <h3 className="font-medium text-foreground text-xs">
               {t('history')}
@@ -209,40 +189,60 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="px-6 mb-4">
-        <SimpleStats telegramId={user.telegramId} />
+
+      {/* Referrals Section - Compact */}
+      <div className="px-4 mb-3">
+        <Link
+          to="/referrals"
+          className="minimal-card p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
+          onClick={() => hapticLight()}
+        >
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-emerald-500/10 rounded-lg">
+              <UserPlus className="w-4 h-4 text-emerald-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium text-foreground text-xs">
+                {t('inviteFriends')}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {t('earnFromReferrals')}
+              </p>
+            </div>
+            <ChevronRight className="w-3 h-3 text-muted-foreground" />
+          </div>
+        </Link>
       </div>
 
-      {/* Admin Panel (conditional) */}
+      {/* Admin Panel (conditional) - Compact */}
       {isAdmin && (
-        <div className="px-6 mb-6">
-          <Link 
-            to="/admin" 
-            className="minimal-card p-3 hover:scale-105 transition-all duration-200 cursor-pointer block"
+        <div className="px-4 mb-3">
+          <Link
+            to="/admin"
+            className="minimal-card p-2 hover:scale-105 transition-all duration-200 cursor-pointer block"
             onClick={() => hapticLight()}
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <Shield className="w-5 h-5 text-purple-500" />
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-purple-500/10 rounded-lg">
+                <Shield className="w-4 h-4 text-purple-500" />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-foreground text-sm">
+                <h3 className="font-medium text-foreground text-xs">
                   {t('adminPanel')}
                 </h3>
                 <p className="text-xs text-muted-foreground">
                   {t('manageSystem')}
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <ChevronRight className="w-3 h-3 text-muted-foreground" />
             </div>
           </Link>
         </div>
       )}
 
-      {/* Bottom spacing */}
-      <div className="h-4" />
-      
+      {/* Bottom spacing - Reduced */}
+      <div className="h-2" />
+
     </div>
   );
 };

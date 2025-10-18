@@ -1,10 +1,10 @@
 "use client";
 
-import { useTranslation } from 'react-i18next';
-import { Zap, TrendingUp } from 'lucide-react';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
 import { useEarnings } from '@/hooks/useEarnings';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { Zap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface RealTimeEarningsProps {
   className?: string;
@@ -35,7 +35,7 @@ export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
           </div>
           {usdEquivalent > 0 && (
             <div className="text-xs text-muted-foreground">
-              ≈ ${usdEquivalent.toFixed(2)} USD
+              ≈ ${usdEquivalent.toFixed(4)} USD
             </div>
           )}
         </div>

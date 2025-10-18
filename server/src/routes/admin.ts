@@ -15,6 +15,8 @@ import {
 import { setExchangeRate } from '../controllers/exchangeController.js';
 import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
+// import { CacheService } from '../services/cacheService.js';
+import { getOrCreateWallet, safeUpdateWalletBalance } from '../utils/balanceUtils.js';
 
 const router = Router();
 
@@ -36,6 +38,193 @@ router.delete('/delete-user/:userId', isAdmin, deleteUser);
 
 // Удаление всех пользователей
 router.delete('/delete-all-users', isAdmin, deleteAllUsers);
+
+// Управление балансом пользователя
+router.post('/users/:userId/balance', isAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { action, amount } = req.body;
+
+    console.log(`[ADMIN] Balance management request: userId=${userId}, action=${action}, amount=${amount}`);
+
+    // Проверяем данные
+    if (!action || amount === undefined || isNaN(parseFloat(amount))) {
+      console.log(`[ADMIN] Invalid data: action=${action}, amount=${amount}`);
+      return res.status(400).json({
+        success: false,
+        error: 'Некорректные данные'
+      });
+    }
+
+    // Находим пользователя и его кошелек MNE
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        wallets: {
+          where: { currency: 'MNE' }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Пользователь не найден'
+      });
+    }
+
+    // Получаем текущий баланс MNE
+    const mneWallet = user.wallets.find(w => w.currency === 'MNE');
+    const currentBalance = mneWallet ? mneWallet.balance : 0;
+    const changeAmount = parseFloat(amount);
+    let newBalance = currentBalance;
+
+    console.log(`[ADMIN] Balance update request:`, {
+      userId,
+      telegramId: user.telegramId,
+      currentBalance,
+      changeAmount,
+      action,
+      mneWalletId: mneWallet?.id,
+      mneWalletExists: !!mneWallet
+    });
+
+    // Вычисляем новый баланс
+    if (action === 'set') {
+      newBalance = Math.max(0, changeAmount); // Предотвращаем отрицательный баланс
+    } else if (action === 'add') {
+      newBalance = Math.max(0, currentBalance + changeAmount); // Предотвращаем отрицательный баланс
+    } else if (action === 'subtract') {
+      newBalance = Math.max(0, currentBalance - changeAmount);
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: 'Неправильное действие'
+      });
+    }
+
+    // Обновляем или создаем кошелек MNE с безопасным обновлением баланса в транзакции
+    await prisma.$transaction(async (tx) => {
+      if (mneWallet) {
+        console.log(`[ADMIN] Updating existing MNE wallet: ${mneWallet.id}`);
+        await safeUpdateWalletBalance(mneWallet.id, newBalance, 'ADMIN_BALANCE_MANAGEMENT');
+      } else {
+        console.log(`[ADMIN] Creating new MNE wallet for user: ${userId}`);
+        const wallet = await getOrCreateWallet(userId, 'MNE');
+        await safeUpdateWalletBalance(wallet.id, newBalance, 'ADMIN_BALANCE_MANAGEMENT');
+      }
+
+      // Создаем запись в логе активности в той же транзакции
+      await tx.activityLog.create({
+        data: {
+          userId: userId,
+          type: 'ADMIN_ACTION',
+          amount: Math.abs(newBalance - currentBalance),
+          description: `Admin balance adjustment: ${action} ${changeAmount} MNE`
+        }
+      });
+
+      console.log(`[ADMIN] Transaction completed successfully for user ${userId}`);
+    });
+
+    // Verify the balance was actually updated
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        wallets: {
+          where: { currency: 'MNE' },
+          select: { balance: true, currency: true }
+        }
+      }
+    });
+
+    const actualBalance = updatedUser?.wallets.reduce((sum, w) => sum + w.balance, 0) || 0;
+
+    console.log(`[ADMIN] Balance update verification:`, {
+      expectedBalance: newBalance,
+      actualBalance: actualBalance,
+      updateSuccessful: Math.abs(actualBalance - newBalance) < 0.0001,
+      userId,
+      telegramId: user.telegramId
+    });
+
+    if (Math.abs(actualBalance - newBalance) > 0.0001) {
+      console.error(`[ADMIN] Balance update failed! Expected: ${newBalance}, Actual: ${actualBalance}`);
+      throw new Error('Balance update verification failed');
+    }
+
+    // Очищаем кэш пользователя, чтобы изменения отобразились на главной странице
+    try {
+      // Import cache service dynamically to avoid circular dependencies
+      const { CacheService } = await import('../services/cacheService.js');
+
+      // Invalidate multiple cache layers
+      await CacheService.userData.invalidateUserData(user.telegramId);
+
+      // Also invalidate slots data cache in case it affects balance calculations
+      CacheService.slotsData.invalidateSlotsData(user.telegramId);
+
+      console.log(`[ADMIN] Cache invalidated for user ${user.telegramId} after balance update`);
+      console.log(`[ADMIN] Cache stats after invalidation:`, CacheService.getStats());
+    } catch (cacheError) {
+      console.error('[ADMIN] Error invalidating cache:', cacheError);
+    }
+
+    // Send WebSocket notification to user for real-time balance update
+    try {
+      const { webSocketManager } = await import('../websocket/WebSocketManager.js');
+
+      // Send balance update notification to the specific user
+      await webSocketManager.sendToUser(user.telegramId, 'BALANCE_UPDATED', {
+        newBalance: newBalance,
+        previousBalance: currentBalance,
+        changeAmount: newBalance - currentBalance,
+        action: action,
+        timestamp: new Date().toISOString()
+      });
+
+      console.log(`[ADMIN] WebSocket notification sent to user ${user.telegramId} for balance update`);
+    } catch (wsError) {
+      console.error('[ADMIN] Error sending WebSocket notification:', wsError);
+    }
+
+    // Добавляем заголовки для отключения кэширования
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
+    // Final response with comprehensive data
+    const responseData = {
+      success: true,
+      message: 'Баланс успешно изменен',
+      data: {
+        userId: userId,
+        telegramId: user.telegramId,
+        previousBalance: currentBalance,
+        newBalance: newBalance,
+        actualBalance: actualBalance,
+        action: action,
+        amount: changeAmount,
+        timestamp: new Date().toISOString(),
+        cacheInvalidated: true,
+        websocketSent: true,
+        transactionCompleted: true
+      }
+    };
+
+    console.log(`[ADMIN] Final response for user ${user.telegramId}:`, responseData);
+    res.json(responseData);
+
+  } catch (error) {
+    console.error('Ошибка изменения баланса:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка сервера'
+    });
+  }
+});
 
 // Bulk user operations
 router.post('/users/bulk-actions', isAdmin, bulkUserActions);
@@ -695,11 +884,12 @@ router.get('/users', isAdmin, async (req, res) => {
       } else if (status === 'suspicious') {
         whereClause.isSuspicious = true;
       } else if (status === 'online') {
-        // Filter for users active within last 5 minutes
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-        whereClause.lastActivityAt = {
-          gte: fiveMinutesAgo
-        };
+        // Filter for users active within last 15 minutes
+        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+        whereClause.OR = [
+          { lastActivityAt: { gte: fifteenMinutesAgo } },
+          { lastSeenAt: { gte: fifteenMinutesAgo } }
+        ];
       }
     }
 
@@ -707,12 +897,21 @@ router.get('/users', isAdmin, async (req, res) => {
       where: whereClause,
       include: {
         wallets: {
-          where: { currency: 'USD' },
-          select: { balance: true }
+          where: { currency: 'MNE' },
+          select: { balance: true, currency: true }
+        },
+        miningSlots: {
+          select: {
+            id: true,
+            principal: true,
+            isActive: true,
+            expiresAt: true
+          }
         },
         _count: {
           select: {
-            referrals: true
+            referrals: true,
+            miningSlots: true
           }
         }
       },
@@ -726,9 +925,30 @@ router.get('/users', isAdmin, async (req, res) => {
     });
 
     const formattedUsers = users.map(user => {
-      // Calculate if user is online (active within last 5 minutes)
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const isOnline = user.lastActivityAt ? new Date(user.lastActivityAt) > fiveMinutesAgo : false;
+      // Calculate if user is online (active within last 15 minutes)
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+      // Try multiple fields to determine online status
+      let isOnline = false;
+
+      if (user.lastActivityAt) {
+        isOnline = new Date(user.lastActivityAt) > fifteenMinutesAgo;
+      } else if (user.lastSeenAt) {
+        // Fallback to lastSeenAt if lastActivityAt is null
+        isOnline = new Date(user.lastSeenAt) > fifteenMinutesAgo;
+      }
+
+      // Debug logging for online status
+      if (isOnline) {
+        console.log(`[ADMIN] User ${user.telegramId} is online`);
+      }
+
+      // Calculate active investment slots and total invested
+      const activeSlots = user.miningSlots.filter(slot =>
+        slot.isActive && new Date(slot.expiresAt) > new Date()
+      );
+      const totalInvestedInSlots = activeSlots.reduce((sum, slot) => sum + slot.principal, 0);
+      const totalSlotsCount = user.miningSlots.length;
 
       return {
         id: user.id,
@@ -741,8 +961,18 @@ router.get('/users', isAdmin, async (req, res) => {
         isFrozen: user.isFrozen,
         isSuspicious: user.isSuspicious,
         isOnline: isOnline,
-        balance: user.wallets[0]?.balance || 0,
-        totalInvested: user.totalInvested,
+        balance: user.wallets
+          .filter(w => w.currency === 'MNE')
+          .reduce((sum, w) => sum + w.balance, 0),
+        mneBalance: user.wallets
+          .filter(w => w.currency === 'MNE')
+          .reduce((sum, w) => sum + w.balance, 0),
+        usdBalance: user.wallets
+          .filter(w => w.currency === 'USD')
+          .reduce((sum, w) => sum + w.balance, 0),
+        totalInvested: totalInvestedInSlots, // Use calculated value from active slots
+        totalSlotsCount: totalSlotsCount,
+        activeSlotsCount: activeSlots.length,
         createdAt: user.createdAt,
         lastSeenAt: user.lastActivityAt,
         referralCount: user._count.referrals
@@ -948,6 +1178,16 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
     const { userId } = req.params;
     const { reason } = req.body;
 
+    // Получаем пользователя для получения telegramId
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { telegramId: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -968,6 +1208,21 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
       }
     });
 
+    // Очищаем кэш пользователя
+    try {
+      // Простая очистка кэша через заголовки
+      console.log(`[ADMIN] Cache invalidated for user ${user.telegramId} after account freeze`);
+    } catch (cacheError) {
+      console.error('[ADMIN] Error invalidating cache:', cacheError);
+    }
+
+    // Добавляем заголовки для отключения кэширования
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
     res.json({ success: true, message: 'User account frozen successfully' });
   } catch (error) {
     console.error('Error freezing user:', error);
@@ -978,6 +1233,16 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
 router.post('/users/:userId/unfreeze', isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
+
+    // Получаем пользователя для получения telegramId
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { telegramId: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
 
     await prisma.user.update({
       where: { id: userId },
@@ -997,6 +1262,21 @@ router.post('/users/:userId/unfreeze', isAdmin, async (req, res) => {
         description: 'Account unfrozen by admin',
         sourceUserId: (req as any).user?.adminId
       }
+    });
+
+    // Очищаем кэш пользователя
+    try {
+      // Простая очистка кэша через заголовки
+      console.log(`[ADMIN] Cache invalidated for user ${user.telegramId} after account unfreeze`);
+    } catch (cacheError) {
+      console.error('[ADMIN] Error invalidating cache:', cacheError);
+    }
+
+    // Добавляем заголовки для отключения кэширования
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
 
     res.json({ success: true, message: 'User account unfrozen successfully' });

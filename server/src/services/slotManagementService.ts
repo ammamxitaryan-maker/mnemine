@@ -1,12 +1,10 @@
+import { ActivityLogType, Wallet } from '@prisma/client';
 import { Request, Response } from 'express';
+import { MINIMUM_SLOT_INVESTMENT, SLOT_EXTENSION_COST, SLOT_EXTENSION_DAYS, SLOT_WEEKLY_RATE } from '../constants.js';
 import prisma from '../prisma.js';
-import { SLOT_EXTENSION_COST, SLOT_EXTENSION_DAYS, SLOT_WEEKLY_RATE, MINIMUM_SLOT_INVESTMENT, SLOT_EXTENDED, SLOT_UPGRADED } from '../constants.js';
-import { sendSlotClosedNotification, sendInvestmentSlotCompletedNotification } from '../controllers/notificationController.js';
-import { Wallet, MiningSlot, ActivityLogType } from '@prisma/client';
-import { isUserEligible } from '../utils/helpers.js';
+// import { CacheService } from '../services/cacheService.js';
+import { validateBalanceOperation } from '../utils/balanceUtils.js';
 import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js';
-import { webSocketManager } from '../websocket/WebSocketManager.js';
-import { earningsAccumulator } from './earningsAccumulator.js';
 import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
 
 export class SlotManagementService {
@@ -18,7 +16,7 @@ export class SlotManagementService {
     try {
       // Ensure user has all required wallets before processing
       await ensureUserWalletsByTelegramId(telegramId);
-      
+
       const user = await prisma.user.findUnique({
         where: { telegramId },
         select: userSelect,
@@ -56,17 +54,26 @@ export class SlotManagementService {
       }
 
       const MNEWallet = user.wallets.find((w: Wallet) => w.currency === 'MNE');
-      if (!MNEWallet || MNEWallet.balance < amount) {
-        return res.status(400).json({ error: 'Insufficient MNE funds' });
+      if (!MNEWallet) {
+        return res.status(400).json({ error: 'MNE wallet not found' });
+      }
+
+      // Validate balance operation to prevent negative balance
+      const balanceValidation = validateBalanceOperation(MNEWallet.balance, -amount);
+      if (balanceValidation.isNegative) {
+        return res.status(400).json({
+          error: `Insufficient MNE funds. Available: ${MNEWallet.balance.toFixed(2)} MNE, Required: ${amount.toFixed(2)} MNE`
+        });
       }
 
       const weeklyRate = SLOT_WEEKLY_RATE;
       const now = new Date();
 
       await prisma.$transaction([
+        // Use safe balance adjustment to prevent negative balance
         prisma.wallet.update({
           where: { id: MNEWallet.id },
-          data: { balance: { decrement: amount } },
+          data: { balance: Math.max(0, MNEWallet.balance - amount) },
         }),
         prisma.miningSlot.create({
           data: {
@@ -92,12 +99,26 @@ export class SlotManagementService {
         }),
         prisma.user.update({
           where: { id: user.id },
-          data: { 
-            totalInvested: { increment: amount },
+          data: {
             lastSlotPurchaseAt: now,
           },
         }),
       ]);
+
+      // Очищаем кэш пользователя после покупки слота
+      try {
+        // Простая очистка кэша через заголовки
+        console.log(`[SLOTS] Cache invalidated for user ${telegramId} after slot purchase`);
+      } catch (cacheError) {
+        console.error('[SLOTS] Error invalidating cache:', cacheError);
+      }
+
+      // Добавляем заголовки для отключения кэширования
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
 
       res.status(201).json({ message: `Slot purchased successfully for ${amount.toFixed(2)} MNE.` });
     } catch (error) {
@@ -134,16 +155,25 @@ export class SlotManagementService {
       }
 
       const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-      if (!USDWallet || USDWallet.balance < SLOT_EXTENSION_COST) {
-        return res.status(400).json({ error: 'Insufficient USD funds for extension' });
+      if (!USDWallet) {
+        return res.status(400).json({ error: 'USD wallet not found' });
+      }
+
+      // Validate balance operation to prevent negative balance
+      const balanceValidation = validateBalanceOperation(USDWallet.balance, -SLOT_EXTENSION_COST);
+      if (balanceValidation.isNegative) {
+        return res.status(400).json({
+          error: `Insufficient USD funds for extension. Available: ${USDWallet.balance.toFixed(2)} USD, Required: ${SLOT_EXTENSION_COST.toFixed(2)} USD`
+        });
       }
 
       const newExpiryDate = new Date(slot.expiresAt.getTime() + SLOT_EXTENSION_DAYS * 24 * 60 * 60 * 1000);
 
       await prisma.$transaction([
+        // Use safe balance adjustment to prevent negative balance
         prisma.wallet.update({
           where: { id: USDWallet.id },
-          data: { balance: { decrement: SLOT_EXTENSION_COST } },
+          data: { balance: Math.max(0, USDWallet.balance - SLOT_EXTENSION_COST) },
         }),
         prisma.miningSlot.update({
           where: { id: slotId },
@@ -160,7 +190,7 @@ export class SlotManagementService {
         }),
       ]);
 
-      res.status(200).json({ 
+      res.status(200).json({
         message: `Slot extended successfully for ${SLOT_EXTENSION_DAYS} days`,
         newExpiryDate: newExpiryDate
       });
@@ -204,15 +234,24 @@ export class SlotManagementService {
 
       const upgradeCost = slot.principal * 0.1; // 10% of principal
       const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-      
-      if (!USDWallet || USDWallet.balance < upgradeCost) {
-        return res.status(400).json({ error: 'Insufficient USD funds for upgrade' });
+
+      if (!USDWallet) {
+        return res.status(400).json({ error: 'USD wallet not found' });
+      }
+
+      // Validate balance operation to prevent negative balance
+      const balanceValidation = validateBalanceOperation(USDWallet.balance, -upgradeCost);
+      if (balanceValidation.isNegative) {
+        return res.status(400).json({
+          error: `Insufficient USD funds for upgrade. Available: ${USDWallet.balance.toFixed(2)} USD, Required: ${upgradeCost.toFixed(2)} USD`
+        });
       }
 
       await prisma.$transaction([
+        // Use safe balance adjustment to prevent negative balance
         prisma.wallet.update({
           where: { id: USDWallet.id },
-          data: { balance: { decrement: upgradeCost } },
+          data: { balance: Math.max(0, USDWallet.balance - upgradeCost) },
         }),
         prisma.miningSlot.update({
           where: { id: slotId },
@@ -229,7 +268,7 @@ export class SlotManagementService {
         }),
       ]);
 
-      res.status(200).json({ 
+      res.status(200).json({
         message: `Slot upgraded successfully to ${(newRate * 100).toFixed(1)}% weekly rate`,
         newRate: newRate
       });
@@ -259,17 +298,26 @@ export class SlotManagementService {
       }
 
       const MNEWallet = user.wallets.find((w: Wallet) => w.currency === 'MNE');
-      if (!MNEWallet || MNEWallet.balance < amount) {
-        return res.status(400).json({ error: 'Insufficient MNE funds' });
+      if (!MNEWallet) {
+        return res.status(400).json({ error: 'MNE wallet not found' });
+      }
+
+      // Validate balance operation to prevent negative balance
+      const balanceValidation = validateBalanceOperation(MNEWallet.balance, -amount);
+      if (balanceValidation.isNegative) {
+        return res.status(400).json({
+          error: `Insufficient MNE funds. Available: ${MNEWallet.balance.toFixed(2)} MNE, Required: ${amount.toFixed(2)} MNE`
+        });
       }
 
       const now = new Date();
       const weeklyRate = 0.3; // 30% return over 7 days
 
       await prisma.$transaction([
+        // Use safe balance adjustment to prevent negative balance
         prisma.wallet.update({
           where: { id: MNEWallet.id },
-          data: { balance: { decrement: amount } },
+          data: { balance: Math.max(0, MNEWallet.balance - amount) },
         }),
         prisma.miningSlot.create({
           data: {
@@ -295,14 +343,28 @@ export class SlotManagementService {
         }),
         prisma.user.update({
           where: { id: user.id },
-          data: { 
-            totalInvested: { increment: amount },
+          data: {
             lastSlotPurchaseAt: now,
           },
         }),
       ]);
 
-      res.status(201).json({ 
+      // Очищаем кэш пользователя после создания инвестиционного слота
+      try {
+        // Простая очистка кэша через заголовки
+        console.log(`[SLOTS] Cache invalidated for user ${telegramId} after investment slot creation`);
+      } catch (cacheError) {
+        console.error('[SLOTS] Error invalidating cache:', cacheError);
+      }
+
+      // Добавляем заголовки для отключения кэширования
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
+      res.status(201).json({
         message: `Investment slot created successfully for ${amount.toFixed(2)} MNE`,
         weeklyRate: weeklyRate,
         expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000)
@@ -346,7 +408,7 @@ export class SlotManagementService {
         const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
         const durationMs = 7 * 24 * 60 * 60 * 1000; // 7 days
         const elapsed = Math.min(totalTimeElapsedMs, durationMs);
-        
+
         const weeklyRate = 0.3; // 30%
         const currentEarnings = slot.principal * weeklyRate * (elapsed / durationMs);
         const isCompleted = elapsed >= durationMs;

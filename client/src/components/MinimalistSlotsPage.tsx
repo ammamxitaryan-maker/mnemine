@@ -1,26 +1,25 @@
 "use client";
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useEarnings } from '@/hooks/useEarnings';
+import { MiningSlot, useSlotsData } from '@/hooks/useSlotsData';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { useUserData } from '@/hooks/useUserData';
+import { api } from '@/lib/api';
+import { calculateSlotEarnings, formatTime } from '@/utils/earningsCalculator';
+import { dismissToast, showError, showLoading, showSuccess } from '@/utils/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Clock,
+  History,
+  Loader2,
+  Plus,
+  Server
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api } from '@/lib/api';
-import { 
-  Server, 
-  Plus, 
-  Zap, 
-  Clock,
-  Loader2,
-  History
-} from 'lucide-react';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { useSlotsData, MiningSlot } from '@/hooks/useSlotsData';
-import { useUserData } from '@/hooks/useUserData';
-import { useEarnings } from '@/hooks/useEarnings';
-import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { BackButton } from './BackButton';
-import { calculateSlotEarnings, formatTime } from '@/utils/earningsCalculator';
 import { RealTimeEarnings } from './RealTimeEarnings';
 
 const buyNewSlot = async ({ telegramId, amount }: { telegramId: string, amount: number }) => {
@@ -40,7 +39,11 @@ export const MinimalistSlotsPage = () => {
 
   const isLoading = slotsLoading || userDataLoading;
   const currentBalance = userData?.mneBalance ?? 0;
-  const canInvest = parseFloat(amount) > 0 && parseFloat(amount) <= currentBalance;
+
+  // Minimum investment amount - should be configurable from admin panel
+  const MINIMUM_INVESTMENT = 3.0;
+
+  const canInvest = parseFloat(amount) >= MINIMUM_INVESTMENT && parseFloat(amount) <= currentBalance;
 
   const activeSlots = slotsData?.filter(slot => slot.isActive && new Date(slot.expiresAt) > new Date()) ?? [];
   const inactiveSlots = slotsData?.filter(slot => !slot.isActive || new Date(slot.expiresAt) <= new Date()) ?? [];
@@ -67,22 +70,27 @@ export const MinimalistSlotsPage = () => {
 
   const handleBuySlot = () => {
     const investmentAmount = parseFloat(amount);
-    
+
     if (!amount || isNaN(investmentAmount) || investmentAmount <= 0) {
       showError(t('pleaseEnterValidAmount'));
       return;
     }
-    
+
+    if (investmentAmount < MINIMUM_INVESTMENT) {
+      showError(t('minimumInvestmentRequired', { minimum: MINIMUM_INVESTMENT }));
+      return;
+    }
+
     if (investmentAmount > currentBalance) {
       showError(t('insufficientBalance', { balance: currentBalance.toFixed(2) }));
       return;
     }
-    
+
     if (!user) {
       showError(t('userNotAuthenticated'));
       return;
     }
-    
+
     mutation.mutate({ telegramId: user.telegramId, amount: investmentAmount });
   };
 
@@ -105,8 +113,8 @@ export const MinimalistSlotsPage = () => {
             <Server className="w-8 h-8 text-destructive" />
           </div>
           <p className="text-lg text-destructive mb-4">{t('couldNotLoadSlots')}</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             variant="outline"
             className="mt-2"
           >
@@ -225,7 +233,7 @@ export const MinimalistSlotsPage = () => {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="flex-1 h-12 text-lg"
-                min="0.01"
+                min={MINIMUM_INVESTMENT}
                 step="0.01"
               />
               <Button
@@ -235,6 +243,11 @@ export const MinimalistSlotsPage = () => {
               >
                 {t('max')}
               </Button>
+            </div>
+
+            {/* Minimum investment hint */}
+            <div className="text-sm text-muted-foreground">
+              {t('minimumInvestmentHint', { minimum: MINIMUM_INVESTMENT })}
             </div>
 
             <Button
@@ -316,7 +329,7 @@ export const MinimalistSlotsPage = () => {
               const expectedReturn = slot.principal * 1.3; // 30% return
               const timeToComplete = formatTime(slotEarnings.remainingSeconds);
               const progress = (slotEarnings.totalReturn / expectedReturn) * 100;
-              
+
               return (
                 <div key={slot.id} className="minimal-card p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in-0 slide-in-from-bottom-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
@@ -340,7 +353,7 @@ export const MinimalistSlotsPage = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex justify-between text-sm text-muted-foreground mb-2">
@@ -348,7 +361,7 @@ export const MinimalistSlotsPage = () => {
                       <span>{progress.toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-muted/30 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(progress, 100)}%` }}
                       ></div>

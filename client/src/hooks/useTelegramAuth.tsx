@@ -33,7 +33,7 @@ const createTelegramUser = (user: Record<string, unknown>): AuthenticatedUser =>
 
 // Fallback authentication for development
 const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void, setUserAndCache: (user: AuthenticatedUser) => void) => {
-  console.log('[AUTH] Using fallback authentication (development mode)');
+  // console.log('[AUTH] Using fallback authentication (development mode)');
   
   // Check if we're in local development mode
   const isLocalDev = window.location.hostname === 'localhost' || 

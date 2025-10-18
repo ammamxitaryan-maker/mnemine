@@ -241,7 +241,7 @@ export const refundPayment = async (req: Request, res: Response) => {
       await prisma.wallet.update({
         where: { id: userWallet.id },
         data: {
-          balance: userWallet.balance - payment.amount
+          balance: Math.max(0, userWallet.balance - payment.amount)
         }
       });
     }

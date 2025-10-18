@@ -1,13 +1,12 @@
-﻿import { Request, Response } from 'express';
+﻿import { ActivityLogType } from '@prisma/client';
+import { Request, Response } from 'express';
+import { BRONZE_INVESTOR_THRESHOLD, GOLD_MAGNATE_THRESHOLD, PLATINUM_GOD_THRESHOLD } from '../constants.js';
+import { DatabasePerformanceMonitor } from '../optimizations/databaseOptimizations.js';
 import prisma from '../prisma.js';
-import { ACTIVE_REFERRAL_MIN_SLOTS, ACTIVE_REFERRAL_MIN_DIRECT_REFERRALS, BRONZE_INVESTOR_THRESHOLD, GOLD_MAGNATE_THRESHOLD, PLATINUM_GOD_THRESHOLD } from '../constants.js';
-import { ActivityLogType } from '@prisma/client';
-import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
-import { userSelect, userSelectWithoutMiningSlots, userSelectMinimal } from '../utils/dbSelects.js';
 import { CacheService } from '../services/cacheService.js';
 import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
+import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
 import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
-import { DatabasePerformanceMonitor } from '../optimizations/databaseOptimizations.js';
 
 // GET /api/user/:telegramId/data
 export const getUserData = async (req: Request, res: Response) => {
@@ -21,15 +20,30 @@ export const getUserData = async (req: Request, res: Response) => {
 
   try {
     const startTime = performance.now();
-    
+
     // Ensure user has all required wallets before processing
     await ensureUserWalletsByTelegramId(telegramId);
-    
+
+    // Update user's last activity timestamp (non-blocking)
+    prisma.user.update({
+      where: { telegramId },
+      data: { 
+        lastActivityAt: new Date(),
+        lastSeenAt: new Date()
+      }
+    }).catch(error => {
+      console.error(`[DATA] Failed to update lastActivityAt for user ${telegramId}:`, error);
+    });
+
     // Use optimized cache system with database optimization
-    const cachedData = await CacheService.userData.getUserData(telegramId, async () => {
-      // Use optimized database service
+    // Add cache bypass parameter for admin updates
+    const bypassCache = req.query.bypassCache === 'true';
+
+    let cachedData;
+    if (bypassCache) {
+      console.log(`[DATA] Bypassing cache for user ${telegramId} due to bypassCache parameter`);
+      // Force fresh data fetch
       const user = await DatabaseOptimizationService.getUserDataOptimized(telegramId);
-      
       if (!user) {
         throw new Error('User not found');
       }
@@ -37,57 +51,94 @@ export const getUserData = async (req: Request, res: Response) => {
       // Calculate earnings
       const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
-      const USDWallet = user.wallets.find(w => w.currency === 'USD');
-      const MNEWallet = user.wallets.find(w => w.currency === 'MNE');
-      const currentBalance = USDWallet?.balance || 0;
-      const mneBalance = MNEWallet?.balance || 0;
-      
+      // Calculate total balances for each currency (in case user has multiple wallets)
+      const currentBalance = user.wallets
+        .filter(w => w.currency === 'USD')
+        .reduce((sum, w) => sum + w.balance, 0);
+
+      const mneBalance = user.wallets
+        .filter(w => w.currency === 'MNE')
+        .reduce((sum, w) => sum + w.balance, 0);
+
       const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
-      return { 
-        balance: currentBalance, 
+      cachedData = {
+        balance: currentBalance,
         mneBalance: mneBalance,
         miningPower: totalMiningPower,
         accruedEarnings: totalEarnings,
-        totalInvested: user.totalInvested,
-        referralCount: user._count.referrals,
-        rank: user.rank,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatarUrl: user.avatarUrl,
-        telegramId: user.telegramId,
-        referralCode: user.referralCode,
-        referredById: user.referredById,
-        lastSeenAt: user.lastSeenAt,
-        lastDepositAt: user.lastDepositAt,
-        lastWithdrawalAt: user.lastWithdrawalAt,
-        lastSlotPurchaseAt: user.lastSlotPurchaseAt,
-        captchaValidated: user.captchaValidated,
-        lastReferralZeroPenaltyAppliedAt: user.lastReferralZeroPenaltyAppliedAt,
-        isSuspicious: user.isSuspicious,
-        lastSuspiciousPenaltyAppliedAt: user.lastSuspiciousPenaltyAppliedAt,
-        lastInvestmentGrowthBonusClaimedAt: user.lastInvestmentGrowthBonusClaimedAt,
-        isOnline: user.isOnline,
-        permissions: user.permissions,
-        managedBy: user.managedBy,
-        activityLogs: user.activityLogs,
-        referralsCount: user.referrals.length,
-        wallets: user.wallets,
-        isEligibleForFirstWithdrawal: isUserEligible(user.id),
-        isUserSuspicious: isUserSuspicious(user.id),
-        lastActivityAt: user.lastActivityAt,
-        isActive: user.isActive,
-        isFrozen: user.isFrozen,
-        frozenAt: user.frozenAt,
-        frozenReason: user.frozenReason,
-        activityScore: user.activityScore,
-        totalWithdrawn: user.totalWithdrawn,
-        firstWithdrawalAt: user.firstWithdrawalAt,
-        hasMadeDeposit: user.hasMadeDeposit,
-        lastLotteryTicketAt: user.lastLotteryTicketAt,
+        totalInvested: user.totalInvested || 0
       };
-    });
+    } else {
+      cachedData = await CacheService.userData.getUserData(telegramId, async () => {
+        // Use optimized database service
+        const user = await DatabaseOptimizationService.getUserDataOptimized(telegramId);
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        // Calculate earnings
+        const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
+
+        // Calculate total balances for each currency (in case user has multiple wallets)
+        const currentBalance = user.wallets
+          .filter(w => w.currency === 'USD')
+          .reduce((sum, w) => sum + w.balance, 0);
+
+        const mneBalance = user.wallets
+          .filter(w => w.currency === 'MNE')
+          .reduce((sum, w) => sum + w.balance, 0);
+
+        console.log(`[DATA] User ${telegramId} balance: MNE=${mneBalance}, USD=${currentBalance}`);
+
+        const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
+
+        return {
+          balance: currentBalance,
+          mneBalance: mneBalance,
+          miningPower: totalMiningPower,
+          accruedEarnings: totalEarnings,
+          totalInvested: user.totalInvested,
+          referralCount: user._count.referrals,
+          rank: user.rank,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          avatarUrl: user.avatarUrl,
+          telegramId: user.telegramId,
+          referralCode: user.referralCode,
+          referredById: user.referredById,
+          lastSeenAt: user.lastSeenAt,
+          lastDepositAt: user.lastDepositAt,
+          lastWithdrawalAt: user.lastWithdrawalAt,
+          lastSlotPurchaseAt: user.lastSlotPurchaseAt,
+          captchaValidated: user.captchaValidated,
+          lastReferralZeroPenaltyAppliedAt: user.lastReferralZeroPenaltyAppliedAt,
+          isSuspicious: user.isSuspicious,
+          lastSuspiciousPenaltyAppliedAt: user.lastSuspiciousPenaltyAppliedAt,
+          lastInvestmentGrowthBonusClaimedAt: user.lastInvestmentGrowthBonusClaimedAt,
+          isOnline: user.isOnline,
+          permissions: user.permissions,
+          managedBy: user.managedBy,
+          activityLogs: user.activityLogs,
+          referralsCount: user.referrals.length,
+          wallets: user.wallets,
+          isEligibleForFirstWithdrawal: isUserEligible(user.id),
+          isUserSuspicious: isUserSuspicious(user.id),
+          lastActivityAt: user.lastActivityAt,
+          isActive: user.isActive,
+          isFrozen: user.isFrozen,
+          frozenAt: user.frozenAt,
+          frozenReason: user.frozenReason,
+          activityScore: user.activityScore,
+          totalWithdrawn: user.totalWithdrawn,
+          firstWithdrawalAt: user.firstWithdrawalAt,
+          hasMadeDeposit: user.hasMadeDeposit,
+          lastLotteryTicketAt: user.lastLotteryTicketAt,
+        };
+      });
+    }
 
     if (!cachedData) {
       return res.status(404).json({ error: 'User not found' });
@@ -96,9 +147,9 @@ export const getUserData = async (req: Request, res: Response) => {
     // Record performance metrics
     const totalTime = performance.now() - startTime;
     DatabasePerformanceMonitor.recordQuery('getUserData', totalTime);
-    
+
     console.log(`[PERFORMANCE] User data fetch for ${telegramId}: ${totalTime.toFixed(2)}ms`);
-    
+
     res.status(200).json(cachedData);
 
   } catch (error) {
