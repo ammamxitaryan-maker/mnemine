@@ -1,14 +1,14 @@
-﻿import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '@/components/PageHeader';
-import { useAdminData, AdminUser } from '@/hooks/useAdminData';
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+﻿import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Loader2, Users, DollarSign, TrendingUp, Ticket, Settings } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAdminUsers } from '@/hooks/useAdminData';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { Navigate } from 'react-router-dom';
+import { api } from '@/lib/api';
+import { AdminUser } from '@/types/admin';
+import { DollarSign, Loader2, Settings, Ticket, TrendingUp, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
   users: {
@@ -36,14 +36,14 @@ interface DashboardStats {
 const Admin = () => {
   const { t } = useTranslation();
   const { user } = useTelegramAuth();
-  const { data: adminData, isLoading: usersLoading, error: usersError } = useAdminData();
+  const { data: adminData, isLoading: usersLoading, error: usersError } = useAdminUsers();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Admin access check - allow users with Telegram IDs in admin list
   const ADMIN_TELEGRAM_IDS = ['6760298907'];
-  
+
   // Check if user is admin (moved before conditional returns)
   const isAdmin = user ? ADMIN_TELEGRAM_IDS.includes(user.telegramId) : false;
 
@@ -81,8 +81,8 @@ const Admin = () => {
   // Only admin users can see this component
   console.log('[ADMIN] Admin access granted for user:', user.telegramId);
 
-  const users = adminData?.users || [];
-  const onlineCount = adminData?.onlineCount || 0;
+  const users = adminData?.data || [];
+  const onlineCount = 0; // This would need to be fetched separately
 
   const isLoading = usersLoading || statsLoading;
 
@@ -157,7 +157,7 @@ const Admin = () => {
                 <p className="text-xs text-gray-400">now</p>
               </CardContent>
             </Card>
-        </div>
+          </div>
         )}
 
         {/* Quick Actions */}
@@ -183,8 +183,8 @@ const Admin = () => {
             <Settings className="h-4 w-4 mr-2" />
             Full Dashboard
           </Button>
-          </div>
-          
+        </div>
+
         {/* Users List */}
         <Card className="bg-gray-900 border-gray-700">
           <CardHeader>
@@ -195,7 +195,7 @@ const Admin = () => {
             <CardDescription>Click on a user to view details</CardDescription>
           </CardHeader>
           <CardContent>
-          {isLoading ? (
+            {isLoading ? (
               <div className="text-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-2" />
                 <p className="text-gray-400">Loading users...</p>
@@ -210,31 +210,31 @@ const Admin = () => {
               </div>
             ) : (
               <div className="max-h-96 overflow-y-auto space-y-2">
-              {users.map((user: AdminUser) => (
-                <div 
-                  key={user.id} 
+                {users.map((user: AdminUser) => (
+                  <div
+                    key={user.id}
                     className="p-3 bg-gray-800 rounded-lg hover:bg-gray-750 cursor-pointer flex justify-between items-center transition-colors"
-                  onClick={() => navigate(`/admin/user/${user.id}`)}
-                >
-                  <div>
+                    onClick={() => navigate(`/admin/user/${user.id}`)}
+                  >
+                    <div>
                       <div className="text-white font-medium flex items-center">
-                      {user.firstName || user.username || `User ${user.telegramId}`}
+                        {user.firstName || user.username || `User ${user.telegramId}`}
                         {user.isOnline && <span className="ml-2 text-green-400 text-xl">●</span>}
-                    </div>
-                    <div className="text-sm text-gray-400">
+                      </div>
+                      <div className="text-sm text-gray-400">
                         {new Date(user.createdAt).toLocaleDateString()} • {user._count.referrals} refs
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
+                    <div className="text-right">
                       <div className="text-gold font-mono font-bold">
                         {user.wallets.find(w => w.currency === 'USD')?.balance.toFixed(2) ?? '0.00'}
-                    </div>
+                      </div>
                       <div className="text-xs text-gray-400">USD</div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

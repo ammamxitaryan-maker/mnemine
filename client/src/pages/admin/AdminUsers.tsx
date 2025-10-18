@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
+import { AdminUser } from '@/types/admin';
 import {
   ArrowLeft,
   Ban,
@@ -96,11 +97,10 @@ const AdminUsers = () => {
       const users = response.data.data.users || [];
 
       // Log balance information for debugging
-      console.log('[AdminUsers] Fetched users with balance info:', users.map(user => ({
+      console.log('[AdminUsers] Fetched users with balance info:', users.map((user: AdminUser) => ({
         telegramId: user.telegramId,
         balance: user.balance,
-        mneBalance: user.mneBalance,
-        usdBalance: user.usdBalance
+        wallets: user.wallets
       })));
 
       setUsers(users);
@@ -206,8 +206,26 @@ const AdminUsers = () => {
                   if (response.data.success) {
                     alert(`✅ Added ${amount.toFixed(4)} MNE to ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} MNE`);
                     await fetchUsers();
-                    // Force refresh user data cache
+
+                    // Force refresh user data cache with multiple approaches
+                    console.log(`[AdminUsers] Dispatching userDataRefresh event for telegramId: ${user?.telegramId}`);
+
+                    // Approach 1: Dispatch events
                     window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
+                    window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { telegramId: user?.telegramId, newBalance: response.data.data.newBalance } }));
+                    window.dispatchEvent(new CustomEvent('globalDataRefresh'));
+
+                    // Approach 2: Force page refresh for the user (if they're viewing the dashboard)
+                    if (user?.telegramId === '6760298907') { // Only for the current user
+                      console.log(`[AdminUsers] Forcing page refresh for current user`);
+                      // Show a message to the user
+                      alert('Balance updated! The page will refresh to show the new balance.');
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 1000);
+                    }
+
+                    console.log(`[AdminUsers] Events dispatched successfully`);
                   } else {
                     alert(`❌ Error: ${response.data.error || 'Unknown error'}`);
                   }

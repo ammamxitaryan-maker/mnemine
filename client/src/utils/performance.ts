@@ -2,7 +2,7 @@
  * Система мониторинга производительности
  */
 
-import { logger } from './logger';
+import { LogCategory, logger } from './logger';
 
 // Метрики производительности
 interface PerformanceMetric {
@@ -62,7 +62,7 @@ class PerformanceMonitor {
 
     // Логируем медленные операции
     if (duration > 1000) { // Более 1 секунды
-      logger.warn(`Slow operation detected: ${name} took ${duration.toFixed(2)}ms`, 'performance', {
+      logger.warn(`Slow operation detected: ${name} took ${duration.toFixed(2)}ms`, LogCategory.PERFORMANCE, {
         duration,
         metadata: metric.metadata,
       });
@@ -235,30 +235,27 @@ export const usePerformance = () => {
  * Мониторинг Web Vitals
  */
 export const initWebVitals = () => {
-  // Core Web Vitals
-  if ('web-vital' in window) {
-    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-      getCLS((metric) => {
-        logger.performance('CLS', metric.value, { metric: 'CLS', rating: metric.rating });
-      });
-
-      getFID((metric) => {
-        logger.performance('FID', metric.value, { metric: 'FID', rating: metric.rating });
-      });
-
-      getFCP((metric) => {
-        logger.performance('FCP', metric.value, { metric: 'FCP', rating: metric.rating });
-      });
-
-      getLCP((metric) => {
-        logger.performance('LCP', metric.value, { metric: 'LCP', rating: metric.rating });
-      });
-
-      getTTFB((metric) => {
-        logger.performance('TTFB', metric.value, { metric: 'TTFB', rating: metric.rating });
-      });
-    });
-  }
+  // Core Web Vitals - disabled until web-vitals is installed
+  // TODO: Install web-vitals package: npm install web-vitals
+  // if ('web-vitals' in window) {
+  //   import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }: any) => {
+  //     getCLS((metric: any) => {
+  //       logger.performance('CLS', metric.value, { metric: 'CLS', rating: metric.rating });
+  //     });
+  //     getFID((metric: any) => {
+  //       logger.performance('FID', metric.value, { metric: 'FID', rating: metric.rating });
+  //     });
+  //     getFCP((metric: any) => {
+  //       logger.performance('FCP', metric.value, { metric: 'FCP', rating: metric.rating });
+  //     });
+  //     getLCP((metric: any) => {
+  //       logger.performance('LCP', metric.value, { metric: 'LCP', rating: metric.rating });
+  //     });
+  //     getTTFB((metric: any) => {
+  //       logger.performance('TTFB', metric.value, { metric: 'TTFB', rating: metric.rating });
+  //     });
+  //   });
+  // }
 
   // Мониторинг загрузки ресурсов
   if ('PerformanceObserver' in window) {
@@ -274,7 +271,7 @@ export const initWebVitals = () => {
         } else if (entry.entryType === 'resource') {
           const resourceEntry = entry as PerformanceResourceTiming;
           if (resourceEntry.duration > 1000) { // Ресурсы, загружающиеся более 1 секунды
-            logger.warn(`Slow resource load: ${resourceEntry.name}`, 'performance', {
+            logger.warn(`Slow resource load: ${resourceEntry.name}`, LogCategory.PERFORMANCE, {
               duration: resourceEntry.duration,
               size: resourceEntry.transferSize,
               type: resourceEntry.initiatorType,
@@ -294,7 +291,7 @@ export const initWebVitals = () => {
 export const initErrorMonitoring = () => {
   // Ошибки JavaScript
   window.addEventListener('error', (event) => {
-    logger.error('JavaScript Error', event.error, 'error', {
+    logger.error('JavaScript Error', event.error, LogCategory.ERROR, {
       message: event.message,
       filename: event.filename,
       lineno: event.lineno,
@@ -305,7 +302,7 @@ export const initErrorMonitoring = () => {
 
   // Необработанные промисы
   window.addEventListener('unhandledrejection', (event) => {
-    logger.error('Unhandled Promise Rejection', event.reason, 'error', {
+    logger.error('Unhandled Promise Rejection', event.reason, LogCategory.ERROR, {
       reason: event.reason,
       promise: event.promise,
     });

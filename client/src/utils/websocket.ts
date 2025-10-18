@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useLogger } from './logger';
+import { LogCategory, useLogger } from './logger';
 
 // Типы сообщений
 export interface WebSocketMessage {
@@ -79,7 +79,7 @@ class WebSocketClient {
 
         this.ws.onopen = () => {
           console.log('[WEBSOCKET] Connected to server');
-          this.logger.info('WebSocket connected', 'SYSTEM');
+          this.logger.info('WebSocket connected', LogCategory.SYSTEM);
 
           this.isConnecting = false;
           this.reconnectAttempts = 0;
@@ -103,7 +103,7 @@ class WebSocketClient {
 
         this.ws.onclose = (event) => {
           console.log('[WEBSOCKET] Connection closed:', event.code, event.reason);
-          this.logger.info(`WebSocket disconnected: ${event.code} ${event.reason}`, 'SYSTEM');
+          this.logger.info(`WebSocket disconnected: ${event.code} ${event.reason}`, LogCategory.SYSTEM);
 
           this.isConnecting = false;
           this.onConnectionChangeCallback?.(false);
@@ -153,10 +153,10 @@ class WebSocketClient {
   send(message: WebSocketMessage): void {
     if (this.isConnected()) {
       this.ws!.send(JSON.stringify(message));
-      this.logger.debug(`WebSocket message sent: ${message.type}`, 'SYSTEM');
+      this.logger.debug(`WebSocket message sent: ${message.type}`, { messageType: message.type });
     } else {
       console.warn('[WEBSOCKET] Cannot send message: not connected');
-      this.logger.warn('WebSocket message not sent: not connected', 'SYSTEM');
+      this.logger.warn('WebSocket message not sent: not connected', LogCategory.SYSTEM);
     }
   }
 
@@ -178,7 +178,7 @@ class WebSocketClient {
    * Обработка входящих сообщений
    */
   private handleMessage(message: WebSocketMessage): void {
-    this.logger.debug(`WebSocket message received: ${message.type}`, 'SYSTEM');
+    this.logger.debug(`WebSocket message received: ${message.type}`, { messageType: message.type });
 
     switch (message.type) {
       case 'pong':
@@ -242,7 +242,7 @@ class WebSocketClient {
     const delay = this.config.reconnectInterval! * Math.pow(2, this.reconnectAttempts - 1);
 
     console.log(`[WEBSOCKET] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
-    this.logger.info(`WebSocket reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`, 'SYSTEM');
+    this.logger.info(`WebSocket reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`, LogCategory.SYSTEM);
 
     this.reconnectTimer = setTimeout(() => {
       this.connect().catch(error => {

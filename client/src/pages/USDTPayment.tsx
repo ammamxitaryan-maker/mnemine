@@ -112,7 +112,7 @@ const USDTPayment = () => {
     return (
       <div className="page-container flex flex-col text-white">
         <div className="page-content w-full max-w-md mx-auto">
-          <PageHeader title="Payment Error" backTo="/deposit" />
+          <PageHeader titleKey="payment.error" backTo="/deposit" />
           <Card className="bg-gray-900/80 border-red-500">
             <CardContent className="p-6 text-center">
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -133,7 +133,7 @@ const USDTPayment = () => {
   return (
     <div className="page-container flex flex-col text-white">
       <div className="page-content w-full max-w-md mx-auto">
-        <PageHeader title="USDT Payment" backTo="/deposit" />
+        <PageHeader titleKey="payment.usdt" backTo="/deposit" />
 
         {/* Payment Summary */}
         <Card className="bg-gray-900/80 border-primary mb-4">

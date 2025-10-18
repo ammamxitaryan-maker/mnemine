@@ -210,23 +210,4 @@ export interface AdminAction {
   timestamp: string;
 }
 
-// Экспорт всех типов
-export type {
-  BaseUser,
-  AdminUser,
-  UserWallet,
-  DashboardStats,
-  Transaction,
-  Lottery,
-  LotteryParticipant,
-  Notification,
-  SystemLog,
-  SystemSettings,
-  ApiResponse,
-  PaginatedResponse,
-  FilterOptions,
-  SortOptions,
-  PaginationOptions,
-  LoadingState,
-  AdminAction,
-};
+// Types are already exported above, no need to re-export

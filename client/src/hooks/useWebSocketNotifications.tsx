@@ -4,7 +4,7 @@
 
 import { useNotifications } from '@/components/admin/AdminNotifications';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { useLogger } from '@/utils/logger';
+import { LogCategory, useLogger } from '@/utils/logger';
 import { NotificationData, useWebSocket } from '@/utils/websocket';
 import { useEffect, useRef } from 'react';
 
@@ -52,7 +52,7 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
 
     const handleFocus = () => {
       if (!connected && config.enabled && user?.telegramId) {
-        logger.info('Window focused, attempting to reconnect WebSocket', 'SYSTEM');
+        logger.info('Window focused, attempting to reconnect WebSocket', LogCategory.SYSTEM);
         connect().catch(err => {
           logger.error('Failed to reconnect WebSocket on focus', err as Error);
         });
@@ -66,7 +66,7 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
   // Обработка входящих уведомлений
   useEffect(() => {
     const handleNotification = (notification: NotificationData) => {
-      logger.info('WebSocket notification received', 'SYSTEM', {
+      logger.info('WebSocket notification received', LogCategory.SYSTEM, {
         title: notification.title,
         type: notification.type,
         id: notification.id,
@@ -101,7 +101,7 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
   // Обработка ошибок подключения
   useEffect(() => {
     if (error) {
-      logger.error('WebSocket connection error', new Error(error), 'SYSTEM');
+      logger.error('WebSocket connection error', new Error(error), LogCategory.SYSTEM);
 
       // Показываем уведомление об ошибке только если это не первая попытка
       if (reconnectTimeoutRef.current) {
@@ -118,12 +118,12 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
   // Обработка изменения статуса подключения
   useEffect(() => {
     if (connected) {
-      logger.info('WebSocket connected successfully', 'SYSTEM');
+      logger.info('WebSocket connected successfully', LogCategory.SYSTEM);
 
       // Убираем уведомления об ошибках подключения
       // (в реальном приложении можно добавить логику для удаления конкретных уведомлений)
     } else if (user?.telegramId) {
-      logger.warn('WebSocket disconnected', 'SYSTEM');
+      logger.warn('WebSocket disconnected', LogCategory.SYSTEM);
     }
   }, [connected, user?.telegramId, logger]);
 
@@ -131,7 +131,7 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
-        logger.info(`Notification permission: ${permission}`, 'SYSTEM');
+        logger.info(`Notification permission: ${permission}`, LogCategory.SYSTEM);
       });
     }
   }, [logger]);
@@ -152,7 +152,7 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
 
   const manualDisconnect = () => {
     disconnect();
-    logger.info('WebSocket manually disconnected', 'SYSTEM');
+    logger.info('WebSocket manually disconnected', LogCategory.SYSTEM);
   };
 
   const getConnectionStatus = () => {

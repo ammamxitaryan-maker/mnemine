@@ -73,14 +73,14 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
   useEffect(() => {
     // Обработка уведомлений от WebSocket
     client.onNotification((notification) => {
-      if (notification.type === 'broadcast_sent') {
+      if ((notification as any).type === 'broadcast_sent') {
         setLastSent({
-          count: notification.data?.sentCount || 0,
+          count: (notification as any).data?.sentCount || 0,
           timestamp: new Date().toLocaleString(),
         });
         addNotification({
           title: 'Уведомления отправлены',
-          message: `Отправлено ${notification.data?.sentCount || 0} пользователям`,
+          message: `Отправлено ${(notification as any).data?.sentCount || 0} пользователям`,
           type: 'success',
         });
       }

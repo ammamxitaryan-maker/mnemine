@@ -135,7 +135,7 @@ class AdminLogger {
    */
   private logToConsole(entry: LogEntry): void {
     const timestamp = new Date(entry.timestamp).toLocaleTimeString();
-    const prefix = `[${timestamp}] [${LogCategory[entry.category]}] [${LogLevel[entry.level]}]`;
+    const prefix = `[${timestamp}] [${entry.category}] [${LogLevel[entry.level]}]`;
 
     const logData = {
       message: entry.message,
