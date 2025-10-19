@@ -42,8 +42,29 @@ export const getUserData = async (req: Request, res: Response) => {
     let cachedData;
     if (bypassCache) {
       console.log(`[DATA] Bypassing cache for user ${telegramId} due to bypassCache parameter`);
-      // Force fresh data fetch
-      const user = await DatabaseOptimizationService.getUserDataOptimized(telegramId);
+      // Use faster, simpler query for cache bypass
+      const user = await prisma.user.findUnique({
+        where: { telegramId },
+        select: {
+          id: true,
+          totalInvested: true,
+          totalEarnings: true,
+          wallets: {
+            select: {
+              currency: true,
+              balance: true
+            }
+          },
+          miningSlots: {
+            where: { isActive: true },
+            select: {
+              accruedEarnings: true,
+              effectiveWeeklyRate: true
+            }
+          }
+        }
+      });
+
       if (!user) {
         throw new Error('User not found');
       }
@@ -51,7 +72,7 @@ export const getUserData = async (req: Request, res: Response) => {
       // Calculate earnings
       const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
-      // Calculate total balances for each currency (in case user has multiple wallets)
+      // Calculate total balances for each currency
       const currentBalance = user.wallets
         .filter(w => w.currency === 'USD')
         .reduce((sum, w) => sum + w.balance, 0);

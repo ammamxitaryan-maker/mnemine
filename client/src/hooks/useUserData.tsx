@@ -14,8 +14,10 @@ export interface UserData {
 }
 
 const fetchUserData = async (telegramId: string, bypassCache: boolean = false): Promise<UserData> => {
-  // Always use cache bypass to ensure fresh data
-  const url = `/user/${telegramId}/data?bypassCache=true&t=${Date.now()}`;
+  // Use cache bypass only when explicitly requested
+  const url = bypassCache 
+    ? `/user/${telegramId}/data?bypassCache=true&t=${Date.now()}`
+    : `/user/${telegramId}/data`;
   console.log(`[fetchUserData] Fetching data for ${telegramId}, bypassCache: ${bypassCache}, url: ${url}`);
   const { data } = await api.get(url);
   console.log(`[fetchUserData] Received data:`, { nonBalance: data.nonBalance, balance: data.balance });
@@ -26,7 +28,7 @@ export const useUserData = (telegramId: string | undefined) => {
   const [forceRefresh, setForceRefresh] = React.useState(0);
 
   const query = useQuery<UserData, Error>({ // Указан тип для data и error
-    queryKey: ['userData', telegramId, forceRefresh, Date.now()], // Add timestamp to force fresh fetches
+    queryKey: ['userData', telegramId, forceRefresh], // Remove timestamp to allow proper caching
     queryFn: () => {
       console.log(`[useUserData] Query function called for telegramId: ${telegramId}, forceRefresh: ${forceRefresh}`);
       return fetchUserData(telegramId!, forceRefresh > 0);
