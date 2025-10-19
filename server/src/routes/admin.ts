@@ -303,7 +303,7 @@ router.get('/custom-reports', isAdmin, async (req, res) => {
     if (metricsArray.includes('earnings')) {
       const earningsData = await prisma.activityLog.findMany({
         where: {
-          type: { in: ['EARNINGS', 'REFERRAL', 'BONUS'] },
+          type: { in: ['CLAIM', 'REFERRAL_SIGNUP_BONUS', 'REFERRAL_COMMISSION', 'REFERRAL_DEPOSIT_BONUS', 'TASK_REWARD', 'DAILY_BONUS', 'WELCOME_BONUS', 'LEADERBOARD_BONUS', 'INVESTMENT_GROWTH_BONUS', 'DIVIDEND_BONUS', 'REFERRAL_3_IN_3_DAYS_BONUS', 'LOTTERY_TICKET_PURCHASE'] },
           createdAt: { gte: start, lte: end }
         },
         select: {
@@ -325,9 +325,9 @@ router.get('/custom-reports', isAdmin, async (req, res) => {
         daily: dailyEarnings,
         average: totalEarnings / reportData.timeframe.days,
         breakdown: {
-          slotEarnings: earningsData.filter(log => log.type === 'EARNINGS').reduce((sum, log) => sum + (log.amount || 0), 0),
-          referralEarnings: earningsData.filter(log => log.type === 'REFERRAL').reduce((sum, log) => sum + (log.amount || 0), 0),
-          bonusEarnings: earningsData.filter(log => log.type === 'BONUS').reduce((sum, log) => sum + (log.amount || 0), 0)
+          slotEarnings: earningsData.filter(log => log.type === 'CLAIM').reduce((sum, log) => sum + (log.amount || 0), 0),
+          referralEarnings: earningsData.filter(log => ['REFERRAL_SIGNUP_BONUS', 'REFERRAL_COMMISSION', 'REFERRAL_DEPOSIT_BONUS', 'REFERRAL_3_IN_3_DAYS_BONUS'].includes(log.type)).reduce((sum, log) => sum + (log.amount || 0), 0),
+          bonusEarnings: earningsData.filter(log => ['TASK_REWARD', 'DAILY_BONUS', 'WELCOME_BONUS', 'LEADERBOARD_BONUS', 'INVESTMENT_GROWTH_BONUS', 'DIVIDEND_BONUS', 'LOTTERY_TICKET_PURCHASE'].includes(log.type)).reduce((sum, log) => sum + (log.amount || 0), 0)
         }
       };
     }

@@ -27,7 +27,7 @@ export const walletUpdateSchema = z.object({
 
 // Transaction schemas
 export const transactionCreateSchema = z.object({
-  type: z.enum(['DEPOSIT', 'WITHDRAWAL', 'EARNINGS', 'REFERRAL', 'BONUS', 'PENALTY'], {
+  type: z.enum(['DEPOSIT', 'WITHDRAWAL', 'MINING_EARNINGS', 'REFERRAL_BONUS', 'LOTTERY_WIN', 'ADMIN_ADJUSTMENT', 'REFUND'], {
     required_error: 'Transaction type is required'
   }),
   amount: z.number().min(0.001, 'Amount must be at least 0.001'),
