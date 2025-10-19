@@ -175,9 +175,11 @@ export class USDTPaymentService {
       console.log('[NOWPAYMENTS] Invoice created:', invoiceResponse);
 
       // Try to get payment details, but don't fail if not available immediately
+      // Payment details may not be available immediately after invoice creation
       const paymentDetails = await this.getPaymentDetails(invoiceResponse.id);
 
       if (paymentDetails) {
+        console.log('[NOWPAYMENTS] Payment details retrieved successfully');
         return {
           success: true,
           paymentId: invoiceResponse.id,
@@ -187,7 +189,8 @@ export class USDTPaymentService {
           qrCode: `usdt:${paymentDetails.pay_address}?amount=${paymentDetails.pay_amount}&memo=${request.orderId}`
         };
       } else {
-        // Return basic response without payment details - they will be available later
+        // Return basic response without payment details - they will be available later via webhook
+        console.log('[NOWPAYMENTS] Payment details not yet available, will be provided via webhook');
         return {
           success: true,
           paymentId: invoiceResponse.id,
@@ -221,7 +224,11 @@ export class USDTPaymentService {
       });
 
       if (!response.ok) {
-        console.error('[NOWPAYMENTS] Failed to get payment details:', response.status);
+        if (response.status === 404) {
+          console.log('[NOWPAYMENTS] Payment details not yet available (404) - this is normal for newly created payments');
+        } else {
+          console.error('[NOWPAYMENTS] Failed to get payment details:', response.status);
+        }
         return null;
       }
 

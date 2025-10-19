@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { MainBalanceDisplay } from './MainBalanceDisplay';
 import { SimpleStats } from './SimpleStats';
 
@@ -31,13 +32,21 @@ interface ExpandedHomePageProps {
 
 export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
   const { t } = useTranslation();
-  const { data: userData, isLoading: userDataLoading } = useUserData(user.telegramId);
+  const { data: userData, isLoading: userDataLoading, forceRefresh } = useUserData(user.telegramId);
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
   const { totalUsers, onlineUsers } = useWebSocketUserStats();
   const { hapticLight, hapticWarning } = useHapticFeedback();
 
   // Check if user is admin
   const isAdmin = isAdminUser(user.telegramId);
+
+  // Force refresh user data when page loads to get latest balance
+  useEffect(() => {
+    console.log('[ExpandedHomePage] Page loaded, forcing data refresh for user', user.telegramId);
+    if (forceRefresh) {
+      forceRefresh();
+    }
+  }, [user.telegramId, forceRefresh]);
 
   const displayName = user.firstName || user.username || t('profile.user');
   const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'U';

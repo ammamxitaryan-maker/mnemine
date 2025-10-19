@@ -31,11 +31,12 @@ export const useUserData = (telegramId: string | undefined) => {
     queryKey: ['userData', telegramId, forceRefresh], // Remove timestamp to allow proper caching
     queryFn: () => {
       console.log(`[useUserData] Query function called for telegramId: ${telegramId}, forceRefresh: ${forceRefresh}`);
-      return fetchUserData(telegramId!, forceRefresh > 0);
+      // Always bypass cache to get fresh data from server
+      return fetchUserData(telegramId!, true);
     },
     enabled: !!telegramId,
     refetchInterval: 300000, // Refetch every 5 minutes (optimized)
-    staleTime: 120000, // Consider data fresh for 2 minutes
+    staleTime: 0, // Always consider data stale - get fresh data from server
     // onError удален из опций useQuery
   });
 
@@ -86,18 +87,39 @@ export const useUserData = (telegramId: string | undefined) => {
       query.refetch();
     };
 
+    const handleUserDataUpdated = (event: CustomEvent) => {
+      console.log(`[useUserData] Received userDataUpdated event:`, event.detail);
+      if (event.detail?.telegramId === telegramId) {
+        console.log(`[useUserData] User data updated for ${telegramId}, forcing refresh`);
+        setForceRefresh(prev => prev + 1);
+        query.refetch();
+      }
+    };
+
     window.addEventListener('userDataRefresh', handleUserDataRefresh as EventListener);
     window.addEventListener('balanceUpdated', handleBalanceUpdated as EventListener);
     window.addEventListener('globalDataRefresh', handleGlobalRefresh);
+    window.addEventListener('userDataUpdated', handleUserDataUpdated as EventListener);
     window.addEventListener('message', handleWebSocketMessage);
 
     return () => {
       window.removeEventListener('userDataRefresh', handleUserDataRefresh as EventListener);
       window.removeEventListener('balanceUpdated', handleBalanceUpdated as EventListener);
       window.removeEventListener('globalDataRefresh', handleGlobalRefresh);
+      window.removeEventListener('userDataUpdated', handleUserDataUpdated as EventListener);
       window.removeEventListener('message', handleWebSocketMessage);
     };
   }, [telegramId, query]);
 
-  return query;
+  // Add manual refresh function
+  const forceRefreshData = React.useCallback(() => {
+    console.log(`[useUserData] Manual force refresh requested for user ${telegramId}`);
+    setForceRefresh(prev => prev + 1);
+    query.refetch();
+  }, [telegramId, query]);
+
+  return {
+    ...query,
+    forceRefresh: forceRefreshData
+  };
 };

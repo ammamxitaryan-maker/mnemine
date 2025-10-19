@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { ForceRefreshButton } from '@/components/ForceRefreshButton';
 import { api } from '@/lib/api';
 import { AdminUser } from '@/types/admin';
 import {
@@ -887,6 +888,11 @@ const AdminUsers = () => {
                     <DollarSign className="h-4 w-4 mr-1" />
                     Balance
                   </Button>
+                  <ForceRefreshButton
+                    telegramId={user.telegramId}
+                    onRefresh={() => fetchUsers()}
+                    className="flex-1"
+                  />
                   <Button
                     variant="outline"
                     size="sm"

@@ -71,7 +71,7 @@ export const useMainBalance = (telegramId: string | undefined) => {
     },
     enabled: !!telegramId && !!userData,
     refetchInterval: 180000, // Refetch every 3 minutes (optimized)
-    staleTime: 60000, // Consider data fresh for 1 minute
+    staleTime: 0, // Always consider data stale - get fresh data from server
   });
 
   const usdEquivalent = convertNONToUSD(balanceData.data?.availableBalance || 0);
