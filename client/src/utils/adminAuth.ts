@@ -1,10 +1,10 @@
 /**
- * Улучшенные утилиты аутентификации админ панели
+ * Centralized admin authentication utilities
  */
 
 import { ADMIN_CONFIG } from '@/config/adminConfig';
 
-// Типы для аутентификации
+// Types for authentication
 export interface AuthState {
   isVerified: boolean;
   lastVerified: string | null;
@@ -19,7 +19,22 @@ export interface LoginAttempt {
 }
 
 /**
- * Получить текущее состояние аутентификации
+ * Get admin Telegram IDs from environment or fallback to default
+ */
+export const getAdminTelegramIds = (): string[] => {
+  return ADMIN_CONFIG.TELEGRAM_IDS;
+};
+
+/**
+ * Check if a user is an admin based on their Telegram ID
+ */
+export const isAdminUser = (telegramId: string): boolean => {
+  const adminIds = getAdminTelegramIds();
+  return adminIds.includes(telegramId);
+};
+
+/**
+ * Get current authentication state
  */
 export const getAuthState = (): AuthState => {
   const stored = sessionStorage.getItem('admin_auth_state');
@@ -27,7 +42,7 @@ export const getAuthState = (): AuthState => {
     try {
       return JSON.parse(stored);
     } catch {
-      // Если данные повреждены, сбрасываем
+      // If data is corrupted, reset
       clearAuthState();
     }
   }
@@ -41,7 +56,7 @@ export const getAuthState = (): AuthState => {
 };
 
 /**
- * Сохранить состояние аутентификации
+ * Save authentication state
  */
 export const setAuthState = (state: Partial<AuthState>): void => {
   const currentState = getAuthState();
@@ -51,12 +66,12 @@ export const setAuthState = (state: Partial<AuthState>): void => {
 };
 
 /**
- * Проверить, верифицирован ли пароль в текущей сессии
+ * Check if admin password is verified in current session
  */
 export const isAdminPasswordVerified = (): boolean => {
   const state = getAuthState();
 
-  // Проверяем, не истекла ли сессия
+  // Check if session has expired
   if (state.lastVerified) {
     const lastVerified = new Date(state.lastVerified);
     const now = new Date();
@@ -69,7 +84,7 @@ export const isAdminPasswordVerified = (): boolean => {
     }
   }
 
-  // Проверяем, не заблокирован ли аккаунт
+  // Check if account is locked
   if (state.lockedUntil) {
     const lockUntil = new Date(state.lockedUntil);
     const now = new Date();
@@ -78,7 +93,7 @@ export const isAdminPasswordVerified = (): boolean => {
       console.log('[ADMIN_AUTH] Account is locked until:', state.lockedUntil);
       return false;
     } else {
-      // Блокировка истекла, сбрасываем
+      // Lock has expired, reset
       setAuthState({ lockedUntil: null, attempts: 0 });
     }
   }
@@ -89,7 +104,7 @@ export const isAdminPasswordVerified = (): boolean => {
 };
 
 /**
- * Установить пароль как верифицированный
+ * Set admin password as verified
  */
 export const setAdminPasswordVerified = (): void => {
   setAuthState({
@@ -106,7 +121,7 @@ export const setAdminPasswordVerified = (): void => {
 };
 
 /**
- * Создать админский токен
+ * Create admin token
  */
 export const createAdminToken = (): string | null => {
   try {
@@ -139,15 +154,16 @@ export const createAdminToken = (): string | null => {
 };
 
 /**
- * Очистить верификацию пароля (выход)
+ * Clear admin password verification (logout)
  */
 export const clearAdminPasswordVerification = (): void => {
   clearAuthState();
+  localStorage.removeItem('admin_token');
   console.log('[ADMIN_AUTH] Password verification cleared');
 };
 
 /**
- * Очистить все данные аутентификации
+ * Clear all authentication data
  */
 export const clearAuthState = (): void => {
   sessionStorage.removeItem('admin_auth_state');
@@ -155,12 +171,12 @@ export const clearAuthState = (): void => {
 };
 
 /**
- * Проверить пароль админа
+ * Verify admin password
  */
 export const verifyAdminPassword = (password: string): boolean => {
   const state = getAuthState();
 
-  // Проверяем, не заблокирован ли аккаунт
+  // Check if account is locked
   if (state.lockedUntil) {
     const lockUntil = new Date(state.lockedUntil);
     const now = new Date();
@@ -174,7 +190,7 @@ export const verifyAdminPassword = (password: string): boolean => {
   const isValid = password === ADMIN_CONFIG.PASSWORD;
 
   if (isValid) {
-    // Успешная аутентификация
+    // Successful authentication
     setAuthState({
       isVerified: true,
       lastVerified: new Date().toISOString(),
@@ -183,7 +199,7 @@ export const verifyAdminPassword = (password: string): boolean => {
     });
     console.log('[ADMIN_AUTH] Password verification successful');
   } else {
-    // Неудачная попытка
+    // Failed attempt
     const newAttempts = state.attempts + 1;
     let lockedUntil: string | null = null;
 
@@ -203,7 +219,7 @@ export const verifyAdminPassword = (password: string): boolean => {
 };
 
 /**
- * Получить информацию о блокировке
+ * Get lockout information
  */
 export const getLockoutInfo = (): { isLocked: boolean; remainingTime?: number } => {
   const state = getAuthState();
@@ -224,14 +240,7 @@ export const getLockoutInfo = (): { isLocked: boolean; remainingTime?: number } 
 };
 
 /**
- * Проверить, является ли пользователь админом
- */
-export const isAdminUser = (telegramId: string): boolean => {
-  return ADMIN_CONFIG.TELEGRAM_IDS.includes(telegramId);
-};
-
-/**
- * Получить время до истечения сессии
+ * Get remaining session time
  */
 export const getSessionTimeRemaining = (): number | null => {
   const state = getAuthState();
@@ -246,4 +255,29 @@ export const getSessionTimeRemaining = (): number | null => {
   const remaining = ADMIN_CONFIG.SESSION.TIMEOUT - timeDiff;
 
   return remaining > 0 ? remaining : 0;
+};
+
+/**
+ * Check if user has admin access (both Telegram ID and password verification)
+ */
+export const hasAdminAccess = (telegramId: string): boolean => {
+  return isAdminUser(telegramId) && isAdminPasswordVerified();
+};
+
+/**
+ * Get admin authentication status
+ */
+export const getAdminAuthStatus = (telegramId: string) => {
+  const isAdmin = isAdminUser(telegramId);
+  const isPasswordVerified = isAdminPasswordVerified();
+  const hasAccess = isAdmin && isPasswordVerified;
+
+  return {
+    isAdmin,
+    isPasswordVerified,
+    hasAccess,
+    needsPassword: isAdmin && !isPasswordVerified,
+    sessionTimeRemaining: getSessionTimeRemaining(),
+    lockoutInfo: getLockoutInfo()
+  };
 };

@@ -117,6 +117,7 @@ const AdminDashboardMinimal = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await api.get('/admin/dashboard-stats');
       const data = response.data.data;
 
@@ -131,7 +132,8 @@ const AdminDashboardMinimal = () => {
       setStats(data);
     } catch (err: any) {
       console.error('Dashboard data fetch error:', err);
-      setError(err.response?.data?.error || 'Failed to load dashboard data');
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to load dashboard data';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

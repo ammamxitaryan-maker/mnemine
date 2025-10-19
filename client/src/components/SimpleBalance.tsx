@@ -15,7 +15,7 @@ export const SimpleBalance = ({ telegramId, className = '' }: SimpleBalanceProps
   const { data: userData } = useUserData(telegramId);
   const { convertNONToUSD } = useCachedExchangeRate(telegramId);
 
-  const mneBalance = userData?.mneBalance || 0;
+  const mneBalance = userData?.balance || 0;
   const usdEquivalent = convertNONToUSD(mneBalance);
 
   return (

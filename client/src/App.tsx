@@ -23,6 +23,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminDashboardCompact from "./pages/AdminDashboardCompact";
+import AdminLogin from "./pages/AdminLogin";
 import AdminLottery from "./pages/AdminLottery";
 import AdminPanel from "./pages/AdminPanel";
 import AdminStaff from "./pages/AdminStaff";
@@ -89,6 +90,9 @@ const App = () => {
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/lottery-history" element={<LotteryHistory />} />
             <Route path="/settings" element={<Settings />} />
+
+            {/* Admin Login Route - Not protected */}
+            <Route path="/admin-login" element={<AdminLogin />} />
 
             {/* Admin Routes - Protected by AdminRoute component */}
             {/* Only user with Telegram ID '6760298907' can access these routes */}

@@ -59,8 +59,10 @@ const AdminDashboardCompact = () => {
       setInactiveUsers(inactiveRes.data.data.users || []);
       setCurrentRate(rateRes.data.rate);
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: string } } };
-      showError(error.response?.data?.error || t('admin.error'));
+      const error = err as { response?: { data?: { error?: string } }; message?: string };
+      const errorMessage = error.response?.data?.error || error.message || t('admin.error') || 'Unknown error';
+      console.error('Error fetching admin data:', error);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }

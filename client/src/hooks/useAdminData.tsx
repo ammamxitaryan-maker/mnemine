@@ -2,12 +2,12 @@
  * Улучшенный хук для работы с данными админ панели
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
-import { useTelegramAuth } from './useTelegramAuth';
-import { isAdminUser } from '@/utils/adminAuth';
-import { AdminUser, DashboardStats, Transaction, PaginatedResponse, FilterOptions, SortOptions } from '@/types/admin';
 import { ADMIN_CONFIG } from '@/config/adminConfig';
+import { api } from '@/lib/api';
+import { AdminUser, DashboardStats, FilterOptions, PaginatedResponse, SortOptions, Transaction } from '@/types/admin';
+import { isAdminUser } from '@/utils/adminAuth';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTelegramAuth } from './useTelegramAuth';
 
 // Ключи для кэширования
 export const QUERY_KEYS = {
@@ -29,28 +29,40 @@ export const useAdminUsers = (filters?: FilterOptions, sort?: SortOptions, page:
   return useQuery<PaginatedResponse<AdminUser>, Error>({
     queryKey: [QUERY_KEYS.USERS, user?.telegramId, filters, sort, page],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, value.toString());
-        });
+      try {
+        const params = new URLSearchParams();
+
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            if (value) params.append(key, value.toString());
+          });
+        }
+
+        if (sort) {
+          params.append('sortBy', sort.field);
+          params.append('sortOrder', sort.direction);
+        }
+
+        params.append('page', page.toString());
+        params.append('limit', ADMIN_CONFIG.UI.ITEMS_PER_PAGE.toString());
+
+        const { data } = await api.get(`/admin/users?${params}`);
+        return data;
+      } catch (error: any) {
+        console.error('Error fetching admin users:', error);
+        throw new Error(error.response?.data?.error || error.message || 'Failed to fetch users');
       }
-      
-      if (sort) {
-        params.append('sortBy', sort.field);
-        params.append('sortOrder', sort.direction);
-      }
-      
-      params.append('page', page.toString());
-      params.append('limit', ADMIN_CONFIG.UI.ITEMS_PER_PAGE.toString());
-      
-      const { data } = await api.get(`/admin/users/${user?.telegramId}?${params}`);
-      return data;
     },
     enabled: !!user && isAdmin,
     staleTime: ADMIN_CONFIG.API.CACHE_DURATION,
     refetchInterval: 30000, // Обновляем каждые 30 секунд
+    retry: (failureCount, error) => {
+      // Retry up to 3 times for network errors, but not for auth errors
+      if (error.message.includes('401') || error.message.includes('403')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 
@@ -64,7 +76,7 @@ export const useAdminUserDetails = (userId: string) => {
   return useQuery<AdminUser, Error>({
     queryKey: [QUERY_KEYS.USER_DETAILS, userId, user?.telegramId],
     queryFn: async () => {
-      const { data } = await api.get(`/admin/user/${userId}/${user?.telegramId}`);
+      const { data } = await api.get(`/admin/user/${userId}`);
       return data.data;
     },
     enabled: !!user && isAdmin && !!userId,
@@ -82,12 +94,24 @@ export const useAdminDashboardStats = () => {
   return useQuery<DashboardStats, Error>({
     queryKey: [QUERY_KEYS.DASHBOARD_STATS, user?.telegramId],
     queryFn: async () => {
-      const { data } = await api.get(`/admin/dashboard-stats/${user?.telegramId}`);
-      return data.data;
+      try {
+        const { data } = await api.get(`/admin/dashboard-stats`);
+        return data.data;
+      } catch (error: any) {
+        console.error('Error fetching dashboard stats:', error);
+        throw new Error(error.response?.data?.error || error.message || 'Failed to fetch dashboard stats');
+      }
     },
     enabled: !!user && isAdmin,
     staleTime: 60000, // 1 минута
     refetchInterval: 30000, // Обновляем каждые 30 секунд
+    retry: (failureCount, error) => {
+      // Retry up to 3 times for network errors, but not for auth errors
+      if (error.message.includes('401') || error.message.includes('403')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 
@@ -102,22 +126,22 @@ export const useAdminTransactions = (filters?: FilterOptions, sort?: SortOptions
     queryKey: [QUERY_KEYS.TRANSACTIONS, user?.telegramId, filters, sort, page],
     queryFn: async () => {
       const params = new URLSearchParams();
-      
+
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
           if (value) params.append(key, value.toString());
         });
       }
-      
+
       if (sort) {
         params.append('sortBy', sort.field);
         params.append('sortOrder', sort.direction);
       }
-      
+
       params.append('page', page.toString());
       params.append('limit', ADMIN_CONFIG.UI.ITEMS_PER_PAGE.toString());
-      
-      const { data } = await api.get(`/admin/transactions/${user?.telegramId}?${params}`);
+
+      const { data } = await api.get(`/admin/transactions?${params}`);
       return data;
     },
     enabled: !!user && isAdmin,
@@ -134,7 +158,7 @@ export const useAdminUserMutations = () => {
 
   const updateUser = useMutation({
     mutationFn: async ({ userId, updates }: { userId: string; updates: Partial<AdminUser> }) => {
-      const { data } = await api.patch(`/admin/user/${userId}/${user?.telegramId}`, updates);
+      const { data } = await api.patch(`/admin/user/${userId}`, updates);
       return data;
     },
     onSuccess: (_, { userId }) => {
@@ -147,7 +171,7 @@ export const useAdminUserMutations = () => {
 
   const freezeUser = useMutation({
     mutationFn: async (userId: string) => {
-      const { data } = await api.post(`/admin/user/${userId}/freeze/${user?.telegramId}`);
+      const { data } = await api.post(`/admin/user/${userId}/freeze`);
       return data;
     },
     onSuccess: (_, userId) => {
@@ -158,7 +182,7 @@ export const useAdminUserMutations = () => {
 
   const unfreezeUser = useMutation({
     mutationFn: async (userId: string) => {
-      const { data } = await api.post(`/admin/user/${userId}/unfreeze/${user?.telegramId}`);
+      const { data } = await api.post(`/admin/user/${userId}/unfreeze`);
       return data;
     },
     onSuccess: (_, userId) => {
@@ -169,7 +193,7 @@ export const useAdminUserMutations = () => {
 
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
-      const { data } = await api.delete(`/admin/user/${userId}/${user?.telegramId}`);
+      const { data } = await api.delete(`/admin/user/${userId}`);
       return data;
     },
     onSuccess: () => {
@@ -195,7 +219,7 @@ export const useAdminTransactionMutations = () => {
 
   const updateTransaction = useMutation({
     mutationFn: async ({ transactionId, updates }: { transactionId: string; updates: Partial<Transaction> }) => {
-      const { data } = await api.patch(`/admin/transaction/${transactionId}/${user?.telegramId}`, updates);
+      const { data } = await api.patch(`/admin/transaction/${transactionId}`, updates);
       return data;
     },
     onSuccess: () => {
@@ -206,7 +230,7 @@ export const useAdminTransactionMutations = () => {
 
   const approveTransaction = useMutation({
     mutationFn: async (transactionId: string) => {
-      const { data } = await api.post(`/admin/transaction/${transactionId}/approve/${user?.telegramId}`);
+      const { data } = await api.post(`/admin/transaction/${transactionId}/approve`);
       return data;
     },
     onSuccess: () => {
@@ -217,7 +241,7 @@ export const useAdminTransactionMutations = () => {
 
   const rejectTransaction = useMutation({
     mutationFn: async (transactionId: string) => {
-      const { data } = await api.post(`/admin/transaction/${transactionId}/reject/${user?.telegramId}`);
+      const { data } = await api.post(`/admin/transaction/${transactionId}/reject`);
       return data;
     },
     onSuccess: () => {

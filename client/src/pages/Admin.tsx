@@ -5,6 +5,7 @@ import { useAdminUsers } from '@/hooks/useAdminData';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { api } from '@/lib/api';
 import { AdminUser } from '@/types/admin';
+import { getAdminAuthStatus } from '@/utils/adminAuth';
 import { DollarSign, Loader2, Settings, Ticket, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -41,11 +42,10 @@ const Admin = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  // Admin access check - allow users with Telegram IDs in admin list
-  const ADMIN_TELEGRAM_IDS = ['6760298907'];
-
-  // Check if user is admin (moved before conditional returns)
-  const isAdmin = user ? ADMIN_TELEGRAM_IDS.includes(user.telegramId) : false;
+  // Get admin authentication status
+  const adminAuthStatus = user ? getAdminAuthStatus(user.telegramId) : null;
+  const isAdmin = adminAuthStatus?.isAdmin || false;
+  const hasAccess = adminAuthStatus?.hasAccess || false;
 
   // All hooks must be called before any conditional returns
   useEffect(() => {
@@ -59,8 +59,9 @@ const Admin = () => {
       setStatsLoading(true);
       const response = await api.get('/admin/dashboard-stats');
       setStats(response.data.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching stats:', err);
+      // You could add error state handling here if needed
     } finally {
       setStatsLoading(false);
     }
@@ -76,6 +77,12 @@ const Admin = () => {
   if (!isAdmin) {
     console.log('[ADMIN] Access denied for user:', user.telegramId, '- not admin');
     return <Navigate to="/" replace />;
+  }
+
+  // If user is admin but doesn't have access (needs password verification), redirect to admin login
+  if (isAdmin && !hasAccess) {
+    console.log('[ADMIN] Admin user needs password verification:', user.telegramId);
+    return <Navigate to="/admin-login" replace />;
   }
 
   // Only admin users can see this component

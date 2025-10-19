@@ -23,18 +23,29 @@ export class AdminStatsService {
       res.status(200).json({
         success: true,
         data: {
-          ...stats,
-          today: {
-            payouts: todayPayouts ? {
-              amount: todayPayouts.totalAmount,
-              users: todayPayouts.totalUsers,
-              status: todayPayouts.status
-            } : null
+          users: {
+            total: stats.users.total,
+            active: stats.users.active,
+            frozen: stats.users.frozen,
+            newThisWeek: stats.users.newThisWeek,
+            online: 0 // This would need to be calculated separately
+          },
+          finances: {
+            totalInvested: stats.finances.totalInvested,
+            totalEarnings: stats.finances.totalEarnings,
+            todayPayouts: todayPayouts?.totalAmount || 0,
+            pendingWithdrawals: 0 // This would need to be calculated separately
           },
           system: {
             uptime: '24/7',
-            lastBackup: new Date().toISOString(),
-            alerts: 0
+            memoryUsage: 0,
+            cpuUsage: 0,
+            diskUsage: 0
+          },
+          activity: {
+            weeklyLogs: stats.activity.weeklyLogs,
+            dailyActiveUsers: 0, // This would need to be calculated separately
+            transactionsToday: 0 // This would need to be calculated separately
           }
         }
       });

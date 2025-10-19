@@ -38,7 +38,7 @@ export const MinimalistSlotsPage = () => {
   const [showHistory, setShowHistory] = useState(false);
 
   const isLoading = slotsLoading || userDataLoading;
-  const currentBalance = userData?.mneBalance ?? 0;
+  const currentBalance = userData?.balance ?? 0;
 
   // Minimum investment amount - should be configurable from admin panel
   const MINIMUM_INVESTMENT = 3.0;

@@ -147,7 +147,7 @@ const InvestmentSlots = () => {
     claimSlotMutation.mutate({ telegramId: user.telegramId, slotId });
   };
 
-  const currentBalance = userData?.mneBalance ?? 0;
+  const currentBalance = userData?.balance ?? 0;
   const canInvest = parseFloat(amount) > 0 && parseFloat(amount) <= currentBalance;
 
   const activeSlots = slotsData?.slots.filter(slot => slot.status === 'active') ?? [];

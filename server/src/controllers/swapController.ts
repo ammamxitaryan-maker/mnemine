@@ -101,7 +101,7 @@ export const swapNONoNON = async (req: Request, res: Response) => {
       await tx.activityLog.create({
         data: {
           userId: user.id,
-          type: ActivityLogType.SWAP_USD_TO_NON,
+          type: ActivityLogType.SWAP_USD_TO_MNE,
           amount: -amount,
           description: `Converted ${amount.toFixed(4)} USD to ${NONAmount.toFixed(4)} NON at rate ${currentRate.toFixed(4)}`,
           ipAddress: ipAddress,
@@ -191,7 +191,7 @@ export const swapNONToUSD = async (req: Request, res: Response) => {
       await tx.activityLog.create({
         data: {
           userId: user.id,
-          type: ActivityLogType.SWAP_USD_TO_NON,
+          type: ActivityLogType.SWAP_USD_TO_MNE,
           amount: USDAmount,
           description: `Converted ${amount.toFixed(4)} NON to ${USDAmount.toFixed(4)} USD at rate ${currentRate.toFixed(4)}`,
           ipAddress: ipAddress,
@@ -228,7 +228,7 @@ export const getSwapHistory = async (req: Request, res: Response) => {
     const swapHistory = await prisma.activityLog.findMany({
       where: {
         userId: user.id,
-        type: ActivityLogType.SWAP_USD_TO_NON,
+        type: ActivityLogType.SWAP_USD_TO_MNE,
       },
       orderBy: { createdAt: 'desc' },
       take: 50, // Последние 50 транзакций

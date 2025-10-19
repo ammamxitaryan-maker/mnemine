@@ -8,6 +8,7 @@ import { useSlotsData } from '@/hooks/useSlotsData';
 import { useUserData } from '@/hooks/useUserData';
 import { useWebSocketUserStats } from '@/hooks/useWebSocketUserStats';
 import { AuthenticatedUser } from '@/types/telegram';
+import { isAdminUser } from '@/utils/adminAuth';
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -36,10 +37,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
   const { hapticLight, hapticWarning } = useHapticFeedback();
 
   // Check if user is admin
-  const ADMIN_TELEGRAM_IDS = import.meta.env.VITE_ADMIN_TELEGRAM_IDS
-    ? import.meta.env.VITE_ADMIN_TELEGRAM_IDS.split(',').map((id: string) => id.trim())
-    : ['6760298907'];
-  const isAdmin = ADMIN_TELEGRAM_IDS.includes(user.telegramId);
+  const isAdmin = isAdminUser(user.telegramId);
 
   const displayName = user.firstName || user.username || t('profile.user');
   const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'U';

@@ -1188,11 +1188,267 @@ router.post('/system/:action', isAdmin, async (req, res) => {
   }
 });
 
+// User details endpoint
+router.get('/user/:userId', isAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        wallets: {
+          select: { balance: true, currency: true }
+        },
+        miningSlots: {
+          select: {
+            id: true,
+            principal: true,
+            isActive: true,
+            expiresAt: true,
+            accruedEarnings: true
+          }
+        },
+        referrals: {
+          select: {
+            id: true,
+            firstName: true,
+            username: true,
+            totalInvested: true,
+            hasMadeDeposit: true
+          }
+        },
+        _count: {
+          select: {
+            referrals: true,
+            miningSlots: true,
+            activityLogs: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    const formattedUser = {
+      id: user.id,
+      telegramId: user.telegramId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      role: user.role,
+      isActive: user.isActive,
+      isFrozen: user.isFrozen,
+      isSuspicious: user.isSuspicious,
+      balance: user.wallets.find(w => w.currency === 'NON')?.balance || 0,
+      totalInvested: user.totalInvested,
+      totalEarnings: user.totalEarnings,
+      referralCount: user._count.referrals,
+      wallets: user.wallets,
+      miningSlots: user.miningSlots,
+      referrals: user.referrals,
+      createdAt: user.createdAt,
+      lastSeenAt: user.lastSeenAt,
+      isOnline: user.isOnline,
+      _count: user._count
+    };
+
+    res.json({ success: true, data: formattedUser });
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch user details' });
+  }
+});
+
+// User update endpoint
+router.patch('/user/:userId', isAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updates = req.body;
+
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      return res.status(400).json({ success: false, error: 'Invalid user ID' });
+    }
+
+    // Remove fields that shouldn't be updated directly
+    const allowedUpdates = ['firstName', 'lastName', 'username', 'isActive', 'isFrozen', 'isSuspicious'];
+    const filteredUpdates = Object.keys(updates)
+      .filter(key => allowedUpdates.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = updates[key];
+        return obj;
+      }, {} as any);
+
+    // Validate boolean fields
+    if (filteredUpdates.isActive !== undefined && typeof filteredUpdates.isActive !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'isActive must be a boolean' });
+    }
+    if (filteredUpdates.isFrozen !== undefined && typeof filteredUpdates.isFrozen !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'isFrozen must be a boolean' });
+    }
+    if (filteredUpdates.isSuspicious !== undefined && typeof filteredUpdates.isSuspicious !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'isSuspicious must be a boolean' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: filteredUpdates
+    });
+
+    // Log the action
+    await prisma.activityLog.create({
+      data: {
+        userId: userId,
+        type: 'ADMIN_ACTION',
+        amount: 0,
+        description: `User profile updated by admin`,
+        sourceUserId: (req as any).user?.adminId
+      }
+    });
+
+    res.json({ success: true, data: user });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ success: false, error: 'Failed to update user' });
+  }
+});
+
+// User delete endpoint
+router.delete('/user/:userId', isAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Get user info before deletion for logging
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { telegramId: true, firstName: true, username: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Delete user and related data
+    await prisma.user.delete({
+      where: { id: userId }
+    });
+
+    // Log the action
+    await prisma.activityLog.create({
+      data: {
+        userId: userId,
+        type: 'ADMIN_ACTION',
+        amount: 0,
+        description: `User account deleted by admin`,
+        sourceUserId: (req as any).user?.adminId
+      }
+    });
+
+    res.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete user' });
+  }
+});
+
+// Transaction management endpoints
+router.patch('/transaction/:transactionId', isAdmin, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const updates = req.body;
+
+    // Update activity log (transactions are stored as activity logs)
+    const transaction = await prisma.activityLog.update({
+      where: { id: transactionId },
+      data: updates
+    });
+
+    res.json({ success: true, data: transaction });
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    res.status(500).json({ success: false, error: 'Failed to update transaction' });
+  }
+});
+
+router.post('/transaction/:transactionId/approve', isAdmin, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+
+    // For activity logs, we can't really "approve" them as they're already completed
+    // This is more for logging purposes
+    const transaction = await prisma.activityLog.findUnique({
+      where: { id: transactionId }
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ success: false, error: 'Transaction not found' });
+    }
+
+    // Log the approval action
+    await prisma.activityLog.create({
+      data: {
+        userId: transaction.userId,
+        type: 'ADMIN_ACTION',
+        amount: 0,
+        description: `Transaction ${transactionId} approved by admin`,
+        sourceUserId: (req as any).user?.adminId
+      }
+    });
+
+    res.json({ success: true, message: 'Transaction approved successfully' });
+  } catch (error) {
+    console.error('Error approving transaction:', error);
+    res.status(500).json({ success: false, error: 'Failed to approve transaction' });
+  }
+});
+
+router.post('/transaction/:transactionId/reject', isAdmin, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+
+    const transaction = await prisma.activityLog.findUnique({
+      where: { id: transactionId }
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ success: false, error: 'Transaction not found' });
+    }
+
+    // Log the rejection action
+    await prisma.activityLog.create({
+      data: {
+        userId: transaction.userId,
+        type: 'ADMIN_ACTION',
+        amount: 0,
+        description: `Transaction ${transactionId} rejected by admin`,
+        sourceUserId: (req as any).user?.adminId
+      }
+    });
+
+    res.json({ success: true, message: 'Transaction rejected successfully' });
+  } catch (error) {
+    console.error('Error rejecting transaction:', error);
+    res.status(500).json({ success: false, error: 'Failed to reject transaction' });
+  }
+});
+
 // User action endpoints
 router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
     const { reason } = req.body;
+
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      return res.status(400).json({ success: false, error: 'Invalid user ID' });
+    }
+
+    // Validate reason (optional but if provided, should be a string)
+    if (reason !== undefined && (typeof reason !== 'string' || reason.length > 500)) {
+      return res.status(400).json({ success: false, error: 'Reason must be a string with max 500 characters' });
+    }
 
     // Получаем пользователя для получения telegramId
     const user = await prisma.user.findUnique({
@@ -1249,6 +1505,11 @@ router.post('/users/:userId/freeze', isAdmin, async (req, res) => {
 router.post('/users/:userId/unfreeze', isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
+
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      return res.status(400).json({ success: false, error: 'Invalid user ID' });
+    }
 
     // Получаем пользователя для получения telegramId
     const user = await prisma.user.findUnique({

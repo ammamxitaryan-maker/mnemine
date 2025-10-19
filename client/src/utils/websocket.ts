@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { LogCategory, useLogger } from './logger';
+import { LogCategory } from './logger';
 
 // Типы сообщений
 export interface WebSocketMessage {
@@ -44,7 +44,12 @@ class WebSocketClient {
   private reconnectTimer: NodeJS.Timeout | null = null;
   private pingTimer: NodeJS.Timeout | null = null;
   private isConnecting = false;
-  private logger = useLogger();
+  private logger = {
+    info: (message: string, ...args: any[]) => console.log(`[WebSocket] ${message}`, ...args),
+    warn: (message: string, ...args: any[]) => console.warn(`[WebSocket] ${message}`, ...args),
+    error: (message: string, ...args: any[]) => console.error(`[WebSocket] ${message}`, ...args),
+    debug: (message: string, ...args: any[]) => console.debug(`[WebSocket] ${message}`, ...args)
+  };
 
   // Callbacks
   private onMessageCallback: ((message: WebSocketMessage) => void) | null = null;
