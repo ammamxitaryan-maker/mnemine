@@ -249,6 +249,81 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
   }
 });
 
+// Fix user welcome bonus
+router.post('/users/:userId/fix-welcome-bonus', isAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { wallets: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    const nonWallet = user.wallets.find(w => w.currency === 'NON');
+    if (!nonWallet) {
+      return res.status(400).json({
+        success: false,
+        error: 'NON wallet not found'
+      });
+    }
+
+    // If balance is very low (less than 1 NON), give welcome bonus
+    if (nonWallet.balance < 1.0) {
+      const newBalance = nonWallet.balance + 3.0;
+
+      await prisma.wallet.update({
+        where: { id: nonWallet.id },
+        data: { balance: newBalance }
+      });
+
+      // Log the bonus
+      await prisma.activityLog.create({
+        data: {
+          userId: user.id,
+          type: 'WELCOME_BONUS',
+          amount: 3.0,
+          description: 'Welcome bonus applied by admin'
+        }
+      });
+
+      res.json({
+        success: true,
+        message: 'Welcome bonus applied',
+        data: {
+          userId,
+          telegramId: user.telegramId,
+          previousBalance: nonWallet.balance,
+          newBalance: newBalance,
+          bonusAmount: 3.0
+        }
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'User already has sufficient balance',
+        data: {
+          userId,
+          telegramId: user.telegramId,
+          currentBalance: nonWallet.balance
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error fixing welcome bonus:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 // Bulk user operations
 router.post('/users/bulk-actions', isAdmin, bulkUserActions);
 

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { WELCOME_BONUS_AMOUNT } from '../constants.js';
 
 const prisma = new PrismaClient();
 
@@ -31,7 +32,7 @@ export async function ensureUserWallets(userId: string): Promise<void> {
       walletsToCreate.push({
         userId,
         currency: 'NON',
-        balance: 0
+        balance: WELCOME_BONUS_AMOUNT // Give welcome bonus for NON wallet
       });
     }
 

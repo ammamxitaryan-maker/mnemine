@@ -72,11 +72,7 @@ export const getUserData = async (req: Request, res: Response) => {
       // Calculate earnings
       const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
-      // Calculate total balances for each currency
-      const currentBalance = user.wallets
-        .filter(w => w.currency === 'USD')
-        .reduce((sum, w) => sum + w.balance, 0);
-
+      // Calculate NON balance (main currency for the app)
       const nonBalance = user.wallets
         .filter(w => w.currency === 'NON')
         .reduce((sum, w) => sum + w.balance, 0);
@@ -84,7 +80,7 @@ export const getUserData = async (req: Request, res: Response) => {
       const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
       cachedData = {
-        balance: currentBalance,
+        balance: nonBalance, // Fix: balance should be NON balance, not USD
         nonBalance: nonBalance,
         miningPower: totalMiningPower,
         accruedEarnings: totalEarnings,
@@ -102,12 +98,7 @@ export const getUserData = async (req: Request, res: Response) => {
         // Calculate earnings
         const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
-        // Calculate total balances for each currency (in case user has multiple wallets)
-        const currentBalance = user.wallets
-          .filter(w => w.currency === 'USD')
-          .reduce((sum, w) => sum + w.balance, 0);
-
-        // Calculate NON balance including admin additions
+        // Calculate NON balance including admin additions (main currency for the app)
         const baseNonBalance = user.wallets
           .filter(w => w.currency === 'NON')
           .reduce((sum, w) => sum + w.balance, 0);
@@ -115,12 +106,12 @@ export const getUserData = async (req: Request, res: Response) => {
         // Add admin balance additions (stored in user.adminBalance)
         const nonBalance = baseNonBalance + ((user as any).adminBalance || 0);
 
-        console.log(`[DATA] User ${telegramId} balance: NON=${nonBalance}, USD=${currentBalance}`);
+        console.log(`[DATA] User ${telegramId} NON balance: ${nonBalance}`);
 
         const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
         return {
-          balance: currentBalance,
+          balance: nonBalance, // Fix: balance should be NON balance, not USD
           nonBalance: nonBalance,
           miningPower: totalMiningPower,
           accruedEarnings: totalEarnings,
