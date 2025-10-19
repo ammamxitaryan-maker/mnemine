@@ -15,7 +15,7 @@ export interface UserData {
 
 const fetchUserData = async (telegramId: string, bypassCache: boolean = false): Promise<UserData> => {
   // Use cache bypass only when explicitly requested
-  const url = bypassCache 
+  const url = bypassCache
     ? `/user/${telegramId}/data?bypassCache=true&t=${Date.now()}`
     : `/user/${telegramId}/data`;
   console.log(`[fetchUserData] Fetching data for ${telegramId}, bypassCache: ${bypassCache}, url: ${url}`);
