@@ -13,10 +13,10 @@ interface SimpleBalanceProps {
 export const SimpleBalance = ({ telegramId, className = '' }: SimpleBalanceProps) => {
   const { t } = useTranslation();
   const { data: userData } = useUserData(telegramId);
-  const { convertMNEToUSD } = useCachedExchangeRate(telegramId);
+  const { convertNONToUSD } = useCachedExchangeRate(telegramId);
 
   const mneBalance = userData?.mneBalance || 0;
-  const usdEquivalent = convertMNEToUSD(mneBalance);
+  const usdEquivalent = convertNONToUSD(mneBalance);
 
   return (
     <div className={`minimal-card ${className}`}>
@@ -27,7 +27,7 @@ export const SimpleBalance = ({ telegramId, className = '' }: SimpleBalanceProps
         </div>
         <div className="text-right">
           <div className="text-xl font-medium text-primary">
-            {mneBalance.toFixed(2)} MNE
+            {mneBalance.toFixed(2)} NON
           </div>
           {usdEquivalent > 0 && (
             <div className="text-sm text-muted-foreground">

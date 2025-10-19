@@ -1,5 +1,5 @@
-import prisma from '../prisma.js';
 import { ActivityLogType } from '@prisma/client';
+import prisma from '../prisma.js';
 import { webSocketManager } from '../websocket/WebSocketManager.js';
 import { ensureUserWallets } from './walletUtils.js';
 
@@ -87,7 +87,7 @@ export class AutoClaimProcessor {
       // Process each user's slots with error tracking
       let processedUsers = 0;
       let errorUsers = 0;
-      
+
       for (const [userId, slots] of userSlotsMap) {
         try {
           await this.processUserAutoClaim(userId, slots, now);
@@ -112,26 +112,26 @@ export class AutoClaimProcessor {
   private async processUserAutoClaim(userId: string, slots: any[], now: Date) {
     try {
       const user = slots[0].user;
-      let MNEWallet = user.wallets.find((w: any) => w.currency === 'MNE');
-      
-      if (!MNEWallet) {
-        console.log(`[AUTO_CLAIM] No MNE wallet found for user ${userId}, creating one...`);
+      let NONWallet = user.wallets.find((w: any) => w.currency === 'NON');
+
+      if (!NONWallet) {
+        console.log(`[AUTO_CLAIM] No NON wallet found for user ${userId}, creating one...`);
         try {
           await ensureUserWallets(userId);
-          // Refetch the user with wallets to get the newly created MNE wallet
+          // Refetch the user with wallets to get the newly created NON wallet
           const updatedUser = await prisma.user.findUnique({
             where: { id: userId },
             include: { wallets: true }
           });
-          MNEWallet = updatedUser?.wallets.find((w: any) => w.currency === 'MNE');
-          
-          if (!MNEWallet) {
-            console.error(`[AUTO_CLAIM] Failed to create MNE wallet for user ${userId}`);
+          NONWallet = updatedUser?.wallets.find((w: any) => w.currency === 'NON');
+
+          if (!NONWallet) {
+            console.error(`[AUTO_CLAIM] Failed to create NON wallet for user ${userId}`);
             return;
           }
-          console.log(`[AUTO_CLAIM] Successfully created MNE wallet for user ${userId}`);
+          console.log(`[AUTO_CLAIM] Successfully created NON wallet for user ${userId}`);
         } catch (error) {
-          console.error(`[AUTO_CLAIM] Error creating MNE wallet for user ${userId}:`, error);
+          console.error(`[AUTO_CLAIM] Error creating NON wallet for user ${userId}:`, error);
           return;
         }
       }
@@ -157,11 +157,11 @@ export class AutoClaimProcessor {
         return;
       }
 
-      // Transfer earnings to MNE wallet
+      // Transfer earnings to NON wallet
       await prisma.$transaction(async (tx) => {
-        // Update MNE wallet balance
+        // Update NON wallet balance
         await tx.wallet.update({
-          where: { id: MNEWallet.id },
+          where: { id: NONWallet.id },
           data: { balance: { increment: totalEarnings } }
         });
 
@@ -179,20 +179,20 @@ export class AutoClaimProcessor {
             userId: userId,
             type: ActivityLogType.CLAIM,
             amount: totalEarnings,
-            description: `Auto-claim: ${totalEarnings.toFixed(4)} MNE added to balance after 7 days`,
+            description: `Auto-claim: ${totalEarnings.toFixed(4)} NON added to balance after 7 days`,
           }
         });
       });
 
-      console.log(`[AUTO_CLAIM] Auto-claimed ${totalEarnings.toFixed(4)} MNE for user ${userId}`);
+      console.log(`[AUTO_CLAIM] Auto-claimed ${totalEarnings.toFixed(4)} NON for user ${userId}`);
 
       // Broadcast balance update via WebSocket
       try {
         const updatedWallet = await prisma.wallet.findUnique({
-          where: { id: MNEWallet.id },
+          where: { id: NONWallet.id },
           select: { balance: true, currency: true }
         });
-        
+
         if (updatedWallet) {
           await webSocketManager.broadcastBalanceUpdate(user.telegramId, {
             currency: updatedWallet.currency,

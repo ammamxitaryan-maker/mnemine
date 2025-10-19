@@ -13,11 +13,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 const createUSDTPayment = async ({ telegramId, mneAmount }: { telegramId: string, mneAmount: number }) => {
-  // Create USDT payment for MNE purchase
+  // Create USDT payment for NON purchase
   const { data } = await api.post('/payments/usdt/create', {
     telegramId,
     mneAmount,
-    description: `MNE Purchase: ${mneAmount.toFixed(6)} MNE`
+    description: `NON Purchase: ${mneAmount.toFixed(6)} NON`
   });
   return data;
 };
@@ -28,11 +28,11 @@ const Deposit = () => {
   const navigate = useNavigate();
   const [amount, setAmount] = useState('');
   const { t } = useTranslation();
-  const { convertMNEToUSD, rate, isLoading: rateLoading } = useCachedExchangeRate(user?.telegramId || '');
+  const { convertNONToUSD, rate, isLoading: rateLoading } = useCachedExchangeRate(user?.telegramId || '');
 
   // Calculate USD equivalent
   const mneAmount = parseFloat(amount) || 0;
-  const usdEquivalent = convertMNEToUSD(mneAmount);
+  const usdEquivalent = convertNONToUSD(mneAmount);
 
   const mutation = useMutation({
     mutationFn: createUSDTPayment,
@@ -59,7 +59,7 @@ const Deposit = () => {
     if (user && mneAmount > 0) {
       mutation.mutate({ telegramId: user.telegramId, mneAmount });
     } else {
-      showError('Please enter a valid MNE amount');
+      showError('Please enter a valid NON amount');
     }
   };
 
@@ -70,9 +70,9 @@ const Deposit = () => {
 
         <Card className="bg-gray-900/80 border-primary">
           <CardHeader>
-            <CardTitle>Deposit MNE</CardTitle>
+            <CardTitle>Deposit NON</CardTitle>
             <CardDescription className="text-gray-400">
-              Enter the amount of MNE you want to deposit
+              Enter the amount of NON you want to deposit
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -80,13 +80,13 @@ const Deposit = () => {
               <Input
                 type="number"
                 step="0.000001"
-                placeholder="Enter MNE amount"
+                placeholder="Enter NON amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="bg-gray-800 border-gray-700 text-xl h-12 text-center"
               />
               <div className="text-center mt-2 text-sm text-gray-400">
-                MNE Amount
+                NON Amount
               </div>
             </div>
 
@@ -104,7 +104,7 @@ const Deposit = () => {
                     </div>
                     {rate > 0 && (
                       <div className="text-xs text-gray-400">
-                        Rate: {rate.toFixed(6)} MNE/USD
+                        Rate: {rate.toFixed(6)} NON/USD
                       </div>
                     )}
                   </div>
@@ -124,13 +124,13 @@ const Deposit = () => {
               onClick={handleDeposit}
               disabled={mutation.isPending || rateLoading || !amount || mneAmount <= 0}
             >
-              {mutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Deposit MNE'}
+              {mutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Deposit NON'}
             </Button>
           </CardFooter>
         </Card>
 
         <div className="text-center mt-4 text-sm text-gray-500">
-          <p>Your MNE will be converted to USD at the current exchange rate set by the admin.</p>
+          <p>Your NON will be converted to USD at the current exchange rate set by the admin.</p>
         </div>
       </div>
     </div>

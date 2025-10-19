@@ -16,7 +16,7 @@ export const WELCOME_BONUS_AMOUNT = 3.0; // New constant for welcome bonus
 export const DAILY_BONUS_AMOUNT = 0.15;
 export const ACTIVITY_TYPE_DAILY_BONUS = 'DAILY_BONUS';
 
-// Welcome bonus is now added directly to MNE wallet balance instead of auto-investment // 30% доходность приветственного слота
+// Welcome bonus is now added directly to NON wallet balance instead of auto-investment // 30% доходность приветственного слота
 
 // Минимальные инвестиции
 export const MINIMUM_SLOT_INVESTMENT = 3.0; // Минимальная инвестиция в слот
@@ -97,7 +97,7 @@ export const FIRST_100_WITHDRAWALS_LIMIT = 100;
 export const WITHDRAWAL_MIN_BALANCE_REQUIREMENT = 5.0;
 
 // Lottery Constants
-export const LOTTERY_TICKET_COST = 1.0; // 1 MNE per ticket
+export const LOTTERY_TICKET_COST = 1.0; // 1 NON per ticket
 export const LOTTERY_DRAW_INTERVAL_HOURS = 24; // New draw every 24 hours
 export const LOTTERY_JACKPOT_SEED = 700.0; // Starting jackpot
 export const LOTTERY_JACKPOT_CONTRIBUTION_PERCENTAGE = 0.5; // 50% of ticket cost goes to jackpot
@@ -139,12 +139,12 @@ export const MIN_EXCHANGE_RATE = 0.0001; // 0.01% - Very low minimum
 export const MAX_EXCHANGE_RATE = 0.1;    // 10% - Higher maximum
 export const DEFAULT_EXCHANGE_RATE = 0.01; // 1%
 
-// MNE Currency Support
-export const MNE_CURRENCY = 'MNE';
+// NON Currency Support
+export const NON_CURRENCY = 'NON';
 
 // Конвертация валют - Limits removed
 export const MINIMUM_CONVERSION_AMOUNT = 0.001; // Very low minimum amount
-export const MINIMUM_WITHDRAWAL_MNE = 3.0; // Минимальная сумма вывода MNE
+export const MINIMUM_WITHDRAWAL_NON = 3.0; // Минимальная сумма вывода NON
 export const EXCHANGE_RATE_VARIATION_MIN = 0.0; // Минимальное отклонение курса (0%)
 export const EXCHANGE_RATE_VARIATION_MAX = 0.05; // Максимальное отклонение курса (5%)
 

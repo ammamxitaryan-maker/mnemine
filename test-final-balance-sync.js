@@ -13,7 +13,7 @@ async function testFinalBalanceSync() {
 
     console.log('1. 📊 Fetching initial user data from main page...');
     const mainPageData = await axios.get(`${API_BASE}/user/${testTelegramId}/data?bypassCache=true`);
-    console.log(`   Main page MNE balance: ${mainPageData.data.mneBalance}`);
+    console.log(`   Main page NON balance: ${mainPageData.data.mneBalance}`);
     console.log(`   Main page USD balance: ${mainPageData.data.balance}`);
 
     console.log('\n2. 📊 Fetching initial user data from admin panel...');
@@ -27,17 +27,17 @@ async function testFinalBalanceSync() {
       return;
     }
 
-    console.log(`   Admin panel MNE balance: ${testUser.mneBalance}`);
+    console.log(`   Admin panel NON balance: ${testUser.mneBalance}`);
     console.log(`   Admin panel USD balance: ${testUser.usdBalance}`);
     console.log(`   Admin panel balance field: ${testUser.balance}`);
 
     console.log('\n3. 🔍 Comparing balances...');
-    const mainPageMNE = mainPageData.data.mneBalance;
-    const adminPanelMNE = testUser.mneBalance;
-    const balanceMatch = Math.abs(mainPageMNE - adminPanelMNE) < 0.0001;
+    const mainPageNON = mainPageData.data.mneBalance;
+    const adminPanelNON = testUser.mneBalance;
+    const balanceMatch = Math.abs(mainPageNON - adminPanelNON) < 0.0001;
 
-    console.log(`   Main page MNE: ${mainPageMNE}`);
-    console.log(`   Admin panel MNE: ${adminPanelMNE}`);
+    console.log(`   Main page NON: ${mainPageNON}`);
+    console.log(`   Admin panel NON: ${adminPanelNON}`);
     console.log(`   Balance match: ${balanceMatch ? '✅ PASS' : '❌ FAIL'}`);
 
     console.log('\n4. 💰 Testing admin balance update...');
@@ -67,7 +67,7 @@ async function testFinalBalanceSync() {
 
     console.log('\n6. 🔍 Verifying balance update on main page...');
     const updatedMainPageData = await axios.get(`${API_BASE}/user/${testTelegramId}/data?bypassCache=true`);
-    console.log(`   Updated main page MNE balance: ${updatedMainPageData.data.mneBalance}`);
+    console.log(`   Updated main page NON balance: ${updatedMainPageData.data.mneBalance}`);
 
     console.log('\n7. 🔍 Verifying balance update in admin panel...');
     const updatedAdminData = await axios.get(`${API_BASE}/admin/users`, {
@@ -75,27 +75,27 @@ async function testFinalBalanceSync() {
     });
 
     const updatedTestUser = updatedAdminData.data.data.users.find(u => u.telegramId === testTelegramId);
-    console.log(`   Updated admin panel MNE balance: ${updatedTestUser.mneBalance}`);
+    console.log(`   Updated admin panel NON balance: ${updatedTestUser.mneBalance}`);
 
     console.log('\n8. ✅ Final synchronization test results:');
-    const finalMainPageMNE = updatedMainPageData.data.mneBalance;
-    const finalAdminPanelMNE = updatedTestUser.mneBalance;
-    const finalBalanceMatch = Math.abs(finalMainPageMNE - finalAdminPanelMNE) < 0.0001;
+    const finalMainPageNON = updatedMainPageData.data.mneBalance;
+    const finalAdminPanelNON = updatedTestUser.mneBalance;
+    const finalBalanceMatch = Math.abs(finalMainPageNON - finalAdminPanelNON) < 0.0001;
 
-    console.log(`   Final main page MNE: ${finalMainPageMNE}`);
-    console.log(`   Final admin panel MNE: ${finalAdminPanelMNE}`);
+    console.log(`   Final main page NON: ${finalMainPageNON}`);
+    console.log(`   Final admin panel NON: ${finalAdminPanelNON}`);
     console.log(`   Final balance match: ${finalBalanceMatch ? '✅ PASS' : '❌ FAIL'}`);
 
     console.log('\n9. 🟢 Online status test:');
     console.log(`   User online status: ${updatedTestUser.isOnline ? '✅ Online' : '❌ Offline'}`);
 
     console.log('\n10. 📊 Wallet information:');
-    console.log(`   Total MNE wallets: ${updatedTestUser.mneBalance ? 'Found' : 'Not found'}`);
+    console.log(`   Total NON wallets: ${updatedTestUser.mneBalance ? 'Found' : 'Not found'}`);
     console.log(`   Total USD wallets: ${updatedTestUser.usdBalance ? 'Found' : 'Not found'}`);
 
     const overallSuccess = finalBalanceMatch &&
       balanceUpdateResponse.data.success &&
-      Math.abs(finalMainPageMNE - mainPageMNE - 0.5) < 0.0001;
+      Math.abs(finalMainPageNON - mainPageNON - 0.5) < 0.0001;
 
     console.log('\n' + '='.repeat(50));
     console.log(`🎯 Overall test result: ${overallSuccess ? '✅ 100% SUCCESS' : '❌ FAILED'}`);

@@ -1,27 +1,25 @@
 ﻿"use client";
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Settings, 
-  Save, 
-  RefreshCw, 
-  Shield, 
-  DollarSign, 
-  Bell, 
-  Database,
-  Globe,
-  Key,
+import { api } from '@/lib/api';
+import {
   AlertTriangle,
+  ArrowLeft,
+  Bell,
   CheckCircle,
-  ArrowLeft
+  Database,
+  DollarSign,
+  Globe,
+  RefreshCw,
+  Save,
+  Shield
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface SystemSettings {
   exchangeRate: {
@@ -74,7 +72,7 @@ const AdminSettings = () => {
       const response = await api.get('/admin/settings');
       const data = response.data.data;
       setSettings(data);
-      
+
       // Populate form fields
       setExchangeRate(data.exchangeRate.current.toString());
       setMinDeposit(data.limits.minDeposit.toString());
@@ -97,7 +95,7 @@ const AdminSettings = () => {
 
       let payload = {};
       const validationErrors: string[] = [];
-      
+
       switch (section) {
         case 'exchange': {
           const rate = parseFloat(exchangeRate);
@@ -118,17 +116,17 @@ const AdminSettings = () => {
           const minWith = parseFloat(minWithdrawal);
           const maxWith = parseFloat(maxWithdrawal);
           const dailyLimit = parseFloat(dailyWithdrawalLimit);
-          
+
           if (isNaN(minDep) || minDep <= 0) validationErrors.push('Minimum deposit must be a positive number');
           if (isNaN(maxDep) || maxDep <= 0) validationErrors.push('Maximum deposit must be a positive number');
           if (isNaN(minWith) || minWith <= 0) validationErrors.push('Minimum withdrawal must be a positive number');
           if (isNaN(maxWith) || maxWith <= 0) validationErrors.push('Maximum withdrawal must be a positive number');
           if (isNaN(dailyLimit) || dailyLimit <= 0) validationErrors.push('Daily withdrawal limit must be a positive number');
-          
+
           if (minDep > maxDep) validationErrors.push('Minimum deposit cannot be greater than maximum deposit');
           if (minWith > maxWith) validationErrors.push('Minimum withdrawal cannot be greater than maximum withdrawal');
           if (maxWith > dailyLimit) validationErrors.push('Maximum withdrawal cannot be greater than daily limit');
-          
+
           if (validationErrors.length === 0) {
             payload = {
               minDeposit: minDep,
@@ -211,9 +209,8 @@ const AdminSettings = () => {
 
       {/* Message */}
       {message && (
-        <div className={`p-4 rounded-lg flex items-center space-x-2 ${
-          message.type === 'success' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'
-        }`}>
+        <div className={`p-4 rounded-lg flex items-center space-x-2 ${message.type === 'success' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'
+          }`}>
           {message.type === 'success' ? (
             <CheckCircle className="h-5 w-5" />
           ) : (
@@ -253,7 +250,7 @@ const AdminSettings = () => {
                     className="bg-gray-800 border-gray-600"
                   />
                   <p className="text-xs text-gray-400 mt-1">
-                    Current: {settings?.exchangeRate.current.toFixed(4)} MNE per USD
+                    Current: {settings?.exchangeRate.current.toFixed(4)} NON per USD
                   </p>
                 </div>
                 <div>
@@ -279,7 +276,7 @@ const AdminSettings = () => {
                   </p>
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={() => handleSaveSettings('exchange')}
                 disabled={saving}
                 className="bg-green-600 hover:bg-green-700"
@@ -358,7 +355,7 @@ const AdminSettings = () => {
                   />
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={() => handleSaveSettings('limits')}
                 disabled={saving}
                 className="bg-blue-600 hover:bg-blue-700"

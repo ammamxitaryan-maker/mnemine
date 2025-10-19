@@ -1,16 +1,16 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { api } from '@/lib/api';
-import { Loader2, TrendingUp, Clock, CheckCircle, PlusCircle, Zap } from 'lucide-react';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { useUserData } from '@/hooks/useUserData';
-import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 import { PageHeader } from '@/components/PageHeader';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import { useUserData } from '@/hooks/useUserData';
+import { api } from '@/lib/api';
+import { dismissToast, showError, showLoading, showSuccess } from '@/utils/toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CheckCircle, Clock, Loader2, PlusCircle, TrendingUp, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface InvestmentSlot {
   id: string;
@@ -56,7 +56,7 @@ const InvestmentSlots = () => {
   // Fetch investment slots
   const fetchInvestmentSlots = async () => {
     if (!user?.telegramId) return;
-    
+
     setIsLoadingSlots(true);
     try {
       const response = await api.get(`/user/${user.telegramId}/myslots`);
@@ -118,27 +118,27 @@ const InvestmentSlots = () => {
 
   const handleCreateSlot = () => {
     const investmentAmount = parseFloat(amount);
-    
+
     if (!amount || isNaN(investmentAmount)) {
       showError('Please enter a valid number.');
       return;
     }
-    
+
     if (investmentAmount <= 0) {
       showError('Amount must be greater than zero.');
       return;
     }
-    
+
     if (investmentAmount > currentBalance) {
-      showError(`Insufficient balance. You have ${currentBalance.toFixed(2)} MNE available.`);
+      showError(`Insufficient balance. You have ${currentBalance.toFixed(2)} NON available.`);
       return;
     }
-    
+
     if (!user) {
       showError('User not authenticated.');
       return;
     }
-    
+
     createSlotMutation.mutate({ telegramId: user.telegramId, amount: investmentAmount });
   };
 
@@ -159,7 +159,7 @@ const InvestmentSlots = () => {
     const hours = Math.floor((timeLeftMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeLeftMs % (1000 * 60)) / 1000);
-    
+
     if (days > 0) return `${days}d ${hours}h ${minutes}m`;
     if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
     if (minutes > 0) return `${minutes}m ${seconds}s`;
@@ -187,7 +187,7 @@ const InvestmentSlots = () => {
             <CardContent className="p-3">
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-400 animate-pulse">
-                  +{totalEarnings.toFixed(4)} MNE
+                  +{totalEarnings.toFixed(4)} NON
                 </div>
                 <div className="text-sm text-emerald-300 mt-1">
                   From {activeSlots.length} active slot{activeSlots.length > 1 ? 's' : ''}
@@ -230,7 +230,7 @@ const InvestmentSlots = () => {
               {createSlotMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                 <>
                   <PlusCircle className="w-4 h-4 mr-1" />
-                  Invest MNE
+                  Invest NON
                 </>
               )}
             </Button>
@@ -256,17 +256,17 @@ const InvestmentSlots = () => {
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <p className="text-xl font-bold text-purple-400">{slot.principal.toFixed(2)} MNE</p>
+                            <p className="text-xl font-bold text-purple-400">{slot.principal.toFixed(2)} NON</p>
                             <p className="text-sm text-gray-400">Investment</p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-emerald-400">
-                              {slot.currentBalance.toFixed(4)} MNE
+                              {slot.currentBalance.toFixed(4)} NON
                             </p>
                             <p className="text-xs text-gray-400">Current Total</p>
                           </div>
                         </div>
-                        
+
                         <div className="bg-gradient-to-r from-emerald-900/30 to-emerald-800/20 border border-emerald-700/50 rounded-lg p-3 mb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
@@ -275,23 +275,23 @@ const InvestmentSlots = () => {
                               <div className="ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                             </div>
                             <span className="text-lg font-bold text-emerald-400 animate-pulse">
-                              +{slot.currentEarnings.toFixed(4)} MNE
+                              +{slot.currentEarnings.toFixed(4)} NON
                             </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between text-sm mb-2">
                           <span className="text-gray-300">Progress:</span>
                           <span className="text-emerald-400 font-semibold">{slot.progress.toFixed(1)}%</span>
                         </div>
-                        
+
                         <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-                          <div 
+                          <div
                             className="bg-emerald-400 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${Math.min(slot.progress, 100)}%` }}
                           ></div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-300">Time left:</span>
                           <span className="text-accent font-mono">{formatTimeLeft(slot.timeLeft)}</span>
@@ -316,17 +316,17 @@ const InvestmentSlots = () => {
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <p className="text-xl font-bold text-purple-400">{slot.principal.toFixed(2)} MNE</p>
+                            <p className="text-xl font-bold text-purple-400">{slot.principal.toFixed(2)} NON</p>
                             <p className="text-sm text-gray-400">Investment</p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-gold">
-                              {slot.currentBalance.toFixed(4)} MNE
+                              {slot.currentBalance.toFixed(4)} NON
                             </p>
                             <p className="text-xs text-gray-400">Final Total</p>
                           </div>
                         </div>
-                        
+
                         <div className="bg-gradient-to-r from-gold/20 to-yellow-500/10 border border-gold/50 rounded-lg p-3 mb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
@@ -334,14 +334,14 @@ const InvestmentSlots = () => {
                               <span className="text-sm text-gold">Earnings:</span>
                             </div>
                             <span className="text-lg font-bold text-gold">
-                              +{slot.currentEarnings.toFixed(4)} MNE
+                              +{slot.currentEarnings.toFixed(4)} NON
                             </span>
                           </div>
                           <p className="text-xs text-gray-400 mt-1">30% return achieved!</p>
                         </div>
-                        
+
                         <Badge className="bg-gold text-black mb-3">COMPLETED</Badge>
-                        
+
                         {slot.isActive && (
                           <Button
                             onClick={() => handleClaimSlot(slot.id)}
@@ -356,7 +356,7 @@ const InvestmentSlots = () => {
                             ) : (
                               <>
                                 <CheckCircle className="w-4 h-4 mr-2" />
-                                Claim {slot.currentBalance.toFixed(4)} MNE
+                                Claim {slot.currentBalance.toFixed(4)} NON
                               </>
                             )}
                           </Button>

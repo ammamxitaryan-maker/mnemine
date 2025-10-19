@@ -24,7 +24,7 @@ interface PaymentData {
   orderId: string;
   usdtAddress: string;
   usdtAmount: number;
-  mneAmount: number;
+  nonAmount: number;
   exchangeRate: number;
   qrCode: string;
   paymentUrl: string;
@@ -102,7 +102,7 @@ const USDTPayment = () => {
       navigate('/payment/success', {
         state: {
           paymentData: paymentData,
-          mneAmount: paymentData.mneAmount
+          nonAmount: paymentData.nonAmount
         }
       });
     }
@@ -143,14 +143,14 @@ const USDTPayment = () => {
               Payment Summary
             </CardTitle>
             <CardDescription>
-              Send USDT to receive MNE tokens
+              Send USDT to receive NON tokens
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-400">MNE Amount:</span>
+              <span className="text-gray-400">NON Amount:</span>
               <span className="font-medium text-primary">
-                {paymentData.mneAmount.toFixed(6)} MNE
+                {paymentData.nonAmount.toFixed(6)} NON
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -162,7 +162,7 @@ const USDTPayment = () => {
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Exchange Rate:</span>
               <span className="font-medium">
-                1 USD = {paymentData.exchangeRate.toFixed(6)} MNE
+                1 USD = {paymentData.exchangeRate.toFixed(6)} NON
               </span>
             </div>
             {timeLeft > 0 && (
@@ -255,7 +255,7 @@ const USDTPayment = () => {
             <p>1. Copy the USDT address above</p>
             <p>2. Send exactly {paymentData.usdtAmount.toFixed(2)} USDT to this address</p>
             <p>3. Wait for network confirmation (usually 1-3 minutes)</p>
-            <p>4. Your MNE tokens will be credited automatically</p>
+            <p>4. Your NON tokens will be credited automatically</p>
             <p className="text-orange-400 mt-2">
               ⚠️ Send only USDT (TRC20) to this address. Other tokens will be lost.
             </p>

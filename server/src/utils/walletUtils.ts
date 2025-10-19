@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 /**
- * Ensures that a user has both USD and MNE wallets
+ * Ensures that a user has both USD and NON wallets
  * Creates missing wallets automatically
  */
 export async function ensureUserWallets(userId: string): Promise<void> {
@@ -26,11 +26,11 @@ export async function ensureUserWallets(userId: string): Promise<void> {
       });
     }
 
-    // Check if MNE wallet exists
-    if (!existingCurrencies.includes('MNE')) {
+    // Check if NON wallet exists
+    if (!existingCurrencies.includes('NON')) {
       walletsToCreate.push({
         userId,
-        currency: 'MNE',
+        currency: 'NON',
         balance: 0
       });
     }
@@ -40,8 +40,8 @@ export async function ensureUserWallets(userId: string): Promise<void> {
       await prisma.wallet.createMany({
         data: walletsToCreate
       });
-      
-      console.log(`[WALLET_UTILS] Created ${walletsToCreate.length} missing wallets for user ${userId}:`, 
+
+      console.log(`[WALLET_UTILS] Created ${walletsToCreate.length} missing wallets for user ${userId}:`,
         walletsToCreate.map(w => w.currency).join(', '));
     }
 
@@ -78,7 +78,7 @@ export async function ensureUserWalletsByTelegramId(telegramId: string): Promise
 export async function getUserWithWallets(telegramId: string) {
   // First ensure wallets exist
   await ensureUserWalletsByTelegramId(telegramId);
-  
+
   // Then get user with wallets
   return await prisma.user.findUnique({
     where: { telegramId },

@@ -1,24 +1,23 @@
 "use client";
 
+import { BuyTicketCard } from '@/components/features/BuyTicketCard';
+import { LastDrawResults } from '@/components/features/LastDrawResults';
+import { LotteryTicketCard } from '@/components/features/LotteryTicketCard';
+import { Button } from '@/components/ui/button';
+import { useCountdown } from '@/hooks/useCountdown';
+import { useLotteryData } from '@/hooks/useLotteryData';
+import { useTelegramAuth } from '@/hooks/useTelegramAuth';
+import {
+  AlertCircle,
+  Clock,
+  History,
+  RefreshCw,
+  Star,
+  Ticket,
+  Trophy
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { 
-  Ticket, 
-  Clock, 
-  Trophy, 
-  Loader2,
-  History,
-  Star,
-  AlertCircle,
-  RefreshCw
-} from 'lucide-react';
-import { useLotteryData } from '@/hooks/useLotteryData';
-import { useCountdown } from '@/hooks/useCountdown';
-import { useTelegramAuth } from '@/hooks/useTelegramAuth';
-import { BuyTicketCard } from '@/components/features/BuyTicketCard';
-import { LotteryTicketCard } from '@/components/features/LotteryTicketCard';
-import { LastDrawResults } from '@/components/features/LastDrawResults';
-import { Button } from '@/components/ui/button';
 import { BackButton } from './BackButton';
 
 export const MinimalistLotteryPage = () => {
@@ -79,7 +78,7 @@ export const MinimalistLotteryPage = () => {
               </p>
             </div>
           </div>
-          
+
           <Link to="/lottery-history">
             <Button variant="outline" size="sm" className="border-border h-7 px-2">
               <History className="w-3 h-3 mr-1" />
@@ -102,7 +101,7 @@ export const MinimalistLotteryPage = () => {
               <div className="absolute bottom-4 left-6 w-1 h-1 bg-accent/30 rounded-full animate-ping" style={{ animationDelay: '2s' }} />
               <div className="absolute bottom-3 right-3 w-1.5 h-1.5 bg-accent/20 rounded-full animate-ping" style={{ animationDelay: '3s' }} />
             </div>
-            
+
             <div className="relative z-10 p-3">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <div className="p-2 bg-accent/20 rounded-lg shadow-md border border-accent/30 animate-bounce">
@@ -111,29 +110,29 @@ export const MinimalistLotteryPage = () => {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">{t('lottery.currentJackpot')}</p>
                   <div className="text-2xl font-light text-accent drop-shadow-sm animate-pulse">
-                    {lottery.jackpot.toFixed(0)} MNE
+                    {lottery.jackpot.toFixed(0)} NON
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-2">
                 <Clock className="w-3 h-3 animate-spin" />
                 <span>{t('lottery.nextDrawIn')}</span>
               </div>
-              
+
               <div className="text-xl font-mono text-foreground bg-background/80 rounded-md px-3 py-1.5 inline-block border border-border/50 shadow-md animate-pulse">
                 {String(timeLeft.hours).padStart(2, '0')}:
                 {String(timeLeft.minutes).padStart(2, '0')}:
                 {String(timeLeft.seconds).padStart(2, '0')}
               </div>
-              
+
               {/* Progress indicator */}
               <div className="mt-3">
                 <div className="w-full bg-muted/20 rounded-full h-1.5 border border-border/30">
-                  <div 
+                  <div
                     className="bg-gradient-to-r from-accent to-accent/80 h-1.5 rounded-full transition-all duration-1000 shadow-sm animate-pulse"
-                    style={{ 
-                      width: `${Math.max(0, Math.min(100, (timeLeft.totalSeconds / (24 * 60 * 60)) * 100))}%` 
+                    style={{
+                      width: `${Math.max(0, Math.min(100, (timeLeft.totalSeconds / (24 * 60 * 60)) * 100))}%`
                     }}
                   />
                 </div>
@@ -184,8 +183,8 @@ export const MinimalistLotteryPage = () => {
           <div className="space-y-2">
             {tickets
               .map((ticket, index) => (
-                <div 
-                  key={ticket.id} 
+                <div
+                  key={ticket.id}
                   className="minimal-card hover:bg-muted/5 transition-all duration-500 hover:scale-[1.02] hover:shadow-lg animate-in fade-in-0 slide-in-from-bottom-4"
                   style={{ animationDelay: `${index * 150}ms` }}
                 >
@@ -200,16 +199,16 @@ export const MinimalistLotteryPage = () => {
                       <div className="flex items-center gap-1">
                         <span className="text-xs text-muted-foreground">{t('lottery.matches')}</span>
                         <span className="text-xs text-accent font-semibold animate-pulse">
-                          {ticket.numbers.split(',').filter(num => 
+                          {ticket.numbers.split(',').filter(num =>
                             lastDraw.winningNumbers?.split(',').includes(num)
                           ).length}
                         </span>
                       </div>
                     )}
                   </div>
-                  <LotteryTicketCard 
-                    ticket={ticket} 
-                    winningNumbers={lastDraw?.winningNumbers} 
+                  <LotteryTicketCard
+                    ticket={ticket}
+                    winningNumbers={lastDraw?.winningNumbers}
                   />
                 </div>
               ))}

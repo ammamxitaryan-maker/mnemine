@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useExchangeRate } from './useSwap';
 
 interface CachedRateData {
@@ -30,24 +30,24 @@ export const useCachedExchangeRate = (telegramId: string) => {
 
     const now = Date.now();
     const timeSinceUpdate = now - cachedRate.lastUpdated;
-    
+
     return {
       ...cachedRate,
       isStale: timeSinceUpdate > STALE_DURATION
     };
   };
 
-  const convertMNEToUSD = (mneAmount: number): number => {
+  const convertNONToUSD = (nonAmount: number): number => {
     const cached = getCachedRate();
     if (!cached) return 0;
-    return mneAmount * cached.rate;
+    return nonAmount * cached.rate;
   };
 
   return {
     rate: cachedRate?.rate || 0,
     isLoading,
     isStale: cachedRate ? (Date.now() - cachedRate.lastUpdated) > STALE_DURATION : false,
-    convertMNEToUSD,
+    convertNONToUSD,
     lastUpdated: cachedRate?.lastUpdated || 0
   };
 };

@@ -21,7 +21,7 @@ export const MainBalanceDisplay = ({
   const { t, i18n } = useTranslation();
   const { user } = useTelegramAuth();
   const { totalEarnings: liveEarnings, perSecondRate, isActive } = useEarnings();
-  const { convertMNEToUSD } = useCachedExchangeRate(user?.telegramId || '');
+  const { convertNONToUSD } = useCachedExchangeRate(user?.telegramId || '');
   const {
     availableBalance,
     totalInvested,
@@ -69,7 +69,7 @@ export const MainBalanceDisplay = ({
           <h2 className="text-base font-medium text-foreground">{t('availableBalance')}</h2>
         </div>
         <div className="text-3xl font-light mb-1 text-primary">
-          {(availableBalance || 0).toFixed(3)} MNE
+          {(availableBalance || 0).toFixed(3)} NON
         </div>
         {usdEquivalent > 0 && (
           <div className="text-sm text-accent">
@@ -109,11 +109,11 @@ export const MainBalanceDisplay = ({
             </div>
           </div>
           <div className="text-2xl font-light text-yellow-500 mb-1">
-            +{(liveEarnings || 0).toFixed(6)} MNE
+            +{(liveEarnings || 0).toFixed(6)} NON
           </div>
-          {convertMNEToUSD(liveEarnings || 0) > 0 && (
+          {convertNONToUSD(liveEarnings || 0) > 0 && (
             <div className="text-xs text-muted-foreground">
-              ≈ +${convertMNEToUSD(liveEarnings || 0).toFixed(4)} USD
+              ≈ +${convertNONToUSD(liveEarnings || 0).toFixed(4)} USD
             </div>
           )}
         </div>

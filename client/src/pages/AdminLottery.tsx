@@ -1,10 +1,10 @@
-﻿import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { PageHeader } from '@/components/PageHeader';
-import { api } from '@/lib/api';
+﻿import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { api } from '@/lib/api';
 import { Loader2, Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface LotteryParticipant {
   id: string;
@@ -73,9 +73,9 @@ const AdminLottery = () => {
         ticketId: selectedTicketId,
         prizeAmount: parseFloat(prizeAmount)
       });
-      
+
       alert(response.data.message);
-    setShowWinnerForm(false);
+      setShowWinnerForm(false);
       setSelectedTicketId('');
       setPrizeAmount('');
       fetchLotteryData();
@@ -94,7 +94,7 @@ const AdminLottery = () => {
       const response = await api.post('/admin/lottery/remove-winner', {
         ticketId
       });
-      
+
       alert(response.data.message);
       fetchLotteryData();
     } catch (err: any) {
@@ -159,38 +159,38 @@ const AdminLottery = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
+              <div>
                 <div className="text-sm text-gray-400">Jackpot</div>
                 <div className="text-lg font-bold text-gold">
-                  {lotteryData?.lottery.jackpot.toFixed(0) || '0'} MNE
+                  {lotteryData?.lottery.jackpot.toFixed(0) || '0'} NON
                 </div>
-            </div>
-            <div>
+              </div>
+              <div>
                 <div className="text-sm text-gray-400">Participants</div>
                 <div className="text-lg font-bold">
                   {lotteryData?.participants.length || 0}
                 </div>
-            </div>
-            <div>
+              </div>
+              <div>
                 <div className="text-sm text-gray-400">Total Tickets</div>
                 <div className="text-lg font-bold">
                   {lotteryData?.participants.reduce((sum, p) => sum + p.ticketCount, 0) || 0}
                 </div>
-            </div>
-            <div>
+              </div>
+              <div>
                 <div className="text-sm text-gray-400">Status</div>
                 <div className="text-lg font-bold">
                   {lotteryData?.lottery.isDrawn ? 'Completed' : 'Active'}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
           </CardContent>
         </Card>
 
         {/* Actions */}
         <div className="grid grid-cols-2 gap-2 mb-4">
           <Button
-              onClick={() => setShowWinnerForm(!showWinnerForm)}
+            onClick={() => setShowWinnerForm(!showWinnerForm)}
             className="bg-green-600 hover:bg-green-700"
             disabled={processing || lotteryData?.lottery.isDrawn}
           >
@@ -203,26 +203,26 @@ const AdminLottery = () => {
           >
             Complete Draw
           </Button>
-          </div>
+        </div>
 
         {/* Winner Selection Form */}
-          {showWinnerForm && (
+        {showWinnerForm && (
           <Card className="bg-gray-900 border-gray-700 mb-4">
             <CardHeader>
               <CardTitle>Select Winner</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSelectWinner} className="space-y-4">
-              <div>
+                <div>
                   <label className="block text-sm text-gray-300 mb-2">Ticket ID</label>
                   <select
                     value={selectedTicketId}
                     onChange={(e) => setSelectedTicketId(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"
+                    className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"
                     required
                   >
                     <option value="">Select a ticket</option>
-                    {lotteryData?.participants.flatMap(p => 
+                    {lotteryData?.participants.flatMap(p =>
                       p.tickets.filter(t => !t.isWinner).map(t => (
                         <option key={t.id} value={t.id}>
                           {p.firstName || p.username || p.telegramId} - {t.numbers}
@@ -230,28 +230,28 @@ const AdminLottery = () => {
                       ))
                     )}
                   </select>
-              </div>
-              
-              <div>
+                </div>
+
+                <div>
                   <label className="block text-sm text-gray-300 mb-2">Prize Amount (USD)</label>
-                <input
-                  type="number"
-                  step="0.01"
+                  <input
+                    type="number"
+                    step="0.01"
                     value={prizeAmount}
                     onChange={(e) => setPrizeAmount(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"
-                  placeholder="Enter prize amount"
+                    className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"
+                    placeholder="Enter prize amount"
                     required
-                />
-              </div>
+                  />
+                </div>
 
-              <div className="flex gap-2">
+                <div className="flex gap-2">
                   <Button type="submit" disabled={processing} className="flex-1">
                     {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Confirm Winner
                   </Button>
                   <Button
-                  type="button"
+                    type="button"
                     onClick={() => {
                       setShowWinnerForm(false);
                       setSelectedTicketId('');
@@ -259,11 +259,11 @@ const AdminLottery = () => {
                     }}
                     variant="outline"
                     className="flex-1"
-                >
-                  Cancel
+                  >
+                    Cancel
                   </Button>
-              </div>
-            </form>
+                </div>
+              </form>
             </CardContent>
           </Card>
         )}
@@ -296,15 +296,14 @@ const AdminLottery = () => {
                         </div>
                       )}
                     </div>
-        </div>
+                  </div>
 
                   <div className="space-y-1">
                     {participant.tickets.map((ticket) => (
                       <div
                         key={ticket.id}
-                        className={`flex justify-between items-center p-2 rounded text-sm ${
-                          ticket.isWinner ? 'bg-green-900/20 border border-green-700' : 'bg-gray-700'
-                        }`}
+                        className={`flex justify-between items-center p-2 rounded text-sm ${ticket.isWinner ? 'bg-green-900/20 border border-green-700' : 'bg-gray-700'
+                          }`}
                       >
                         <span className="font-mono">{ticket.numbers}</span>
                         <div className="flex items-center gap-2">
@@ -327,12 +326,12 @@ const AdminLottery = () => {
                             <span className="text-gray-400">-</span>
                           )}
                         </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ))}
-        </div>
+            </div>
           </CardContent>
         </Card>
       </div>

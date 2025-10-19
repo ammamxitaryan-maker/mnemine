@@ -3,7 +3,7 @@ import {
   DEFAULT_EXCHANGE_RATE,
   MAX_EXCHANGE_RATE,
   MIN_EXCHANGE_RATE,
-  MNE_CURRENCY
+  NON_CURRENCY
 } from '../constants.js';
 import prisma from '../prisma.js';
 // Middleware import removed - using Request directly
@@ -20,7 +20,7 @@ export const getCurrentExchangeRate = async (req: Request, res: Response) => {
     res.json({
       success: true,
       rate,
-      currency: MNE_CURRENCY,
+      currency: NON_CURRENCY,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -100,8 +100,8 @@ export const getExchangeRateHistory = async (req: Request, res: Response) => {
   }
 };
 
-// Swap USD to MNE
-export const swapMNEoMNE = async (req: Request, res: Response) => {
+// Swap USD to NON
+export const swapNONoNON = async (req: Request, res: Response) => {
   try {
     const { telegramId } = req.params;
     const { amount } = req.body;
@@ -119,7 +119,7 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
     });
 
     const rate = exchangeRate?.rate || DEFAULT_EXCHANGE_RATE;
-    const MNEAmount = amount * rate;
+    const NONAmount = amount * rate;
 
     // Check if user has enough USD balance
     const user = await prisma.user.findUnique({
@@ -159,7 +159,7 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
         data: {
           userId: user.id,
           USDAmount: amount,
-          MNEAmount: MNEAmount,
+          NONAmount: NONAmount,
           exchangeRate: rate
         }
       });
@@ -168,12 +168,12 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
     res.json({
       success: true,
       USDAmount: amount,
-      MNEAmount: MNEAmount,
+      NONAmount: NONAmount,
       rate,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('[Exchange] Error swapping USD to MNE:', error);
+    console.error('[Exchange] Error swapping USD to NON:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to perform swap'
@@ -211,7 +211,7 @@ export const getUserSwapHistory = async (req: Request, res: Response) => {
       success: true,
       swaps: swaps.map((swap: any) => ({
         USDAmount: swap.USDAmount,
-        MNEAmount: swap.MNEAmount,
+        NONAmount: swap.NONAmount,
         exchangeRate: swap.exchangeRate,
         timestamp: swap.createdAt
       }))

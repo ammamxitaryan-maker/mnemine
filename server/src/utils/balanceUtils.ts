@@ -114,7 +114,7 @@ export function validateBalanceOperation(currentBalance: number, amount: number)
 /**
  * Gets or creates a wallet for a user with a specific currency
  * @param userId - User ID
- * @param currency - Currency type (e.g., 'MNE', 'USD')
+ * @param currency - Currency type (e.g., 'NON', 'USD')
  * @param initialBalance - Initial balance for new wallets (default: 0)
  * @returns The wallet (existing or newly created)
  */
@@ -127,8 +127,8 @@ export async function getOrCreateWallet(userId: string, currency: string, initia
   });
 
   if (!wallet) {
-    // For new MNE wallets, give 3 MNE as welcome bonus
-    const balance = currency === 'MNE' ? 3 : initialBalance;
+    // For new NON wallets, give 3 NON as welcome bonus
+    const balance = currency === 'NON' ? 3 : initialBalance;
 
     wallet = await prisma.wallet.create({
       data: {

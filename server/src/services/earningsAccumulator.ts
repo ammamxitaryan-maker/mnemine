@@ -10,7 +10,7 @@ export class EarningsAccumulator {
   private isRunning: boolean = false;
   private intervalId: NodeJS.Timeout | null = null;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): EarningsAccumulator {
     if (!EarningsAccumulator.instance) {
@@ -118,7 +118,7 @@ export class EarningsAccumulator {
         );
 
         // Отправляем обновления через WebSocket для всех обновленных слотов
-        const updatedSlots = activeSlots.filter(slot => 
+        const updatedSlots = activeSlots.filter(slot =>
           updates.some(update => update.id === slot.id)
         );
 
@@ -212,7 +212,7 @@ export class EarningsAccumulator {
               userId: user.id,
               type: 'CLAIM',
               amount: slot.accruedEarnings,
-              description: `Claimed ${slot.accruedEarnings.toFixed(2)} MNE from slot earnings`
+              description: `Claimed ${slot.accruedEarnings.toFixed(2)} NON from slot earnings`
             }
           });
         }
@@ -239,7 +239,7 @@ export class EarningsAccumulator {
         return {
           success: true,
           claimedAmount: totalClaimed,
-          message: `Successfully claimed ${totalClaimed.toFixed(2)} MNE`
+          message: `Successfully claimed ${totalClaimed.toFixed(2)} NON`
         };
       } else {
         return {

@@ -179,23 +179,23 @@ Response: {
   lastUpdated: string
 }
 
-// Конвертировать USD в MNE
-POST /user/:telegramId/swap/USD-to-MNE
+// Конвертировать USD в NON
+POST /user/:telegramId/swap/USD-to-NON
 Body: { amount: number }
 Response: {
   message: string,
   USDAmount: number,
-  MNEAmount: number,
+  NONAmount: number,
   rate: number
 }
 
-// Конвертировать MNE в USD
-POST /user/:telegramId/swap/MNE-to-USD
+// Конвертировать NON в USD
+POST /user/:telegramId/swap/NON-to-USD
 Body: { amount: number }
 Response: {
   message: string,
   USDAmount: number,
-  MNEAmount: number,
+  NONAmount: number,
   rate: number
 }
 
@@ -377,7 +377,7 @@ model User {
 model Wallet {
   id        String   @id @default(cuid())
   userId    String
-  currency  String   // 'USD' | 'MNE'
+  currency  String   // 'USD' | 'NON'
   balance   Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -476,7 +476,7 @@ enum ActivityLogType {
   BALANCE_FROZEN_PENALTY
   LOTTERY_TICKET_PURCHASE
   LOTTERY_WIN
-  SWAP_USD_TO_MNE
+  SWAP_USD_TO_NON
   EXCHANGE_RATE_CHANGE
   ADMIN_LOTTERY_WIN
 }

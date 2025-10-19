@@ -48,7 +48,7 @@ export interface UserProfile {
 export interface WalletInfo {
   id: string;
   userId: string;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   balance: number;
   createdAt: Date;
   updatedAt: Date;
@@ -73,7 +73,7 @@ export interface MiningSlotInfo {
 
 export interface SlotPurchaseRequest {
   amount: number;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   type?: 'standard' | 'premium' | 'vip';
 }
 
@@ -106,7 +106,7 @@ export interface TransactionInfo {
   userId: string;
   type: TransactionType;
   amount: number;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   status: TransactionStatus;
   description: string;
   metadata?: Record<string, unknown>;
@@ -137,7 +137,7 @@ export type TransactionStatus =
 // Withdrawal types
 export interface WithdrawalRequest {
   amount: number;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   type: WithdrawalType;
   reason?: string;
 }
@@ -146,7 +146,7 @@ export interface WithdrawalInfo {
   id: string;
   userId: string;
   amount: number;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   status: WithdrawalStatus;
   type: WithdrawalType;
   adminApproved: boolean;
@@ -192,8 +192,8 @@ export interface LotteryPurchaseResponse {
 
 // Swap types
 export interface SwapRequest {
-  fromCurrency: 'USD' | 'MNE';
-  toCurrency: 'USD' | 'MNE';
+  fromCurrency: 'USD' | 'NON';
+  toCurrency: 'USD' | 'NON';
   amount: number;
 }
 
@@ -209,7 +209,7 @@ export interface SwapTransactionInfo {
   id: string;
   userId: string;
   USDAmount: number;
-  MNEAmount: number;
+  NONAmount: number;
   exchangeRate: number;
   createdAt: Date;
 }
@@ -282,7 +282,7 @@ export type ActivityLogType =
   | 'BALANCE_FROZEN_PENALTY'
   | 'LOTTERY_TICKET_PURCHASE'
   | 'LOTTERY_WIN'
-  | 'SWAP_USD_TO_MNE'
+  | 'SWAP_USD_TO_NON'
   | 'EXCHANGE_RATE_CHANGE'
   | 'ADMIN_LOTTERY_WIN'
   | 'LOGIN'
@@ -342,7 +342,7 @@ export interface DashboardStats {
   totalLotteryTickets: number;
   systemBalance: {
     USD: number;
-    MNE: number;
+    NON: number;
   };
   recentActivity: ActivityLogInfo[];
   topUsers: Array<{

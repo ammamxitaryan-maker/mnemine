@@ -1,5 +1,5 @@
-﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+﻿import { api } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface SwapParams {
   telegramId: string;
@@ -9,7 +9,7 @@ interface SwapParams {
 interface SwapResult {
   message: string;
   USDAmount: number;
-  MNEAmount: number;
+  NONAmount: number;
   rate: number;
 }
 
@@ -20,15 +20,15 @@ interface ExchangeRate {
   lastUpdated: string;
 }
 
-// Swap USD to MNE
-const swapMNEoMNE = async ({ telegramId, amount }: SwapParams): Promise<SwapResult> => {
-  const { data } = await api.post(`/user/${telegramId}/swap/USD-to-MNE`, { amount });
+// Swap USD to NON
+const swapNONoNON = async ({ telegramId, amount }: SwapParams): Promise<SwapResult> => {
+  const { data } = await api.post(`/user/${telegramId}/swap/USD-to-NON`, { amount });
   return data;
 };
 
-// Swap MNE to USD
-const swapMNEToUSD = async ({ telegramId, amount }: SwapParams): Promise<SwapResult> => {
-  const { data } = await api.post(`/user/${telegramId}/swap/MNE-to-USD`, { amount });
+// Swap NON to USD
+const swapNONToUSD = async ({ telegramId, amount }: SwapParams): Promise<SwapResult> => {
+  const { data } = await api.post(`/user/${telegramId}/swap/NON-to-USD`, { amount });
   return data;
 };
 
@@ -38,11 +38,11 @@ const fetchExchangeRate = async (telegramId: string): Promise<ExchangeRate> => {
   return data;
 };
 
-export const useSwapMNEoMNE = (telegramId: string) => {
+export const useSwapNONoNON = (telegramId: string) => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (amount: number) => swapMNEoMNE({ telegramId, amount }),
+    mutationFn: (amount: number) => swapNONoNON({ telegramId, amount }),
     onSuccess: () => {
       // Invalidate user data to refresh balances
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] });
@@ -51,11 +51,11 @@ export const useSwapMNEoMNE = (telegramId: string) => {
   });
 };
 
-export const useSwapMNEToUSD = (telegramId: string) => {
+export const useSwapNONToUSD = (telegramId: string) => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (amount: number) => swapMNEToUSD({ telegramId, amount }),
+    mutationFn: (amount: number) => swapNONToUSD({ telegramId, amount }),
     onSuccess: () => {
       // Invalidate user data to refresh balances
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] });

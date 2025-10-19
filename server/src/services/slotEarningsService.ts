@@ -1,11 +1,9 @@
-import { Request, Response } from 'express';
-import prisma from '../prisma.js';
-import { sendInvestmentSlotCompletedNotification } from '../controllers/notificationController.js';
 import { ActivityLogType } from '@prisma/client';
-import { EARNINGS_CLAIMED } from '../constants.js';
-import { webSocketManager } from '../websocket/WebSocketManager.js';
-import { earningsAccumulator } from './earningsAccumulator.js';
+import { Request, Response } from 'express';
+import { sendInvestmentSlotCompletedNotification } from '../controllers/notificationController.js';
+import prisma from '../prisma.js';
 import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
+import { webSocketManager } from '../websocket/WebSocketManager.js';
 
 export class SlotEarningsService {
   // GET /api/user/:telegramId/real-time-income
@@ -19,7 +17,7 @@ export class SlotEarningsService {
     try {
       // Ensure user has all required wallets before processing
       await ensureUserWalletsByTelegramId(telegramId);
-      
+
       const user = await prisma.user.findUnique({
         where: { telegramId },
         select: {
@@ -58,20 +56,20 @@ export class SlotEarningsService {
         // Calculate earnings from last accrual time to now
         const lastAccrued = new Date(slot.lastAccruedAt || slot.startAt);
         const timeElapsedMs = now.getTime() - lastAccrued.getTime();
-        
+
         // Only calculate if time has elapsed since last accrual
         if (timeElapsedMs > 0) {
           const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
           const realTimeEarnings = earningsPerSecond * (timeElapsedMs / 1000);
           const currentEarnings = slot.accruedEarnings + realTimeEarnings;
-          
+
           totalRealTimeEarnings += currentEarnings;
-          
+
           // Calculate progress based on total time elapsed since slot start
           const totalTimeElapsed = now.getTime() - slot.startAt.getTime();
           const slotDuration = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
           const progress = Math.min(totalTimeElapsed / slotDuration, 1);
-          
+
           slotDetails.push({
             slotId: slot.id,
             principal: slot.principal,
@@ -84,11 +82,11 @@ export class SlotEarningsService {
         } else {
           // Use accrued earnings if no time has elapsed
           totalRealTimeEarnings += slot.accruedEarnings;
-          
+
           const totalTimeElapsed = now.getTime() - slot.startAt.getTime();
           const slotDuration = 7 * 24 * 60 * 60 * 1000;
           const progress = Math.min(totalTimeElapsed / slotDuration, 1);
-          
+
           slotDetails.push({
             slotId: slot.id,
             principal: slot.principal,
@@ -101,7 +99,7 @@ export class SlotEarningsService {
         }
       }
 
-      console.log(`[RealTimeIncome] User ${telegramId}: ${user.miningSlots.length} active slots, total earnings: ${totalRealTimeEarnings.toFixed(6)} MNE`);
+      console.log(`[RealTimeIncome] User ${telegramId}: ${user.miningSlots.length} active slots, total earnings: ${totalRealTimeEarnings.toFixed(6)} NON`);
 
       res.status(200).json({
         telegramId: user.telegramId,
@@ -127,7 +125,7 @@ export class SlotEarningsService {
     try {
       // Ensure user has all required wallets before processing
       await ensureUserWalletsByTelegramId(telegramId);
-      
+
       const user = await prisma.user.findUnique({
         where: { telegramId },
         select: {
@@ -160,12 +158,12 @@ export class SlotEarningsService {
         const timeElapsed = now.getTime() - slot.startAt.getTime();
         const slotDuration = 7 * 24 * 60 * 60 * 1000; // 7 days
         const progress = Math.min(timeElapsed / slotDuration, 1);
-        
+
         const expectedEarnings = slot.principal * slot.effectiveWeeklyRate;
         const currentEarnings = expectedEarnings * progress;
-        
+
         totalAccruedEarnings += currentEarnings;
-        
+
         slotEarnings.push({
           slotId: slot.id,
           principal: slot.principal,
@@ -205,7 +203,7 @@ export class SlotEarningsService {
     try {
       // Ensure user has all required wallets before processing
       await ensureUserWalletsByTelegramId(telegramId);
-      
+
       const user = await prisma.user.findUnique({
         where: { telegramId },
         select: {
@@ -215,7 +213,7 @@ export class SlotEarningsService {
             where: { currency: 'USD' }
           },
           miningSlots: {
-            where: { 
+            where: {
               isActive: true,
               expiresAt: { lte: new Date() } // Only expired slots
             }
@@ -242,7 +240,7 @@ export class SlotEarningsService {
       await prisma.$transaction(async (tx) => {
         for (const slot of user.miningSlots) {
           const expectedEarnings = slot.principal * slot.effectiveWeeklyRate;
-          
+
           // Update slot as inactive and set final earnings
           await tx.miningSlot.update({
             where: { id: slot.id },
@@ -252,11 +250,11 @@ export class SlotEarningsService {
             }
           });
 
-          // Update user's MNE wallet
-          const MNEWallet = user.wallets.find(w => w.currency === 'MNE');
-          if (MNEWallet) {
+          // Update user's NON wallet
+          const NONWallet = user.wallets.find(w => w.currency === 'NON');
+          if (NONWallet) {
             await tx.wallet.update({
-              where: { id: MNEWallet.id },
+              where: { id: NONWallet.id },
               data: {
                 balance: { increment: expectedEarnings }
               }
@@ -277,7 +275,7 @@ export class SlotEarningsService {
               userId: user.id,
               type: ActivityLogType.CLAIM,
               amount: expectedEarnings,
-              description: `Claimed earnings from slot: ${expectedEarnings.toFixed(2)} MNE`,
+              description: `Claimed earnings from slot: ${expectedEarnings.toFixed(2)} NON`,
               ipAddress: ipAddress,
             }
           });
@@ -346,8 +344,8 @@ export class SlotEarningsService {
       }
 
       const slot = await prisma.miningSlot.findFirst({
-        where: { 
-          id: slotId, 
+        where: {
+          id: slotId,
           userId: user.id,
           isActive: true,
           expiresAt: { lte: new Date() } // Only expired slots

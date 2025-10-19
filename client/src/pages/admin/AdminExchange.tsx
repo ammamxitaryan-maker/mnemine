@@ -1,22 +1,22 @@
 ﻿"use client";
 
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  History, 
-  Save, 
-  RefreshCw,
+import { api } from '@/lib/api';
+import {
   AlertTriangle,
+  BarChart3,
   CheckCircle,
-  BarChart3
+  DollarSign,
+  History,
+  RefreshCw,
+  Save,
+  TrendingDown,
+  TrendingUp
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface ExchangeRate {
   rate: number;
@@ -57,9 +57,9 @@ const AdminExchange = () => {
       });
       setHistory(historyRes.data.history);
     } catch (err: any) {
-      setMessage({ 
-        type: 'error', 
-        text: err.response?.data?.error || 'Failed to load exchange data' 
+      setMessage({
+        type: 'error',
+        text: err.response?.data?.error || 'Failed to load exchange data'
       });
     } finally {
       setLoading(false);
@@ -68,7 +68,7 @@ const AdminExchange = () => {
 
   const handleSetRate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newRate.trim()) {
       setMessage({ type: 'error', text: 'Rate is required' });
       return;
@@ -85,18 +85,18 @@ const AdminExchange = () => {
       setMessage(null);
 
       const response = await api.post('/admin/rate', { rate });
-      
-      setMessage({ 
-        type: 'success', 
-        text: `Exchange rate updated to ${rate.toFixed(4)} MNE per USD` 
+
+      setMessage({
+        type: 'success',
+        text: `Exchange rate updated to ${rate.toFixed(4)} NON per USD`
       });
 
       setNewRate('');
       fetchExchangeData();
     } catch (err: any) {
-      setMessage({ 
-        type: 'error', 
-        text: err.response?.data?.error || 'Failed to update exchange rate' 
+      setMessage({
+        type: 'error',
+        text: err.response?.data?.error || 'Failed to update exchange rate'
       });
     } finally {
       setSaving(false);
@@ -122,7 +122,7 @@ const AdminExchange = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-xl sm:text-2xl font-bold text-white truncate">Exchange Rate Management</h1>
-          <p className="text-gray-400 text-sm sm:text-base">Manage USD to MNE exchange rates</p>
+          <p className="text-gray-400 text-sm sm:text-base">Manage USD to NON exchange rates</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchExchangeData} className="touch-manipulation self-start sm:self-auto">
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -132,9 +132,8 @@ const AdminExchange = () => {
 
       {/* Message */}
       {message && (
-        <div className={`p-4 rounded-lg flex items-center space-x-2 ${
-          message.type === 'success' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'
-        }`}>
+        <div className={`p-4 rounded-lg flex items-center space-x-2 ${message.type === 'success' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'
+          }`}>
           {message.type === 'success' ? (
             <CheckCircle className="h-5 w-5" />
           ) : (
@@ -156,7 +155,7 @@ const AdminExchange = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                {currentRate?.rate.toFixed(4) || '0.0000'} MNE
+                {currentRate?.rate.toFixed(4) || '0.0000'} NON
               </div>
               <div className="text-sm text-gray-400">
                 per 1 USD
@@ -167,7 +166,7 @@ const AdminExchange = () => {
                 Last updated
               </div>
               <div className="text-sm text-white">
-                {currentRate?.timestamp ? 
+                {currentRate?.timestamp ?
                   new Date(currentRate.timestamp).toLocaleString() : 'N/A'
                 }
               </div>
@@ -187,7 +186,7 @@ const AdminExchange = () => {
         <CardContent>
           <form onSubmit={handleSetRate} className="space-y-4">
             <div>
-              <Label htmlFor="rate" className="text-sm font-medium text-gray-300">New Rate (MNE per USD)</Label>
+              <Label htmlFor="rate" className="text-sm font-medium text-gray-300">New Rate (NON per USD)</Label>
               <Input
                 id="rate"
                 type="number"
@@ -199,12 +198,12 @@ const AdminExchange = () => {
                 required
               />
               <p className="text-xs text-gray-400 mt-1">
-                Current rate: {currentRate?.rate.toFixed(4) || '0.0000'} MNE per USD
+                Current rate: {currentRate?.rate.toFixed(4) || '0.0000'} NON per USD
               </p>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={saving}
               className="w-full bg-blue-600 hover:bg-blue-700 touch-manipulation"
             >
@@ -234,12 +233,12 @@ const AdminExchange = () => {
               {history.map((entry, index) => {
                 const previousRate = index < history.length - 1 ? history[index + 1].rate : entry.rate;
                 const change = calculateChange(entry.rate, previousRate);
-                
+
                 return (
                   <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-gray-800 rounded-lg gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="font-mono text-lg font-bold text-white">
-                        {entry.rate.toFixed(4)} MNE
+                        {entry.rate.toFixed(4)} NON
                       </div>
                       <div className="text-sm text-gray-400">
                         {new Date(entry.timestamp).toLocaleString()}
@@ -250,9 +249,8 @@ const AdminExchange = () => {
                         by {entry.createdBy}
                       </div>
                       {change !== 0 && (
-                        <div className={`text-sm font-bold ${
-                          change > 0 ? 'text-green-400' : 'text-red-400'
-                        }`}>
+                        <div className={`text-sm font-bold ${change > 0 ? 'text-green-400' : 'text-red-400'
+                          }`}>
                           {change > 0 ? (
                             <TrendingUp className="h-3 w-3 inline mr-1" />
                           ) : (
@@ -282,19 +280,19 @@ const AdminExchange = () => {
           <div className="space-y-3 text-sm text-gray-300">
             <div className="flex justify-between">
               <span>Minimum Rate:</span>
-              <span className="text-red-400">0.0001 MNE</span>
+              <span className="text-red-400">0.0001 NON</span>
             </div>
             <div className="flex justify-between">
               <span>Maximum Rate:</span>
-              <span className="text-red-400">100.0000 MNE</span>
+              <span className="text-red-400">100.0000 NON</span>
             </div>
             <div className="flex justify-between">
               <span>Default Rate:</span>
-              <span className="text-blue-400">1.0000 MNE</span>
+              <span className="text-blue-400">1.0000 NON</span>
             </div>
             <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-700 rounded-lg">
               <p className="text-yellow-400 text-xs">
-                <strong>Warning:</strong> Changing exchange rates affects all future swaps and may impact user balances. 
+                <strong>Warning:</strong> Changing exchange rates affects all future swaps and may impact user balances.
                 Changes are logged and cannot be undone.
               </p>
             </div>

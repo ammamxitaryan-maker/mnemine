@@ -57,7 +57,7 @@ export interface UserProfile {
 export interface WalletInfo {
   id: string;
   userId: string;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   balance: number;
   createdAt: Date;
   updatedAt: Date;
@@ -87,7 +87,7 @@ export interface TransactionInfo {
   userId: string;
   type: TransactionType;
   amount: number;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   status: TransactionStatus;
   description: string;
   metadata?: Record<string, unknown>;
@@ -118,7 +118,7 @@ export type TransactionStatus =
 // Withdrawal types
 export interface WithdrawalRequest {
   amount: number;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   type: 'FIRST_WITHDRAWAL' | 'REGULAR_WITHDRAWAL' | 'EMERGENCY_WITHDRAWAL';
   reason?: string;
 }
@@ -127,7 +127,7 @@ export interface WithdrawalInfo {
   id: string;
   userId: string;
   amount: number;
-  currency: 'USD' | 'MNE';
+  currency: 'USD' | 'NON';
   status: 'PENDING' | 'APPROVED' | 'PROCESSED' | 'REJECTED' | 'CANCELLED';
   type: 'FIRST_WITHDRAWAL' | 'REGULAR_WITHDRAWAL' | 'EMERGENCY_WITHDRAWAL';
   adminApproved: boolean;
@@ -163,8 +163,8 @@ export interface LotteryTicketInfo {
 
 // Swap types
 export interface SwapRequest {
-  fromCurrency: 'USD' | 'MNE';
-  toCurrency: 'USD' | 'MNE';
+  fromCurrency: 'USD' | 'NON';
+  toCurrency: 'USD' | 'NON';
   amount: number;
 }
 
@@ -222,7 +222,7 @@ export type ActivityLogType =
   | 'BALANCE_FROZEN_PENALTY'
   | 'LOTTERY_TICKET_PURCHASE'
   | 'LOTTERY_WIN'
-  | 'SWAP_USD_TO_MNE'
+  | 'SWAP_USD_TO_NON'
   | 'EXCHANGE_RATE_CHANGE'
   | 'ADMIN_LOTTERY_WIN'
   | 'LOGIN'
@@ -282,7 +282,7 @@ export interface DashboardStats {
   totalLotteryTickets: number;
   systemBalance: {
     USD: number;
-    MNE: number;
+    NON: number;
   };
   recentActivity: ActivityLogInfo[];
   topUsers: Array<{

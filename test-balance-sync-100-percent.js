@@ -12,12 +12,12 @@ async function testBalanceSync100Percent() {
 
     console.log('1. 📊 Fetching initial user data...');
     const initialData = await axios.get(`${API_BASE}/user/${testTelegramId}/data`);
-    console.log(`   Initial MNE balance: ${initialData.data.mneBalance}`);
-    console.log(`   Total MNE wallets: ${initialData.data.wallets?.filter(w => w.currency === 'MNE').length || 0}`);
+    console.log(`   Initial NON balance: ${initialData.data.mneBalance}`);
+    console.log(`   Total NON wallets: ${initialData.data.wallets?.filter(w => w.currency === 'NON').length || 0}`);
 
     console.log('\n2. 🔄 Testing cache bypass parameter...');
     const bypassData = await axios.get(`${API_BASE}/user/${testTelegramId}/data?bypassCache=true`);
-    console.log(`   Bypass cache MNE balance: ${bypassData.data.mneBalance}`);
+    console.log(`   Bypass cache NON balance: ${bypassData.data.mneBalance}`);
 
     console.log('\n3. 💰 Testing admin balance update...');
     const balanceUpdateResponse = await axios.post(
@@ -49,7 +49,7 @@ async function testBalanceSync100Percent() {
 
     console.log('\n5. 🔍 Verifying balance update with cache bypass...');
     const updatedData = await axios.get(`${API_BASE}/user/${testTelegramId}/data?bypassCache=true`);
-    console.log(`   Updated MNE balance: ${updatedData.data.mneBalance}`);
+    console.log(`   Updated NON balance: ${updatedData.data.mneBalance}`);
 
     const expectedBalance = initialData.data.mneBalance + 1.5;
     const actualBalance = updatedData.data.mneBalance;

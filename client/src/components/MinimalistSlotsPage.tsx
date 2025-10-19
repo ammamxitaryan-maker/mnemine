@@ -184,7 +184,7 @@ export const MinimalistSlotsPage = () => {
                 {slotsData.reduce((sum, slot) => sum + slot.principal, 0).toFixed(2)}
               </div>
               <div className="text-sm text-muted-foreground">
-                {t('totalInvested')} MNE
+                {t('totalInvested')} NON
               </div>
             </div>
             <div className="minimal-card p-4 text-center hover:shadow-md transition-all duration-200 animate-in fade-in-0 slide-in-from-left-4 delay-300">
@@ -192,7 +192,7 @@ export const MinimalistSlotsPage = () => {
                 {slotsData.length > 0 ? (slotsData.reduce((sum, slot) => sum + slot.principal, 0) * 0.3).toFixed(2) : '0.00'}
               </div>
               <div className="text-sm text-muted-foreground">
-                {t('totalEarnings')} MNE
+                {t('totalEarnings')} NON
               </div>
             </div>
           </div>
@@ -220,7 +220,7 @@ export const MinimalistSlotsPage = () => {
             <div className="text-left sm:text-right">
               <div className="text-sm text-muted-foreground">{t('available')}</div>
               <div className="text-lg font-semibold text-primary">
-                {currentBalance.toFixed(2)} MNE
+                {currentBalance.toFixed(2)} NON
               </div>
             </div>
           </div>
@@ -229,7 +229,7 @@ export const MinimalistSlotsPage = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <Input
                 type="number"
-                placeholder={t('amountMNE')}
+                placeholder={t('amountNON')}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="flex-1 h-12 text-lg"
@@ -303,7 +303,7 @@ export const MinimalistSlotsPage = () => {
                   {activeSlots.reduce((sum, slot) => {
                     const slotEarnings = calculateSlotEarnings(slot);
                     return sum + slotEarnings.totalReturn;
-                  }, 0).toFixed(6)} MNE
+                  }, 0).toFixed(6)} NON
                 </div>
               </div>
             </div>
@@ -340,16 +340,16 @@ export const MinimalistSlotsPage = () => {
                       <div>
                         <h3 className="text-lg font-semibold text-foreground">{t('slotNumber')}{slot.id.slice(-4)}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {slot.principal.toFixed(2)} MNE {t('invested')}
+                          {slot.principal.toFixed(2)} NON {t('invested')}
                         </p>
                       </div>
                     </div>
                     <div className="text-left sm:text-right">
                       <div className="text-lg sm:text-xl font-bold text-primary animate-pulse">
-                        {slotEarnings.totalReturn.toFixed(6)} MNE
+                        {slotEarnings.totalReturn.toFixed(6)} NON
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        → {expectedReturn.toFixed(2)} MNE {t('target')}
+                        → {expectedReturn.toFixed(2)} NON {t('target')}
                       </div>
                     </div>
                   </div>
@@ -384,7 +384,7 @@ export const MinimalistSlotsPage = () => {
                   {/* Final Amount Info */}
                   <div className="text-center py-2 bg-green-500/5 rounded-lg border border-green-500/20">
                     <span className="text-sm text-green-500 font-medium">
-                      {t('willReceive')} {expectedReturn.toFixed(2)} MNE {t('afterCompletion')}
+                      {t('willReceive')} {expectedReturn.toFixed(2)} NON {t('afterCompletion')}
                     </span>
                   </div>
                 </div>
@@ -417,7 +417,7 @@ export const MinimalistSlotsPage = () => {
                     <div>
                       <h3 className="font-semibold text-foreground">{t('slotNumber')}{slot.id.slice(-4)}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {slot.principal.toFixed(2)} MNE {t('invested')}
+                        {slot.principal.toFixed(2)} NON {t('invested')}
                       </p>
                     </div>
                   </div>

@@ -7,7 +7,7 @@
 - **Инвестировать в майнинг-слоты** с фиксированной доходностью 30% в неделю
 - **Участвовать в лотереях** с ежедневными розыгрышами и крупными джекпотами
 - **Строить реферальные сети** с многоуровневой структурой комиссий
-- **Обменивать валюты** между USD и MNE токенами
+- **Обменивать валюты** между USD и NON токенами
 - **Выполнять задачи** для получения дополнительных наград
 - **Получать административный доступ** для управления платформой
 
@@ -174,7 +174,7 @@ const earnings = slot.principal * slot.effectiveWeeklyRate *
 
 #### **Двойная валюта:**
 - **USD**: Внутренняя валюта приложения
-- **MNE**: Внешняя валюта для вывода
+- **NON**: Внешняя валюта для вывода
 
 #### **Логика курса обмена:**
 1. Базовый курс устанавливается админом
@@ -183,12 +183,12 @@ const earnings = slot.principal * slot.effectiveWeeklyRate *
 
 #### **API конвертации:**
 ```typescript
-// USD → MNE
-POST /api/user/:telegramId/swap/USD-to-MNE
+// USD → NON
+POST /api/user/:telegramId/swap/USD-to-NON
 { "amount": 10.0 }
 
-// MNE → USD  
-POST /api/user/:telegramId/swap/MNE-to-USD
+// NON → USD  
+POST /api/user/:telegramId/swap/NON-to-USD
 { "amount": 9.5 }
 ```
 
@@ -197,14 +197,14 @@ POST /api/user/:telegramId/swap/MNE-to-USD
 #### **Криптовалютные депозиты:**
 - **USDT (TRC20)**: Основная валюта для пополнения
 - **NOWPayments**: Платежный шлюз для обработки
-- **Автоматическая конвертация**: USD → MNE по текущему курсу
+- **Автоматическая конвертация**: USD → NON по текущему курсу
 
 #### **Процесс пополнения:**
-1. Пользователь указывает сумму в MNE
+1. Пользователь указывает сумму в NON
 2. Система конвертирует в USD по курсу
 3. Создается инвойс в NOWPayments
 4. Пользователь получает USDT адрес для оплаты
-5. После подтверждения платежа MNE зачисляются на баланс
+5. После подтверждения платежа NON зачисляются на баланс
 
 #### **API платежей:**
 ```typescript
@@ -213,7 +213,7 @@ POST /api/payments/usdt/create
 {
   "telegramId": "123456789",
   "mneAmount": 100.0,
-  "description": "MNE Purchase"
+  "description": "NON Purchase"
 }
 
 // Статус платежа
@@ -408,13 +408,13 @@ Response: {
   lastUpdated: string
 }
 
-// Конвертировать USD в MNE
-POST /user/:telegramId/swap/USD-to-MNE
+// Конвертировать USD в NON
+POST /user/:telegramId/swap/USD-to-NON
 Body: { amount: number }
 Response: {
   message: string,
   USDAmount: number,
-  MNEAmount: number,
+  NONAmount: number,
   rate: number
 }
 
@@ -572,7 +572,7 @@ model User {
 model Wallet {
   id        String   @id @default(cuid())
   userId    String
-  currency  String   // 'USD' | 'MNE'
+  currency  String   // 'USD' | 'NON'
   balance   Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

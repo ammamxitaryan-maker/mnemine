@@ -741,7 +741,7 @@ async function seedAdmin() {
           wallets: {
             create: [
               { currency: 'USD', balance: 0 },
-              { currency: 'MNE', balance: 0 }
+              { currency: 'NON', balance: 0 }
             ]
           },
           miningSlots: {

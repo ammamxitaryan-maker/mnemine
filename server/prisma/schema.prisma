@@ -199,7 +199,7 @@ model SwapTransaction {
   userId       String
   exchangeRate Float
   createdAt    DateTime @default(now())
-  MNEAmount    Float
+  NONAmount    Float
   USDAmount    Float
   user         User     @relation(fields: [userId], references: [id])
 
@@ -419,7 +419,7 @@ enum ActivityLogType {
   BALANCE_FROZEN_PENALTY
   LOTTERY_TICKET_PURCHASE
   LOTTERY_WIN
-  SWAP_USD_TO_MNE
+  SWAP_USD_TO_NON
   EXCHANGE_RATE_CHANGE
   ADMIN_LOTTERY_WIN
   LOGIN

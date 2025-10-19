@@ -1,13 +1,12 @@
 ﻿import { Request, Response } from 'express';
-import prisma from '../prisma.js';
 import { NOTIFICATION_TYPES } from '../constants.js';
-import { userSelectWithoutMiningSlots } from '../utils/dbSelects.js';
-import { sendBatchNotifications, getQueueStats, clearNotificationQueue } from '../utils/notificationBatchProcessor.js';
+import prisma from '../prisma.js';
+import { clearNotificationQueue, getQueueStats, sendBatchNotifications } from '../utils/notificationBatchProcessor.js';
 
 // GET /api/user/:telegramId/notifications
 export const getUserNotifications = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
-  
+
   try {
     const user = await prisma.user.findUnique({
       where: { telegramId },
@@ -35,7 +34,7 @@ export const getUserNotifications = async (req: Request, res: Response) => {
 export const markNotificationAsRead = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
   const { notificationId } = req.body;
-  
+
   try {
     const user = await prisma.user.findUnique({
       where: { telegramId },
@@ -47,9 +46,9 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
     }
 
     await prisma.notification.update({
-      where: { 
+      where: {
         id: notificationId,
-        userId: user.id 
+        userId: user.id
       },
       data: { isRead: true },
     });
@@ -64,7 +63,7 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
 // POST /api/admin/notifications/send
 export const sendNotification = async (req: Request, res: Response) => {
   const { type, title, message, targetUsers } = req.body;
-  
+
   try {
     let userIds: string[] = [];
 
@@ -82,7 +81,7 @@ export const sendNotification = async (req: Request, res: Response) => {
     // Для массовых уведомлений используем batch-отправку
     if (userIds.length > 100) {
       const batchResult = await sendBatchNotifications(userIds, type, title, message);
-      res.status(200).json({ 
+      res.status(200).json({
         message: `Batch notification queued for ${userIds.length} users`,
         sentCount: batchResult.sentCount,
         queuedCount: batchResult.queuedCount,
@@ -102,9 +101,9 @@ export const sendNotification = async (req: Request, res: Response) => {
         data: notifications,
       });
 
-      res.status(200).json({ 
+      res.status(200).json({
         message: `Notification sent to ${userIds.length} users`,
-        sentCount: userIds.length 
+        sentCount: userIds.length
       });
     }
   } catch (error) {
@@ -139,7 +138,7 @@ export const sendInvestmentSlotCompletedNotification = async (userId: string, sl
         userId,
         type: NOTIFICATION_TYPES.INVESTMENT_COMPLETED,
         title: '✅ Investment Slot Completed!',
-        message: `Your investment slot has completed! Earned ${earnings.toFixed(4)} MNE (30% return). Total: ${totalAmount.toFixed(4)} MNE. Click to claim your profits!`,
+        message: `Your investment slot has completed! Earned ${earnings.toFixed(4)} NON (30% return). Total: ${totalAmount.toFixed(4)} NON. Click to claim your profits!`,
         isRead: false,
         priority: 'high',
         metadata: {
@@ -183,9 +182,9 @@ export const getNotificationQueueStats = async (req: Request, res: Response) => 
     });
   } catch (error) {
     console.error('Error getting queue stats:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to get queue stats' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get queue stats'
     });
   }
 };
@@ -200,9 +199,9 @@ export const clearNotificationQueueEndpoint = async (req: Request, res: Response
     });
   } catch (error) {
     console.error('Error clearing queue:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to clear queue' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear queue'
     });
   }
 };
@@ -212,7 +211,7 @@ export const getNotificationStats = async (req: Request, res: Response) => {
   try {
     const { days = 7 } = req.query;
     const daysAgo = new Date(Date.now() - parseInt(days as string) * 24 * 60 * 60 * 1000);
-    
+
     const stats = await prisma.notification.groupBy({
       by: ['type', 'isRead'],
       where: {
@@ -226,9 +225,9 @@ export const getNotificationStats = async (req: Request, res: Response) => {
     });
 
     const unreadNotifications = await prisma.notification.count({
-      where: { 
+      where: {
         createdAt: { gte: daysAgo },
-        isRead: false 
+        isRead: false
       }
     });
 
@@ -250,9 +249,9 @@ export const getNotificationStats = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error getting notification stats:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to get notification stats' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get notification stats'
     });
   }
 };

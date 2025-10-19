@@ -1,10 +1,9 @@
 ﻿import { Router } from 'express';
-import { 
-  getCurrentExchangeRate, 
-  setExchangeRate, 
+import {
+  getCurrentExchangeRate,
   getExchangeRateHistory,
-  swapMNEoMNE,
-  getUserSwapHistory 
+  getUserSwapHistory,
+  swapNONoNON
 } from '../controllers/exchangeController.js';
 import { authenticateUser, extractUserIdFromParams } from '../middleware-stubs.js';
 
@@ -15,7 +14,7 @@ router.get('/rate', getCurrentExchangeRate);
 router.get('/rate/history', getExchangeRateHistory);
 
 // User routes - with authentication
-router.post('/:telegramId/swap', authenticateUser, extractUserIdFromParams, swapMNEoMNE);
+router.post('/:telegramId/swap', authenticateUser, extractUserIdFromParams, swapNONoNON);
 router.get('/:telegramId/swap/history', authenticateUser, extractUserIdFromParams, getUserSwapHistory);
 
 // Admin routes (will be protected by admin middleware)

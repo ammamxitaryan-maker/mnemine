@@ -11,26 +11,26 @@ async function testBalanceSync() {
 
     console.log('1. Fetching initial user data...');
     const initialData = await axios.get(`${API_BASE}/user/${testTelegramId}/data`);
-    console.log(`   Initial MNE balance: ${initialData.data.mneBalance}`);
+    console.log(`   Initial NON balance: ${initialData.data.mneBalance}`);
 
     console.log('\n2. Testing cache bypass parameter...');
     const bypassData = await axios.get(`${API_BASE}/user/${testTelegramId}/data?bypassCache=true`);
-    console.log(`   Bypass cache MNE balance: ${bypassData.data.mneBalance}`);
+    console.log(`   Bypass cache NON balance: ${bypassData.data.mneBalance}`);
 
     console.log('\n3. Checking wallet information...');
     console.log(`   Total wallets: ${initialData.data.wallets?.length || 0}`);
     if (initialData.data.wallets) {
-      const mneWallets = initialData.data.wallets.filter(w => w.currency === 'MNE');
-      console.log(`   MNE wallets: ${mneWallets.length}`);
+      const mneWallets = initialData.data.wallets.filter(w => w.currency === 'NON');
+      console.log(`   NON wallets: ${mneWallets.length}`);
       mneWallets.forEach((wallet, index) => {
-        console.log(`     Wallet ${index + 1}: ${wallet.balance} MNE`);
+        console.log(`     Wallet ${index + 1}: ${wallet.balance} NON`);
       });
     }
 
     console.log('\n✅ Balance sync test completed!');
     console.log('\n📝 To test admin balance updates:');
     console.log('   1. Go to admin panel');
-    console.log('   2. Add MNE to user balance');
+    console.log('   2. Add NON to user balance');
     console.log('   3. Check if balance updates in user interface');
     console.log('   4. Check server logs for cache invalidation messages');
 

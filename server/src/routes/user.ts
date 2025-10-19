@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { getUserData, getUserStats, getUserActivity } from '../controllers/dataController.js';
-import { depositFunds, withdrawFunds } from '../controllers/walletController.js';
-import { getUserSlots, buyNewSlot, extendSlot, upgradeSlot, getRealTimeIncome, getUserAccruedEarnings, claimEarnings, createInvestmentSlot, getUserInvestmentSlots, claimCompletedSlot } from '../controllers/slotController.js'; // Import new functions
-import { getReferralData, getReferralList, getReferralStreakBonusStatus, claimReferralStreakBonus, getReferralStats } from '../controllers/referralController.js'; // Import new functions
+import { claimAchievementReward, getAchievementsStatus } from '../controllers/achievementController.js';
+import { claimDailyBonus, claimDividends, claimInvestmentGrowthBonus, claimLeaderboardBonus, getBonusesSummary, getDailyBonusStatus, getDividendsStatus } from '../controllers/bonusController.js'; // Import new dividend functions
+import { getUserActivity, getUserData, getUserStats } from '../controllers/dataController.js';
+import { claimReferralStreakBonus, getReferralData, getReferralList, getReferralStats, getReferralStreakBonusStatus } from '../controllers/referralController.js'; // Import new functions
+import { buyNewSlot, claimCompletedSlot, claimEarnings, createInvestmentSlot, extendSlot, getRealTimeIncome, getUserAccruedEarnings, getUserInvestmentSlots, getUserSlots, upgradeSlot } from '../controllers/slotController.js'; // Import new functions
 import { claimTaskReward } from '../controllers/taskController.js';
-import { getDailyBonusStatus, claimDailyBonus, getDividendsStatus, claimDividends, getBonusesSummary, claimLeaderboardBonus, claimInvestmentGrowthBonus } from '../controllers/bonusController.js'; // Import new dividend functions
-import { getAchievementsStatus, claimAchievementReward } from '../controllers/achievementController.js';
+import { depositFunds, withdrawFunds } from '../controllers/walletController.js';
 import { authenticateUser, extractUserIdFromParams } from '../middleware-stubs.js';
 
 const router = Router();
@@ -18,7 +18,7 @@ router.get('/:telegramId/activity', authenticateUser, extractUserIdFromParams, g
 // Wallet routes - with authentication
 router.post('/:telegramId/deposit', authenticateUser, extractUserIdFromParams, depositFunds);
 router.post('/:telegramId/withdraw', authenticateUser, extractUserIdFromParams, withdrawFunds);
-// Claim route removed - earnings are now automatically transferred to MNE balance after 7 days
+// Claim route removed - earnings are now automatically transferred to NON balance after 7 days
 
 // Slot & Booster routes - with authentication
 router.get('/:telegramId/slots', authenticateUser, extractUserIdFromParams, getUserSlots);

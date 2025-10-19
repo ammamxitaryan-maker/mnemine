@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Shuffle, Ticket } from 'lucide-react';
-import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
-import { getErrorMessage } from '@/types/errors';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { api } from '@/lib/api';
 import { LOTTERY_TICKET_COST } from '@/shared/constants';
+import { getErrorMessage } from '@/types/errors';
+import { dismissToast, showError, showLoading, showSuccess } from '@/utils/toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2, Shuffle, Ticket } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface BuyTicketCardProps {
   telegramId: string; // Add telegramId as a prop
@@ -56,8 +56,8 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       prev.includes(num)
         ? prev.filter(n => n !== num)
         : prev.length < numbersToPick
-        ? [...prev, num]
-        : prev
+          ? [...prev, num]
+          : prev
     );
   };
 
@@ -74,7 +74,7 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
       showError(t('lottery.userNotAuthenticated'));
       return;
     }
-    
+
     if (selectedNumbers.length !== numbersToPick) {
       showError(t('lottery.selectExactly', { count: numbersToPick }));
       return;
@@ -98,7 +98,7 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
           {t('lottery.buyTicket')}
         </CardTitle>
         <CardDescription className="text-gray-400">
-          {t('lottery.pickNumbers', { count: numbersToPick })} • {t('lottery.cost')} {LOTTERY_TICKET_COST.toFixed(0)} MNE
+          {t('lottery.pickNumbers', { count: numbersToPick })} • {t('lottery.cost')} {LOTTERY_TICKET_COST.toFixed(0)} NON
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -126,18 +126,17 @@ export const BuyTicketCard = ({ telegramId }: BuyTicketCardProps) => { // Accept
               key={num}
               variant={selectedNumbers.includes(num) ? 'default' : 'secondary'}
               size="icon"
-              className={`w-9 h-9 rounded-full text-sm font-bold transition-all duration-200 ${
-                selectedNumbers.includes(num) 
-                  ? 'bg-accent text-white shadow-lg scale-110' 
+              className={`w-9 h-9 rounded-full text-sm font-bold transition-all duration-200 ${selectedNumbers.includes(num)
+                  ? 'bg-accent text-white shadow-lg scale-110'
                   : 'bg-gray-600 hover:bg-gray-500 text-white border-2 border-gray-500 hover:border-gray-400 hover:scale-105'
-              }`}
+                }`}
               onClick={() => handleNumberClick(num)}
             >
               {num}
             </Button>
           ))}
         </div>
-        
+
         {/* Quick pick button */}
         <div className="flex justify-center mb-4">
           <Button variant="ghost" onClick={handleQuickPick} className="text-muted-foreground hover:text-foreground">

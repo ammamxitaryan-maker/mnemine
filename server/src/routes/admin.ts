@@ -56,12 +56,12 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       });
     }
 
-    // Находим пользователя и его кошелек MNE
+    // Находим пользователя и его кошелек NON
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
         wallets: {
-          where: { currency: 'MNE' }
+          where: { currency: 'NON' }
         }
       }
     });
@@ -73,9 +73,9 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       });
     }
 
-    // Получаем текущий баланс MNE
-    const mneWallet = user.wallets.find(w => w.currency === 'MNE');
-    const currentBalance = mneWallet ? mneWallet.balance : 0;
+    // Получаем текущий баланс NON
+    const nonWallet = user.wallets.find(w => w.currency === 'NON');
+    const currentBalance = nonWallet ? nonWallet.balance : 0;
     const changeAmount = parseFloat(amount);
     let newBalance = currentBalance;
 
@@ -85,8 +85,8 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       currentBalance,
       changeAmount,
       action,
-      mneWalletId: mneWallet?.id,
-      mneWalletExists: !!mneWallet
+      nonWalletId: nonWallet?.id,
+      nonWalletExists: !!nonWallet
     });
 
     // Вычисляем новый баланс
@@ -123,10 +123,10 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
         data: { adminBalance: newAdminBalance }
       });
 
-      // Ensure MNE wallet exists
-      if (!mneWallet) {
-        console.log(`[ADMIN] Creating new MNE wallet for user: ${userId}`);
-        await getOrCreateWallet(userId, 'MNE');
+      // Ensure NON wallet exists
+      if (!nonWallet) {
+        console.log(`[ADMIN] Creating new NON wallet for user: ${userId}`);
+        await getOrCreateWallet(userId, 'NON');
       }
 
       // Создаем запись в логе активности в той же транзакции
@@ -135,7 +135,7 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
           userId: userId,
           type: 'ADMIN_ACTION',
           amount: Math.abs(newAdminBalance - currentAdminBalance),
-          description: `Admin balance adjustment: ${action} ${changeAmount} MNE`
+          description: `Admin balance adjustment: ${action} ${changeAmount} NON`
         }
       });
 
@@ -147,7 +147,7 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       where: { id: userId },
       include: {
         wallets: {
-          where: { currency: 'MNE' },
+          where: { currency: 'NON' },
           select: { balance: true, currency: true }
         }
       }
@@ -913,7 +913,7 @@ router.get('/users', isAdmin, async (req, res) => {
       where: whereClause,
       include: {
         wallets: {
-          where: { currency: 'MNE' },
+          where: { currency: 'NON' },
           select: { balance: true, currency: true }
         },
         miningSlots: {
@@ -978,10 +978,10 @@ router.get('/users', isAdmin, async (req, res) => {
         isSuspicious: user.isSuspicious,
         isOnline: isOnline,
         balance: user.wallets
-          .filter(w => w.currency === 'MNE')
+          .filter(w => w.currency === 'NON')
           .reduce((sum, w) => sum + w.balance, 0),
-        mneBalance: user.wallets
-          .filter(w => w.currency === 'MNE')
+        nonBalance: user.wallets
+          .filter(w => w.currency === 'NON')
           .reduce((sum, w) => sum + w.balance, 0),
         usdBalance: user.wallets
           .filter(w => w.currency === 'USD')

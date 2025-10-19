@@ -12,7 +12,7 @@ const config = {
   backendUrl: process.env.BACKEND_URL || 'http://localhost:10112',
   telegramId: '6760298907', // Admin test user
   testAmount: 10, // $10 USD test
-  mneAmount: 100, // 100 MNE test
+  mneAmount: 100, // 100 NON test
   nowpaymentsApiKey: process.env.NOWPAYMENTS_API_KEY,
   nowpaymentsIpnSecret: process.env.NOWPAYMENTS_IPN_SECRET,
   sandboxMode: process.env.NOWPAYMENTS_SANDBOX_MODE === 'true'
@@ -115,7 +115,7 @@ async function testCreateUSDTPayment() {
   const paymentData = {
     telegramId: config.telegramId,
     mneAmount: config.mneAmount,
-    description: `Test payment: ${config.mneAmount} MNE`
+    description: `Test payment: ${config.mneAmount} NON`
   };
 
   const response = await makeRequest(`${config.backendUrl}/api/payments/usdt/create`, {
@@ -182,7 +182,7 @@ async function testWebhookSimulation() {
     price_currency: 'usd',
     pay_amount: global.testPaymentData.usdtAmount,
     pay_currency: 'usdttrc20',
-    order_description: `MNE Purchase: ${config.mneAmount} MNE`,
+    order_description: `NON Purchase: ${config.mneAmount} NON`,
     purchase_id: 'test_purchase_123',
     outcome_amount: global.testPaymentData.usdtAmount,
     outcome_currency: 'usd',
@@ -268,13 +268,13 @@ async function testDirectDeposit() {
   return passed;
 }
 
-// Test 8: Test Direct Deposit Function (MNE)
-async function testDirectDepositMNE() {
-  console.log('\n🪙 Testing Direct Deposit Function (MNE)...');
+// Test 8: Test Direct Deposit Function (NON)
+async function testDirectDepositNON() {
+  console.log('\n🪙 Testing Direct Deposit Function (NON)...');
 
   const depositData = {
     amount: config.mneAmount,
-    currency: 'MNE'
+    currency: 'NON'
   };
 
   const response = await makeRequest(`${config.backendUrl}/api/user/${config.telegramId}/deposit`, {
@@ -283,8 +283,8 @@ async function testDirectDepositMNE() {
   });
 
   const passed = response.ok && response.data.message === 'Deposit successful';
-  logTest('Direct MNE Deposit', passed,
-    passed ? 'MNE deposit processed successfully' : response.data.error || 'Unknown error');
+  logTest('Direct NON Deposit', passed,
+    passed ? 'NON deposit processed successfully' : response.data.error || 'Unknown error');
 
   return passed;
 }
@@ -334,7 +334,7 @@ async function runAllTests() {
     await testWebhookSimulation();
     await testPaymentHistory();
     await testDirectDeposit();
-    await testDirectDepositMNE();
+    await testDirectDepositNON();
     await testErrorScenarios();
 
     // Print summary

@@ -35,8 +35,8 @@ export const depositFunds = async (req: Request, res: Response) => {
 
     let usdAmount = amount;
 
-    // If depositing MNE, convert to USD using current exchange rate
-    if (currency === 'MNE') {
+    // If depositing NON, convert to USD using current exchange rate
+    if (currency === 'NON') {
       const exchangeRate = await prisma.exchangeRate.findFirst({
         where: { isActive: true },
         orderBy: { createdAt: 'desc' }
@@ -46,7 +46,7 @@ export const depositFunds = async (req: Request, res: Response) => {
         return res.status(400).json({ error: 'Exchange rate not available' });
       }
 
-      // Convert MNE to USD: MNE amount * exchange rate = USD amount
+      // Convert NON to USD: NON amount * exchange rate = USD amount
       usdAmount = amount * exchangeRate.rate;
     }
 
@@ -75,8 +75,8 @@ export const depositFunds = async (req: Request, res: Response) => {
           userId: depositor.id,
           type: ActivityLogType.DEPOSIT,
           amount: netDeposit,
-          description: currency === 'MNE'
-            ? `Deposited ${amount.toFixed(6)} MNE (${usdAmount.toFixed(2)} USD, Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`
+          description: currency === 'NON'
+            ? `Deposited ${amount.toFixed(6)} NON (${usdAmount.toFixed(2)} USD, Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`
             : `Deposited ${amount.toFixed(2)} USD (Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`,
           ipAddress: ipAddress,
         },
@@ -164,7 +164,7 @@ export const withdrawFunds = async (req: Request, res: Response) => {
   // Проверяем, разрешен ли прямой вывод USD
   if (DIRECT_USD_WITHDRAWAL_DISABLED) {
     return res.status(400).json({
-      error: 'Direct USD withdrawal is disabled. Please convert to MNE first using the swap function.'
+      error: 'Direct USD withdrawal is disabled. Please convert to NON first using the swap function.'
     });
   }
 

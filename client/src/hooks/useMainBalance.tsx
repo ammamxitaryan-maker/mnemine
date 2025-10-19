@@ -15,10 +15,10 @@ interface MainBalanceData {
 export const useMainBalance = (telegramId: string | undefined) => {
   const { data: userData } = useUserData(telegramId);
   const { data: slotsData } = useSlotsData(telegramId);
-  const { convertMNEToUSD } = useCachedExchangeRate(telegramId || '');
+  const { convertNONToUSD } = useCachedExchangeRate(telegramId || '');
 
   const balanceData = useQuery<MainBalanceData>({
-    queryKey: ['mainBalance', telegramId, userData?.mneBalance, slotsData],
+    queryKey: ['mainBalance', telegramId, userData?.nonBalance, slotsData],
     queryFn: () => {
       if (!userData || !slotsData) {
         return {
@@ -31,7 +31,7 @@ export const useMainBalance = (telegramId: string | undefined) => {
         };
       }
 
-      const totalBalance = userData.mneBalance || 0;
+      const totalBalance = userData.nonBalance || 0;
 
       // Calculate total invested in active slots
       const activeSlots = slotsData.filter(slot =>
@@ -74,9 +74,9 @@ export const useMainBalance = (telegramId: string | undefined) => {
     staleTime: 15000, // Consider data stale after 15 seconds
   });
 
-  const usdEquivalent = convertMNEToUSD(balanceData.data?.availableBalance || 0);
-  const totalUsdEquivalent = convertMNEToUSD(balanceData.data?.totalBalance || 0);
-  const earningsUsd = convertMNEToUSD(balanceData.data?.totalEarnings || 0);
+  const usdEquivalent = convertNONToUSD(balanceData.data?.availableBalance || 0);
+  const totalUsdEquivalent = convertNONToUSD(balanceData.data?.totalBalance || 0);
+  const earningsUsd = convertNONToUSD(balanceData.data?.totalEarnings || 0);
 
   return {
     ...balanceData.data,

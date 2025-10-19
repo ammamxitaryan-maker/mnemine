@@ -16,7 +16,7 @@ export const createUSDTPayment = async (req: Request, res: Response) => {
 
     if (!validateAmount(mneAmount)) {
       return res.status(400).json({
-        error: 'Invalid MNE amount'
+        error: 'Invalid NON amount'
       });
     }
 
@@ -45,7 +45,7 @@ export const createUSDTPayment = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Exchange rate not available' });
     }
 
-    // Convert MNE to USD (USDT amount)
+    // Convert NON to USD (USDT amount)
     const usdtAmount = mneAmount * exchangeRate.rate;
 
     // Generate unique order ID
@@ -58,7 +58,7 @@ export const createUSDTPayment = async (req: Request, res: Response) => {
         userId: user.id,
         amount: usdtAmount,
         currency: 'USDT',
-        description: description || `MNE Purchase: ${mneAmount.toFixed(6)} MNE`,
+        description: description || `NON Purchase: ${mneAmount.toFixed(6)} NON`,
         status: 'PENDING',
         paymentMethod: 'usdt'
       }
@@ -72,7 +72,7 @@ export const createUSDTPayment = async (req: Request, res: Response) => {
       userId: user.id,
       telegramId: user.telegramId,
       returnUrl: `${process.env.FRONTEND_URL}/payment/success?orderId=${orderId}`,
-      description: description || `MNE Purchase: ${mneAmount.toFixed(6)} MNE`
+      description: description || `NON Purchase: ${mneAmount.toFixed(6)} NON`
     };
 
     const paymentResponse = await usdtPaymentService.createPayment(paymentRequest);
@@ -232,8 +232,8 @@ export const getUSDTConfig = async (req: Request, res: Response) => {
       apiKey: process.env.NOWPAYMENTS_API_KEY ? 'Set' : 'Not set',
       ipnSecret: process.env.NOWPAYMENTS_IPN_SECRET ? 'Set' : 'Not set',
       sandboxMode: process.env.NOWPAYMENTS_SANDBOX_MODE === 'true',
-      baseUrl: process.env.NOWPAYMENTS_SANDBOX_MODE === 'true' 
-        ? 'https://api-sandbox.nowpayments.io/v1' 
+      baseUrl: process.env.NOWPAYMENTS_SANDBOX_MODE === 'true'
+        ? 'https://api-sandbox.nowpayments.io/v1'
         : 'https://api.nowpayments.io/v1'
     };
 

@@ -130,7 +130,7 @@ export class AuthService {
             wallets: {
               create: [
                 { currency: 'USD', balance: 0 },
-                { currency: 'MNE', balance: WELCOME_BONUS_AMOUNT } // Give 3 MNE as welcome bonus
+                { currency: 'NON', balance: WELCOME_BONUS_AMOUNT } // Give 3 NON as welcome bonus
               ]
             }
           },
@@ -151,7 +151,7 @@ export class AuthService {
             userId: user.id,
             type: ActivityLogType.WELCOME_BONUS,
             amount: WELCOME_BONUS_AMOUNT,
-            description: `Welcome bonus of ${WELCOME_BONUS_AMOUNT} MNE added to balance`
+            description: `Welcome bonus of ${WELCOME_BONUS_AMOUNT} NON added to balance`
           }
         });
 

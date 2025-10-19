@@ -10,7 +10,7 @@ This document describes the integration of NOWPayments cryptocurrency payment ga
 - **Real-time Processing**: Automatic webhook processing for payment status updates
 - **Secure Verification**: HMAC signature verification for webhook authenticity
 - **Multi-currency Support**: USD pricing with USDT payment processing
-- **Exchange Rate Integration**: Automatic conversion from USD to MNE tokens
+- **Exchange Rate Integration**: Automatic conversion from USD to NON tokens
 
 ## Configuration
 
@@ -45,7 +45,7 @@ Creates a new USDT payment invoice through NOWPayments.
 {
   "telegramId": "123456789",
   "mneAmount": 100.0,
-  "description": "MNE Purchase"
+  "description": "NON Purchase"
 }
 ```
 
@@ -132,7 +132,7 @@ Processes payment status updates from NOWPayments.
   "price_currency": "usd",
   "pay_amount": 100.0,
   "pay_currency": "usdttrc20",
-  "order_description": "MNE Purchase",
+  "order_description": "NON Purchase",
   "purchase_id": "purchase_id",
   "outcome_amount": 100.0,
   "outcome_currency": "usd",

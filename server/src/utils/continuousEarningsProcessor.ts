@@ -1,6 +1,6 @@
+import { ActivityLogType } from '@prisma/client';
 import prisma from '../prisma.js';
 import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
-import { ActivityLogType } from '@prisma/client';
 
 interface SlotEarnings {
   slotId: string;
@@ -79,11 +79,11 @@ export class ContinuousEarningsProcessor {
       // Calculate earnings for each slot
       for (const slot of activeSlots) {
         const timeElapsedMs = currentTime - slot.lastAccruedAt.getTime();
-        
+
         if (timeElapsedMs > 0) {
           const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
           const earnings = earningsPerSecond * (timeElapsedMs / 1000);
-          
+
           slotEarnings.push({
             slotId: slot.id,
             userId: slot.userId,
@@ -115,7 +115,7 @@ export class ContinuousEarningsProcessor {
             await prisma.wallet.updateMany({
               where: {
                 userId: userId,
-                currency: 'MNE'
+                currency: 'NON'
               },
               data: {
                 balance: {
@@ -129,7 +129,7 @@ export class ContinuousEarningsProcessor {
               userId: userId,
               type: ActivityLogType.CLAIM,
               amount: totalEarnings,
-              description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} MNE`
+              description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} NON`
             });
           }
         }
@@ -152,7 +152,7 @@ export class ContinuousEarningsProcessor {
         }
 
         const totalEarnings = slotEarnings.reduce((sum, slot) => sum + slot.earnings, 0);
-        console.log(`[EARNINGS] Processed and persisted earnings for ${slotsToUpdate.length} slots, total: ${totalEarnings.toFixed(6)} MNE`);
+        console.log(`[EARNINGS] Processed and persisted earnings for ${slotsToUpdate.length} slots, total: ${totalEarnings.toFixed(6)} NON`);
       }
 
       // Additional persistence every 5 minutes for safety
@@ -169,7 +169,7 @@ export class ContinuousEarningsProcessor {
   private async forcePersistAllSlots() {
     try {
       const now = new Date();
-      
+
       // Force update all active slots to current time
       const result = await prisma.miningSlot.updateMany({
         where: {

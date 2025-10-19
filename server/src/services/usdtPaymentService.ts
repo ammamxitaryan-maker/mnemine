@@ -133,7 +133,7 @@ export class USDTPaymentService {
         price_currency: 'usd',
         pay_currency: 'usdttrc20', // USDT on TRON network
         order_id: request.orderId,
-        order_description: request.description || `MNE Purchase: ${request.amount} USD`,
+        order_description: request.description || `NON Purchase: ${request.amount} USD`,
         ipn_callback_url: `${process.env.BACKEND_URL}/api/payments/usdt/webhook`,
         success_url: request.returnUrl,
         cancel_url: `${process.env.FRONTEND_URL}/payment/cancel?orderId=${request.orderId}`
@@ -291,7 +291,7 @@ export class USDTPaymentService {
             }
           });
 
-          // Get current exchange rate for MNE conversion
+          // Get current exchange rate for NON conversion
           const exchangeRate = await tx.exchangeRate.findFirst({
             where: { isActive: true },
             orderBy: { createdAt: 'desc' }
@@ -301,23 +301,23 @@ export class USDTPaymentService {
             throw new Error('Exchange rate not available');
           }
 
-          // Convert USD amount to MNE using exchange rate
+          // Convert USD amount to NON using exchange rate
           const mneAmount = (webhookData.price_amount || 0) * exchangeRate.rate;
 
-          // Add MNE to user's wallet
-          let mneWallet = payment.user.wallets.find(w => w.currency === 'MNE');
+          // Add NON to user's wallet
+          let mneWallet = payment.user.wallets.find(w => w.currency === 'NON');
 
           if (!mneWallet) {
             mneWallet = await tx.wallet.create({
               data: {
                 userId: payment.userId,
-                currency: 'MNE',
+                currency: 'NON',
                 balance: 0
               }
             });
           }
 
-          // Update MNE balance
+          // Update NON balance
           await tx.wallet.update({
             where: { id: mneWallet.id },
             data: {
@@ -331,8 +331,8 @@ export class USDTPaymentService {
               userId: payment.userId,
               type: 'DEPOSIT',
               amount: mneAmount,
-              currency: 'MNE',
-              description: `USDT Payment: ${webhookData.price_amount || 0} USD converted to ${mneAmount.toFixed(6)} MNE`,
+              currency: 'NON',
+              description: `USDT Payment: ${webhookData.price_amount || 0} USD converted to ${mneAmount.toFixed(6)} NON`,
               status: 'COMPLETED',
               referenceId: payment.id
             }
@@ -351,7 +351,7 @@ export class USDTPaymentService {
           return { mneAmount, exchangeRate };
         });
 
-        console.log(`[NOWPAYMENTS] Successfully processed payment ${webhookData.payment_id}: ${webhookData.price_amount || 0} USD -> ${result.mneAmount.toFixed(6)} MNE`);
+        console.log(`[NOWPAYMENTS] Successfully processed payment ${webhookData.payment_id}: ${webhookData.price_amount || 0} USD -> ${result.mneAmount.toFixed(6)} NON`);
         return true;
 
       } else if (webhookData.payment_status === 'failed' || webhookData.payment_status === 'expired') {

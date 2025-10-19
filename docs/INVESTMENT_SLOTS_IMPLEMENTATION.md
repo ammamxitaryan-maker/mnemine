@@ -169,7 +169,7 @@ GET /api/user/:telegramId/real-time-income // Real-time earnings
 ### **Claiming Process**
 1. User clicks "Claim" button
 2. Server calculates final earnings
-3. Updates user's MNE balance
+3. Updates user's NON balance
 4. Marks slot as inactive
 5. Logs activity
 

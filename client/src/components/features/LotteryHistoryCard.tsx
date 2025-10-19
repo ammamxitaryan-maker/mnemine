@@ -1,10 +1,9 @@
-﻿import { useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
+﻿import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { LotteryTicketCard } from './LotteryTicketCard';
 import { LotteryDrawWithTickets } from '@/hooks/useLotteryHistory';
-import { Award } from 'lucide-react';
+import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
+import { LotteryTicketCard } from './LotteryTicketCard';
 
 interface LotteryHistoryCardProps {
   draw: LotteryDrawWithTickets;
@@ -19,7 +18,7 @@ export const LotteryHistoryCard = ({ draw }: LotteryHistoryCardProps) => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-lg">
           <span>{t('lottery.drawOf', { date: format(new Date(draw.drawDate), 'MMM d, yyyy') })}</span>
-          <span className="text-yellow-400 font-bold">{draw.jackpot.toFixed(0)} MNE</span>
+          <span className="text-yellow-400 font-bold">{draw.jackpot.toFixed(0)} NON</span>
         </CardTitle>
         <CardDescription className="text-gray-400">{t('lottery.winningNumbers')}</CardDescription>
         <div className="flex flex-wrap gap-2 justify-center pt-2">

@@ -12,7 +12,7 @@ export interface WebSocketMessage<T = unknown> {
 }
 
 // WebSocket event types
-export type WebSocketEventType = 
+export type WebSocketEventType =
   | 'USER_CONNECTED'
   | 'USER_DISCONNECTED'
   | 'EARNINGS_UPDATE'
@@ -54,7 +54,7 @@ export interface EarningsUpdateEvent {
     slotId: string;
     earnings: number;
     totalEarnings: number;
-    currency: 'USD' | 'MNE';
+    currency: 'USD' | 'NON';
     timestamp: string;
   };
 }
@@ -64,7 +64,7 @@ export interface BalanceUpdateEvent {
   type: 'BALANCE_UPDATE';
   data: {
     userId: string;
-    currency: 'USD' | 'MNE';
+    currency: 'USD' | 'NON';
     newBalance: number;
     change: number;
     reason: string;
@@ -155,7 +155,7 @@ export interface PongEvent {
 }
 
 // Union type for all WebSocket events
-export type WebSocketEvent = 
+export type WebSocketEvent =
   | UserConnectedEvent
   | UserDisconnectedEvent
   | EarningsUpdateEvent
@@ -180,7 +180,7 @@ export interface WebSocketConnection {
 }
 
 // WebSocket subscription types
-export type SubscriptionType = 
+export type SubscriptionType =
   | 'USER_UPDATES'
   | 'EARNINGS'
   | 'BALANCE'
@@ -270,7 +270,7 @@ export const createEarningsUpdateEvent = (
   slotId: string,
   earnings: number,
   totalEarnings: number,
-  currency: 'USD' | 'MNE'
+  currency: 'USD' | 'NON'
 ): EarningsUpdateEvent => ({
   type: 'EARNINGS_UPDATE',
   data: {
@@ -285,7 +285,7 @@ export const createEarningsUpdateEvent = (
 
 export const createBalanceUpdateEvent = (
   userId: string,
-  currency: 'USD' | 'MNE',
+  currency: 'USD' | 'NON',
   newBalance: number,
   change: number,
   reason: string

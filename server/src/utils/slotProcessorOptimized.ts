@@ -1,6 +1,5 @@
-﻿import prisma from '../prisma.js';
-import { processExpiredSlots } from '../controllers/slotController.js';
-import { Wallet, ActivityLogType } from '@prisma/client';
+﻿import { ActivityLogType, Wallet } from '@prisma/client';
+import prisma from '../prisma.js';
 
 // Конфигурация для оптимизированной обработки
 const PROCESSING_CONFIG = {
@@ -39,7 +38,7 @@ export const processExpiredSlotsOptimized = async (): Promise<ProcessingStats> =
 
   try {
     console.log('🚀 Starting optimized slot processing...');
-    
+
     // Получаем общее количество истекших слотов
     const totalExpiredSlots = await prisma.miningSlot.count({
       where: {
@@ -60,10 +59,10 @@ export const processExpiredSlotsOptimized = async (): Promise<ProcessingStats> =
     await processSlotsInBatches(stats);
 
     stats.processingTimeMs = Date.now() - startTime;
-    
+
     console.log(`✅ Processing completed in ${stats.processingTimeMs}ms`);
     console.log(`📈 Stats: ${stats.processedSlots}/${stats.totalSlots} slots processed, ${stats.failedSlots} failed`);
-    
+
     return stats;
   } catch (error) {
     console.error('❌ Critical error in slot processing:', error);
@@ -80,7 +79,7 @@ const processSlotsInBatches = async (stats: ProcessingStats) => {
   while (Date.now() < maxProcessingTime) {
     // Получаем следующий батч слотов
     const batch = await getNextSlotBatch(offset);
-    
+
     if (batch.length === 0) {
       break; // Больше нет слотов для обработки
     }
@@ -89,7 +88,7 @@ const processSlotsInBatches = async (stats: ProcessingStats) => {
 
     // Обрабатываем батч с повторными попытками
     const batchResult = await processBatchWithRetry(batch);
-    
+
     stats.processedSlots += batchResult.processed;
     stats.failedSlots += batchResult.failed;
     stats.batchesProcessed++;
@@ -139,14 +138,14 @@ const getNextSlotBatch = async (offset: number) => {
 // Обработка батча с повторными попытками
 const processBatchWithRetry = async (slots: any[]) => {
   let lastError: Error | null = null;
-  
+
   for (let attempt = 1; attempt <= PROCESSING_CONFIG.RETRY_ATTEMPTS; attempt++) {
     try {
       return await processSlotBatch(slots);
     } catch (error) {
       lastError = error as Error;
       console.warn(`⚠️ Batch processing attempt ${attempt} failed:`, error instanceof Error ? error.message : String(error));
-      
+
       if (attempt < PROCESSING_CONFIG.RETRY_ATTEMPTS) {
         await new Promise(resolve => setTimeout(resolve, PROCESSING_CONFIG.RETRY_DELAY_MS));
       }
@@ -171,7 +170,7 @@ const processSlotBatch = async (slots: any[]) => {
 
   // Группируем слоты по пользователям для оптимизации транзакций
   const slotsByUser = new Map<string, any[]>();
-  
+
   for (const slot of slots) {
     if (!slotsByUser.has(slot.userId)) {
       slotsByUser.set(slot.userId, []);
@@ -196,10 +195,10 @@ const processSlotBatch = async (slots: any[]) => {
 // Обработка слотов одного пользователя
 const processUserSlots = async (userId: string, slots: any[]) => {
   const now = new Date();
-  const MNEWallet = slots[0].user.wallets.find((w: Wallet) => w.currency === 'MNE');
-  
-  if (!MNEWallet) {
-    throw new Error(`MNE wallet not found for user ${userId}`);
+  const NONWallet = slots[0].user.wallets.find((w: Wallet) => w.currency === 'NON');
+
+  if (!NONWallet) {
+    throw new Error(`NON wallet not found for user ${userId}`);
   }
 
   // Рассчитываем общий доход для всех слотов пользователя
@@ -212,12 +211,12 @@ const processUserSlots = async (userId: string, slots: any[]) => {
     const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
     const weeklyRate = 0.3; // Always 30% for all slots
     const earnings = slot.principal * weeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
-    
+
     totalEarnings += earnings;
-    
+
     slotUpdates.push({
       where: { id: slot.id },
-      data: { 
+      data: {
         isActive: false,
         lastAccruedAt: now
       }
@@ -227,7 +226,7 @@ const processUserSlots = async (userId: string, slots: any[]) => {
       userId: slot.userId,
       type: ActivityLogType.CLAIM,
       amount: earnings,
-      description: `Automatic slot closure - earned ${earnings.toFixed(4)} MNE from ${slot.principal} MNE investment`
+      description: `Automatic slot closure - earned ${earnings.toFixed(4)} NON from ${slot.principal} NON investment`
     });
   }
 
@@ -235,13 +234,13 @@ const processUserSlots = async (userId: string, slots: any[]) => {
   await prisma.$transaction([
     // Обновляем баланс пользователя
     prisma.wallet.update({
-      where: { id: MNEWallet.id },
+      where: { id: NONWallet.id },
       data: { balance: { increment: totalEarnings } }
     }),
-    
+
     // Обновляем все слоты пользователя
     ...slotUpdates.map(update => prisma.miningSlot.update(update)),
-    
+
     // Создаем записи в логе активности
     ...activityLogs.map(log => prisma.activityLog.create({ data: log }))
   ]);
@@ -250,7 +249,7 @@ const processUserSlots = async (userId: string, slots: any[]) => {
   for (const slot of slots) {
     const totalTimeElapsedMs = now.getTime() - slot.startAt.getTime();
     const earnings = slot.principal * slot.effectiveWeeklyRate * (totalTimeElapsedMs / (7 * 24 * 60 * 60 * 1000));
-    
+
     // Асинхронная отправка уведомления
     sendSlotClosedNotificationAsync(userId, slot.id, earnings);
   }
@@ -271,7 +270,7 @@ const sendSlotClosedNotificationAsync = async (userId: string, slotId: string, e
 export const getProcessingMetrics = async () => {
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-  
+
   const metrics = await prisma.activityLog.aggregate({
     where: {
       type: ActivityLogType.CLAIM,
@@ -298,7 +297,7 @@ export const clearUserWalletCache = () => {
 export const getProcessingStats = async () => {
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  
+
   const stats = await prisma.activityLog.groupBy({
     by: ['type'],
     where: {

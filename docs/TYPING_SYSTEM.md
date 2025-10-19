@@ -212,16 +212,16 @@ node scripts/replace-any-types.js . replace
 // Строгая валидация входных данных
 export const SlotPurchaseSchema = z.object({
   amount: z.number().positive().max(1000000),
-  currency: z.enum(['USD', 'MNE']),
+  currency: z.enum(['USD', 'NON']),
   type: z.enum(['standard', 'premium', 'vip']).default('standard'),
 }).refine(
   (data) => {
     if (data.currency === 'USD' && data.amount < 1) return false;
-    if (data.currency === 'MNE' && data.amount < 10) return false;
+    if (data.currency === 'NON' && data.amount < 10) return false;
     return true;
   },
   {
-    message: "Minimum purchase amount: $1 USD or 10 MNE",
+    message: "Minimum purchase amount: $1 USD or 10 NON",
     path: ["amount"],
   }
 );

@@ -13,10 +13,10 @@ interface RealTimeEarningsProps {
 export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
   const { t, i18n } = useTranslation();
   const { user } = useTelegramAuth();
-  const { convertMNEToUSD } = useCachedExchangeRate(user?.telegramId || '');
+  const { convertNONToUSD } = useCachedExchangeRate(user?.telegramId || '');
   const { totalEarnings, perSecondRate, isActive } = useEarnings();
 
-  const usdEquivalent = convertMNEToUSD(totalEarnings);
+  const usdEquivalent = convertNONToUSD(totalEarnings);
 
   if (!isActive || perSecondRate === 0) {
     return null;
@@ -31,7 +31,7 @@ export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
         </div>
         <div className="text-right">
           <div className="text-lg font-medium text-yellow-500">
-            +{totalEarnings.toFixed(6)} MNE
+            +{totalEarnings.toFixed(6)} NON
           </div>
           {usdEquivalent > 0 && (
             <div className="text-xs text-muted-foreground">

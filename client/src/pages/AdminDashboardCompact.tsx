@@ -1,15 +1,15 @@
-﻿import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { api } from '@/lib/api';
-import { PageHeader } from '@/components/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+﻿import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Users, DollarSign, TrendingUp, UserX, Gift, ArrowLeftRight, Trash2 } from 'lucide-react';
-import { showSuccess, showError } from '@/utils/toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { api } from '@/lib/api';
+import { showError, showSuccess } from '@/utils/toast';
+import { ArrowLeftRight, DollarSign, Gift, Loader2, Trash2, TrendingUp, Users, UserX } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
   users: { total: number; active: number; frozen: number; newThisWeek: number; };
@@ -98,7 +98,7 @@ const AdminDashboardCompact = () => {
     if (window.prompt(t('admin.userManagement.confirmDelete')) !== 'DELETE') return;
     try {
       const response = await api.delete(`/admin/delete-user/${userId}`, { data: { adminId: 'ADMIN' } });
-      
+
       if (response.data.success) {
         showSuccess(t('admin.userManagement.deleteSuccess'));
         await fetchData(); // Обновляем данные только после успешного удаления
@@ -132,10 +132,10 @@ const AdminDashboardCompact = () => {
     }
 
     try {
-      const response = await api.delete('/admin/delete-all-users', { 
-        data: { reason: reason } 
+      const response = await api.delete('/admin/delete-all-users', {
+        data: { reason: reason }
       });
-      
+
       if (response.data.success) {
         showSuccess('All users have been successfully deleted.');
         await fetchData(); // Обновляем данные только после успешного удаления
@@ -262,9 +262,9 @@ const AdminDashboardCompact = () => {
               <CardHeader className="py-2 px-3">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-sm">{t('admin.userManagement.inactiveUsers')} ({inactiveUsers.length})</CardTitle>
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
+                  <Button
+                    variant="destructive"
+                    size="sm"
                     className="h-7 text-xs"
                     onClick={handleDeleteAllUsers}
                   >
@@ -313,7 +313,7 @@ const AdminDashboardCompact = () => {
               <CardContent className="p-3 space-y-3">
                 <div className="bg-gray-800 p-2 rounded">
                   <div className="text-xs text-gray-400">{t('admin.exchangeRate.current')}</div>
-                  <div className="text-lg font-bold text-gold">1 USD = {currentRate.toFixed(4)} MNE</div>
+                  <div className="text-lg font-bold text-gold">1 USD = {currentRate.toFixed(4)} NON</div>
                 </div>
 
                 <div className="space-y-2">

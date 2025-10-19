@@ -1,14 +1,14 @@
 ﻿"use client";
 
+import ProgressBar from '@/components/common/ProgressBar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { MiningSlot, RealTimeSlotData } from '@/hooks/useSlotsData';
+import { api } from '@/lib/api';
+import { formatExpirationDate, getRemainingTime } from '@/utils/date';
+import { Calendar, CheckCircle, Clock, Coins, Download, TrendingUp, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { DollarSign, Calendar, CheckCircle, XCircle, TrendingUp, Clock, Coins, Download } from 'lucide-react';
-import { MiningSlot, RealTimeSlotData } from '@/hooks/useSlotsData';
-import { formatExpirationDate, getRemainingTime } from '@/utils/date';
-import ProgressBar from '@/components/common/ProgressBar';
-import { api } from '@/lib/api';
 
 interface SlotCardProps {
   slot: MiningSlot;
@@ -26,7 +26,7 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
   // Fetch real-time slot data from server
   const fetchRealTimeSlotData = async () => {
     if (!telegramId) return;
-    
+
     setIsLoadingRealTime(true);
     try {
       const response = await api.get(`/user/${telegramId}/real-time-income`);
@@ -66,13 +66,13 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
   // Claim completed slot
   const handleClaimSlot = async () => {
     if (!telegramId || !slot.id) return;
-    
+
     setIsClaiming(true);
     try {
       const response = await api.post(`/user/${telegramId}/claim/${slot.id}`, {
         telegramId: telegramId
       });
-      
+
       if (response.data.success) {
         // Show success message
         console.log('Slot claimed successfully:', response.data.message);
@@ -88,12 +88,12 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
 
   const isExpired = remaining.totalSeconds <= 0 || isCompleted;
   const statusText = isCompleted ? 'Completed' : (isExpired ? t('slots.status.expired') : t('slots.status.active'));
-  const statusIcon = isCompleted ? <CheckCircle className="w-4 h-4 text-gold mr-1" /> : 
-                     (isExpired ? <XCircle className="w-4 h-4 text-red-500 mr-1" /> : 
-                      <CheckCircle className="w-4 h-4 text-green-500 mr-1" />);
+  const statusIcon = isCompleted ? <CheckCircle className="w-4 h-4 text-gold mr-1" /> :
+    (isExpired ? <XCircle className="w-4 h-4 text-red-500 mr-1" /> :
+      <CheckCircle className="w-4 h-4 text-green-500 mr-1" />);
   const statusColor = isCompleted ? 'text-gold' : (isExpired ? 'text-red-400' : 'text-green-400');
   const profitPercentage = slot.effectiveWeeklyRate * 100;
-  
+
   // Calculate final result (principal + accumulated earnings)
   const finalResult = currentBalance;
 
@@ -112,15 +112,15 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
         </CardHeader>
         <CardContent className="p-0 space-y-2">
           <div className="flex justify-between items-center">
-            <p className="text-2xl font-extrabold text-purple-400">{slot.principal.toFixed(2)} MNE</p>
+            <p className="text-2xl font-extrabold text-purple-400">{slot.principal.toFixed(2)} NON</p>
             <div className="text-right">
               <p className="text-lg font-bold text-emerald-400 animate-pulse">
-                {currentBalance.toFixed(2)} MNE
+                {currentBalance.toFixed(2)} NON
               </p>
               <p className="text-xs text-gray-400">Current Total</p>
             </div>
           </div>
-          
+
           {/* Real-time earnings display */}
           <div className="bg-gradient-to-r from-emerald-900/30 to-emerald-800/20 border border-emerald-700/50 rounded-lg p-3">
             <div className="flex items-center justify-between">
@@ -134,14 +134,14 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
                 )}
               </div>
               <span className={`text-lg font-bold ${realTimeSlotData ? 'text-emerald-400 animate-pulse' : 'text-emerald-300'}`}>
-                +{currentEarnings.toFixed(4)} MNE
+                +{currentEarnings.toFixed(4)} NON
               </span>
             </div>
             {!realTimeSlotData && (
               <p className="text-xs text-gray-400 mt-1">Updates every 3 seconds</p>
             )}
           </div>
-          
+
           {/* Final result display */}
           <div className="bg-gradient-to-r from-gold/20 to-yellow-500/10 border border-gold/50 rounded-lg p-3">
             <div className="flex items-center justify-between">
@@ -150,14 +150,14 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
                 <span className="text-sm text-gold">Final Result:</span>
               </div>
               <span className="text-lg font-bold text-gold">
-                {finalResult.toFixed(4)} MNE
+                {finalResult.toFixed(4)} NON
               </span>
             </div>
             <p className="text-xs text-gray-400 mt-1">
               {isCompleted ? 'Ready to claim!' : 'You will receive this amount at the end of the week'}
             </p>
           </div>
-          
+
           <div className="flex items-center text-sm text-gray-300">
             <TrendingUp className="w-4 h-4 mr-1 text-green-400" />
             <span>{t('slots.profit')}: <span className="font-semibold text-green-400">{profitPercentage.toFixed(2)}%</span></span>
@@ -174,7 +174,7 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
             </p>
           </div>
         </CardContent>
-        
+
         {/* Claim button for completed slots */}
         {isCompleted && slot.isActive && (
           <CardFooter className="p-3 pt-0">
@@ -191,7 +191,7 @@ const SlotCard: React.FC<SlotCardProps> = ({ slot, telegramId }) => {
               ) : (
                 <>
                   <Download className="w-4 h-4 mr-2" />
-                  Claim {finalResult.toFixed(4)} MNE
+                  Claim {finalResult.toFixed(4)} NON
                 </>
               )}
             </Button>

@@ -40,7 +40,7 @@ export class SlotManagementService {
     const ipAddress = req.ip;
 
     if (!amount || typeof amount !== 'number' || amount < MINIMUM_SLOT_INVESTMENT) {
-      return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} MNE` });
+      return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} NON` });
     }
 
     try {
@@ -53,16 +53,16 @@ export class SlotManagementService {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const MNEWallet = user.wallets.find((w: Wallet) => w.currency === 'MNE');
-      if (!MNEWallet) {
-        return res.status(400).json({ error: 'MNE wallet not found' });
+      const NONWallet = user.wallets.find((w: Wallet) => w.currency === 'NON');
+      if (!NONWallet) {
+        return res.status(400).json({ error: 'NON wallet not found' });
       }
 
       // Validate balance operation to prevent negative balance
-      const balanceValidation = validateBalanceOperation(MNEWallet.balance, -amount);
+      const balanceValidation = validateBalanceOperation(NONWallet.balance, -amount);
       if (balanceValidation.isNegative) {
         return res.status(400).json({
-          error: `Insufficient MNE funds. Available: ${MNEWallet.balance.toFixed(2)} MNE, Required: ${amount.toFixed(2)} MNE`
+          error: `Insufficient NON funds. Available: ${NONWallet.balance.toFixed(2)} NON, Required: ${amount.toFixed(2)} NON`
         });
       }
 
@@ -72,8 +72,8 @@ export class SlotManagementService {
       await prisma.$transaction([
         // Use safe balance adjustment to prevent negative balance
         prisma.wallet.update({
-          where: { id: MNEWallet.id },
-          data: { balance: Math.max(0, MNEWallet.balance - amount) },
+          where: { id: NONWallet.id },
+          data: { balance: Math.max(0, NONWallet.balance - amount) },
         }),
         prisma.miningSlot.create({
           data: {
@@ -93,7 +93,7 @@ export class SlotManagementService {
             userId: user.id,
             type: ActivityLogType.NEW_SLOT_PURCHASE,
             amount: -amount,
-            description: `Invested ${amount.toFixed(2)} MNE in a new slot`,
+            description: `Invested ${amount.toFixed(2)} NON in a new slot`,
             ipAddress: ipAddress,
           },
         }),
@@ -120,7 +120,7 @@ export class SlotManagementService {
         'Expires': '0'
       });
 
-      res.status(201).json({ message: `Slot purchased successfully for ${amount.toFixed(2)} MNE.` });
+      res.status(201).json({ message: `Slot purchased successfully for ${amount.toFixed(2)} NON.` });
     } catch (error) {
       console.error(`Error purchasing slot for user ${telegramId}:`, error);
       res.status(500).json({ error: 'Internal server error' });
@@ -284,7 +284,7 @@ export class SlotManagementService {
     const ipAddress = req.ip;
 
     if (!telegramId || !amount || typeof amount !== 'number' || amount < MINIMUM_SLOT_INVESTMENT) {
-      return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} MNE` });
+      return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} NON` });
     }
 
     try {
@@ -297,16 +297,16 @@ export class SlotManagementService {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const MNEWallet = user.wallets.find((w: Wallet) => w.currency === 'MNE');
-      if (!MNEWallet) {
-        return res.status(400).json({ error: 'MNE wallet not found' });
+      const NONWallet = user.wallets.find((w: Wallet) => w.currency === 'NON');
+      if (!NONWallet) {
+        return res.status(400).json({ error: 'NON wallet not found' });
       }
 
       // Validate balance operation to prevent negative balance
-      const balanceValidation = validateBalanceOperation(MNEWallet.balance, -amount);
+      const balanceValidation = validateBalanceOperation(NONWallet.balance, -amount);
       if (balanceValidation.isNegative) {
         return res.status(400).json({
-          error: `Insufficient MNE funds. Available: ${MNEWallet.balance.toFixed(2)} MNE, Required: ${amount.toFixed(2)} MNE`
+          error: `Insufficient NON funds. Available: ${NONWallet.balance.toFixed(2)} NON, Required: ${amount.toFixed(2)} NON`
         });
       }
 
@@ -316,8 +316,8 @@ export class SlotManagementService {
       await prisma.$transaction([
         // Use safe balance adjustment to prevent negative balance
         prisma.wallet.update({
-          where: { id: MNEWallet.id },
-          data: { balance: Math.max(0, MNEWallet.balance - amount) },
+          where: { id: NONWallet.id },
+          data: { balance: Math.max(0, NONWallet.balance - amount) },
         }),
         prisma.miningSlot.create({
           data: {
@@ -337,7 +337,7 @@ export class SlotManagementService {
             userId: user.id,
             type: ActivityLogType.NEW_SLOT_PURCHASE,
             amount: -amount,
-            description: `Created investment slot: ${amount.toFixed(2)} MNE`,
+            description: `Created investment slot: ${amount.toFixed(2)} NON`,
             ipAddress: ipAddress,
           },
         }),
@@ -365,7 +365,7 @@ export class SlotManagementService {
       });
 
       res.status(201).json({
-        message: `Investment slot created successfully for ${amount.toFixed(2)} MNE`,
+        message: `Investment slot created successfully for ${amount.toFixed(2)} NON`,
         weeklyRate: weeklyRate,
         expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000)
       });

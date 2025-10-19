@@ -47,7 +47,7 @@ export const UserUpdateSchema = z.object({
 });
 
 // Wallet schemas
-export const CurrencySchema = z.enum(['USD', 'MNE']);
+export const CurrencySchema = z.enum(['USD', 'NON']);
 
 export const WalletBalanceSchema = z.object({
   currency: CurrencySchema,
@@ -72,13 +72,13 @@ export const SlotPurchaseSchema = z.object({
     if (data.currency === 'USD' && data.amount < 1) {
       return false;
     }
-    if (data.currency === 'MNE' && data.amount < 10) {
+    if (data.currency === 'NON' && data.amount < 10) {
       return false;
     }
     return true;
   },
   {
-    message: "Minimum purchase amount: $1 USD or 10 MNE",
+    message: "Minimum purchase amount: $1 USD or 10 NON",
     path: ["amount"],
   }
 );
@@ -141,13 +141,13 @@ export const WithdrawalRequestSchema = z.object({
     if (data.currency === 'USD' && data.amount < 10) {
       return false;
     }
-    if (data.currency === 'MNE' && data.amount < 100) {
+    if (data.currency === 'NON' && data.amount < 100) {
       return false;
     }
     return true;
   },
   {
-    message: "Minimum withdrawal amount: $10 USD or 100 MNE",
+    message: "Minimum withdrawal amount: $10 USD or 100 NON",
     path: ["amount"],
   }
 );
@@ -287,65 +287,65 @@ export const Schemas = {
   // Base
   Pagination: PaginationSchema,
   DateRange: DateRangeSchema,
-  
+
   // User
   UserId: UserIdSchema,
   TelegramId: TelegramIdSchema,
   UserUpdate: UserUpdateSchema,
-  
+
   // Wallet
   Currency: CurrencySchema,
   WalletBalance: WalletBalanceSchema,
   WalletUpdate: WalletUpdateSchema,
-  
+
   // Mining Slot
   SlotType: SlotTypeSchema,
   SlotPurchase: SlotPurchaseSchema,
   SlotClaim: SlotClaimSchema,
   SlotExtend: SlotExtendSchema,
-  
+
   // Transaction
   TransactionType: TransactionTypeSchema,
   TransactionStatus: TransactionStatusSchema,
   TransactionFilter: TransactionFilterSchema,
-  
+
   // Withdrawal
   WithdrawalType: WithdrawalTypeSchema,
   WithdrawalRequest: WithdrawalRequestSchema,
   WithdrawalApproval: WithdrawalApprovalSchema,
-  
+
   // Lottery
   LotteryNumber: LotteryNumberSchema,
   LotteryPurchase: LotteryPurchaseSchema,
   LotteryDraw: LotteryDrawSchema,
-  
+
   // Swap
   SwapRequest: SwapRequestSchema,
-  
+
   // Task
   TaskCompletion: TaskCompletionSchema,
-  
+
   // Referral
   ReferralCode: ReferralCodeSchema,
   ReferralStats: ReferralStatsSchema,
-  
+
   // Exchange Rate
   ExchangeRateUpdate: ExchangeRateUpdateSchema,
-  
+
   // Notification
   NotificationCreate: NotificationCreateSchema,
   NotificationUpdate: NotificationUpdateSchema,
-  
+
   // Admin
   AdminUserUpdate: AdminUserUpdateSchema,
   AdminBalanceAdjustment: AdminBalanceAdjustmentSchema,
-  
+
   // Activity Log
   ActivityLogFilter: ActivityLogFilterSchema,
-  
+
   // Search
   Search: SearchSchema,
-  
+
   // System
   HealthCheck: HealthCheckSchema,
   PerformanceMetrics: PerformanceMetricsSchema,

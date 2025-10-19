@@ -1,6 +1,6 @@
 ﻿import { ActivityLogType, Wallet } from '@prisma/client';
 import { Request, Response } from 'express';
-import { EXCHANGE_RATE_VARIATION_MAX, EXCHANGE_RATE_VARIATION_MIN, MINIMUM_CONVERSION_AMOUNT, MNE_CURRENCY } from '../constants.js';
+import { EXCHANGE_RATE_VARIATION_MAX, EXCHANGE_RATE_VARIATION_MIN, MINIMUM_CONVERSION_AMOUNT, NON_CURRENCY } from '../constants.js';
 import prisma from '../prisma.js';
 import { userSelectWithoutMiningSlots } from '../utils/dbSelects.js';
 
@@ -33,8 +33,8 @@ export const getExchangeRate = async (req: Request, res: Response) => {
   }
 };
 
-// POST /api/user/:telegramId/swap/USD-to-MNE
-export const swapMNEoMNE = async (req: Request, res: Response) => {
+// POST /api/user/:telegramId/swap/USD-to-NON
+export const swapNONoNON = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
   const { amount } = req.body;
   const ipAddress = req.ip;
@@ -54,7 +54,7 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
     }
 
     const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-    const MNEWallet = user.wallets.find((w: Wallet) => w.currency === MNE_CURRENCY);
+    const NONWallet = user.wallets.find((w: Wallet) => w.currency === NON_CURRENCY);
 
     if (!USDWallet || USDWallet.balance < amount) {
       return res.status(400).json({ error: 'Insufficient USD balance' });
@@ -72,7 +72,7 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
 
     const variation = Math.random() * (EXCHANGE_RATE_VARIATION_MAX - EXCHANGE_RATE_VARIATION_MIN) + EXCHANGE_RATE_VARIATION_MIN;
     const currentRate = baseRate.rate * (1 + variation);
-    const MNEAmount = amount * currentRate;
+    const NONAmount = amount * currentRate;
 
     await prisma.$transaction(async (tx) => {
       // Обновляем USD баланс
@@ -81,18 +81,18 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
         data: { balance: Math.max(0, USDWallet.balance - amount) },
       });
 
-      // Обновляем или создаем MNE кошелек
-      if (MNEWallet) {
+      // Обновляем или создаем NON кошелек
+      if (NONWallet) {
         await tx.wallet.update({
-          where: { id: MNEWallet.id },
-          data: { balance: { increment: MNEAmount } },
+          where: { id: NONWallet.id },
+          data: { balance: { increment: NONAmount } },
         });
       } else {
         await tx.wallet.create({
           data: {
             userId: user.id,
-            currency: MNE_CURRENCY,
-            balance: MNEAmount,
+            currency: NON_CURRENCY,
+            balance: NONAmount,
           },
         });
       }
@@ -101,34 +101,34 @@ export const swapMNEoMNE = async (req: Request, res: Response) => {
       await tx.activityLog.create({
         data: {
           userId: user.id,
-          type: ActivityLogType.SWAP_USD_TO_MNE,
+          type: ActivityLogType.SWAP_USD_TO_NON,
           amount: -amount,
-          description: `Converted ${amount.toFixed(4)} USD to ${MNEAmount.toFixed(4)} MNE at rate ${currentRate.toFixed(4)}`,
+          description: `Converted ${amount.toFixed(4)} USD to ${NONAmount.toFixed(4)} NON at rate ${currentRate.toFixed(4)}`,
           ipAddress: ipAddress,
         },
       });
     });
 
     res.status(200).json({
-      message: `Successfully converted ${amount.toFixed(4)} USD to ${MNEAmount.toFixed(4)} MNE`,
+      message: `Successfully converted ${amount.toFixed(4)} USD to ${NONAmount.toFixed(4)} NON`,
       USDAmount: -amount,
-      MNEAmount: MNEAmount,
+      NONAmount: NONAmount,
       rate: currentRate,
     });
   } catch (error) {
-    console.error(`Error converting USD to MNE for user ${telegramId}:`, error);
+    console.error(`Error converting USD to NON for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// POST /api/user/:telegramId/swap/MNE-to-USD
-export const swapMNEToUSD = async (req: Request, res: Response) => {
+// POST /api/user/:telegramId/swap/NON-to-USD
+export const swapNONToUSD = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
   const { amount } = req.body;
   const ipAddress = req.ip;
 
   if (!amount || typeof amount !== 'number' || amount < MINIMUM_CONVERSION_AMOUNT) {
-    return res.status(400).json({ error: `Minimum conversion amount is ${MINIMUM_CONVERSION_AMOUNT} MNE` });
+    return res.status(400).json({ error: `Minimum conversion amount is ${MINIMUM_CONVERSION_AMOUNT} NON` });
   }
 
   try {
@@ -149,15 +149,15 @@ export const swapMNEToUSD = async (req: Request, res: Response) => {
 
     if (!userWithSlots || userWithSlots.miningSlots.length === 0) {
       return res.status(400).json({
-        error: 'You must invest in mining slots before converting MNE tokens. This prevents immediate withdrawal of welcome bonus tokens.'
+        error: 'You must invest in mining slots before converting NON tokens. This prevents immediate withdrawal of welcome bonus tokens.'
       });
     }
 
     const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-    const MNEWallet = user.wallets.find((w: Wallet) => w.currency === MNE_CURRENCY);
+    const NONWallet = user.wallets.find((w: Wallet) => w.currency === NON_CURRENCY);
 
-    if (!MNEWallet || MNEWallet.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient MNE balance' });
+    if (!NONWallet || NONWallet.balance < amount) {
+      return res.status(400).json({ error: 'Insufficient NON balance' });
     }
 
     // Получаем текущий курс
@@ -175,10 +175,10 @@ export const swapMNEToUSD = async (req: Request, res: Response) => {
     const USDAmount = amount / currentRate;
 
     await prisma.$transaction(async (tx) => {
-      // Обновляем MNE баланс
+      // Обновляем NON баланс
       await tx.wallet.update({
-        where: { id: MNEWallet.id },
-        data: { balance: Math.max(0, MNEWallet.balance - amount) },
+        where: { id: NONWallet.id },
+        data: { balance: Math.max(0, NONWallet.balance - amount) },
       });
 
       // Обновляем USD кошелек
@@ -191,22 +191,22 @@ export const swapMNEToUSD = async (req: Request, res: Response) => {
       await tx.activityLog.create({
         data: {
           userId: user.id,
-          type: ActivityLogType.SWAP_USD_TO_MNE,
+          type: ActivityLogType.SWAP_USD_TO_NON,
           amount: USDAmount,
-          description: `Converted ${amount.toFixed(4)} MNE to ${USDAmount.toFixed(4)} USD at rate ${currentRate.toFixed(4)}`,
+          description: `Converted ${amount.toFixed(4)} NON to ${USDAmount.toFixed(4)} USD at rate ${currentRate.toFixed(4)}`,
           ipAddress: ipAddress,
         },
       });
     });
 
     res.status(200).json({
-      message: `Successfully converted ${amount.toFixed(4)} MNE to ${USDAmount.toFixed(4)} USD`,
+      message: `Successfully converted ${amount.toFixed(4)} NON to ${USDAmount.toFixed(4)} USD`,
       USDAmount: USDAmount,
-      MNEAmount: -amount,
+      NONAmount: -amount,
       rate: currentRate,
     });
   } catch (error) {
-    console.error(`Error converting MNE to USD for user ${telegramId}:`, error);
+    console.error(`Error converting NON to USD for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -228,7 +228,7 @@ export const getSwapHistory = async (req: Request, res: Response) => {
     const swapHistory = await prisma.activityLog.findMany({
       where: {
         userId: user.id,
-        type: ActivityLogType.SWAP_USD_TO_MNE,
+        type: ActivityLogType.SWAP_USD_TO_NON,
       },
       orderBy: { createdAt: 'desc' },
       take: 50, // Последние 50 транзакций

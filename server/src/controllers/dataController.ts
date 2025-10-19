@@ -56,15 +56,15 @@ export const getUserData = async (req: Request, res: Response) => {
         .filter(w => w.currency === 'USD')
         .reduce((sum, w) => sum + w.balance, 0);
 
-      const mneBalance = user.wallets
-        .filter(w => w.currency === 'MNE')
+      const nonBalance = user.wallets
+        .filter(w => w.currency === 'NON')
         .reduce((sum, w) => sum + w.balance, 0);
 
       const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
       cachedData = {
         balance: currentBalance,
-        mneBalance: mneBalance,
+        nonBalance: nonBalance,
         miningPower: totalMiningPower,
         accruedEarnings: totalEarnings,
         totalInvested: user.totalInvested || 0
@@ -86,21 +86,21 @@ export const getUserData = async (req: Request, res: Response) => {
           .filter(w => w.currency === 'USD')
           .reduce((sum, w) => sum + w.balance, 0);
 
-        // Calculate MNE balance including admin additions
-        const baseMneBalance = user.wallets
-          .filter(w => w.currency === 'MNE')
+        // Calculate NON balance including admin additions
+        const baseNonBalance = user.wallets
+          .filter(w => w.currency === 'NON')
           .reduce((sum, w) => sum + w.balance, 0);
 
         // Add admin balance additions (stored in user.adminBalance)
-        const mneBalance = baseMneBalance + ((user as any).adminBalance || 0);
+        const nonBalance = baseNonBalance + ((user as any).adminBalance || 0);
 
-        console.log(`[DATA] User ${telegramId} balance: MNE=${mneBalance}, USD=${currentBalance}`);
+        console.log(`[DATA] User ${telegramId} balance: NON=${nonBalance}, USD=${currentBalance}`);
 
         const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
         return {
           balance: currentBalance,
-          mneBalance: mneBalance,
+          nonBalance: nonBalance,
           miningPower: totalMiningPower,
           accruedEarnings: totalEarnings,
           totalInvested: user.totalInvested,

@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { dismissToast, showError, showLoading, showSuccess } from '@/utils/toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSlotsData } from './useSlotsData';
 import { useUserData } from './useUserData';
-import { api } from '@/lib/api';
-import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 
 interface SlotControlData {
   totalSlots: number;
@@ -42,19 +42,19 @@ export const useSlotControl = (telegramId: string | undefined) => {
       }
 
       const now = new Date();
-      const activeSlots = slotsData.filter(slot => 
+      const activeSlots = slotsData.filter(slot =>
         slot.isActive && new Date(slot.expiresAt) > now
       );
-      const expiredSlots = slotsData.filter(slot => 
+      const expiredSlots = slotsData.filter(slot =>
         !slot.isActive || new Date(slot.expiresAt) <= now
       );
 
       const totalInvested = activeSlots.reduce((sum, slot) => sum + (slot.principal || 0), 0);
-      
+
       const totalEarnings = activeSlots.reduce((sum, slot) => {
         const lastAccrued = new Date(slot.lastAccruedAt);
         const timeElapsed = (now.getTime() - lastAccrued.getTime()) / 1000;
-        
+
         if (timeElapsed > 0) {
           const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
           const earnings = earningsPerSecond * timeElapsed;
@@ -94,8 +94,8 @@ export const useSlotControl = (telegramId: string | undefined) => {
       if (context?.toastId) {
         dismissToast(context.toastId);
       }
-      showSuccess(`Earnings claimed successfully! +${data.amount?.toFixed(3)} MNE`);
-      
+      showSuccess(`Earnings claimed successfully! +${data.amount?.toFixed(3)} NON`);
+
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['userSlots', telegramId] });
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] });
@@ -124,8 +124,8 @@ export const useSlotControl = (telegramId: string | undefined) => {
       if (context?.toastId) {
         dismissToast(context.toastId);
       }
-      showSuccess(`Slot extended successfully! +${variables.amount.toFixed(3)} MNE`);
-      
+      showSuccess(`Slot extended successfully! +${variables.amount.toFixed(3)} NON`);
+
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['userSlots', telegramId] });
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] });
@@ -154,8 +154,8 @@ export const useSlotControl = (telegramId: string | undefined) => {
       if (context?.toastId) {
         dismissToast(context.toastId);
       }
-      showSuccess(`Slot cancelled successfully! Refunded ${data.refundAmount?.toFixed(3)} MNE`);
-      
+      showSuccess(`Slot cancelled successfully! Refunded ${data.refundAmount?.toFixed(3)} NON`);
+
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['userSlots', telegramId] });
       queryClient.invalidateQueries({ queryKey: ['userData', telegramId] });
@@ -175,17 +175,17 @@ export const useSlotControl = (telegramId: string | undefined) => {
     ...slotControlData.data,
     isLoading: slotControlData.isLoading,
     error: slotControlData.error,
-    
+
     // Actions
     claimEarnings: claimEarningsMutation.mutate,
     extendSlot: extendSlotMutation.mutate,
     cancelSlot: cancelSlotMutation.mutate,
-    
+
     // Mutation states
     isClaiming: claimEarningsMutation.isPending,
     isExtending: extendSlotMutation.isPending,
     isCancelling: cancelSlotMutation.isPending,
-    
+
     // Refetch functions
     refetch: () => {
       refetchSlots();

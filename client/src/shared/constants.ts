@@ -10,7 +10,7 @@ export const MINIMUM_WITHDRAWAL_FIRST_100 = 2.0;
 export const MINIMUM_WITHDRAWAL_REGULAR = 3.0;
 
 // Lottery Constants
-export const LOTTERY_TICKET_COST = 1.0; // 1 MNE per ticket
+export const LOTTERY_TICKET_COST = 1.0; // 1 NON per ticket
 export const LOTTERY_DRAW_INTERVAL_HOURS = 24; // New draw every 24 hours
 export const LOTTERY_JACKPOT_SEED = 700.0; // Starting jackpot
 export const LOTTERY_JACKPOT_CONTRIBUTION_PERCENTAGE = 0.5; // 50% of ticket cost goes to jackpot

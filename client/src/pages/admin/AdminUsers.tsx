@@ -53,7 +53,7 @@ interface User {
   isSuspicious: boolean;
   isOnline: boolean;
   balance: number;
-  mneBalance: number;
+  nonBalance: number;
   usdBalance: number;
   totalInvested: number;
   totalSlotsCount: number;
@@ -154,10 +154,10 @@ const AdminUsers = () => {
           }
           break;
         case 'balance': {
-          const currentBalance = user?.mneBalance || 0;
+          const currentBalance = user?.nonBalance || 0;
           const action = prompt(
             `Balance Management for ${userName}\n\n` +
-            `Current balance: ${currentBalance.toFixed(4)} MNE\n\n` +
+            `Current balance: ${currentBalance.toFixed(4)} NON\n\n` +
             `Choose action:\n` +
             `1. Set new balance\n` +
             `2. Add amount\n` +
@@ -166,7 +166,7 @@ const AdminUsers = () => {
           );
 
           if (action === '1') {
-            const newBalance = prompt(`Enter new balance for ${userName} (current: ${currentBalance.toFixed(4)} MNE):`);
+            const newBalance = prompt(`Enter new balance for ${userName} (current: ${currentBalance.toFixed(4)} NON):`);
             if (newBalance !== null && newBalance.trim() !== '') {
               const amount = parseFloat(newBalance);
               if (!isNaN(amount) && amount >= 0) {
@@ -177,7 +177,7 @@ const AdminUsers = () => {
                   });
 
                   if (response.data.success) {
-                    alert(`✅ Balance set to ${amount.toFixed(4)} MNE for ${userName}\nPrevious balance: ${response.data.data.previousBalance.toFixed(4)} MNE`);
+                    alert(`✅ Balance set to ${amount.toFixed(4)} NON for ${userName}\nPrevious balance: ${response.data.data.previousBalance.toFixed(4)} NON`);
                     await fetchUsers();
                     // Force refresh user data cache
                     window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
@@ -193,7 +193,7 @@ const AdminUsers = () => {
               }
             }
           } else if (action === '2') {
-            const addAmount = prompt(`Enter amount to ADD to ${userName}'s balance (current: ${currentBalance.toFixed(4)} MNE):`);
+            const addAmount = prompt(`Enter amount to ADD to ${userName}'s balance (current: ${currentBalance.toFixed(4)} NON):`);
             if (addAmount !== null && addAmount.trim() !== '') {
               const amount = parseFloat(addAmount);
               if (!isNaN(amount) && amount > 0) {
@@ -204,7 +204,7 @@ const AdminUsers = () => {
                   });
 
                   if (response.data.success) {
-                    alert(`✅ Added ${amount.toFixed(4)} MNE to ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} MNE`);
+                    alert(`✅ Added ${amount.toFixed(4)} NON to ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} NON`);
                     await fetchUsers();
 
                     // Force refresh user data cache with multiple approaches
@@ -238,7 +238,7 @@ const AdminUsers = () => {
               }
             }
           } else if (action === '3') {
-            const subtractAmount = prompt(`Enter amount to SUBTRACT from ${userName}'s balance (current: ${currentBalance.toFixed(4)} MNE):`);
+            const subtractAmount = prompt(`Enter amount to SUBTRACT from ${userName}'s balance (current: ${currentBalance.toFixed(4)} NON):`);
             if (subtractAmount !== null && subtractAmount.trim() !== '') {
               const amount = parseFloat(subtractAmount);
               if (!isNaN(amount) && amount > 0) {
@@ -249,7 +249,7 @@ const AdminUsers = () => {
                   });
 
                   if (response.data.success) {
-                    alert(`✅ Subtracted ${amount.toFixed(4)} MNE from ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} MNE`);
+                    alert(`✅ Subtracted ${amount.toFixed(4)} NON from ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} NON`);
                     await fetchUsers();
                     // Force refresh user data cache
                     window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
@@ -378,7 +378,7 @@ const AdminUsers = () => {
           user.email || '',
           user.role,
           user.isFrozen ? 'Frozen' : user.isSuspicious ? 'Suspicious' : user.isActive ? 'Active' : 'Inactive',
-          user.mneBalance.toFixed(4),
+          user.nonBalance.toFixed(4),
           user.totalInvested.toFixed(2),
           new Date(user.createdAt).toISOString(),
           user.lastSeenAt ? new Date(user.lastSeenAt).toISOString() : '',
@@ -631,7 +631,7 @@ const AdminUsers = () => {
                     <td className="py-3 px-4">
                       <div className="text-sm">
                         <div className="font-mono text-yellow-400">
-                          {user.mneBalance.toFixed(4)} MNE
+                          {user.nonBalance.toFixed(4)} NON
                         </div>
                         <div className="text-xs text-gray-400">
                           {user.totalInvested.toFixed(2)} invested
@@ -793,7 +793,7 @@ const AdminUsers = () => {
                   <div>
                     <div className="text-xs text-gray-400">Balance</div>
                     <div className="font-mono text-yellow-400 text-sm">
-                      {user.mneBalance.toFixed(4)} MNE
+                      {user.nonBalance.toFixed(4)} NON
                     </div>
                     <div className="text-xs text-gray-400">
                       {user.totalInvested.toFixed(2)} invested
