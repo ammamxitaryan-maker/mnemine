@@ -42,3 +42,18 @@ export const useHapticFeedback = () => {
     hapticHeavy
   };
 };
+
+// Hook for button interactions with haptic feedback
+export const useHapticButton = () => {
+  const { hapticLight, hapticSuccess, hapticError } = useHapticFeedback();
+
+  const handlePress = useCallback((onPress?: () => void, type: 'success' | 'error' | 'light' = 'light') => {
+    if (type === 'success') hapticSuccess();
+    else if (type === 'error') hapticError();
+    else hapticLight();
+
+    onPress?.();
+  }, [hapticSuccess, hapticError, hapticLight]);
+
+  return { handlePress };
+};

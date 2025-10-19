@@ -32,8 +32,8 @@ export const useUserData = (telegramId: string | undefined) => {
       return fetchUserData(telegramId!, forceRefresh > 0);
     },
     enabled: !!telegramId,
-    refetchInterval: 30000, // Refetch every 30 seconds (reduced from 60)
-    staleTime: 0, // Always consider data stale to force fresh fetches
+    refetchInterval: 300000, // Refetch every 5 minutes (optimized)
+    staleTime: 120000, // Consider data fresh for 2 minutes
     // onError удален из опций useQuery
   });
 

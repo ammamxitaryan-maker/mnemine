@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 import { useTelegramAuth } from './useTelegramAuth';
 
 export interface Lottery {
@@ -35,7 +35,7 @@ export const useLotteryData = () => {
   const statusQuery = useQuery<Lottery, Error>({
     queryKey: ['lotteryStatus'],
     queryFn: fetchLotteryStatus,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 300000, // Refetch every 5 minutes (optimized)
     retry: 3,
     retryDelay: 1000,
   });

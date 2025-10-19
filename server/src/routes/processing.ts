@@ -1,18 +1,24 @@
 import { Router } from 'express';
-import { getProcessingMetricsController, runManualProcessing, getProcessingStatus, getProcessingQueue } from '../controllers/processingController.js';
+import {
+  getProcessingStats,
+  processAllSlots,
+  processExpiredSlots,
+  processSlotManually
+} from '../controllers/processingController.js';
+import { isAdmin } from '../middleware-stubs.js';
 
 const router = Router();
 
-// GET /api/admin/processing/metrics - Метрики обработки
-router.get('/admin/processing/metrics', getProcessingMetricsController);
+// Process all active mining slots
+router.post('/process-all', isAdmin, processAllSlots);
 
-// POST /api/admin/processing/run-manual - Ручной запуск обработки
-router.post('/admin/processing/run-manual', runManualProcessing);
+// Process expired slots
+router.post('/process-expired', isAdmin, processExpiredSlots);
 
-// GET /api/admin/processing/status - Статус системы обработки
-router.get('/admin/processing/status', getProcessingStatus);
+// Get processing statistics
+router.get('/stats', isAdmin, getProcessingStats);
 
-// GET /api/admin/processing/queue - Очередь обработки
-router.get('/admin/processing/queue', getProcessingQueue);
+// Manually process a specific slot
+router.post('/process-slot/:slotId', isAdmin, processSlotManually);
 
 export default router;

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 interface ReferralStats {
   totalReferralEarnings: number;
@@ -20,6 +20,6 @@ export const useReferralStats = (telegramId: string | undefined) => {
     queryKey: ['referralStats', telegramId],
     queryFn: () => fetchReferralStats(telegramId!),
     enabled: !!telegramId,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 300000, // Refetch every 5 minutes (optimized)
   });
 };

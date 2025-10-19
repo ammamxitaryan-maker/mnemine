@@ -76,8 +76,8 @@ export const useSlotControl = (telegramId: string | undefined) => {
       };
     },
     enabled: !!telegramId && !!slotsData,
-    refetchInterval: 30000, // Refetch every 30 seconds
-    staleTime: 15000,
+    refetchInterval: 240000, // Refetch every 4 minutes (optimized)
+    staleTime: 120000, // Consider data fresh for 2 minutes
   });
 
   // Claim earnings from a slot

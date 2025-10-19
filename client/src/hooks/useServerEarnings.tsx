@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 interface ServerEarningsData {
   totalEarnings: number;
@@ -23,9 +23,9 @@ export const useServerEarnings = (telegramId: string | undefined) => {
     queryKey: ['serverEarnings', telegramId],
     queryFn: () => fetchServerEarnings(telegramId!),
     enabled: !!telegramId,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 180000, // Refetch every 3 minutes (optimized)
     retry: 3,
     retryDelay: 1000,
-    staleTime: 15000, // Consider data stale after 15 seconds
+    staleTime: 60000, // Consider data fresh for 1 minute
   });
 };

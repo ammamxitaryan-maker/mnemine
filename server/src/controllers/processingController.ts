@@ -1,178 +1,279 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma.js';
-import { getProcessingMetrics, getProcessingStats, processExpiredSlotsOptimized } from '../utils/slotProcessorOptimized.js';
+import { LogContext, logger } from '../utils/logger.js';
+import { ResponseHelper } from '../utils/validation.js';
 
-// GET /api/admin/processing/metrics
-export const getProcessingMetricsController = async (req: Request, res: Response) => {
+// Process all active mining slots
+export const processAllSlots = async (req: Request, res: Response) => {
   try {
-    const metrics = await getProcessingMetrics();
-    const stats = await getProcessingStats();
-    
-    res.status(200).json({
-      success: true,
-      data: {
-        lastHour: metrics,
-        lastDay: stats,
-        timestamp: new Date().toISOString()
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching processing metrics:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch processing metrics' 
-    });
-  }
-};
+    logger.business('Processing all active mining slots');
 
-// POST /api/admin/processing/run-manual
-export const runManualProcessing = async (req: Request, res: Response) => {
-  try {
-    console.log('🔄 Manual slot processing triggered by admin');
-    
-    const stats = await processExpiredSlotsOptimized();
-    
-    res.status(200).json({
-      success: true,
-      message: 'Manual processing completed',
-      data: {
-        totalSlots: stats.totalSlots,
-        processedSlots: stats.processedSlots,
-        failedSlots: stats.failedSlots,
-        processingTimeMs: stats.processingTimeMs,
-        batchesProcessed: stats.batchesProcessed,
-        errors: stats.errors
-      }
-    });
-  } catch (error) {
-    console.error('Error in manual processing:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Manual processing failed' 
-    });
-  }
-};
-
-// GET /api/admin/processing/status
-export const getProcessingStatus = async (req: Request, res: Response) => {
-  try {
-    const now = new Date();
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    
-    // Получаем количество активных слотов
-    const activeSlotsCount = await prisma.miningSlot.count({
-      where: { isActive: true }
-    });
-    
-    // Получаем количество истекших слотов
-    const expiredSlotsCount = await prisma.miningSlot.count({
+    const activeSlots = await prisma.miningSlot.findMany({
       where: {
         isActive: true,
-        expiresAt: { lte: now }
-      }
-    });
-    
-    // Получаем количество слотов, истекающих в ближайший час
-    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
-    const expiringSoonCount = await prisma.miningSlot.count({
-      where: {
-        isActive: true,
-        expiresAt: { 
-          gte: now,
-          lte: oneHourFromNow
+        expiresAt: {
+          gt: new Date()
         }
-      }
-    });
-    
-    // Получаем статистику обработки за последний час
-    const recentProcessing = await prisma.activityLog.count({
-      where: {
-        type: 'CLAIM',
-        createdAt: { gte: oneHourAgo },
-        description: { contains: 'Automatic slot closure' }
-      }
-    });
-    
-    res.status(200).json({
-      success: true,
-      data: {
-        activeSlots: activeSlotsCount,
-        expiredSlots: expiredSlotsCount,
-        expiringSoon: expiringSoonCount,
-        processedLastHour: recentProcessing,
-        systemStatus: expiredSlotsCount > 0 ? 'pending' : 'up_to_date',
-        timestamp: now.toISOString()
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching processing status:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch processing status' 
-    });
-  }
-};
-
-// GET /api/admin/processing/queue
-export const getProcessingQueue = async (req: Request, res: Response) => {
-  try {
-    const { limit = 50, offset = 0 } = req.query;
-    
-    const now = new Date();
-    const expiredSlots = await prisma.miningSlot.findMany({
-      where: {
-        isActive: true,
-        expiresAt: { lte: now }
       },
       include: {
         user: {
-          select: {
-            id: true,
-            telegramId: true,
-            username: true,
-            firstName: true
+          include: {
+            wallets: true
           }
         }
-      },
-      take: parseInt(limit as string),
-      skip: parseInt(offset as string),
-      orderBy: { expiresAt: 'asc' }
-    });
-    
-    const totalCount = await prisma.miningSlot.count({
-      where: {
-        isActive: true,
-        expiresAt: { lte: now }
       }
     });
-    
-    res.status(200).json({
-      success: true,
+
+    let processedCount = 0;
+    let totalEarnings = 0;
+
+    for (const slot of activeSlots) {
+      try {
+        const earnings = await processSlot(slot);
+        if (earnings > 0) {
+          processedCount++;
+          totalEarnings += earnings;
+        }
+      } catch (error) {
+        logger.error(LogContext.BUSINESS, `Error processing slot ${slot.id}`, error);
+      }
+    }
+
+    logger.business(`Processed ${processedCount} slots, total earnings: ${totalEarnings}`);
+
+    ResponseHelper.success(res, {
+      processedCount,
+      totalEarnings,
+      activeSlotsCount: activeSlots.length
+    }, `Processed ${processedCount} mining slots`);
+
+  } catch (error) {
+    logger.error(LogContext.BUSINESS, 'Error processing all slots', error);
+    ResponseHelper.internalError(res, 'Failed to process mining slots');
+  }
+};
+
+// Process a single slot
+export const processSlot = async (slot: any): Promise<number> => {
+  const now = new Date();
+  const lastAccrued = slot.lastAccruedAt || slot.startAt;
+  const timeDiff = now.getTime() - lastAccrued.getTime();
+  const hoursElapsed = timeDiff / (1000 * 60 * 60);
+
+  if (hoursElapsed < 1) {
+    return 0; // Minimum 1 hour between processing
+  }
+
+  const weeklyRate = slot.effectiveWeeklyRate || 0.05; // Default 5% weekly
+  const hourlyRate = weeklyRate / (24 * 7); // Convert to hourly rate
+  const earnings = slot.principal * hourlyRate * hoursElapsed;
+
+  if (earnings <= 0) {
+    return 0;
+  }
+
+  // Update slot
+  await prisma.miningSlot.update({
+    where: { id: slot.id },
+    data: {
+      lastAccruedAt: now,
+      accruedEarnings: {
+        increment: earnings
+      }
+    }
+  });
+
+  // Add earnings to user's NON wallet
+  const nonWallet = slot.user.wallets.find((w: any) => w.currency === 'NON');
+  if (nonWallet) {
+    await prisma.wallet.update({
+      where: { id: nonWallet.id },
       data: {
-        slots: expiredSlots.map(slot => ({
-          id: slot.id,
-          userId: slot.userId,
-          user: slot.user,
-          principal: slot.principal,
-          rate: slot.effectiveWeeklyRate,
-          expiresAt: slot.expiresAt,
-          isLocked: slot.isLocked,
-          type: slot.type,
-          hoursOverdue: Math.max(0, (now.getTime() - slot.expiresAt.getTime()) / (1000 * 60 * 60))
-        })),
-        pagination: {
-          total: totalCount,
-          limit: parseInt(limit as string),
-          offset: parseInt(offset as string),
-          hasMore: totalCount > parseInt(offset as string) + parseInt(limit as string)
+        balance: {
+          increment: earnings
         }
       }
     });
-  } catch (error) {
-    console.error('Error fetching processing queue:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch processing queue' 
+  } else {
+    // Create NON wallet if it doesn't exist
+    await prisma.wallet.create({
+      data: {
+        userId: slot.userId,
+        currency: 'NON',
+        balance: earnings
+      }
     });
+  }
+
+  // Create transaction record
+  await prisma.transaction.create({
+    data: {
+      userId: slot.userId,
+      type: 'MINING_EARNINGS',
+      amount: earnings,
+      currency: 'NON',
+      description: `Mining earnings from slot ${slot.id} (Principal: ${slot.principal}, Rate: ${(hourlyRate * 100).toFixed(4)}%/hour, Hours: ${hoursElapsed.toFixed(2)})`,
+      referenceId: slot.id
+    }
+  });
+
+  logger.business(`Processed slot ${slot.id}: +${earnings} NON`, {
+    slotId: slot.id,
+    userId: slot.userId,
+    earnings,
+    principal: slot.principal,
+    hoursElapsed
+  });
+
+  return earnings;
+};
+
+// Process expired slots
+export const processExpiredSlots = async (req: Request, res: Response) => {
+  try {
+    logger.business('Processing expired mining slots');
+
+    const expiredSlots = await prisma.miningSlot.findMany({
+      where: {
+        isActive: true,
+        expiresAt: {
+          lte: new Date()
+        }
+      },
+      include: {
+        user: true
+      }
+    });
+
+    let processedCount = 0;
+
+    for (const slot of expiredSlots) {
+      try {
+        await prisma.miningSlot.update({
+          where: { id: slot.id },
+          data: {
+            isActive: false
+          }
+        });
+
+        processedCount++;
+
+        logger.business(`Deactivated expired slot ${slot.id}`, {
+          slotId: slot.id,
+          userId: slot.userId,
+          expiredAt: slot.expiresAt
+        });
+      } catch (error) {
+        logger.error(LogContext.BUSINESS, `Error processing expired slot ${slot.id}`, error);
+      }
+    }
+
+    ResponseHelper.success(res, {
+      processedCount,
+      expiredSlotsCount: expiredSlots.length
+    }, `Processed ${processedCount} expired slots`);
+
+  } catch (error) {
+    logger.error(LogContext.BUSINESS, 'Error processing expired slots', error);
+    ResponseHelper.internalError(res, 'Failed to process expired slots');
+  }
+};
+
+// Get processing statistics
+export const getProcessingStats = async (req: Request, res: Response) => {
+  try {
+    const stats = await prisma.$transaction(async (tx) => {
+      const activeSlots = await tx.miningSlot.count({
+        where: { isActive: true }
+      });
+
+      const expiredSlots = await tx.miningSlot.count({
+        where: {
+          isActive: true,
+          expiresAt: {
+            lte: new Date()
+          }
+        }
+      });
+
+      const totalEarnings = await tx.transaction.aggregate({
+        where: {
+          type: 'MINING_EARNINGS',
+          currency: 'NON'
+        },
+        _sum: {
+          amount: true
+        }
+      });
+
+      const recentEarnings = await tx.transaction.aggregate({
+        where: {
+          type: 'MINING_EARNINGS',
+          currency: 'NON',
+          createdAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+          }
+        },
+        _sum: {
+          amount: true
+        }
+      });
+
+      return {
+        activeSlots,
+        expiredSlots,
+        totalEarnings: totalEarnings._sum?.amount || 0,
+        recentEarnings: recentEarnings._sum?.amount || 0
+      };
+    });
+
+    ResponseHelper.success(res, stats, 'Processing statistics retrieved');
+
+  } catch (error) {
+    logger.error(LogContext.BUSINESS, 'Error getting processing stats', error);
+    ResponseHelper.internalError(res, 'Failed to get processing statistics');
+  }
+};
+
+// Manual slot processing (admin only)
+export const processSlotManually = async (req: Request, res: Response) => {
+  try {
+    const { slotId } = req.params;
+
+    if (!slotId) {
+      return ResponseHelper.badRequest(res, 'Slot ID is required');
+    }
+
+    const slot = await prisma.miningSlot.findUnique({
+      where: { id: slotId },
+      include: {
+        user: {
+          include: {
+            wallets: true
+          }
+        }
+      }
+    });
+
+    if (!slot) {
+      return ResponseHelper.notFound(res, 'Mining slot');
+    }
+
+    if (!slot.isActive) {
+      return ResponseHelper.badRequest(res, 'Slot is not active');
+    }
+
+    const earnings = await processSlot(slot);
+
+    ResponseHelper.success(res, {
+      slotId: slot.id,
+      earnings,
+      principal: slot.principal,
+      totalEarnings: slot.accruedEarnings + earnings
+    }, `Processed slot manually: +${earnings} NON`);
+
+  } catch (error) {
+    logger.error(LogContext.BUSINESS, 'Error processing slot manually', error);
+    ResponseHelper.internalError(res, 'Failed to process slot manually');
   }
 };

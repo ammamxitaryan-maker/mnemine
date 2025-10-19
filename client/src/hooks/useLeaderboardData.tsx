@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 export interface LeaderboardUser { // Добавлено 'export'
   firstName: string;
@@ -16,6 +16,6 @@ export const useLeaderboardData = () => {
   return useQuery<LeaderboardUser[], Error>({
     queryKey: ['leaderboard'],
     queryFn: fetchLeaderboardData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 300000, // Refetch every 5 minutes (optimized)
   });
 };

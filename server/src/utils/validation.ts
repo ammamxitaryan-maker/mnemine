@@ -30,9 +30,11 @@
 
   // Validate encryption key length if provided
   if (process.env.ENCRYPTION_KEY && process.env.ENCRYPTION_KEY.length !== 32) {
-    console.error('[ENV] ENCRYPTION_KEY value:', process.env.ENCRYPTION_KEY);
     console.error('[ENV] ENCRYPTION_KEY length:', process.env.ENCRYPTION_KEY.length);
     console.warn('[ENV] ENCRYPTION_KEY is not 32 characters, using fallback');
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('ENCRYPTION_KEY must be exactly 32 characters in production');
+    }
     process.env.ENCRYPTION_KEY = 'nonmine-encryption-key-32chars-1234';
   }
 
@@ -51,6 +53,75 @@ export function validateAmount(amount: any): boolean {
     amount >= 0.001 && // Very low minimum
     amount <= 1000000; // Max 1M USD
 }
+
+// Response helper functions
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export class ResponseHelper {
+  static success<T>(res: any, data: T, message?: string, statusCode: number = 200): void {
+    const response: ApiResponse<T> = {
+      success: true,
+      data,
+      message
+    };
+    res.status(statusCode).json(response);
+  }
+
+  static error(res: any, error: string, statusCode: number = 500): void {
+    const response: ApiResponse = {
+      success: false,
+      error
+    };
+    res.status(statusCode).json(response);
+  }
+
+  static notFound(res: any, resource: string = 'Resource'): void {
+    this.error(res, `${resource} not found`, 404);
+  }
+
+  static unauthorized(res: any, message: string = 'Unauthorized'): void {
+    this.error(res, message, 401);
+  }
+
+  static forbidden(res: any, message: string = 'Forbidden'): void {
+    this.error(res, message, 403);
+  }
+
+  static badRequest(res: any, message: string = 'Bad Request'): void {
+    this.error(res, message, 400);
+  }
+
+  static internalError(res: any, message: string = 'Internal Server Error'): void {
+    this.error(res, message, 500);
+  }
+
+  static conflict(res: any, message: string = 'Conflict'): void {
+    this.error(res, message, 409);
+  }
+}
+
+// Async error handler wrapper
+export const asyncHandler = (fn: (...args: any[]) => Promise<any>) => {
+  return (req: any, res: any, next: any) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+
+// Validation helper
+export const validateRequired = (data: any, fields: string[]): string[] => {
+  const missing: string[] = [];
+  fields.forEach(field => {
+    if (!data[field]) {
+      missing.push(field);
+    }
+  });
+  return missing;
+};
 
 export function validateAddress(address: string): boolean {
   // USD TRC20 address validation

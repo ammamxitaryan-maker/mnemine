@@ -70,8 +70,8 @@ export const useMainBalance = (telegramId: string | undefined) => {
       };
     },
     enabled: !!telegramId && !!userData,
-    refetchInterval: 30000, // Refetch every 30 seconds
-    staleTime: 15000, // Consider data stale after 15 seconds
+    refetchInterval: 180000, // Refetch every 3 minutes (optimized)
+    staleTime: 60000, // Consider data fresh for 1 minute
   });
 
   const usdEquivalent = convertNONToUSD(balanceData.data?.availableBalance || 0);

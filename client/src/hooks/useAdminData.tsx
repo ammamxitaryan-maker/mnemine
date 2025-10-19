@@ -103,8 +103,8 @@ export const useAdminDashboardStats = () => {
       }
     },
     enabled: !!user && isAdmin,
-    staleTime: 60000, // 1 минута
-    refetchInterval: 30000, // Обновляем каждые 30 секунд
+    staleTime: 120000, // 2 минуты
+    refetchInterval: 180000, // Обновляем каждые 3 минуты (оптимизировано)
     retry: (failureCount, error) => {
       // Retry up to 3 times for network errors, but not for auth errors
       if (error.message.includes('401') || error.message.includes('403')) {
