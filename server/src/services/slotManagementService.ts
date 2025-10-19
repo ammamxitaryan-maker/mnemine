@@ -39,7 +39,10 @@ export class SlotManagementService {
     const { amount } = req.body;
     const ipAddress = req.ip;
 
+    console.log(`[SLOT_BUY] User ${telegramId} attempting to buy slot for ${amount} NON`);
+
     if (!amount || typeof amount !== 'number' || amount < MINIMUM_SLOT_INVESTMENT) {
+      console.log(`[SLOT_BUY] Validation failed: amount=${amount}, type=${typeof amount}, min=${MINIMUM_SLOT_INVESTMENT}`);
       return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} NON` });
     }
 
@@ -55,12 +58,16 @@ export class SlotManagementService {
 
       const NONWallet = user.wallets.find((w: Wallet) => w.currency === 'NON');
       if (!NONWallet) {
+        console.log(`[SLOT_BUY] NON wallet not found for user ${telegramId}`);
         return res.status(400).json({ error: 'NON wallet not found' });
       }
+
+      console.log(`[SLOT_BUY] User ${telegramId} NON balance: ${NONWallet.balance}, attempting to buy slot for: ${amount}`);
 
       // Validate balance operation to prevent negative balance
       const balanceValidation = validateBalanceOperation(NONWallet.balance, -amount);
       if (balanceValidation.isNegative) {
+        console.log(`[SLOT_BUY] Insufficient funds for user ${telegramId}: Available=${NONWallet.balance}, Required=${amount}`);
         return res.status(400).json({
           error: `Insufficient NON funds. Available: ${NONWallet.balance.toFixed(2)} NON, Required: ${amount.toFixed(2)} NON`
         });

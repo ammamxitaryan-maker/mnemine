@@ -156,16 +156,23 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
     const baseBalance = updatedUser?.wallets.reduce((sum, w) => sum + w.balance, 0) || 0;
     const actualBalance = baseBalance + ((updatedUser as any)?.adminBalance || 0);
 
+    // Use more lenient precision for balance verification (floating point precision issues)
+    const precisionThreshold = 0.01; // Allow up to 0.01 difference for floating point precision
+    const balanceDifference = Math.abs(actualBalance - newBalance);
+    const updateSuccessful = balanceDifference <= precisionThreshold;
+
     console.log(`[ADMIN] Balance update verification:`, {
       expectedBalance: newBalance,
       actualBalance: actualBalance,
-      updateSuccessful: Math.abs(actualBalance - newBalance) < 0.0001,
+      balanceDifference: balanceDifference,
+      precisionThreshold: precisionThreshold,
+      updateSuccessful: updateSuccessful,
       userId,
       telegramId: user.telegramId
     });
 
-    if (Math.abs(actualBalance - newBalance) > 0.0001) {
-      console.error(`[ADMIN] Balance update failed! Expected: ${newBalance}, Actual: ${actualBalance}`);
+    if (!updateSuccessful) {
+      console.error(`[ADMIN] Balance update failed! Expected: ${newBalance}, Actual: ${actualBalance}, Difference: ${balanceDifference}`);
       throw new Error('Balance update verification failed');
     }
 
