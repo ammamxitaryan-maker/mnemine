@@ -29,11 +29,11 @@
   }
 
   // Validate encryption key length if provided
-  if (process.env.ENCRYPTION_KEY && process.env.ENCRYPTION_KEY.length !== 32) {
+  if (process.env.ENCRYPTION_KEY && process.env.ENCRYPTION_KEY.length < 32) {
     console.error('[ENV] ENCRYPTION_KEY length:', process.env.ENCRYPTION_KEY.length);
-    console.warn('[ENV] ENCRYPTION_KEY is not 32 characters, using fallback');
+    console.warn('[ENV] ENCRYPTION_KEY is too short (minimum 32 characters)');
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('ENCRYPTION_KEY must be exactly 32 characters in production');
+      throw new Error('ENCRYPTION_KEY must be at least 32 characters in production');
     }
     process.env.ENCRYPTION_KEY = 'nonmine-encryption-key-32chars-1234';
   }
