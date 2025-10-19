@@ -56,8 +56,8 @@ export const useMainBalance = (telegramId: string | undefined) => {
         return sum;
       }, 0);
 
-      // Available balance = total balance - invested amount
-      // The available balance should never be negative
+      // Available balance = total balance - invested amount + admin additions
+      // Admin additions are always available and not affected by investments
       const availableBalance = Math.max(0, totalBalance - totalInvested);
 
       return {

@@ -27,7 +27,7 @@ export const getUserData = async (req: Request, res: Response) => {
     // Update user's last activity timestamp (non-blocking)
     prisma.user.update({
       where: { telegramId },
-      data: { 
+      data: {
         lastActivityAt: new Date(),
         lastSeenAt: new Date()
       }
@@ -86,9 +86,13 @@ export const getUserData = async (req: Request, res: Response) => {
           .filter(w => w.currency === 'USD')
           .reduce((sum, w) => sum + w.balance, 0);
 
-        const mneBalance = user.wallets
+        // Calculate MNE balance including admin additions
+        const baseMneBalance = user.wallets
           .filter(w => w.currency === 'MNE')
           .reduce((sum, w) => sum + w.balance, 0);
+
+        // Add admin balance additions (stored in user.adminBalance)
+        const mneBalance = baseMneBalance + ((user as any).adminBalance || 0);
 
         console.log(`[DATA] User ${telegramId} balance: MNE=${mneBalance}, USD=${currentBalance}`);
 

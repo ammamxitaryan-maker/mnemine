@@ -44,6 +44,7 @@ model User {
   lastLotteryTicketAt                DateTime?
   totalEarnings                      Float             @default(0)
   totalWithdrawn                     Float             @default(0)
+  adminBalance                       Float             @default(0) // Admin additions to balance
   accountFreezes                     AccountFreeze[]
   activityLogs                       ActivityLog[]
   completedTasks                     CompletedTask[]

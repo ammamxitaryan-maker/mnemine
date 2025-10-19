@@ -16,7 +16,7 @@ import { setExchangeRate } from '../controllers/exchangeController.js';
 import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
 // import { CacheService } from '../services/cacheService.js';
-import { getOrCreateWallet, safeUpdateWalletBalance } from '../utils/balanceUtils.js';
+import { getOrCreateWallet } from '../utils/balanceUtils.js';
 
 const router = Router();
 
@@ -103,15 +103,30 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       });
     }
 
-    // Обновляем или создаем кошелек MNE с безопасным обновлением баланса в транзакции
+    // Обновляем adminBalance пользователя вместо кошелька
     await prisma.$transaction(async (tx) => {
-      if (mneWallet) {
-        console.log(`[ADMIN] Updating existing MNE wallet: ${mneWallet.id}`);
-        await safeUpdateWalletBalance(mneWallet.id, newBalance, 'ADMIN_BALANCE_MANAGEMENT');
-      } else {
+      // Get current admin balance
+      const currentAdminBalance = (user as any).adminBalance || 0;
+      let newAdminBalance = currentAdminBalance;
+
+      if (action === 'set') {
+        newAdminBalance = Math.max(0, changeAmount);
+      } else if (action === 'add') {
+        newAdminBalance = Math.max(0, currentAdminBalance + changeAmount);
+      } else if (action === 'subtract') {
+        newAdminBalance = Math.max(0, currentAdminBalance - changeAmount);
+      }
+
+      // Update user's adminBalance
+      await tx.user.update({
+        where: { id: userId },
+        data: { adminBalance: newAdminBalance }
+      });
+
+      // Ensure MNE wallet exists
+      if (!mneWallet) {
         console.log(`[ADMIN] Creating new MNE wallet for user: ${userId}`);
-        const wallet = await getOrCreateWallet(userId, 'MNE');
-        await safeUpdateWalletBalance(wallet.id, newBalance, 'ADMIN_BALANCE_MANAGEMENT');
+        await getOrCreateWallet(userId, 'MNE');
       }
 
       // Создаем запись в логе активности в той же транзакции
@@ -119,7 +134,7 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
         data: {
           userId: userId,
           type: 'ADMIN_ACTION',
-          amount: Math.abs(newBalance - currentBalance),
+          amount: Math.abs(newAdminBalance - currentAdminBalance),
           description: `Admin balance adjustment: ${action} ${changeAmount} MNE`
         }
       });
@@ -138,7 +153,8 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       }
     });
 
-    const actualBalance = updatedUser?.wallets.reduce((sum, w) => sum + w.balance, 0) || 0;
+    const baseBalance = updatedUser?.wallets.reduce((sum, w) => sum + w.balance, 0) || 0;
+    const actualBalance = baseBalance + ((updatedUser as any)?.adminBalance || 0);
 
     console.log(`[ADMIN] Balance update verification:`, {
       expectedBalance: newBalance,
@@ -176,9 +192,9 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
 
       // Send balance update notification to the specific user
       await webSocketManager.sendToUser(user.telegramId, 'BALANCE_UPDATED', {
-        newBalance: newBalance,
-        previousBalance: currentBalance,
-        changeAmount: newBalance - currentBalance,
+        newBalance: actualBalance,
+        previousBalance: currentBalance + ((user as any).adminBalance || 0),
+        changeAmount: actualBalance - (currentBalance + ((user as any).adminBalance || 0)),
         action: action,
         timestamp: new Date().toISOString()
       });
@@ -202,8 +218,8 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       data: {
         userId: userId,
         telegramId: user.telegramId,
-        previousBalance: currentBalance,
-        newBalance: newBalance,
+        previousBalance: currentBalance + ((user as any).adminBalance || 0),
+        newBalance: actualBalance,
         actualBalance: actualBalance,
         action: action,
         amount: changeAmount,
