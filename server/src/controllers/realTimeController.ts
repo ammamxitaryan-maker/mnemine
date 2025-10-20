@@ -184,7 +184,7 @@ export class RealTimeController {
   // Health check for real-time services
   static async healthCheck(req: Request, res: Response) {
     try {
-      const dbStatus = await prisma.$queryRaw`SELECT 1`;
+      await prisma.$queryRaw`SELECT 1`;
       
       res.json({
         status: 'healthy',

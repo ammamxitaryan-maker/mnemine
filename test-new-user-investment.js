@@ -33,7 +33,7 @@ async function createNewUser() {
     console.log('📊 Данные пользователя:', JSON.stringify(response.data, null, 2));
 
     return { telegramId, userData: response.data };
-  } catch (_error) {
+  } catch (error) {
     console.error('❌ Ошибка создания пользователя:', error.response?.data || error.message);
     throw error;
   }
@@ -76,7 +76,7 @@ async function claimWelcomeTokens(telegramId) {
           }
         });
         console.log('🎉 Приветственный бонус получен!', claimResponse.data);
-      } catch (claimError) {
+      } catch {
         console.log('ℹ️ Приветственный бонус недоступен или уже получен');
       }
     }
@@ -97,7 +97,7 @@ async function claimWelcomeTokens(telegramId) {
 
     console.log('💰 Обновленный баланс:', updatedUserResponse.data.availableBalance);
     return updatedUserResponse.data;
-  } catch (_error) {
+  } catch (error) {
     console.error('❌ Ошибка получения бонусов:', error.response?.data || error.message);
     throw error;
   }
@@ -125,7 +125,7 @@ async function investInSlot(telegramId, amount) {
 
     console.log('✅ Инвестиция успешна!', response.data);
     return response.data;
-  } catch (_error) {
+  } catch (error) {
     console.error('❌ Ошибка инвестирования:', error.response?.data || error.message);
     throw error;
   }
@@ -152,7 +152,7 @@ async function checkBalanceAfterInvestment(telegramId) {
     console.log('💰 Финальный баланс:', response.data.availableBalance);
     console.log('📊 Полные данные пользователя:', JSON.stringify(response.data, null, 2));
     return response.data;
-  } catch (_error) {
+  } catch (error) {
     console.error('❌ Ошибка проверки баланса:', error.response?.data || error.message);
     throw error;
   }
@@ -189,7 +189,7 @@ async function testNewUserInvestment() {
     console.log(`🌐 Откройте браузер: ${FRONTEND_URL}`);
     console.log(`📱 Используйте Telegram ID: ${telegramId}`);
 
-  } catch (_error) {
+  } catch (error) {
     console.error('\n❌ Ошибка во время тестирования:', error.message);
   }
 }

@@ -80,7 +80,7 @@ export class BaseController {
     }
 
     // Remove sensitive fields that shouldn't be updated directly
-    const { id, telegramId: _, createdAt, ...allowedUpdates } = updateData;
+    const { id: _id, telegramId: _telegramId, createdAt: _createdAt, ...allowedUpdates } = updateData;
 
     const user = await prisma.user.update({
       where: { telegramId },
@@ -147,10 +147,10 @@ export class BaseController {
 
   // Generic pagination helper
   static paginate = async <T>(
-    model: any,
-    where: any = {},
-    select: any = undefined,
-    orderBy: any = { createdAt: 'desc' },
+    model: unknown,
+    where: Record<string, unknown> = {},
+    select: Record<string, unknown> | undefined = undefined,
+    orderBy: Record<string, string> = { createdAt: 'desc' },
     page: number = 1,
     limit: number = 50
   ): Promise<{ data: T[]; total: number; page: number; totalPages: number }> => {

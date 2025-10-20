@@ -38,7 +38,7 @@ export class SlotManagementService {
   static async buyNewSlot(req: Request, res: Response) {
     const { telegramId } = req.params;
     const { amount } = req.body;
-    const ipAddress = req.ip;
+    // const ipAddress = req.ip; // Unused variable removed
 
     console.log(`[SLOT_BUY] User ${telegramId} attempting to buy slot for ${amount} NON`);
 
@@ -78,7 +78,7 @@ export class SlotManagementService {
       const now = new Date();
 
       // Use centralized balance update utility
-      const balanceUpdateResult = await updateUserBalance({
+      await updateUserBalance({
         userId: user.id,
         amount: -amount, // Negative amount to deduct
         currency: 'NON',
@@ -286,7 +286,7 @@ export class SlotManagementService {
   // POST /api/invest - Create new investment slot
   static async createInvestmentSlot(req: Request, res: Response) {
     const { telegramId, amount } = req.body;
-    const ipAddress = req.ip;
+    // const ipAddress = req.ip; // Unused variable removed
 
     if (!telegramId || !amount || typeof amount !== 'number' || amount < MINIMUM_SLOT_INVESTMENT) {
       return res.status(400).json({ error: `Minimum investment is ${MINIMUM_SLOT_INVESTMENT} NON` });
@@ -318,7 +318,7 @@ export class SlotManagementService {
       const weeklyRate = 0.3; // 30% return over 7 days
 
       // Use centralized balance update utility
-      const balanceUpdateResult = await updateUserBalance({
+      await updateUserBalance({
         userId: user.id,
         amount: -amount, // Negative amount to deduct
         currency: 'NON',

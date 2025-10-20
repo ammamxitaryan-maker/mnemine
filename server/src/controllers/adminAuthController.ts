@@ -79,7 +79,7 @@ export const verifyToken = async (req: Request, res: Response) => {
     const token = authHeader.substring(7);
     
     try {
-      const decoded = jwt.verify(token, JWT_SECRET_DEV) as any;
+      const decoded = jwt.verify(token, JWT_SECRET_DEV) as { adminId: string; permissions: string[] };
       
       res.status(200).json({
         success: true,
@@ -88,7 +88,7 @@ export const verifyToken = async (req: Request, res: Response) => {
           permissions: decoded.permissions
         }
       });
-    } catch (jwtError) {
+    } catch {
       return res.status(401).json({
         success: false,
         error: 'Invalid token'

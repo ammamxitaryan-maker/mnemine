@@ -14,16 +14,6 @@ export const calculateAvailableBalance = (wallets: Array<{ currency: string; bal
     .reduce((sum, w) => sum + w.balance, 0);
 };
 
-/**
- * Calculate USD balance from user wallets
- * @param wallets Array of user wallets
- * @returns USD balance
- */
-export const calculateUSDBalance = (wallets: Array<{ currency: string; balance: number }>): number => {
-  return wallets
-    .filter(w => w.currency === 'USD')
-    .reduce((sum, w) => sum + w.balance, 0);
-};
 
 /**
  * Validate balance operation
@@ -39,23 +29,24 @@ export const validateBalanceOperation = (currentBalance: number, amount: number)
 };
 
 /**
- * Calculate total balance from all wallets
+ * Calculate total balance from NON wallets only
  * @param wallets Array of user wallets
- * @returns Total balance across all currencies
+ * @returns Total NON balance
  */
 export const calculateTotalBalance = (wallets: Array<{ currency: string; balance: number }>): number => {
-  return wallets.reduce((sum, w) => sum + w.balance, 0);
+  return wallets
+    .filter(w => w.currency === 'NON')
+    .reduce((sum, w) => sum + w.balance, 0);
 };
 
 /**
- * Calculate balance by currency
+ * Calculate NON balance from wallets
  * @param wallets Array of user wallets
- * @param currency Currency to calculate balance for
- * @returns Balance for specified currency
+ * @returns NON balance
  */
 export const calculateBalanceByCurrency = (
   wallets: Array<{ currency: string; balance: number }>,
-  currency: string
+  currency: 'NON'
 ): number => {
   return wallets
     .filter(w => w.currency === currency)
@@ -69,7 +60,7 @@ export const calculateBalanceByCurrency = (
  * @param decimals Number of decimal places
  * @returns Formatted balance string
  */
-export const formatBalance = (balance: number, currency: string = 'NON', decimals: number = 4): string => {
+export const formatBalance = (balance: number, currency: 'NON' = 'NON', decimals: number = 4): string => {
   return `${balance.toFixed(decimals)} ${currency}`;
 };
 

@@ -17,7 +17,20 @@ export interface TelegramUserData {
 
 export interface AuthResult {
   success: boolean;
-  user?: any;
+  user?: {
+    id: string;
+    telegramId: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string;
+    referralCode?: string;
+    referredBy?: string;
+    role: string;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  };
   error?: string;
   message?: string;
 }
@@ -63,7 +76,7 @@ export class AuthService {
       }
 
       return { isValid: true, userData };
-    } catch (error) {
+    } catch {
       return { isValid: false, error: 'Hash validation failed' };
     }
   }

@@ -36,7 +36,6 @@ export const calculateSlotEarnings = (slot: MiningSlot): SlotEarnings => {
   const principal = slot.principal;
   const weeklyRate = slot.effectiveWeeklyRate || 0.30; // Use actual rate from slot or fallback to 30%
   const totalReturn = principal * (1 + weeklyRate); // principal + weekly rate
-  const totalEarnings = totalReturn - principal; // weekly rate % от principal
   
   // Рассчитываем скорость дохода
   let dailyReturn = 0;

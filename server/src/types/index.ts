@@ -59,7 +59,9 @@ export interface ControllerRequest extends Request {
 }
 
 export interface ControllerResponse extends Response {
-  // Add any custom response methods here
+  // Custom response methods can be added here as needed
+  sendSuccess?: (data: unknown) => void;
+  sendError?: (message: string, statusCode?: number) => void;
 }
 
 // Middleware types

@@ -19,7 +19,7 @@ interface CacheOptions {
 }
 
 class AdminCache {
-  private cache = new Map<string, CacheItem<any>>();
+  private cache = new Map<string, CacheItem<unknown>>();
   private maxSize: number;
   private defaultTTL: number;
 
@@ -141,7 +141,6 @@ class AdminCache {
    * Очистка устаревших элементов
    */
   private cleanup(): void {
-    const now = Date.now();
     const items = Array.from(this.cache.entries());
     
     // Сортируем по времени создания (старые сначала)
@@ -167,7 +166,7 @@ class AdminCache {
           } else {
             localStorage.removeItem(key);
           }
-        } catch (error) {
+        } catch {
           localStorage.removeItem(key);
         }
       }
@@ -226,7 +225,7 @@ export const useCache = () => {
 /**
  * Декоратор для кэширования функций
  */
-export const withCache = <T extends (...args: any[]) => any>(
+export const withCache = <T extends (...args: unknown[]) => unknown>(
   fn: T,
   keyGenerator: (...args: Parameters<T>) => string,
   options?: CacheOptions

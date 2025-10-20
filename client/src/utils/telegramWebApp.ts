@@ -24,7 +24,7 @@ export const isFeatureSupported = (feature: string, version: string = '6.0'): bo
 /**
  * Get the current Telegram WebApp instance with version checking
  */
-export const getTelegramWebApp = (): any | null => {
+export const getTelegramWebApp = (): TelegramWebApp | null => {
   const tg = window.Telegram?.WebApp;
   if (!tg) {
     console.warn('[TelegramWebApp] Telegram WebApp not found');
@@ -82,20 +82,7 @@ export const isTelegramWebApp = (): boolean => {
   return !!window.Telegram?.WebApp;
 };
 
-// Type definitions for Telegram WebApp
-interface TelegramWebApp {
-  initDataUnsafe?: {
-    user?: {
-      id: number;
-      first_name: string;
-      last_name?: string;
-      username?: string;
-      language_code?: string;
-    };
-  };
-  showAlert?: (message: string) => void;
-  showConfirm?: (message: string, callback: (confirmed: boolean) => void) => void;
-}
+// Telegram WebApp types are defined in types/telegram.d.ts
 
 
 

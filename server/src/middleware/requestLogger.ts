@@ -7,13 +7,11 @@ import { Request, Response, NextFunction } from 'express';
 import { logger, LogContext, generateRequestId, PerformanceTimer } from '../utils/logger.js';
 
 // Extend Request interface to include our custom properties
-declare global {
-  namespace Express {
-    interface Request {
-      requestId: string;
-      startTime: number;
-      performanceTimer: PerformanceTimer;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    requestId: string;
+    startTime: number;
+    performanceTimer: PerformanceTimer;
   }
 }
 

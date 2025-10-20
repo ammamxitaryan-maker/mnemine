@@ -34,6 +34,7 @@ export default tseslint.config(
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,
         project: ["./client/tsconfig.json", "./server/tsconfig.json"],
+        include: ["client/**/*.{ts,tsx}", "server/**/*.{ts,tsx}"],
       },
     },
     rules: {

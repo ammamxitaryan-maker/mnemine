@@ -188,7 +188,7 @@ const processNotificationQueue = async () => {
       // Группируем по типу уведомления для оптимизации
       const groupedNotifications = groupNotificationsByType(batch);
       
-      for (const [type, notifications] of groupedNotifications) {
+      for (const [, notifications] of groupedNotifications) {
         await processGroupedNotifications(notifications);
       }
 

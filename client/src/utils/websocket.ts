@@ -8,7 +8,7 @@ import { LogCategory } from './logger';
 // Типы сообщений
 export interface WebSocketMessage {
   type: string;
-  data?: any;
+  data?: unknown;
   message?: string;
   timestamp?: string;
   id?: string;
@@ -45,10 +45,10 @@ class WebSocketClient {
   private pingTimer: NodeJS.Timeout | null = null;
   private isConnecting = false;
   private logger = {
-    info: (message: string, ...args: any[]) => console.log(`[WebSocket] ${message}`, ...args),
-    warn: (message: string, ...args: any[]) => console.warn(`[WebSocket] ${message}`, ...args),
-    error: (message: string, ...args: any[]) => console.error(`[WebSocket] ${message}`, ...args),
-    debug: (message: string, ...args: any[]) => console.debug(`[WebSocket] ${message}`, ...args)
+    info: (message: string, ...args: unknown[]) => console.log(`[WebSocket] ${message}`, ...args),
+    warn: (message: string, ...args: unknown[]) => console.warn(`[WebSocket] ${message}`, ...args),
+    error: (message: string, ...args: unknown[]) => console.error(`[WebSocket] ${message}`, ...args),
+    debug: (message: string, ...args: unknown[]) => console.log(`[WebSocket] ${message}`, ...args)
   };
 
   // Callbacks
@@ -122,7 +122,7 @@ class WebSocketClient {
 
         this.ws.onerror = (error) => {
           console.error('[WEBSOCKET] Connection error:', error);
-          this.logger.error('WebSocket connection error', error as any);
+          this.logger.error('WebSocket connection error', error as Error);
 
           this.isConnecting = false;
           this.onErrorCallback?.('Connection failed');

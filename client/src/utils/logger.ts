@@ -31,7 +31,7 @@ export interface LogEntry {
   timestamp: string;
   userId?: string;
   sessionId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   stack?: string;
   url?: string;
   userAgent?: string;
@@ -80,7 +80,7 @@ class AdminLogger {
     level: LogLevel,
     category: LogCategory,
     message: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     error?: Error
   ): LogEntry {
     return {
@@ -146,10 +146,10 @@ class AdminLogger {
 
     switch (entry.level) {
       case LogLevel.DEBUG:
-        console.debug(prefix, logData);
+        console.log(prefix, logData);
         break;
       case LogLevel.INFO:
-        console.info(prefix, logData);
+        console.log(prefix, logData);
         break;
       case LogLevel.WARN:
         console.warn(prefix, logData);
@@ -205,37 +205,37 @@ class AdminLogger {
   /**
    * Методы логирования
    */
-  debug(message: string, metadata?: Record<string, any>): void {
+  debug(message: string, metadata?: Record<string, unknown>): void {
     this.writeLog(this.createLogEntry(LogLevel.DEBUG, LogCategory.SYSTEM, message, metadata));
   }
 
-  info(message: string, category: LogCategory = LogCategory.SYSTEM, metadata?: Record<string, any>): void {
+  info(message: string, category: LogCategory = LogCategory.SYSTEM, metadata?: Record<string, unknown>): void {
     this.writeLog(this.createLogEntry(LogLevel.INFO, category, message, metadata));
   }
 
-  warn(message: string, category: LogCategory = LogCategory.SYSTEM, metadata?: Record<string, any>): void {
+  warn(message: string, category: LogCategory = LogCategory.SYSTEM, metadata?: Record<string, unknown>): void {
     this.writeLog(this.createLogEntry(LogLevel.WARN, category, message, metadata));
   }
 
-  error(message: string, error?: Error, category: LogCategory = LogCategory.ERROR, metadata?: Record<string, any>): void {
+  error(message: string, error?: Error, category: LogCategory = LogCategory.ERROR, metadata?: Record<string, unknown>): void {
     this.writeLog(this.createLogEntry(LogLevel.ERROR, category, message, metadata, error));
   }
 
   /**
    * Логирование действий пользователя
    */
-  userAction(action: string, metadata?: Record<string, any>): void {
+  userAction(action: string, metadata?: Record<string, unknown>): void {
     this.info(`User action: ${action}`, LogCategory.USER_ACTION, metadata);
   }
 
   /**
    * Логирование API запросов
    */
-  apiRequest(method: string, url: string, metadata?: Record<string, any>): void {
+  apiRequest(method: string, url: string, metadata?: Record<string, unknown>): void {
     this.info(`API ${method} ${url}`, LogCategory.API, metadata);
   }
 
-  apiResponse(method: string, url: string, status: number, duration: number, metadata?: Record<string, any>): void {
+  apiResponse(method: string, url: string, status: number, duration: number, metadata?: Record<string, unknown>): void {
     this.info(`API ${method} ${url} - ${status} (${duration}ms)`, LogCategory.API, {
       ...metadata,
       status,
@@ -246,7 +246,7 @@ class AdminLogger {
   /**
    * Логирование производительности
    */
-  performance(operation: string, duration: number, metadata?: Record<string, any>): void {
+  performance(operation: string, duration: number, metadata?: Record<string, unknown>): void {
     this.info(`Performance: ${operation} took ${duration}ms`, LogCategory.PERFORMANCE, {
       ...metadata,
       duration,

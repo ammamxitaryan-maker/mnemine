@@ -101,7 +101,7 @@ export const updateUserBalance = async (options: BalanceUpdateOptions): Promise<
  * @returns Array of balance update results
  */
 export const updateMultipleBalances = async (updates: BalanceUpdateOptions[]): Promise<BalanceUpdateResult[]> => {
-  return await prisma.$transaction(async (tx: any) => {
+  return await prisma.$transaction(async (tx) => {
     const results: BalanceUpdateResult[] = [];
 
     for (const update of updates) {
@@ -174,7 +174,7 @@ export const validateBalanceOperation = (currentBalance: number, amount: number)
  * @param currency Currency type
  * @returns Wallet balance or 0 if not found
  */
-export const getUserBalance = async (userId: string, currency: 'NON' | 'USD'): Promise<number> => {
+export const getUserBalance = async (userId: string, currency: 'NON'): Promise<number> => {
   const wallet = await prisma.wallet.findFirst({
     where: { userId, currency }
   });

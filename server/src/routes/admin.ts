@@ -75,7 +75,7 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
     }
 
     // Получаем текущий баланс NON
-    let nonWallet = user.wallets.find(w => w.currency === 'NON');
+    const nonWallet = user.wallets.find(w => w.currency === 'NON');
     const currentBalance = nonWallet ? nonWallet.balance : 0;
     const changeAmount = parseFloat(amount);
     let newBalance = currentBalance;
@@ -630,7 +630,7 @@ router.post('/notifications/broadcast', isAdmin, async (req, res) => {
     }
 
     // Build user filter based on targetUsers and filters
-    let userWhereClause: any = {};
+    const userWhereClause: Record<string, unknown> = {};
 
     if (targetUsers === 'active') {
       userWhereClause.isActive = true;
@@ -772,7 +772,7 @@ router.delete('/notifications/:notificationId', isAdmin, async (req, res) => {
 router.get('/analytics', isAdmin, async (req, res) => {
   try {
     const { days = 7 } = req.query;
-    const daysAgo = new Date(Date.now() - parseInt(days as string) * 24 * 60 * 60 * 1000);
+    // const daysAgo = new Date(Date.now() - parseInt(days as string) * 24 * 60 * 60 * 1000); // Unused variable removed
     const today = new Date();
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -1201,7 +1201,7 @@ router.get('/settings', isAdmin, async (req, res) => {
 
 router.post('/settings/update', isAdmin, async (req, res) => {
   try {
-    const { exchangeRate, limits } = req.body;
+    const { exchangeRate } = req.body;
 
     if (exchangeRate !== undefined) {
       await prisma.exchangeRate.create({

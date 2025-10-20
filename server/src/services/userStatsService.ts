@@ -56,7 +56,7 @@ export class UserStatsService {
     const now = new Date();
     const currentTime = now.getTime();
     const currentHour = now.getHours();
-    const currentDay = Math.floor(currentTime / (24 * 60 * 60 * 1000));
+    // const currentDay = Math.floor(currentTime / (24 * 60 * 60 * 1000)); // Unused variable removed
 
     // Обновляем общее количество пользователей каждый час (+15 пользователей)
     if (currentHour !== this.lastHourUpdate) {

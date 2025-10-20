@@ -166,7 +166,7 @@ export class DatabasePerformanceMonitor {
   static getSlowQueries(threshold: number = 1000): Array<{ operation: string; avgTime: number }> {
     const slowQueries: Array<{ operation: string; avgTime: number }> = [];
     
-    for (const [operation, metrics] of this.metrics.entries()) {
+    for (const [operation] of this.metrics.entries()) {
       const avgTime = this.getAverageTime(operation);
       if (avgTime > threshold) {
         slowQueries.push({ operation, avgTime });

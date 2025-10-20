@@ -3,11 +3,13 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 // Extend the Request interface to include user property
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: {
+      id: string;
+      telegramId: string;
+      role: string;
+    };
   }
 }
 

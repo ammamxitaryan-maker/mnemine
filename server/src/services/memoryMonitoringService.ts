@@ -1,4 +1,4 @@
-import { performance } from 'perf_hooks';
+// import { performance } from 'perf_hooks'; // Unused import removed
 import { LRUCache } from 'lru-cache';
 
 interface MemoryStats {

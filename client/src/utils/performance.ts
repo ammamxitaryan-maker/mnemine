@@ -10,7 +10,7 @@ interface PerformanceMetric {
   startTime: number;
   endTime?: number;
   duration?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Статистика производительности
@@ -31,7 +31,7 @@ class PerformanceMonitor {
   /**
    * Начать измерение производительности
    */
-  start(name: string, metadata?: Record<string, any>): void {
+  start(name: string, metadata?: Record<string, unknown>): void {
     const metric: PerformanceMetric = {
       name,
       startTime: performance.now(),
@@ -155,11 +155,11 @@ export const performanceMonitor = new PerformanceMonitor();
  * Декоратор для измерения производительности функций
  */
 export function measurePerformance(name?: string) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
     const metricName = name || `${target.constructor.name}.${propertyName}`;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       performanceMonitor.start(metricName);
 
       try {

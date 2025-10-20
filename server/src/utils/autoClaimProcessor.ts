@@ -4,12 +4,12 @@ import { webSocketManager } from '../websocket/WebSocketManager.js';
 import { updateUserBalance } from './balanceUpdateUtils.js';
 import { ensureUserWallets } from './walletUtils.js';
 
-interface AutoClaimData {
-  userId: string;
-  telegramId: string;
-  totalEarnings: number;
-  slotsToUpdate: { id: string; lastAccruedAt: Date }[];
-}
+// interface AutoClaimData { // Unused interface removed
+//   userId: string;
+//   telegramId: string;
+//   totalEarnings: number;
+//   slotsToUpdate: { id: string; lastAccruedAt: Date }[];
+// }
 
 export class AutoClaimProcessor {
   private isRunning = false;

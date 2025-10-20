@@ -9,11 +9,9 @@ import { logger, LogContext } from '../utils/logger.js';
 import { createErrorResponse } from '../types/api.js';
 
 // Extend Request interface to include validated data
-declare global {
-  namespace Express {
-    interface Request {
-      validatedData?: Record<string, unknown>;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    validatedData?: Record<string, unknown>;
   }
 }
 

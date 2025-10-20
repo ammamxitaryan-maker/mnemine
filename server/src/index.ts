@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === 'production') {
       dotenv.config({ path: envPath });
       logger.server(`Successfully loaded environment from: ${envPath}`);
       break;
-    } catch (error) {
+    } catch {
       logger.debug(LogContext.SERVER, `Failed to load from ${envPath}, trying next...`);
     }
   }
@@ -180,8 +180,8 @@ if (process.env.NODE_ENV === 'production') {
   app.use(morgan('dev'));
 }
 
-// Rate limiting configuration
-const limiter = rateLimit({
+// Rate limiting configuration (disabled)
+const _limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000', 10),
   message: {
@@ -190,13 +190,13 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => true, // Effectively disabled
-  keyGenerator: (req) => {
-    return `${req.ip}-${req.get('User-Agent')?.slice(0, 50) || 'unknown'}`;
+  skip: (_req) => true, // Effectively disabled
+  keyGenerator: (_req) => {
+    return 'disabled';
   }
 });
 
-const authLimiter = rateLimit({
+const _authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_REQUESTS || '1000', 10),
   message: {
@@ -204,7 +204,7 @@ const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => true, // Effectively disabled
+  skip: (_req) => true, // Effectively disabled
 });
 
 // Request logging middleware
@@ -302,7 +302,7 @@ app.get('/health', async (req: any, res: any) => {
       memory: process.memoryUsage(),
       health: ProductionHealthCheck.getHealthStatus(),
     });
-  } catch (error) {
+  } catch {
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
@@ -452,7 +452,7 @@ if (token && bot) {
   };
 
   if (webhookDelayMs > 0) {
-    app.use(webhookPath, async (req, res, next) => {
+    app.use(webhookPath, async (req, res, _next) => {
       console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
       console.log(`[WEBHOOK] Request body:`, JSON.stringify(req.body, null, 2));
       await new Promise(resolve => setTimeout(resolve, webhookDelayMs));
@@ -465,7 +465,7 @@ if (token && bot) {
       }
     });
   } else {
-    app.use(webhookPath, async (req, res, next) => {
+    app.use(webhookPath, async (req, res, _next) => {
       console.log(`[WEBHOOK] Received webhook request`);
       console.log(`[WEBHOOK] Method: ${req.method}`);
       console.log(`[WEBHOOK] Headers:`, JSON.stringify(req.headers, null, 2));

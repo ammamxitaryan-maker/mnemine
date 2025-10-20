@@ -37,7 +37,7 @@ export const getHealthCheck = async (req: Request, res: Response) => {
     
     // Test cache performance
     const cacheStart = performance.now();
-    const cacheTest = await CacheService.userData.getUserData('test', async () => 'test');
+    await CacheService.userData.getUserData('test', async () => 'test');
     const cacheTime = performance.now() - cacheStart;
     
     const totalTime = performance.now() - startTime;

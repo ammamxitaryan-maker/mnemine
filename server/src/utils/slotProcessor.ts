@@ -1,4 +1,4 @@
-import { processExpiredSlots } from '../controllers/slotController.js';
+// import { processExpiredSlots } from '../controllers/slotController.js'; // Unused import removed
 import { processExpiredSlotsOptimized, getProcessingMetrics, getProcessingStats } from './slotProcessorOptimized.js';
 
 // Конфигурация обработки
