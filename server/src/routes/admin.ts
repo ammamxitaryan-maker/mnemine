@@ -1063,7 +1063,7 @@ router.get('/users', isAdmin, async (req, res) => {
         balance: user.wallets
           .filter(w => w.currency === 'NON')
           .reduce((sum, w) => sum + w.balance, 0),
-        nonBalance: user.wallets
+        availableBalance: user.wallets
           .filter(w => w.currency === 'NON')
           .reduce((sum, w) => sum + w.balance, 0),
         usdBalance: user.wallets

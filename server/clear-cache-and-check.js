@@ -38,7 +38,7 @@ async function clearCacheAndCheck() {
 
       console.log('📡 API Response:');
       console.log('  balance:', data.balance);
-      console.log('  nonBalance:', data.nonBalance);
+      console.log('  availableBalance:', data.availableBalance);
       console.log('  miningPower:', data.miningPower);
       console.log('  accruedEarnings:', data.accruedEarnings);
       console.log('  totalInvested:', data.totalInvested);

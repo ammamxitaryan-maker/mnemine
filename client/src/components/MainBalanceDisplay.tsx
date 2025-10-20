@@ -25,7 +25,6 @@ export const MainBalanceDisplay = ({
   const {
     availableBalance,
     totalInvested,
-    totalBalance,
     activeSlotsCount,
     totalEarnings,
     usdEquivalent,

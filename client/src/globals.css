@@ -741,8 +741,8 @@
 /* Mouse Head SVG */
 .mouse-head {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 220px;
+  height: 220px;
   opacity: 0;
   transform: scale(0.5);
   transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -751,18 +751,26 @@
 .mouse-head.visible {
   opacity: 1;
   transform: scale(1);
-  animation: mouse-head-glow 2s ease-in-out infinite, mouse-head-float 3s ease-in-out infinite;
+  animation: mouse-head-glow 2s ease-in-out infinite;
 }
 
 @keyframes mouse-head-float {
 
   0%,
   100% {
-    transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: scale(1.08) translateY(-8px) rotate(1deg);
   }
 
   50% {
-    transform: scale(1.05) translateY(-5px);
+    transform: scale(1.05) translateY(-5px) rotate(0deg);
+  }
+
+  75% {
+    transform: scale(1.08) translateY(-8px) rotate(-1deg);
   }
 }
 
@@ -903,7 +911,7 @@
 /* Cute Mouse Cheeks - SVG */
 .mouse-cheek {
   fill: url(#cheekGrad);
-  opacity: 0.7;
+  opacity: 0.8;
   animation: cheek-glow 2s ease-in-out infinite;
 }
 
@@ -926,6 +934,46 @@
   50% {
     opacity: 0.9;
     transform: scale(1.1);
+  }
+}
+
+@keyframes cheek-bounce {
+
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+  }
+
+  25% {
+    transform: scale(1.05) translateY(-2px);
+  }
+
+  50% {
+    transform: scale(1.1) translateY(-1px);
+  }
+
+  75% {
+    transform: scale(1.05) translateY(-2px);
+  }
+}
+
+@keyframes whisker-wiggle {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(2deg);
+  }
+
+  50% {
+    transform: rotate(0deg);
+  }
+
+  75% {
+    transform: rotate(-2deg);
   }
 }
 
@@ -1704,4 +1752,35 @@
   display: inline-block;
   margin-right: 6px;
   box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+/* Wink Animation */
+.wink-line {
+  opacity: 0;
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.wink-line.wink-active {
+  opacity: 1;
+  transform: scaleY(1);
+  animation: wink-bounce 0.6s ease-in-out;
+}
+
+@keyframes wink-bounce {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scaleY(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }

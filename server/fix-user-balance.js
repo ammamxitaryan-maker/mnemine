@@ -71,7 +71,7 @@ async function fixUserBalance() {
 
     console.log('📡 API Response:');
     console.log('  balance:', data.balance);
-    console.log('  nonBalance:', data.nonBalance);
+    console.log('  availableBalance:', data.availableBalance);
 
   } catch (error) {
     console.error('❌ Error:', error);

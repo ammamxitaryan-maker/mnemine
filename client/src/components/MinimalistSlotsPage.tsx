@@ -38,7 +38,7 @@ export const MinimalistSlotsPage = () => {
   const [showHistory, setShowHistory] = useState(false);
 
   const isLoading = slotsLoading || userDataLoading;
-  const currentBalance = userData?.balance ?? 0;
+  const currentBalance = userData?.availableBalance ?? 0;
 
   // Minimum investment amount - should be configurable from admin panel
   const MINIMUM_INVESTMENT = 3.0;
@@ -71,9 +71,9 @@ export const MinimalistSlotsPage = () => {
         window.dispatchEvent(new CustomEvent('balanceUpdated', {
           detail: {
             telegramId: user?.telegramId,
-            newBalance: response.data.nonBalance,
+            newBalance: response.data.availableBalance,
             previousBalance: currentBalance,
-            changeAmount: response.data.nonBalance - currentBalance,
+            changeAmount: response.data.availableBalance - currentBalance,
             action: 'SLOT_INVESTMENT',
             timestamp: new Date().toISOString()
           }

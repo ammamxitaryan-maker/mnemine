@@ -1,26 +1,26 @@
-﻿import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { api } from '@/lib/api';
-import { Loader2 } from 'lucide-react';
+﻿import { PageHeader } from '@/components/PageHeader';
+import { WithdrawalChecklist } from '@/components/business/WithdrawalChecklist';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useStatsData } from '@/hooks/useStatsData';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useUserData } from '@/hooks/useUserData';
-import { useStatsData } from '@/hooks/useStatsData';
-import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
-import { PageHeader } from '@/components/PageHeader';
-import { WithdrawalChecklist } from '@/components/business/WithdrawalChecklist';
-import { 
-  WITHDRAWAL_FEE_PERCENTAGE, 
-  MINIMUM_WITHDRAWAL_FIRST_100, 
-  FIRST_100_WITHDRAWALS_LIMIT, 
-  WITHDRAWAL_MIN_BALANCE_REQUIREMENT,
-  MINIMUM_WITHDRAWAL_REGULAR
+import { api } from '@/lib/api';
+import {
+  FIRST_100_WITHDRAWALS_LIMIT,
+  MINIMUM_WITHDRAWAL_FIRST_100,
+  MINIMUM_WITHDRAWAL_REGULAR,
+  WITHDRAWAL_FEE_PERCENTAGE,
+  WITHDRAWAL_MIN_BALANCE_REQUIREMENT
 } from '@/shared/constants';
+import { dismissToast, showError, showLoading, showSuccess } from '@/utils/toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 const withdrawFunds = async ({ telegramId, amount, address }: { telegramId: string, amount: number, address: string }) => {
   const { data } = await api.post(`/user/${telegramId}/withdraw`, { amount, address });
@@ -80,21 +80,21 @@ const Withdraw = () => {
   const receiving = amount ? (parseFloat(amount) * (1 - feePercentage)).toFixed(4) : '0.0000';
 
   const totalWithdrawalsMade = userStats?.totalSystemWithdrawals ?? 0;
-  const minimumWithdrawal = totalWithdrawalsMade < FIRST_100_WITHDRAWALS_LIMIT 
-    ? MINIMUM_WITHDRAWAL_FIRST_100 
+  const minimumWithdrawal = totalWithdrawalsMade < FIRST_100_WITHDRAWALS_LIMIT
+    ? MINIMUM_WITHDRAWAL_FIRST_100
     : MINIMUM_WITHDRAWAL_REGULAR;
 
-  const currentBalance = userData?.balance ?? 0;
+  const currentBalance = userData?.availableBalance ?? 0;
   const parsedAmount = parseFloat(amount);
 
-  const isWithdrawButtonDisabled = mutation.isPending || 
-                                   !userStats?.isEligible || 
-                                   userStats?.isSuspicious || 
-                                   currentBalance < WITHDRAWAL_MIN_BALANCE_REQUIREMENT ||
-                                   isNaN(parsedAmount) || parsedAmount <= 0 ||
-                                   parsedAmount > currentBalance ||
-                                   parsedAmount < minimumWithdrawal ||
-                                   !address;
+  const isWithdrawButtonDisabled = mutation.isPending ||
+    !userStats?.isEligible ||
+    userStats?.isSuspicious ||
+    currentBalance < WITHDRAWAL_MIN_BALANCE_REQUIREMENT ||
+    isNaN(parsedAmount) || parsedAmount <= 0 ||
+    parsedAmount > currentBalance ||
+    parsedAmount < minimumWithdrawal ||
+    !address;
 
   return (
     <div className="page-container flex flex-col text-white">
@@ -147,7 +147,7 @@ const Withdraw = () => {
         </Card>
 
         <WithdrawalChecklist userData={userData} userStats={userStats} />
-        
+
       </div>
     </div>
   );

@@ -72,16 +72,16 @@ export const getUserData = async (req: Request, res: Response) => {
       // Calculate earnings
       const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
-      // Calculate NON balance (main currency for the app)
-      const nonBalance = user.wallets
+      // Calculate available balance (main currency for the app)
+      const availableBalance = user.wallets
         .filter(w => w.currency === 'NON')
         .reduce((sum, w) => sum + w.balance, 0);
 
       const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
       cachedData = {
-        balance: nonBalance, // NON balance is the main balance
-        nonBalance: nonBalance,
+        balance: availableBalance, // Available balance is the main balance
+        availableBalance: availableBalance,
         miningPower: totalMiningPower,
         accruedEarnings: totalEarnings,
         totalInvested: user.totalInvested || 0
@@ -98,18 +98,18 @@ export const getUserData = async (req: Request, res: Response) => {
         // Calculate earnings
         const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
-        // Calculate NON balance (main currency for the app)
-        const nonBalance = user.wallets
+        // Calculate available balance (main currency for the app)
+        const availableBalance = user.wallets
           .filter(w => w.currency === 'NON')
           .reduce((sum, w) => sum + w.balance, 0);
 
-        console.log(`[DATA] User ${telegramId} NON balance: ${nonBalance}`);
+        console.log(`[DATA] User ${telegramId} available balance: ${availableBalance}`);
 
         const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
         return {
-          balance: nonBalance, // NON balance is the main balance
-          nonBalance: nonBalance,
+          balance: availableBalance, // Available balance is the main balance
+          availableBalance: availableBalance,
           miningPower: totalMiningPower,
           accruedEarnings: totalEarnings,
           totalInvested: user.totalInvested,

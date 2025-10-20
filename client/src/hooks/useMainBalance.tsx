@@ -7,7 +7,6 @@ import { useUserData } from './useUserData';
 interface MainBalanceData {
   availableBalance: number; // User's actual wallet balance (not affected by investments)
   totalInvested: number; // Total amount invested in active slots
-  totalBalance: number; // Same as availableBalance (user's wallet balance)
   activeSlotsCount: number;
   totalEarnings: number; // Earnings from slots
   lastUpdate: string;
@@ -98,14 +97,13 @@ export const useMainBalance = (telegramId: string | undefined) => {
         return {
           availableBalance: 0,
           totalInvested: 0,
-          totalBalance: 0,
           activeSlotsCount: 0,
           totalEarnings: 0,
           lastUpdate: new Date().toISOString(),
         };
       }
 
-      const totalBalance = userData.nonBalance || 0;
+      const availableBalance = userData.nonBalance || 0;
 
       // Calculate total invested in active slots
       const activeSlots = slotsData.filter(slot =>
@@ -130,15 +128,13 @@ export const useMainBalance = (telegramId: string | undefined) => {
         return sum;
       }, 0);
 
-      // Available balance = total balance (user's actual wallet balance)
+      // Available balance = user's actual wallet balance
       // Investments don't reduce available balance - they are separate
-      const availableBalance = totalBalance;
 
 
       return {
         availableBalance,
         totalInvested,
-        totalBalance,
         activeSlotsCount: activeSlots.length,
         totalEarnings,
         lastUpdate: new Date().toISOString(),
@@ -151,13 +147,11 @@ export const useMainBalance = (telegramId: string | undefined) => {
 
   // USD equivalents for display only
   const usdEquivalent = convertNONToUSD(balanceData.data?.availableBalance || 0);
-  const totalUsdEquivalent = convertNONToUSD(balanceData.data?.totalBalance || 0);
   const earningsUsd = convertNONToUSD(balanceData.data?.totalEarnings || 0);
 
   return {
     ...balanceData.data,
     usdEquivalent, // For display only
-    totalUsdEquivalent, // For display only
     earningsUsd, // For display only
     isLoading: balanceData.isLoading,
     error: balanceData.error,

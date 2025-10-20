@@ -51,7 +51,7 @@ interface User {
   isSuspicious: boolean;
   isOnline: boolean;
   balance: number;
-  nonBalance: number;
+  availableBalance: number;
   usdBalance: number;
   totalInvested: number;
   totalSlotsCount: number;
@@ -152,7 +152,7 @@ const AdminUsers = () => {
           }
           break;
         case 'balance': {
-          const currentBalance = user?.nonBalance || 0;
+          const currentBalance = user?.availableBalance || 0;
           const newBalance = prompt(
             `💰 Balance Management for ${userName}\n\n` +
             `Current balance: ${currentBalance.toFixed(4)} NON\n\n` +
@@ -303,7 +303,7 @@ const AdminUsers = () => {
           user.email || '',
           user.role,
           user.isFrozen ? 'Frozen' : user.isSuspicious ? 'Suspicious' : user.isActive ? 'Active' : 'Inactive',
-          user.nonBalance.toFixed(4),
+          user.availableBalance.toFixed(4),
           user.totalInvested.toFixed(2),
           new Date(user.createdAt).toISOString(),
           user.lastSeenAt ? new Date(user.lastSeenAt).toISOString() : '',
@@ -577,7 +577,7 @@ const AdminUsers = () => {
                   <td className="py-3 px-4">
                     <div className="space-y-1">
                       <div className="font-mono text-sm text-yellow-400">
-                        {user.nonBalance.toFixed(4)} NON
+                        {user.availableBalance.toFixed(4)} NON
                       </div>
                       <div className="text-xs text-slate-400">
                         ${user.totalInvested.toFixed(2)} invested
@@ -713,7 +713,7 @@ const AdminUsers = () => {
                   <div className="space-y-2">
                     <div className="text-xs text-slate-400 uppercase tracking-wide">Balance</div>
                     <div className="font-mono text-yellow-400 text-sm">
-                      {user.nonBalance.toFixed(4)} NON
+                      {user.availableBalance.toFixed(4)} NON
                     </div>
                     <div className="text-xs text-slate-400">
                       ${user.totalInvested.toFixed(2)} invested

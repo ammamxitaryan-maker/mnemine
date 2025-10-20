@@ -328,7 +328,6 @@
   "failedToLoadBalance": "Failed to load balance",
   "availableBalance": "Available Balance",
   "live": "live",
-  "totalBalance": "Total Balance",
   "investedInSlots": "Invested in Slots",
   "activeSlot": "active slot",
   "referralIncome": "Referral Income",

@@ -100,9 +100,9 @@ const InvestmentSlots = () => {
         window.dispatchEvent(new CustomEvent('balanceUpdated', {
           detail: {
             telegramId: user?.telegramId,
-            newBalance: response.data.nonBalance,
+            newBalance: response.data.availableBalance,
             previousBalance: currentBalance,
-            changeAmount: response.data.nonBalance - currentBalance,
+            changeAmount: response.data.availableBalance - currentBalance,
             action: 'SLOT_INVESTMENT',
             timestamp: new Date().toISOString()
           }
@@ -171,7 +171,7 @@ const InvestmentSlots = () => {
     claimSlotMutation.mutate({ telegramId: user.telegramId, slotId });
   };
 
-  const currentBalance = userData?.balance ?? 0;
+  const currentBalance = userData?.availableBalance ?? 0;
   const canInvest = parseFloat(amount) > 0 && parseFloat(amount) <= currentBalance;
 
   const activeSlots = slotsData?.slots.filter(slot => slot.status === 'active') ?? [];

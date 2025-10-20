@@ -64,7 +64,7 @@ export class SlotManagementService {
 
       console.log(`[SLOT_BUY] User ${telegramId} NON balance: ${NONWallet.balance}, attempting to buy slot for: ${amount}`);
 
-      // Validate balance operation to prevent negative balance
+      // Check if user has sufficient balance
       const balanceValidation = validateBalanceOperation(NONWallet.balance, -amount);
       if (balanceValidation.isNegative) {
         console.log(`[SLOT_BUY] Insufficient funds for user ${telegramId}: Available=${NONWallet.balance}, Required=${amount}`);
@@ -77,7 +77,7 @@ export class SlotManagementService {
       const now = new Date();
 
       await prisma.$transaction([
-        // Use safe balance adjustment to prevent negative balance
+        // Update wallet balance
         prisma.wallet.update({
           where: { id: NONWallet.id },
           data: { balance: Math.max(0, NONWallet.balance - amount) },
@@ -166,7 +166,7 @@ export class SlotManagementService {
         return res.status(400).json({ error: 'USD wallet not found' });
       }
 
-      // Validate balance operation to prevent negative balance
+      // Check if user has sufficient balance
       const balanceValidation = validateBalanceOperation(USDWallet.balance, -SLOT_EXTENSION_COST);
       if (balanceValidation.isNegative) {
         return res.status(400).json({
@@ -177,7 +177,7 @@ export class SlotManagementService {
       const newExpiryDate = new Date(slot.expiresAt.getTime() + SLOT_EXTENSION_DAYS * 24 * 60 * 60 * 1000);
 
       await prisma.$transaction([
-        // Use safe balance adjustment to prevent negative balance
+        // Update wallet balance
         prisma.wallet.update({
           where: { id: USDWallet.id },
           data: { balance: Math.max(0, USDWallet.balance - SLOT_EXTENSION_COST) },
@@ -246,7 +246,7 @@ export class SlotManagementService {
         return res.status(400).json({ error: 'USD wallet not found' });
       }
 
-      // Validate balance operation to prevent negative balance
+      // Check if user has sufficient balance
       const balanceValidation = validateBalanceOperation(USDWallet.balance, -upgradeCost);
       if (balanceValidation.isNegative) {
         return res.status(400).json({
@@ -255,7 +255,7 @@ export class SlotManagementService {
       }
 
       await prisma.$transaction([
-        // Use safe balance adjustment to prevent negative balance
+        // Update wallet balance
         prisma.wallet.update({
           where: { id: USDWallet.id },
           data: { balance: Math.max(0, USDWallet.balance - upgradeCost) },
@@ -309,9 +309,8 @@ export class SlotManagementService {
         return res.status(400).json({ error: 'NON wallet not found' });
       }
 
-      // Validate balance operation to prevent negative balance
-      const balanceValidation = validateBalanceOperation(NONWallet.balance, -amount);
-      if (balanceValidation.isNegative) {
+      // Check if user has sufficient balance
+      if (NONWallet.balance < amount) {
         return res.status(400).json({
           error: `Insufficient NON funds. Available: ${NONWallet.balance.toFixed(2)} NON, Required: ${amount.toFixed(2)} NON`
         });
@@ -321,7 +320,7 @@ export class SlotManagementService {
       const weeklyRate = 0.3; // 30% return over 7 days
 
       await prisma.$transaction([
-        // Use safe balance adjustment to prevent negative balance
+        // Update wallet balance
         prisma.wallet.update({
           where: { id: NONWallet.id },
           data: { balance: Math.max(0, NONWallet.balance - amount) },

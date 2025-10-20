@@ -12,7 +12,7 @@ async function forceClearCache() {
 
     console.log('📡 Cache bypass response:');
     console.log('  balance:', clearData.balance);
-    console.log('  nonBalance:', clearData.nonBalance);
+    console.log('  availableBalance:', clearData.availableBalance);
 
     // Test normal request
     console.log('\n🔄 Testing normal request...');
@@ -21,7 +21,7 @@ async function forceClearCache() {
 
     console.log('📡 Normal response:');
     console.log('  balance:', normalData.balance);
-    console.log('  nonBalance:', normalData.nonBalance);
+    console.log('  availableBalance:', normalData.availableBalance);
 
     // Check database directly
     console.log('\n🗄️ Checking database directly...');

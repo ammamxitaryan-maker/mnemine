@@ -5,7 +5,7 @@ import React from 'react';
 // Define the shape of the user data to fix TypeScript errors
 export interface UserData {
   balance: number;
-  nonBalance: number; // Add NON balance
+  availableBalance: number; // User's available balance (main currency)
   miningPower: number;
   accruedEarnings: number;
   totalInvested: number; // New field
@@ -21,7 +21,7 @@ const fetchUserData = async (telegramId: string, bypassCache: boolean = false): 
   console.log(`[fetchUserData] Fetching data for ${telegramId}, bypassCache: ${bypassCache}, url: ${url}`);
   const { data } = await api.get(url);
   console.log(`[fetchUserData] Received data for ${telegramId}:`, {
-    nonBalance: data.nonBalance,
+    availableBalance: data.availableBalance,
     balance: data.balance,
     bypassCache,
     url,
