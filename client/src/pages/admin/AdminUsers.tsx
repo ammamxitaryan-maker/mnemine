@@ -836,8 +836,8 @@ const AdminUsers = () => {
                         size="sm"
                         onClick={() => setCurrentPage(page)}
                         className={`w-8 h-8 p-0 ${page === currentPage
-                            ? 'bg-blue-600 text-white'
-                            : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
                           }`}
                       >
                         {page}

@@ -16,7 +16,7 @@ import { setExchangeRate } from '../controllers/exchangeController.js';
 import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
 // import { CacheService } from '../services/cacheService.js';
-import { getOrCreateWallet } from '../utils/balanceUtils.js';
+import { calculateAvailableBalance, calculateUSDBalance } from '../utils/balanceUtils.js';
 
 const router = Router();
 
@@ -108,7 +108,14 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       // Ensure NON wallet exists
       if (!nonWallet) {
         console.log(`[ADMIN] Creating new NON wallet for user: ${userId}`);
-        await getOrCreateWallet(userId, 'NON');
+        // Create NON wallet if it doesn't exist
+        await prisma.wallet.create({
+          data: {
+            userId: userId,
+            currency: 'NON',
+            balance: 0
+          }
+        });
         // Re-fetch the wallet after creation
         const updatedUser = await tx.user.findUnique({
           where: { id: userId },
@@ -1060,15 +1067,9 @@ router.get('/users', isAdmin, async (req, res) => {
         isFrozen: user.isFrozen,
         isSuspicious: user.isSuspicious,
         isOnline: isOnline,
-        balance: user.wallets
-          .filter(w => w.currency === 'NON')
-          .reduce((sum, w) => sum + w.balance, 0),
-        availableBalance: user.wallets
-          .filter(w => w.currency === 'NON')
-          .reduce((sum, w) => sum + w.balance, 0),
-        usdBalance: user.wallets
-          .filter(w => w.currency === 'USD')
-          .reduce((sum, w) => sum + w.balance, 0),
+        balance: calculateAvailableBalance(user.wallets),
+        availableBalance: calculateAvailableBalance(user.wallets),
+        usdBalance: calculateUSDBalance(user.wallets),
         totalInvested: totalInvestedInSlots, // Use calculated value from active slots
         totalSlotsCount: totalSlotsCount,
         activeSlotsCount: activeSlots.length,

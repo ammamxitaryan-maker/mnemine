@@ -7,6 +7,7 @@ import { CacheService } from '../services/cacheService.js';
 import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
 import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
 import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
+import { calculateAvailableBalance } from '../utils/balanceUtils.js';
 
 // GET /api/user/:telegramId/data
 export const getUserData = async (req: Request, res: Response) => {
@@ -73,9 +74,7 @@ export const getUserData = async (req: Request, res: Response) => {
       const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
       // Calculate available balance (main currency for the app)
-      const availableBalance = user.wallets
-        .filter(w => w.currency === 'NON')
-        .reduce((sum, w) => sum + w.balance, 0);
+      const availableBalance = calculateAvailableBalance(user.wallets);
 
       const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
@@ -99,9 +98,7 @@ export const getUserData = async (req: Request, res: Response) => {
         const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
         // Calculate available balance (main currency for the app)
-        const availableBalance = user.wallets
-          .filter(w => w.currency === 'NON')
-          .reduce((sum, w) => sum + w.balance, 0);
+        const availableBalance = calculateAvailableBalance(user.wallets);
 
         console.log(`[DATA] User ${telegramId} available balance: ${availableBalance}`);
 

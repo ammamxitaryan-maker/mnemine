@@ -141,7 +141,7 @@ export class AdminStatsService {
           },
           wallets: walletStats.map(wallet => ({
             currency: wallet.currency,
-            totalBalance: wallet._sum.balance || 0,
+            availableBalance: wallet._sum.balance || 0,
             userCount: wallet._count
           }))
         }

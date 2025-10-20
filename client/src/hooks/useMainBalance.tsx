@@ -91,7 +91,7 @@ export const useMainBalance = (telegramId: string | undefined) => {
   }, [telegramId, refetchUserData, refetchSlotsData]);
 
   const balanceData = useQuery<MainBalanceData>({
-    queryKey: ['mainBalance', telegramId, userData?.nonBalance, slotsData, forceRefresh],
+    queryKey: ['mainBalance', telegramId, userData?.availableBalance, slotsData, forceRefresh],
     queryFn: () => {
       if (!userData || !slotsData) {
         return {
@@ -103,7 +103,7 @@ export const useMainBalance = (telegramId: string | undefined) => {
         };
       }
 
-      const availableBalance = userData.nonBalance || 0;
+      const availableBalance = userData.availableBalance || 0;
 
       // Calculate total invested in active slots
       const activeSlots = slotsData.filter(slot =>
