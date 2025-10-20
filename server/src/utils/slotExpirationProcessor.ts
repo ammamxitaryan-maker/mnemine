@@ -1,4 +1,6 @@
+import { ActivityLogType } from '@prisma/client';
 import prisma from '../prisma.js';
+import { updateUserBalance } from './balanceUpdateUtils.js';
 import { ensureUserWallets } from './walletUtils.js';
 
 // Processor for handling expired slots and automatic earnings claiming
@@ -124,31 +126,23 @@ export class SlotExpirationProcessor {
       const maxEarnings = slot.principal * 0.3;
       const actualEarnings = Math.min(finalEarnings, maxEarnings);
 
-      await prisma.$transaction(async (tx) => {
-        // Update wallet balance
-        await tx.wallet.update({
-          where: { id: NONWallet.id },
-          data: { balance: { increment: actualEarnings } }
-        });
+      // Update wallet balance with centralized utility
+      await updateUserBalance({
+        userId: slot.userId,
+        amount: actualEarnings,
+        currency: 'NON',
+        description: `Slot expired - earned ${actualEarnings.toFixed(4)} NON from ${slot.principal} NON investment (30% return)`,
+        activityLogType: ActivityLogType.CLAIM,
+        createActivityLog: true
+      });
 
-        // Deactivate the slot
-        await tx.miningSlot.update({
-          where: { id: slot.id },
-          data: {
-            isActive: false,
-            lastAccruedAt: now
-          }
-        });
-
-        // Create activity log
-        await tx.activityLog.create({
-          data: {
-            userId: slot.userId,
-            type: 'CLAIM',
-            amount: actualEarnings,
-            description: `Slot expired - earned ${actualEarnings.toFixed(4)} NON from ${slot.principal} NON investment (30% return)`
-          }
-        });
+      // Deactivate the slot
+      await prisma.miningSlot.update({
+        where: { id: slot.id },
+        data: {
+          isActive: false,
+          lastAccruedAt: now
+        }
       });
 
       console.log(`[SLOTS] Processed expired slot ${slot.id}: earned ${actualEarnings.toFixed(4)} NON`);

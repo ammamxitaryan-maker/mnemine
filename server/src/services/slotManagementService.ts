@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { MINIMUM_SLOT_INVESTMENT, SLOT_EXTENSION_COST, SLOT_EXTENSION_DAYS, SLOT_WEEKLY_RATE } from '../constants.js';
 import prisma from '../prisma.js';
 // import { CacheService } from '../services/cacheService.js';
+import { updateUserBalance } from '../utils/balanceUpdateUtils.js';
 import { validateBalanceOperation } from '../utils/balanceUtils.js';
 import { userSelect, userSelectWithoutMiningSlots } from '../utils/dbSelects.js';
 import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
@@ -76,41 +77,38 @@ export class SlotManagementService {
       const weeklyRate = SLOT_WEEKLY_RATE;
       const now = new Date();
 
-      await prisma.$transaction([
-        // Update wallet balance
-        prisma.wallet.update({
-          where: { id: NONWallet.id },
-          data: { balance: Math.max(0, NONWallet.balance - amount) },
-        }),
-        prisma.miningSlot.create({
-          data: {
-            userId: user.id,
-            principal: amount,
-            startAt: now,
-            lastAccruedAt: now,
-            effectiveWeeklyRate: weeklyRate,
-            expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000),
-            isActive: true,
-            type: 'standard',
-            isLocked: true,
-          },
-        }),
-        prisma.activityLog.create({
-          data: {
-            userId: user.id,
-            type: ActivityLogType.NEW_SLOT_PURCHASE,
-            amount: -amount,
-            description: `Invested ${amount.toFixed(2)} NON in a new slot`,
-            ipAddress: ipAddress,
-          },
-        }),
-        prisma.user.update({
-          where: { id: user.id },
-          data: {
-            lastSlotPurchaseAt: now,
-          },
-        }),
-      ]);
+      // Use centralized balance update utility
+      const balanceUpdateResult = await updateUserBalance({
+        userId: user.id,
+        amount: -amount, // Negative amount to deduct
+        currency: 'NON',
+        description: `Invested ${amount.toFixed(2)} NON in a new slot`,
+        activityLogType: ActivityLogType.NEW_SLOT_PURCHASE,
+        createActivityLog: true
+      });
+
+      // Create the mining slot
+      await prisma.miningSlot.create({
+        data: {
+          userId: user.id,
+          principal: amount,
+          startAt: now,
+          lastAccruedAt: now,
+          effectiveWeeklyRate: weeklyRate,
+          expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000),
+          isActive: true,
+          type: 'standard',
+          isLocked: true,
+        },
+      });
+
+      // Update user's last slot purchase time
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastSlotPurchaseAt: now,
+        },
+      });
 
       // Очищаем кэш пользователя после покупки слота
       try {
@@ -319,41 +317,38 @@ export class SlotManagementService {
       const now = new Date();
       const weeklyRate = 0.3; // 30% return over 7 days
 
-      await prisma.$transaction([
-        // Update wallet balance
-        prisma.wallet.update({
-          where: { id: NONWallet.id },
-          data: { balance: Math.max(0, NONWallet.balance - amount) },
-        }),
-        prisma.miningSlot.create({
-          data: {
-            userId: user.id,
-            principal: amount,
-            startAt: now,
-            lastAccruedAt: now,
-            effectiveWeeklyRate: weeklyRate,
-            expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000),
-            isActive: true,
-            type: 'investment',
-            isLocked: true,
-          },
-        }),
-        prisma.activityLog.create({
-          data: {
-            userId: user.id,
-            type: ActivityLogType.NEW_SLOT_PURCHASE,
-            amount: -amount,
-            description: `Created investment slot: ${amount.toFixed(2)} NON`,
-            ipAddress: ipAddress,
-          },
-        }),
-        prisma.user.update({
-          where: { id: user.id },
-          data: {
-            lastSlotPurchaseAt: now,
-          },
-        }),
-      ]);
+      // Use centralized balance update utility
+      const balanceUpdateResult = await updateUserBalance({
+        userId: user.id,
+        amount: -amount, // Negative amount to deduct
+        currency: 'NON',
+        description: `Created investment slot: ${amount.toFixed(2)} NON`,
+        activityLogType: ActivityLogType.NEW_SLOT_PURCHASE,
+        createActivityLog: true
+      });
+
+      // Create the mining slot
+      await prisma.miningSlot.create({
+        data: {
+          userId: user.id,
+          principal: amount,
+          startAt: now,
+          lastAccruedAt: now,
+          effectiveWeeklyRate: weeklyRate,
+          expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000),
+          isActive: true,
+          type: 'investment',
+          isLocked: true,
+        },
+      });
+
+      // Update user's last slot purchase time
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastSlotPurchaseAt: now,
+        },
+      });
 
       // Очищаем кэш пользователя после создания инвестиционного слота
       try {

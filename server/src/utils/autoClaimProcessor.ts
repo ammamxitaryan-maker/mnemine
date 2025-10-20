@@ -1,6 +1,7 @@
 import { ActivityLogType } from '@prisma/client';
 import prisma from '../prisma.js';
 import { webSocketManager } from '../websocket/WebSocketManager.js';
+import { updateUserBalance } from './balanceUpdateUtils.js';
 import { ensureUserWallets } from './walletUtils.js';
 
 interface AutoClaimData {
@@ -157,32 +158,23 @@ export class AutoClaimProcessor {
         return;
       }
 
-      // Transfer earnings to NON wallet
-      await prisma.$transaction(async (tx) => {
-        // Update NON wallet balance
-        await tx.wallet.update({
-          where: { id: NONWallet.id },
-          data: { balance: { increment: totalEarnings } }
-        });
-
-        // Update slot timestamps
-        for (const slotUpdate of slotsToUpdate) {
-          await tx.miningSlot.update({
-            where: { id: slotUpdate.id },
-            data: { lastAccruedAt: slotUpdate.lastAccruedAt }
-          });
-        }
-
-        // Create activity log
-        await tx.activityLog.create({
-          data: {
-            userId: userId,
-            type: ActivityLogType.CLAIM,
-            amount: totalEarnings,
-            description: `Auto-claim: ${totalEarnings.toFixed(4)} NON added to balance after 7 days`,
-          }
-        });
+      // Update NON wallet balance with centralized utility
+      await updateUserBalance({
+        userId,
+        amount: totalEarnings,
+        currency: 'NON',
+        description: `Auto-claim: ${totalEarnings.toFixed(4)} NON added to balance after 7 days`,
+        activityLogType: ActivityLogType.CLAIM,
+        createActivityLog: true
       });
+
+      // Update slot timestamps
+      for (const slotUpdate of slotsToUpdate) {
+        await prisma.miningSlot.update({
+          where: { id: slotUpdate.id },
+          data: { lastAccruedAt: slotUpdate.lastAccruedAt }
+        });
+      }
 
       console.log(`[AUTO_CLAIM] Auto-claimed ${totalEarnings.toFixed(4)} NON for user ${userId}`);
 

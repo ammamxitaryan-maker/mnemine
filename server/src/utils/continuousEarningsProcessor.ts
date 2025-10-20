@@ -1,6 +1,7 @@
 import { ActivityLogType } from '@prisma/client';
 import prisma from '../prisma.js';
 import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
+import { updateUserBalance } from './balanceUpdateUtils.js';
 
 interface SlotEarnings {
   slotId: string;
@@ -108,37 +109,18 @@ export class ContinuousEarningsProcessor {
           userEarnings.set(slot.userId, current + slot.earnings);
         }
 
-        // Update user balances with earned amounts and create activity logs
-        const activityLogs = [];
+        // Update user balances with earned amounts using centralized utility
         for (const [userId, totalEarnings] of userEarnings) {
           if (totalEarnings > 0) {
-            await prisma.wallet.updateMany({
-              where: {
-                userId: userId,
-                currency: 'NON'
-              },
-              data: {
-                balance: {
-                  increment: totalEarnings
-                }
-              }
-            });
-
-            // Prepare activity log for batch creation
-            activityLogs.push({
-              userId: userId,
-              type: ActivityLogType.CLAIM,
+            await updateUserBalance({
+              userId,
               amount: totalEarnings,
-              description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} NON`
+              currency: 'NON',
+              description: `Earnings from mining slots: ${totalEarnings.toFixed(6)} NON`,
+              activityLogType: ActivityLogType.CLAIM,
+              createActivityLog: true
             });
           }
-        }
-
-        // Batch create activity logs
-        if (activityLogs.length > 0) {
-          await prisma.activityLog.createMany({
-            data: activityLogs
-          });
         }
 
         // Update slot timestamps using batch processing

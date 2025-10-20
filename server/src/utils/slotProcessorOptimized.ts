@@ -1,5 +1,6 @@
 ﻿import { ActivityLogType, Wallet } from '@prisma/client';
 import prisma from '../prisma.js';
+import { updateUserBalance } from './balanceUpdateUtils.js';
 
 // Конфигурация для оптимизированной обработки
 const PROCESSING_CONFIG = {
@@ -230,14 +231,18 @@ const processUserSlots = async (userId: string, slots: any[]) => {
     });
   }
 
-  // Выполняем все операции в одной транзакции
-  await prisma.$transaction([
-    // Обновляем баланс пользователя
-    prisma.wallet.update({
-      where: { id: NONWallet.id },
-      data: { balance: { increment: totalEarnings } }
-    }),
+  // Обновляем баланс пользователя с помощью централизованной утилиты
+  await updateUserBalance({
+    userId,
+    amount: totalEarnings,
+    currency: 'NON',
+    description: `Automatic slot closure - earned ${totalEarnings.toFixed(4)} NON from ${slots.length} slots`,
+    activityLogType: ActivityLogType.CLAIM,
+    createActivityLog: false // We'll create individual logs below
+  });
 
+  // Выполняем остальные операции в транзакции
+  await prisma.$transaction([
     // Обновляем все слоты пользователя
     ...slotUpdates.map(update => prisma.miningSlot.update(update)),
 

@@ -5,9 +5,9 @@ import { DatabasePerformanceMonitor } from '../optimizations/databaseOptimizatio
 import prisma from '../prisma.js';
 import { CacheService } from '../services/cacheService.js';
 import { DatabaseOptimizationService } from '../services/databaseOptimizationService.js';
+import { calculateAvailableBalance } from '../utils/balanceUtils.js';
 import { isUserEligible, isUserSuspicious } from '../utils/helpers.js';
 import { ensureUserWalletsByTelegramId } from '../utils/walletUtils.js';
-import { calculateAvailableBalance } from '../utils/balanceUtils.js';
 
 // GET /api/user/:telegramId/data
 export const getUserData = async (req: Request, res: Response) => {
@@ -101,6 +101,7 @@ export const getUserData = async (req: Request, res: Response) => {
         const availableBalance = calculateAvailableBalance(user.wallets);
 
         console.log(`[DATA] User ${telegramId} available balance: ${availableBalance}`);
+        console.log(`[DATA] User ${telegramId} wallets:`, user.wallets.map(w => ({ currency: w.currency, balance: w.balance })));
 
         const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 

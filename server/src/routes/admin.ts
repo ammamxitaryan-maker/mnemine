@@ -16,6 +16,7 @@ import { setExchangeRate } from '../controllers/exchangeController.js';
 import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
 // import { CacheService } from '../services/cacheService.js';
+import { updateUserBalance, validateBalanceOperation } from '../utils/balanceUpdateUtils.js';
 import { calculateAvailableBalance, calculateUSDBalance } from '../utils/balanceUtils.js';
 
 const router = Router();
@@ -89,13 +90,14 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       nonWalletExists: !!nonWallet
     });
 
-    // Вычисляем новый баланс
+    // Вычисляем изменение баланса
+    let balanceChange = 0;
     if (action === 'set') {
-      newBalance = Math.max(0, changeAmount); // Предотвращаем отрицательный баланс
+      balanceChange = changeAmount - currentBalance;
     } else if (action === 'add') {
-      newBalance = Math.max(0, currentBalance + changeAmount); // Предотвращаем отрицательный баланс
+      balanceChange = changeAmount;
     } else if (action === 'subtract') {
-      newBalance = Math.max(0, currentBalance - changeAmount);
+      balanceChange = -changeAmount;
     } else {
       return res.status(400).json({
         success: false,
@@ -103,52 +105,26 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       });
     }
 
-    // Обновляем основной баланс пользователя в кошельке
-    await prisma.$transaction(async (tx) => {
-      // Ensure NON wallet exists
-      if (!nonWallet) {
-        console.log(`[ADMIN] Creating new NON wallet for user: ${userId}`);
-        // Create NON wallet if it doesn't exist
-        await prisma.wallet.create({
-          data: {
-            userId: userId,
-            currency: 'NON',
-            balance: 0
-          }
-        });
-        // Re-fetch the wallet after creation
-        const updatedUser = await tx.user.findUnique({
-          where: { id: userId },
-          include: { wallets: { where: { currency: 'NON' } } }
-        });
-        const updatedNonWallet = updatedUser?.wallets.find(w => w.currency === 'NON');
-        if (updatedNonWallet) {
-          nonWallet = updatedNonWallet;
-        }
-      }
-
-      if (!nonWallet) {
-        throw new Error('Failed to create or find NON wallet');
-      }
-
-      // Update the actual wallet balance
-      await tx.wallet.update({
-        where: { id: nonWallet.id },
-        data: { balance: newBalance }
+    // Валидируем операцию
+    const validation = validateBalanceOperation(currentBalance, balanceChange);
+    if (!validation.isValid && action !== 'set') {
+      return res.status(400).json({
+        success: false,
+        error: validation.isNegative ? 'Недостаточно средств' : 'Некорректная сумма'
       });
+    }
 
-      // Создаем запись в логе активности в той же транзакции
-      await tx.activityLog.create({
-        data: {
-          userId: userId,
-          type: 'ADMIN_ACTION',
-          amount: Math.abs(newBalance - currentBalance),
-          description: `Admin balance adjustment: ${action} ${changeAmount} NON`
-        }
-      });
-
-      console.log(`[ADMIN] Transaction completed successfully for user ${userId}`);
+    // Обновляем баланс с помощью централизованной утилиты
+    const updateResult = await updateUserBalance({
+      userId,
+      amount: balanceChange,
+      currency: 'NON',
+      description: `Admin balance adjustment: ${action} ${changeAmount} NON`,
+      activityLogType: 'ADMIN_ACTION' as any,
+      createActivityLog: true
     });
+
+    newBalance = updateResult.newBalance;
 
     // Verify the balance was actually updated
     const updatedUser = await prisma.user.findUnique({
@@ -1056,6 +1032,10 @@ router.get('/users', isAdmin, async (req, res) => {
       const totalInvestedInSlots = activeSlots.reduce((sum, slot) => sum + slot.principal, 0);
       const totalSlotsCount = user.miningSlots.length;
 
+      const balance = calculateAvailableBalance(user.wallets);
+      console.log(`[ADMIN] User ${user.telegramId} balance: ${balance}`);
+      console.log(`[ADMIN] User ${user.telegramId} wallets:`, user.wallets.map(w => ({ currency: w.currency, balance: w.balance })));
+
       return {
         id: user.id,
         telegramId: user.telegramId,
@@ -1067,8 +1047,8 @@ router.get('/users', isAdmin, async (req, res) => {
         isFrozen: user.isFrozen,
         isSuspicious: user.isSuspicious,
         isOnline: isOnline,
-        balance: calculateAvailableBalance(user.wallets),
-        availableBalance: calculateAvailableBalance(user.wallets),
+        balance: balance,
+        availableBalance: balance,
         usdBalance: calculateUSDBalance(user.wallets),
         totalInvested: totalInvestedInSlots, // Use calculated value from active slots
         totalSlotsCount: totalSlotsCount,

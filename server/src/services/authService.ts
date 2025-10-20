@@ -129,7 +129,6 @@ export class AuthService {
             lastActivityAt: new Date(),
             wallets: {
               create: [
-                { currency: 'USD', balance: 0 },
                 { currency: 'NON', balance: WELCOME_BONUS_AMOUNT } // Give 3 NON as welcome bonus
               ]
             }
