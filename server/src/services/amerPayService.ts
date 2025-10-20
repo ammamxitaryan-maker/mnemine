@@ -56,7 +56,7 @@ export class AmerPayService {
 
       // Create signature for security
       const signature = this.createSignature(payload);
-      (payload as any).signature = signature;
+      (payload as { signature?: string }).signature = signature;
 
       const response = await fetch(`${this.baseUrl}/api/v1/payments/create`, {
         method: 'POST',
@@ -139,7 +139,7 @@ export class AmerPayService {
   /**
    * Create signature for request security
    */
-  private createSignature(data: any): string {
+  private createSignature(data: Record<string, unknown>): string {
     const sortedKeys = Object.keys(data).sort();
     const stringToSign = sortedKeys
       .map(key => `${key}=${data[key]}`)

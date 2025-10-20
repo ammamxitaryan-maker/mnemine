@@ -20,7 +20,7 @@ class WebSocketManager {
   public setWebSocketServer(wsServer: WebSocketServer) {
     this.wsServer = wsServer;
     // Initialize unified manager with the server
-    this.unifiedManager.initialize(wsServer);
+    this.unifiedManager.initialize(wsServer as any);
   }
 
   public async broadcastBalanceUpdate(telegramId: string, balanceData: any) {

@@ -92,7 +92,7 @@ logger.server('Environment configuration loaded', {
 });
 
 import compression from 'compression';
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { createServer } from 'http';
@@ -279,13 +279,13 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Request validation middleware
-app.use((req: any, res: any, next: any) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`[REQUEST] ${req.method} ${req.path} - Content-Type: ${req.get('Content-Type') || 'none'}`);
   next();
 });
 
 // Production health check endpoint
-app.get('/health', async (req: any, res: any) => {
+app.get('/health', async (req: Request, res: Response) => {
   try {
     const dbCheckPromise = prisma.$queryRaw`SELECT 1`;
     const dbTimeoutPromise = new Promise((_, reject) =>
@@ -452,7 +452,7 @@ if (token && bot) {
   };
 
   if (webhookDelayMs > 0) {
-    app.use(webhookPath, async (req, res, _next) => {
+    app.use(webhookPath, async (req: any, res: any, _next: any) => {
       console.log(`[WEBHOOK] Processing webhook with ${webhookDelayMs}ms delay...`);
       console.log(`[WEBHOOK] Request body:`, JSON.stringify(req.body, null, 2));
       await new Promise(resolve => setTimeout(resolve, webhookDelayMs));
@@ -465,14 +465,14 @@ if (token && bot) {
       }
     });
   } else {
-    app.use(webhookPath, async (req, res, _next) => {
+    app.use(webhookPath, async (req: any, res: any, _next: any) => {
       console.log(`[WEBHOOK] Received webhook request`);
       console.log(`[WEBHOOK] Method: ${req.method}`);
       console.log(`[WEBHOOK] Headers:`, JSON.stringify(req.headers, null, 2));
       console.log(`[WEBHOOK] Body:`, JSON.stringify(req.body, null, 2));
 
       const originalSend = res.send;
-      res.send = function (data) {
+      res.send = function (data: any) {
         console.log(`[WEBHOOK] Response status: ${res.statusCode}`);
         console.log(`[WEBHOOK] Response data:`, data);
         return originalSend.call(this, data);
@@ -630,7 +630,7 @@ app.get('*', (req: any, res: any) => {
   const indexPath = path.join(publicPath, 'index.html');
   console.log(`[SPA] Index file path: ${indexPath}`);
 
-  res.sendFile(indexPath, (err: any) => {
+  res.sendFile(indexPath, (err: Error | null) => {
     if (err) {
       console.error(`[SPA] Error serving index.html:`, err);
       res.status(500).send('Error loading application');
@@ -841,7 +841,7 @@ async function startServer() {
       ProductionHealthCheck.markAsHealthy();
 
       // Initialize memory monitoring
-      const memoryMonitor = MemoryMonitoringService.getInstance();
+      MemoryMonitoringService.getInstance();
       logger.server('Memory monitoring service initialized');
 
       // Initialize user stats services
@@ -875,7 +875,7 @@ async function startServer() {
 
           bot.telegram.setWebhook(webhookUrl)
             .then(() => console.log(`[BOT] ✅ Webhook successfully set to ${webhookUrl}`))
-            .catch((err: any) => console.error('[BOT] ❌ Failed to set webhook:', err));
+            .catch((err: Error) => console.error('[BOT] ❌ Failed to set webhook:', err));
         } else {
           console.warn('[BOT] Webhook not set: Backend URL is not HTTPS. Bot will only respond to direct messages in development.');
         }

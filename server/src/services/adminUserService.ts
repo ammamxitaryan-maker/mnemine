@@ -206,7 +206,7 @@ export class AdminUserService {
           await prisma.accountFreeze.create({
             data: {
               userId: userId,
-              reason: reason as any,
+              reason: reason === 'VIOLATION_OF_TERMS' ? 'VIOLATION_TERMS' : reason === 'MANUAL_REVIEW' ? 'MANUAL' : reason as any,
               adminId: 'ADMIN',
               frozenAt: new Date()
             }
@@ -322,8 +322,8 @@ export class AdminUserService {
       console.error('Error deleting user:', error);
       console.error('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
-        code: (error as any)?.code,
-        meta: (error as any)?.meta,
+        code: (error as { code?: string })?.code,
+        meta: (error as { meta?: unknown })?.meta,
         stack: error instanceof Error ? error.stack : undefined
       });
       res.status(500).json({
@@ -531,7 +531,7 @@ export class AdminUserService {
     await prisma.accountFreeze.create({
       data: {
         userId: userId,
-        reason: reason as any,
+        reason: reason === 'VIOLATION_OF_TERMS' ? 'VIOLATION_TERMS' : reason === 'MANUAL_REVIEW' ? 'MANUAL' : reason as any,
         adminId: 'ADMIN',
         frozenAt: new Date()
       }

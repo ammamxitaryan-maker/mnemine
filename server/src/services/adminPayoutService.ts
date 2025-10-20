@@ -8,7 +8,7 @@ export class AdminPayoutService {
     try {
       const { date, status } = req.query;
       
-      const whereClause: any = {};
+      const whereClause: Record<string, unknown> = {};
       if (date) {
         const targetDate = new Date(date as string);
         whereClause.date = {

@@ -77,7 +77,7 @@ router.get('/verify', (req, res) => {
     const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret';
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, JWT_SECRET) as { isAdmin: boolean; adminId: string };
 
       if (!decoded.isAdmin) {
         return res.status(403).json({
@@ -90,12 +90,12 @@ router.get('/verify', (req, res) => {
         success: true,
         admin: {
           id: decoded.adminId,
-          permissions: decoded.permissions,
-          loginTime: decoded.loginTime
+          permissions: (decoded as any).permissions || ['all'],
+          loginTime: (decoded as any).loginTime || new Date().toISOString()
         }
       });
 
-    } catch (jwtError) {
+    } catch {
       return res.status(401).json({
         success: false,
         error: 'Invalid token'

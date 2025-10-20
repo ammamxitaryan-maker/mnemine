@@ -1,7 +1,7 @@
-import { WebSocketServer as WSWebSocketServer, WebSocket } from 'ws';
+import { EventEmitter } from 'events';
 import { IncomingMessage } from 'http';
 import { URL } from 'url';
-import { EventEmitter } from 'events';
+import { WebSocketServer as WSWebSocketServer, WebSocket } from 'ws';
 import prisma from '../prisma.js';
 
 interface AuthenticatedWebSocket extends WebSocket {
@@ -15,7 +15,7 @@ interface AuthenticatedWebSocket extends WebSocket {
 
 interface WebSocketMessage {
   type: string;
-  data: any;
+  data: unknown;
   timestamp: string;
 }
 
@@ -174,7 +174,7 @@ export class UnifiedWebSocketManager extends EventEmitter {
 
       // Generate unique connection ID
       const connectionId = `${telegramId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Setup connection metadata
       ws.telegramId = telegramId;
       ws.connectionId = connectionId;
@@ -253,13 +253,13 @@ export class UnifiedWebSocketManager extends EventEmitter {
   private handleMessage(ws: AuthenticatedWebSocket, data: Buffer): void {
     try {
       const message: WebSocketMessage = JSON.parse(data.toString());
-      
+
       switch (message.type) {
         case 'subscribe':
-          this.handleSubscription(ws, message.data);
+          this.handleSubscription(ws, message.data as string);
           break;
         case 'unsubscribe':
-          this.handleUnsubscription(ws, message.data);
+          this.handleUnsubscription(ws, message.data as string);
           break;
         case 'ping':
           this.handlePing(ws);
@@ -359,7 +359,7 @@ export class UnifiedWebSocketManager extends EventEmitter {
   /**
    * Broadcast message to specific user
    */
-  public broadcastToUser(telegramId: string, eventType: string, data: any): void {
+  public broadcastToUser(telegramId: string, eventType: string, data: unknown): void {
     const userConnections = this.clients.get(telegramId);
     if (!userConnections || userConnections.size === 0) {
       return;
@@ -391,7 +391,7 @@ export class UnifiedWebSocketManager extends EventEmitter {
   /**
    * Broadcast message to all users with specific subscription
    */
-  public broadcastToSubscribers(subscription: string, eventType: string, data: any): void {
+  public broadcastToSubscribers(subscription: string, eventType: string, data: unknown): void {
     const message = JSON.stringify({
       type: eventType,
       data,
@@ -500,16 +500,16 @@ export class UnifiedWebSocketManager extends EventEmitter {
     if (action === 'connect') {
       this.stats.totalConnections++;
       this.stats.activeConnections++;
-      
+
       const userConnections = this.stats.connectionsByUser.get(telegramId) || 0;
       this.stats.connectionsByUser.set(telegramId, userConnections + 1);
-      
+
       if (userConnections === 0) {
         this.stats.usersOnline++;
       }
     } else {
       this.stats.activeConnections = Math.max(0, this.stats.activeConnections - 1);
-      
+
       const userConnections = this.stats.connectionsByUser.get(telegramId) || 0;
       if (userConnections > 1) {
         this.stats.connectionsByUser.set(telegramId, userConnections - 1);

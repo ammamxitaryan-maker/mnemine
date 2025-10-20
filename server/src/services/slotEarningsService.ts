@@ -235,7 +235,7 @@ export class SlotEarningsService {
       }
 
       let totalClaimedAmount = 0;
-      const claimedSlots: any[] = [];
+      const claimedSlots: { id: string; principal: number; earnings: number }[] = [];
 
       await prisma.$transaction(async (tx) => {
         for (const slot of user.miningSlots) {
@@ -282,7 +282,7 @@ export class SlotEarningsService {
 
           totalClaimedAmount += expectedEarnings;
           claimedSlots.push({
-            slotId: slot.id,
+            id: slot.id,
             principal: slot.principal,
             earnings: expectedEarnings
           });

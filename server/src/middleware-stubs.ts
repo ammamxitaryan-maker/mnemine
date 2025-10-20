@@ -9,6 +9,10 @@ declare module 'express-serve-static-core' {
       id: string;
       telegramId: string;
       role: string;
+      adminId?: string;
+      permissions?: string[];
+      firstName?: string;
+      username?: string;
     };
   }
 }
@@ -46,6 +50,8 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
           const decoded = JSON.parse(Buffer.from(adminToken, 'base64').toString());
           if (decoded.isAdmin && decoded.telegramId && ADMIN_TELEGRAM_IDS.includes(decoded.telegramId)) {
             req.user = {
+              id: decoded.telegramId,
+              role: 'admin',
               adminId: decoded.telegramId,
               permissions: ['all'],
               telegramId: decoded.telegramId,
@@ -62,6 +68,8 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
             // Check if it's a browser admin token (no telegramId required)
             if (decoded.adminId === 'browser-admin' || decoded.telegramId && ADMIN_TELEGRAM_IDS.includes(decoded.telegramId)) {
               req.user = {
+                id: decoded.adminId || decoded.telegramId || 'browser-admin',
+                role: 'admin',
                 adminId: decoded.adminId || decoded.telegramId,
                 permissions: ['all'],
                 telegramId: decoded.telegramId,
@@ -127,6 +135,8 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 
     // Set admin user data
     req.user = {
+      id: userTelegramId,
+      role: 'admin',
       adminId: userTelegramId,
       permissions: ['all'],
       telegramId: userTelegramId,

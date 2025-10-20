@@ -73,7 +73,7 @@ export const getLotteryParticipants = async (req: Request, res: Response) => {
 // POST /api/admin/lottery/select-winner - Manually select lottery winner
 export const selectLotteryWinner = async (req: Request, res: Response) => {
   const { ticketId, prizeAmount } = req.body;
-  const adminUserId = (req as any).user?.id;
+  const adminUserId = (req as { user?: { id: string } }).user?.id;
 
   if (!ticketId || typeof prizeAmount !== 'number' || prizeAmount < 0) {
     return res.status(400).json({ error: 'Invalid ticket ID or prize amount' });
@@ -151,7 +151,7 @@ export const selectLotteryWinner = async (req: Request, res: Response) => {
 // POST /api/admin/lottery/remove-winner - Remove winner status from ticket
 export const removeLotteryWinner = async (req: Request, res: Response) => {
   const { ticketId } = req.body;
-  const adminUserId = (req as any).user?.id;
+  const adminUserId = (req as { user?: { id: string } }).user?.id;
 
   if (!ticketId) {
     return res.status(400).json({ error: 'Ticket ID is required' });
@@ -218,7 +218,7 @@ export const removeLotteryWinner = async (req: Request, res: Response) => {
 
 // POST /api/admin/lottery/complete-draw - Complete the lottery draw
 export const completeLotteryDraw = async (req: Request, res: Response) => {
-  const adminUserId = (req as any).user?.id;
+  // const adminUserId = (req as { user?: { id: string } }).user?.id; // Unused variable removed
 
   try {
     const currentLottery = await prisma.lottery.findFirst({

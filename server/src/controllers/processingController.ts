@@ -54,7 +54,18 @@ export const processAllSlots = async (req: Request, res: Response) => {
 };
 
 // Process a single slot
-export const processSlot = async (slot: any): Promise<number> => {
+export const processSlot = async (slot: {
+  id: string;
+  userId: string;
+  lastAccruedAt: Date | null;
+  startAt: Date;
+  principal: number;
+  effectiveWeeklyRate: number;
+  isActive: boolean;
+  user: {
+    wallets: Array<{ id: string; currency: string; balance: number }>;
+  };
+}): Promise<number> => {
   const now = new Date();
   const lastAccrued = slot.lastAccruedAt || slot.startAt;
   const timeDiff = now.getTime() - lastAccrued.getTime();
@@ -84,7 +95,7 @@ export const processSlot = async (slot: any): Promise<number> => {
   });
 
   // Add earnings to user's NON wallet
-  const nonWallet = slot.user.wallets.find((w: any) => w.currency === 'NON');
+  const nonWallet = slot.user.wallets.find((w: { currency: string }) => w.currency === 'NON');
   if (nonWallet) {
     await prisma.wallet.update({
       where: { id: nonWallet.id },

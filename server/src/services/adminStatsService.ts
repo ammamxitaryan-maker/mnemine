@@ -262,7 +262,7 @@ export class AdminStatsService {
   static async resetDatabase(req: Request, res: Response) {
     try {
       // Проверяем аутентификацию админа
-      const currentAdminUser = req.user as any;
+      const currentAdminUser = req.user as { role: string };
       if (!currentAdminUser || currentAdminUser.role !== 'ADMIN') {
         return res.status(403).json({
           success: false,
@@ -270,7 +270,7 @@ export class AdminStatsService {
         });
       }
 
-      console.log(`[ADMIN] Database reset initiated by admin: ${currentAdminUser.telegramId}`);
+      console.log(`[ADMIN] Database reset initiated by admin: ${(currentAdminUser as any).telegramId || 'unknown'}`);
 
       // Удаляем данные в правильном порядке (с учетом внешних ключей)
       const tablesToDelete = [
@@ -327,13 +327,13 @@ export class AdminStatsService {
         }
       }
 
-      console.log(`[ADMIN] Database reset completed by admin: ${currentAdminUser.telegramId}`);
+      console.log(`[ADMIN] Database reset completed by admin: ${(currentAdminUser as any).telegramId || 'unknown'}`);
 
       res.status(200).json({
         success: true,
         message: 'Database has been completely reset',
         data: {
-          resetBy: currentAdminUser.telegramId,
+          resetBy: (currentAdminUser as any).telegramId || 'unknown',
           resetAt: new Date().toISOString(),
           tablesCleared: tablesToDelete.length,
           sequencesReset: sequencesToReset.length

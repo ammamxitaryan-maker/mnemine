@@ -216,7 +216,7 @@ export class AuthService {
         });
       }
 
-      return { success: true, user };
+      return { success: true, user: user as any };
     } catch (error) {
       console.error('Error in findOrCreateUser:', error);
       return { success: false, error: 'Failed to authenticate user' };

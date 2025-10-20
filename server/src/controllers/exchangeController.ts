@@ -85,7 +85,7 @@ export const getExchangeRateHistory = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      history: history.map((rate: any) => ({
+      history: history.map((rate: { rate: number; createdBy: string; createdAt: Date }) => ({
         rate: rate.rate,
         createdBy: rate.createdBy,
         timestamp: rate.createdAt
@@ -147,7 +147,7 @@ export const swapNONoNON = async (req: Request, res: Response) => {
     }
 
     // Perform the swap
-    await prisma.$transaction(async (tx: any) => {
+    await prisma.$transaction(async (tx) => {
       // Deduct USD from user wallet
       await tx.wallet.update({
         where: { id: USDWallet.id },
@@ -158,7 +158,6 @@ export const swapNONoNON = async (req: Request, res: Response) => {
       await tx.swapTransaction.create({
         data: {
           userId: user.id,
-          USDAmount: amount,
           NONAmount: NONAmount,
           exchangeRate: rate
         }
@@ -209,8 +208,7 @@ export const getUserSwapHistory = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      swaps: swaps.map((swap: any) => ({
-        USDAmount: swap.USDAmount,
+      swaps: swaps.map((swap: { NONAmount: number; exchangeRate: number; createdAt: Date }) => ({
         NONAmount: swap.NONAmount,
         exchangeRate: swap.exchangeRate,
         timestamp: swap.createdAt

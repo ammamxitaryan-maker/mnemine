@@ -7,7 +7,7 @@ export class MemoryMonitoringController {
     try {
       const memoryMonitor = MemoryMonitoringService.getInstance();
       const memoryReport = memoryMonitor.getMemoryReport();
-      
+
       res.status(200).json({
         success: true,
         data: memoryReport
@@ -26,7 +26,7 @@ export class MemoryMonitoringController {
     try {
       const memoryMonitor = MemoryMonitoringService.getInstance();
       const cleanupResult = memoryMonitor.performMemoryCleanup();
-      
+
       res.status(200).json({
         success: true,
         message: 'Memory cleanup completed',
@@ -45,11 +45,11 @@ export class MemoryMonitoringController {
   static async updateMemoryThresholds(req: Request, res: Response) {
     try {
       const { warning, critical, maxHeap } = req.body;
-      
+
       if (warning && critical && maxHeap) {
         const memoryMonitor = MemoryMonitoringService.getInstance();
         memoryMonitor.updateThresholds({ warning, critical, maxHeap });
-        
+
         res.status(200).json({
           success: true,
           message: 'Memory thresholds updated successfully',
@@ -76,9 +76,9 @@ export class MemoryMonitoringController {
       const { limit = 100 } = req.query;
       const memoryMonitor = MemoryMonitoringService.getInstance();
       const history = memoryMonitor.getMemoryHistory();
-      
+
       const limitedHistory = history.slice(-parseInt(limit as string));
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -102,7 +102,7 @@ export class MemoryMonitoringController {
       const memoryMonitor = MemoryMonitoringService.getInstance();
       const trends = memoryMonitor.getMemoryTrends();
       const currentStats = memoryMonitor.getMemoryStats();
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -125,7 +125,7 @@ export class MemoryMonitoringController {
     try {
       const memoryMonitor = MemoryMonitoringService.getInstance();
       const cacheInfo = memoryMonitor.getCacheMemoryInfo();
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -147,12 +147,12 @@ export class MemoryMonitoringController {
   static async forceGarbageCollection(req: Request, res: Response) {
     try {
       const beforeStats = process.memoryUsage();
-      
+
       if (global.gc) {
         global.gc();
         const afterStats = process.memoryUsage();
         const memoryFreed = (beforeStats.heapUsed - afterStats.heapUsed) / 1024 / 1024;
-        
+
         res.status(200).json({
           success: true,
           message: 'Garbage collection completed',
@@ -184,48 +184,48 @@ export class MemoryMonitoringController {
   }
 
   // Helper method to generate recommendations based on trends
-  private static generateRecommendations(trends: any, currentStats: any): string[] {
+  private static generateRecommendations(trends: { trend: string; change: number }, currentStats: { heapUsed: number; heapTotal: number }): string[] {
     const recommendations: string[] = [];
-    
+
     if (trends.trend === 'increasing' && trends.change > 10) {
       recommendations.push('Memory usage is increasing rapidly. Consider reducing cache sizes.');
       recommendations.push('Monitor for memory leaks in long-running processes.');
     }
-    
+
     if (currentStats.heapUsed > 1024) {
       recommendations.push('High memory usage detected. Consider performing memory cleanup.');
       recommendations.push('Review cache configurations and reduce TTL values.');
     }
-    
+
     if (trends.trend === 'stable' && currentStats.heapUsed < 256) {
       recommendations.push('Memory usage is stable and low. System is running efficiently.');
     }
-    
+
     return recommendations;
   }
 
   // Helper method to generate cache recommendations
-  private static generateCacheRecommendations(cacheInfo: any[]): string[] {
+  private static generateCacheRecommendations(cacheInfo: { cacheName: string; size: number; memoryUsage: number; hitRate: number }[]): string[] {
     const recommendations: string[] = [];
-    
+
     const totalCacheMemory = cacheInfo.reduce((sum, cache) => sum + cache.memoryUsage, 0);
-    
+
     if (totalCacheMemory > 100) {
       recommendations.push('Total cache memory usage is high. Consider reducing cache sizes.');
     }
-    
+
     const lowHitRateCaches = cacheInfo.filter(cache => cache.hitRate < 50);
     if (lowHitRateCaches.length > 0) {
       recommendations.push(`Caches with low hit rates detected: ${lowHitRateCaches.map(c => c.cacheName).join(', ')}`);
       recommendations.push('Consider adjusting cache TTL or reducing cache sizes for low-hit-rate caches.');
     }
-    
+
     const largeCaches = cacheInfo.filter(cache => cache.memoryUsage > 50);
     if (largeCaches.length > 0) {
       recommendations.push(`Large caches detected: ${largeCaches.map(c => c.cacheName).join(', ')}`);
       recommendations.push('Consider implementing cache eviction policies for large caches.');
     }
-    
+
     return recommendations;
   }
 }

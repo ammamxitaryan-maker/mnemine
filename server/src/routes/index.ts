@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Request, Response, Router } from 'express';
 import adminRoutes from './admin.js'; // Import admin routes
 import adminAuthRoutes from './adminAuth.js'; // Import admin auth routes
 import adminBrowserRoutes from './adminBrowser.js'; // Import browser admin routes
@@ -23,12 +23,12 @@ import webSocketMonitoringRoutes from './webSocketMonitoring.js'; // Import WebS
 const router = Router();
 
 // Health check route
-router.get('/health', (req: any, res: any) => {
+router.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Webhook endpoint for Telegram
-router.post('/webhook', (req: any, res: any) => {
+router.post('/webhook', (req: Request, res: Response) => {
   console.log('[WEBHOOK] Received webhook request via API routes');
   console.log('[WEBHOOK] Method:', req.method);
   console.log('[WEBHOOK] Headers:', JSON.stringify(req.headers, null, 2));

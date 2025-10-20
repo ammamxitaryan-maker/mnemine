@@ -17,7 +17,7 @@ import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
 // import { CacheService } from '../services/cacheService.js';
 import { updateUserBalance, validateBalanceOperation } from '../utils/balanceUpdateUtils.js';
-import { calculateAvailableBalance, calculateUSDBalance } from '../utils/balanceUtils.js';
+import { calculateAvailableBalance } from '../utils/balanceUtils.js';
 
 const router = Router();
 
@@ -647,7 +647,7 @@ router.post('/notifications/broadcast', isAdmin, async (req, res) => {
       userWhereClause.totalInvested = { gte: filters.minInvestment };
     }
     if (filters.maxInvestment) {
-      userWhereClause.totalInvested = { ...userWhereClause.totalInvested, lte: filters.maxInvestment };
+      userWhereClause.totalInvested = { ...(userWhereClause.totalInvested as any), lte: filters.maxInvestment };
     }
     if (filters.role) {
       userWhereClause.role = filters.role;
@@ -1049,7 +1049,7 @@ router.get('/users', isAdmin, async (req, res) => {
         isOnline: isOnline,
         balance: balance,
         availableBalance: balance,
-        usdBalance: calculateUSDBalance(user.wallets),
+        usdBalance: user.wallets.find(w => w.currency === 'USD')?.balance || 0,
         totalInvested: totalInvestedInSlots, // Use calculated value from active slots
         totalSlotsCount: totalSlotsCount,
         activeSlotsCount: activeSlots.length,

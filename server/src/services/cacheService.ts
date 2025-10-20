@@ -349,7 +349,7 @@ export class MultiLayerCache {
   /**
    * Set value in cache
    */
-  set(key: string, value: any, ttl?: number): void {
+  set(key: string, value: unknown, _ttl?: number): void {
     this.memoryCache.set(key, value);
     this.redisCache.set(key, value);
     this.recordCacheSet(key);
@@ -431,7 +431,7 @@ export class UserDataCache {
     return this.cache.get(key, fallback, this.TTL);
   }
 
-  setUserData(telegramId: string, data: any) {
+  setUserData(telegramId: string, data: unknown) {
     const key = `user_data_${telegramId}`;
     this.cache.set(key, data, this.TTL);
   }
@@ -463,7 +463,7 @@ export class SlotsDataCache {
     return this.cache.get(key, fallback, this.TTL);
   }
 
-  setSlotsData(telegramId: string, data: any) {
+  setSlotsData(telegramId: string, data: unknown) {
     const key = `slots_data_${telegramId}`;
     this.cache.set(key, data, this.TTL);
   }
@@ -495,7 +495,7 @@ export class MarketDataCache {
     return this.cache.get(key, fallback, this.TTL);
   }
 
-  setMarketData(data: any) {
+  setMarketData(data: unknown) {
     const key = 'market_data';
     this.cache.set(key, data, this.TTL);
   }

@@ -1,12 +1,12 @@
-﻿import { Request, Response } from 'express';
+﻿import { ActivityLogType } from '@prisma/client';
+import { Request, Response } from 'express';
+import { LOTTERY_DRAW_INTERVAL_HOURS, LOTTERY_JACKPOT_CONTRIBUTION_PERCENTAGE, LOTTERY_JACKPOT_SEED, LOTTERY_PRIZE_DISTRIBUTION, LOTTERY_TICKET_COST } from '../constants.js';
 import prisma from '../prisma.js';
-import { LOTTERY_TICKET_COST, LOTTERY_DRAW_INTERVAL_HOURS, LOTTERY_JACKPOT_SEED, LOTTERY_JACKPOT_CONTRIBUTION_PERCENTAGE, LOTTERY_PRIZE_DISTRIBUTION } from '../constants.js';
-import { ActivityLogType } from '@prisma/client';
 
 // A helper function to get or create the current lottery
 const getCurrentLottery = async () => {
   console.log('[LOTTERY] Getting current lottery...');
-  
+
   let lottery = await prisma.lottery.findFirst({
     where: { isDrawn: false },
     orderBy: { createdAt: 'desc' },
@@ -18,20 +18,20 @@ const getCurrentLottery = async () => {
     console.log('[LOTTERY] Creating new lottery...');
     const drawDate = new Date();
     drawDate.setHours(drawDate.getHours() + LOTTERY_DRAW_INTERVAL_HOURS);
-    
+
     console.log('[LOTTERY] Draw date:', drawDate);
     console.log('[LOTTERY] Jackpot seed:', LOTTERY_JACKPOT_SEED);
-    
+
     lottery = await prisma.lottery.create({
       data: {
         drawDate,
         jackpot: LOTTERY_JACKPOT_SEED,
       },
     });
-    
+
     console.log('[LOTTERY] New lottery created:', lottery.id);
   }
-  
+
   console.log('[LOTTERY] Returning lottery:', lottery);
   return lottery;
 };
@@ -50,7 +50,7 @@ const performLotteryDraw = async (lotteryId: string) => {
 
   // 2. Find tickets and winners
   const tickets = await prisma.lotteryTicket.findMany({ where: { lotteryId } });
-  const winners: { ticket: any; matches: number }[] = [];
+  const winners: { ticket: { id: string; numbers: string | null; userId: string }; matches: number }[] = [];
 
   for (const ticket of tickets) {
     const userNumbers = ticket.numbers?.split(',').map(Number) || [];
@@ -61,8 +61,8 @@ const performLotteryDraw = async (lotteryId: string) => {
   }
 
   // 3. Distribute prizes
-  const winnersByTier: { [key: number]: any[] } = { 6: [], 5: [], 4: [] };
-  winners.forEach(w => winnersByTier[w.matches].push(w.ticket));
+  const winnersByTier: { [key: number]: { ticket: { id: string; numbers: string | null; userId: string }; matches: number }[] } = { 6: [], 5: [], 4: [] };
+  winners.forEach(w => winnersByTier[w.matches].push(w));
 
   const prizeDistribution = {
     6: lottery.jackpot * LOTTERY_PRIZE_DISTRIBUTION.MATCH_6,
@@ -87,18 +87,18 @@ const performLotteryDraw = async (lotteryId: string) => {
         for (const winnerTicket of tierWinners) {
           // Update wallet
           await tx.wallet.updateMany({
-            where: { userId: winnerTicket.userId, currency: 'USD' },
+            where: { userId: winnerTicket.ticket.userId, currency: 'USD' },
             data: { balance: { increment: prizePerWinner } },
           });
           // Update ticket
           await tx.lotteryTicket.update({
-            where: { id: winnerTicket.id },
+            where: { id: winnerTicket.ticket.id },
             data: { isWinner: true, prizeAmount: prizePerWinner },
           });
           // Create activity log
           await tx.activityLog.create({
             data: {
-              userId: winnerTicket.userId,
+              userId: winnerTicket.ticket.userId,
               type: ActivityLogType.LOTTERY_WIN,
               amount: prizePerWinner,
               description: `Won lottery prize for matching ${tier} numbers.`,
@@ -115,7 +115,7 @@ const performLotteryDraw = async (lotteryId: string) => {
 export const getLotteryStatus = async (req: Request, res: Response) => {
   try {
     console.log('[LOTTERY] Fetching lottery status...');
-    
+
     const overdueLottery = await prisma.lottery.findFirst({
       where: { isDrawn: false, drawDate: { lt: new Date() } },
     });
@@ -128,7 +128,7 @@ export const getLotteryStatus = async (req: Request, res: Response) => {
     console.log('[LOTTERY] Getting current lottery...');
     const lottery = await getCurrentLottery();
     console.log('[LOTTERY] Current lottery:', lottery);
-    
+
     res.status(200).json(lottery);
   } catch (error) {
     console.error('Error fetching lottery status:', error);

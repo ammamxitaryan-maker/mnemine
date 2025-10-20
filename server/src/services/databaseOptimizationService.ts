@@ -1,9 +1,9 @@
-import prisma from '../prisma.js';
 import { performance } from 'perf_hooks';
+import prisma from '../prisma.js';
 
 interface BatchUpdateItem {
   id: string;
-  data: any;
+  data: unknown;
 }
 
 interface QueryMetrics {
@@ -21,7 +21,7 @@ export class DatabaseOptimizationService {
    */
   static async getUserDataOptimized(telegramId: string) {
     const startTime = performance.now();
-    
+
     try {
       // Single transaction to get user data and update lastSeenAt
       const result = await prisma.$transaction(async (tx) => {
@@ -140,12 +140,12 @@ export class DatabaseOptimizationService {
    */
   static async batchUpdateMiningSlots(updates: BatchUpdateItem[]) {
     const startTime = performance.now();
-    
+
     try {
       await prisma.$transaction(async (tx) => {
         // Use updateMany for each unique set of data
         const groupedUpdates = this.groupUpdatesByData(updates);
-        
+
         for (const [dataKey, ids] of groupedUpdates.entries()) {
           const data = JSON.parse(dataKey);
           await tx.miningSlot.updateMany({
@@ -157,7 +157,7 @@ export class DatabaseOptimizationService {
 
       const duration = performance.now() - startTime;
       this.recordQueryMetrics('batchUpdateMiningSlots', duration);
-      
+
       console.log(`[DB_OPTIMIZATION] Batch updated ${updates.length} mining slots in ${duration.toFixed(2)}ms`);
     } catch (error) {
       console.error('[DB_OPTIMIZATION] batchUpdateMiningSlots failed:', error);
@@ -170,11 +170,11 @@ export class DatabaseOptimizationService {
    */
   static async batchUpdateWallets(updates: BatchUpdateItem[]) {
     const startTime = performance.now();
-    
+
     try {
       await prisma.$transaction(async (tx) => {
         const groupedUpdates = this.groupUpdatesByData(updates);
-        
+
         for (const [dataKey, ids] of groupedUpdates.entries()) {
           const data = JSON.parse(dataKey);
           await tx.wallet.updateMany({
@@ -186,7 +186,7 @@ export class DatabaseOptimizationService {
 
       const duration = performance.now() - startTime;
       this.recordQueryMetrics('batchUpdateWallets', duration);
-      
+
       console.log(`[DB_OPTIMIZATION] Batch updated ${updates.length} wallets in ${duration.toFixed(2)}ms`);
     } catch (error) {
       console.error('[DB_OPTIMIZATION] batchUpdateWallets failed:', error);
@@ -197,9 +197,9 @@ export class DatabaseOptimizationService {
   /**
    * Batch create multiple activity logs
    */
-  static async batchCreateActivityLogs(logs: any[]) {
+  static async batchCreateActivityLogs(logs: { userId: string; type: any; amount: number; description: string }[]) {
     const startTime = performance.now();
-    
+
     try {
       await prisma.activityLog.createMany({
         data: logs,
@@ -208,7 +208,7 @@ export class DatabaseOptimizationService {
 
       const duration = performance.now() - startTime;
       this.recordQueryMetrics('batchCreateActivityLogs', duration);
-      
+
       console.log(`[DB_OPTIMIZATION] Batch created ${logs.length} activity logs in ${duration.toFixed(2)}ms`);
     } catch (error) {
       console.error('[DB_OPTIMIZATION] batchCreateActivityLogs failed:', error);
@@ -221,7 +221,7 @@ export class DatabaseOptimizationService {
    */
   static async calculateEarningsOptimized(slotIds: string[]) {
     const startTime = performance.now();
-    
+
     try {
       // Single query to get all slots
       const slots = await prisma.miningSlot.findMany({
@@ -247,7 +247,7 @@ export class DatabaseOptimizationService {
         const timeElapsed = currentTime.getTime() - slot.lastAccruedAt.getTime();
         const slotDuration = 7 * 24 * 60 * 60 * 1000; // 7 days
         const progress = Math.min(timeElapsed / slotDuration, 1);
-        
+
         const expectedEarnings = slot.principal * slot.effectiveWeeklyRate;
         const newAccruedEarnings = expectedEarnings * progress;
 
@@ -286,7 +286,7 @@ export class DatabaseOptimizationService {
    */
   static async getUserStatsOptimized(telegramId: string) {
     const startTime = performance.now();
-    
+
     try {
       const user = await prisma.user.findUnique({
         where: { telegramId },
@@ -384,7 +384,7 @@ export class DatabaseOptimizationService {
    */
   static async getDashboardStatsOptimized() {
     const startTime = performance.now();
-    
+
     try {
       // Execute multiple queries in parallel
       const [
@@ -460,7 +460,7 @@ export class DatabaseOptimizationService {
    */
   private static groupUpdatesByData(updates: BatchUpdateItem[]): Map<string, string[]> {
     const grouped = new Map<string, string[]>();
-    
+
     for (const update of updates) {
       const dataKey = JSON.stringify(update.data);
       if (!grouped.has(dataKey)) {
@@ -468,7 +468,7 @@ export class DatabaseOptimizationService {
       }
       grouped.get(dataKey)!.push(update.id);
     }
-    
+
     return grouped;
   }
 
@@ -493,7 +493,7 @@ export class DatabaseOptimizationService {
    */
   static getQueryStats() {
     const stats = new Map<string, { count: number; totalDuration: number; avgDuration: number }>();
-    
+
     for (const metric of this.queryMetrics) {
       const existing = stats.get(metric.query) || { count: 0, totalDuration: 0, avgDuration: 0 };
       existing.count++;
@@ -501,7 +501,7 @@ export class DatabaseOptimizationService {
       existing.avgDuration = existing.totalDuration / existing.count;
       stats.set(metric.query, existing);
     }
-    
+
     return Object.fromEntries(stats);
   }
 

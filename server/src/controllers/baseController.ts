@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma.js';
-import { ResponseHelper, asyncHandler } from '../utils/responseHelpers.js';
 import { userSelect } from '../utils/dbSelects.js';
+import { ResponseHelper, asyncHandler } from '../utils/responseHelpers.js';
 
 /**
  * BUG FIX: Fixed TypeScript error where referralCount field was being selected directly
@@ -147,7 +147,7 @@ export class BaseController {
 
   // Generic pagination helper
   static paginate = async <T>(
-    model: unknown,
+    model: any,
     where: Record<string, unknown> = {},
     select: Record<string, unknown> | undefined = undefined,
     orderBy: Record<string, string> = { createdAt: 'desc' },
@@ -155,7 +155,7 @@ export class BaseController {
     limit: number = 50
   ): Promise<{ data: T[]; total: number; page: number; totalPages: number }> => {
     const skip = (page - 1) * limit;
-    
+
     const [data, total] = await Promise.all([
       model.findMany({
         where,

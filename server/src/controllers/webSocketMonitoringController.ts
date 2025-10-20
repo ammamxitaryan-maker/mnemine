@@ -196,7 +196,7 @@ export class WebSocketMonitoringController {
       
       const wsManager = UnifiedWebSocketManager.getInstance();
       
-      const config: any = {};
+      const config: { maxConnections?: number; maxConnectionsPerUser?: number; pingInterval?: number; connectionTimeout?: number } = {};
       if (maxConnections !== undefined) config.maxConnections = maxConnections;
       if (maxConnectionsPerUser !== undefined) config.maxConnectionsPerUser = maxConnectionsPerUser;
       if (pingInterval !== undefined) config.pingInterval = pingInterval;
