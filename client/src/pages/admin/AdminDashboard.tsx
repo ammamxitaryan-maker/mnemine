@@ -2,7 +2,6 @@
 
 import { LoadingSpinner } from '@/components/admin/LoadingSpinner';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { api } from '@/lib/api';
 import {
@@ -13,6 +12,7 @@ import {
   Clock,
   Database,
   DollarSign,
+  RefreshCw,
   Ticket,
   Users
 } from 'lucide-react';
@@ -128,133 +128,163 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">Admin Dashboard</h1>
-        <p className="text-purple-100">
-          Welcome to the system administration panel. Monitor and manage all aspects of the platform.
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
-        <Button
-          onClick={() => navigate('/admin/users')}
-          size="admin-grid"
-          className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
-        >
-          <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-          <span className="text-xs sm:text-sm font-medium">Users</span>
-        </Button>
-        <Button
-          onClick={() => navigate('/admin/transactions')}
-          size="admin-grid"
-          className="bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
-        >
-          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-          <span className="text-xs sm:text-sm font-medium">Transactions</span>
-        </Button>
-        <Button
-          onClick={() => navigate('/admin/lottery')}
-          size="admin-grid"
-          className="bg-purple-600 hover:bg-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
-        >
-          <Ticket className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-          <span className="text-xs sm:text-sm font-medium">Lottery</span>
-        </Button>
-        <Button
-          onClick={() => navigate('/admin/analytics')}
-          size="admin-grid"
-          className="bg-orange-600 hover:bg-orange-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 touch-manipulation"
-        >
-          <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-          <span className="text-xs sm:text-sm font-medium">Analytics</span>
-        </Button>
-        <Button
-          onClick={handleResetDatabase}
-          disabled={isResetting}
-          size="admin-grid"
-          className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 active:scale-95 touch-manipulation"
-        >
-          <Database className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-          <span className="text-xs sm:text-sm font-medium">
-            {isResetting ? 'Resetting...' : 'Reset DB'}
-          </span>
-        </Button>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-        {/* Users Stats */}
-        <Card className="bg-gray-900 border-gray-700 shadow-lg hover:shadow-xl transition-shadow duration-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm font-semibold">
-              <Users className="h-4 w-4 mr-2 text-blue-400" />
-              Users
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-2xl md:text-3xl font-bold text-white">{stats?.users.total || 0}</span>
-                <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">Total</span>
+    <div className="min-h-screen bg-gray-950 text-white">
+      {/* Professional Header */}
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 border-b border-blue-800/50">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+              <p className="text-sm text-blue-200 mt-1">
+                System administration and monitoring panel
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <div className="text-sm text-slate-300">System Status</div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 font-medium">Online</span>
+                </div>
               </div>
+              <div className="h-8 w-px bg-blue-700"></div>
+              <div className="text-right">
+                <div className="text-sm text-slate-300">Uptime</div>
+                <div className="text-blue-400 font-medium">{stats?.system?.uptime || '24/7'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions Toolbar */}
+      <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Quick Actions</h2>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={fetchDashboardData}
+              variant="ghost"
+              size="sm"
+              className="text-slate-400 hover:text-white hover:bg-slate-700"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Grid */}
+      <div className="p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <Button
+            onClick={() => navigate('/admin/users')}
+            className="h-20 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center space-y-2"
+          >
+            <Users className="h-6 w-6" />
+            <span className="text-sm font-medium">Users</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/admin/transactions')}
+            className="h-20 bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center space-y-2"
+          >
+            <DollarSign className="h-6 w-6" />
+            <span className="text-sm font-medium">Transactions</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/admin/lottery')}
+            className="h-20 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center space-y-2"
+          >
+            <Ticket className="h-6 w-6" />
+            <span className="text-sm font-medium">Lottery</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/admin/analytics')}
+            className="h-20 bg-gradient-to-br from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center space-y-2"
+          >
+            <BarChart3 className="h-6 w-6" />
+            <span className="text-sm font-medium">Analytics</span>
+          </Button>
+          <Button
+            onClick={handleResetDatabase}
+            disabled={isResetting}
+            className="h-20 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 flex flex-col items-center justify-center space-y-2"
+          >
+            <Database className="h-6 w-6" />
+            <span className="text-sm font-medium">
+              {isResetting ? 'Resetting...' : 'Reset DB'}
+            </span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Professional Stats Grid */}
+      <div className="p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Users Stats */}
+          <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 hover:bg-slate-900/70 transition-colors">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                  <Users className="h-4 w-4 text-blue-400" />
+                </div>
+                <span className="text-sm font-medium text-slate-300">Users</span>
+              </div>
+              <div className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">Total</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-white">{stats?.users.total || 0}</div>
               <div className="flex justify-between text-sm">
-                <span className="text-green-400 font-medium">{stats?.users.active || 0} Active</span>
-                <span className="text-red-400 font-medium">{stats?.users.frozen || 0} Frozen</span>
+                <span className="text-green-400">{stats?.users.active || 0} Active</span>
+                <span className="text-red-400">{stats?.users.frozen || 0} Frozen</span>
               </div>
-              <div className="text-xs text-gray-400 bg-blue-900/20 px-2 py-1 rounded">
+              <div className="text-xs text-blue-400 bg-blue-900/20 px-2 py-1 rounded">
                 +{stats?.users.newThisWeek || 0} this week
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Financial Stats */}
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm">
-              <DollarSign className="h-4 w-4 mr-2 text-green-400" />
-              Finances
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* Financial Stats */}
+          <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 hover:bg-slate-900/70 transition-colors">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-green-600/20 rounded-lg flex items-center justify-center">
+                  <DollarSign className="h-4 w-4 text-green-400" />
+                </div>
+                <span className="text-sm font-medium text-slate-300">Finances</span>
+              </div>
+              <div className="text-xs text-slate-400">USD</div>
+            </div>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-xl font-bold text-green-400">
-                  {(stats?.finances.totalInvested || 0).toFixed(0)}
-                </span>
-                <span className="text-xs text-gray-400">USD Invested</span>
+              <div className="text-xl font-bold text-green-400">
+                ${(stats?.finances.totalInvested || 0).toFixed(0)}
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-yellow-400">
-                  {(stats?.finances.totalEarnings || 0).toFixed(0)} Earned
+                  ${(stats?.finances.totalEarnings || 0).toFixed(0)} Earned
                 </span>
                 <span className="text-blue-400">
-                  {(stats?.finances.todayPayouts || 0).toFixed(0)} Today
+                  ${(stats?.finances.todayPayouts || 0).toFixed(0)} Today
                 </span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Activity Stats */}
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm">
-              <Activity className="h-4 w-4 mr-2 text-purple-400" />
-              Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* Activity Stats */}
+          <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 hover:bg-slate-900/70 transition-colors">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-purple-600/20 rounded-lg flex items-center justify-center">
+                  <Activity className="h-4 w-4 text-purple-400" />
+                </div>
+                <span className="text-sm font-medium text-slate-300">Activity</span>
+              </div>
+              <div className="text-xs text-slate-400">DAU</div>
+            </div>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-2xl font-bold text-purple-400">
-                  {stats?.activity.dailyActiveUsers || 0}
-                </span>
-                <span className="text-xs text-gray-400">DAU</span>
+              <div className="text-2xl font-bold text-purple-400">
+                {stats?.activity.dailyActiveUsers || 0}
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-blue-400">
@@ -265,142 +295,157 @@ const AdminDashboard = () => {
                 </span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* System Stats */}
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm">
-              <CheckCircle className="h-4 w-4 mr-2 text-green-400" />
-              System
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* System Stats */}
+          <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 hover:bg-slate-900/70 transition-colors">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-green-600/20 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                </div>
+                <span className="text-sm font-medium text-slate-300">System</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-400">Online</span>
+              </div>
+            </div>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-green-400">● Online</span>
-                <span className="text-xs text-gray-400">Status</span>
+              <div className="text-sm text-slate-300">
+                Uptime: {stats?.system?.uptime || '24/7'}
               </div>
-              <div className="text-xs text-gray-400">
-                Uptime: {stats?.system?.uptime || 'N/A'}
-              </div>
-              <div className="text-xs text-gray-400">
-                Last Backup: {stats?.system?.lastBackup || 'N/A'}
+              <div className="text-xs text-slate-400">
+                Last Backup: {stats?.system?.lastBackup ? new Date(stats.system.lastBackup).toLocaleDateString() : 'N/A'}
               </div>
               {stats?.system?.alerts && stats.system.alerts > 0 && (
-                <div className="text-xs text-red-400">
+                <div className="text-xs text-red-400 bg-red-900/20 px-2 py-1 rounded">
                   {stats.system.alerts} Alerts
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center text-sm">
-              <Clock className="h-4 w-4 mr-2 text-blue-400" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Activity & Alerts Section */}
+      <div className="p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Recent Activity */}
+          <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                <Clock className="h-4 w-4 text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white">Recent Activity</h3>
+            </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-300">System backup completed</span>
-                <span className="text-xs text-gray-400">2 hours ago</span>
+              <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-sm text-slate-300">System backup completed</span>
+                </div>
+                <span className="text-xs text-slate-400">2h ago</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-300">New user registration</span>
-                <span className="text-xs text-gray-400">4 hours ago</span>
+              <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <span className="text-sm text-slate-300">New user registration</span>
+                </div>
+                <span className="text-xs text-slate-400">4h ago</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-300">Transaction processed</span>
-                <span className="text-xs text-gray-400">6 hours ago</span>
+              <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                  <span className="text-sm text-slate-300">Transaction processed</span>
+                </div>
+                <span className="text-xs text-slate-400">6h ago</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center text-sm">
-              <AlertTriangle className="h-4 w-4 mr-2 text-yellow-400" />
-              System Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-yellow-400">High transaction volume</span>
-                <span className="text-xs text-gray-400">Warning</span>
+          {/* System Alerts */}
+          <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-yellow-600/20 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="h-4 w-4 text-yellow-400" />
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-green-400">All systems operational</span>
-                <span className="text-xs text-gray-400">Info</span>
+              <h3 className="text-lg font-semibold text-white">System Alerts</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-yellow-300">High transaction volume</span>
+                </div>
+                <span className="text-xs text-yellow-400 bg-yellow-900/30 px-2 py-1 rounded">Warning</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-700/50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-sm text-green-300">All systems operational</span>
+                </div>
+                <span className="text-xs text-green-400 bg-green-900/30 px-2 py-1 rounded">Info</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Database Reset Confirmation Dialog */}
       <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <DialogContent className="bg-gray-900 border-gray-700 text-white">
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center text-red-400">
+            <DialogTitle className="flex items-center text-red-400 text-lg">
               <AlertTriangle className="h-5 w-5 mr-2" />
-              Подтверждение сброса базы данных
+              Database Reset Confirmation
             </DialogTitle>
-            <DialogDescription className="text-gray-300">
-              Это действие полностью удалит ВСЕ данные клиентов из базы данных:
+            <DialogDescription className="text-slate-300">
+              This action will permanently delete ALL user data from the database:
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4">
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center text-red-400">
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center text-red-400 p-2 bg-red-900/20 rounded-lg">
                 <span className="w-2 h-2 bg-red-400 rounded-full mr-3"></span>
-                Все пользователи будут удалены
+                All users will be deleted
               </div>
-              <div className="flex items-center text-red-400">
+              <div className="flex items-center text-red-400 p-2 bg-red-900/20 rounded-lg">
                 <span className="w-2 h-2 bg-red-400 rounded-full mr-3"></span>
-                Все инвестиции будут потеряны
+                All investments will be lost
               </div>
-              <div className="flex items-center text-red-400">
+              <div className="flex items-center text-red-400 p-2 bg-red-900/20 rounded-lg">
                 <span className="w-2 h-2 bg-red-400 rounded-full mr-3"></span>
-                Все транзакции будут стерты
+                All transactions will be erased
               </div>
-              <div className="flex items-center text-red-400">
+              <div className="flex items-center text-red-400 p-2 bg-red-900/20 rounded-lg">
                 <span className="w-2 h-2 bg-red-400 rounded-full mr-3"></span>
-                Все реферальные связи будут уничтожены
+                All referral connections will be destroyed
               </div>
             </div>
 
-            <div className="mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
-              <p className="text-red-300 text-sm">
-                ⚠️ Это действие необратимо! После сброса все клиенты смогут войти в приложение заново с нуля.
+            <div className="mt-4 p-4 bg-red-900/30 border border-red-700/50 rounded-lg">
+              <p className="text-red-300 text-sm font-medium">
+                ⚠️ This action is irreversible! After reset, all clients will be able to log in fresh.
               </p>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex space-x-2">
             <Button
               variant="outline"
               onClick={() => setShowResetDialog(false)}
-              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              className="border-slate-600 text-slate-300 hover:bg-slate-800 flex-1"
             >
-              Отмена
+              Cancel
             </Button>
             <Button
               onClick={confirmResetDatabase}
               disabled={isResetting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-white flex-1"
             >
-              {isResetting ? 'Сбрасываем...' : 'Подтвердить сброс'}
+              {isResetting ? 'Resetting...' : 'Confirm Reset'}
             </Button>
           </DialogFooter>
         </DialogContent>

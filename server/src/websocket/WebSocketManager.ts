@@ -1,5 +1,5 @@
-import { WebSocketServer } from './WebSocketServer.js';
 import { UnifiedWebSocketManager } from '../services/unifiedWebSocketManager.js';
+import { WebSocketServer } from './WebSocketServer.js';
 
 class WebSocketManager {
   private static instance: WebSocketManager;
@@ -24,7 +24,7 @@ class WebSocketManager {
   }
 
   public async broadcastBalanceUpdate(telegramId: string, balanceData: any) {
-    this.unifiedManager.broadcastToUser(telegramId, 'BALANCE_UPDATE', balanceData);
+    this.unifiedManager.broadcastToUser(telegramId, 'BALANCE_UPDATED', balanceData);
   }
 
   public async broadcastSlotUpdate(telegramId: string, slotData: any) {

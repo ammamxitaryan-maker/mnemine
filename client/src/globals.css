@@ -536,6 +536,29 @@
     -ms-user-select: text;
     user-select: text;
   }
+
+  /* Development mode: Allow text selection everywhere */
+  body.dev-mode * {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+  }
+
+  /* Keep buttons and interactive elements non-selectable in dev mode */
+  body.dev-mode button,
+  body.dev-mode [role="button"],
+  body.dev-mode .button,
+  body.dev-mode a,
+  body.dev-mode [onclick],
+  body.dev-mode .cursor-pointer {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+  }
 }
 
 /* Shimmer Effect */
@@ -604,6 +627,486 @@
     transform: scale(1);
   }
 }
+
+/* Loading Animation - Mouse Head with Particles */
+.loading-animation-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #0f172a 0%, #000000 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+  animation: background-pulse 4s ease-in-out infinite;
+}
+
+@keyframes background-pulse {
+
+  0%,
+  100% {
+    background: radial-gradient(circle at center, #0f172a 0%, #000000 100%);
+  }
+
+  50% {
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+  }
+}
+
+.loading-animation {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Particles */
+.particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: linear-gradient(45deg, #00ffff, #0099cc, #0066cc);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0);
+  animation: particle-float 3s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+}
+
+.particle.active {
+  opacity: 1;
+  animation: particle-float 3s ease-in-out infinite, particle-glow 2s ease-in-out infinite, particle-attract 4s ease-in-out infinite;
+}
+
+@keyframes particle-attract {
+
+  0%,
+  70% {
+    transform: scale(1) translateY(0);
+  }
+
+  80% {
+    transform: scale(1.2) translateY(-10px);
+  }
+
+  90% {
+    transform: scale(0.8) translateY(-15px);
+  }
+
+  100% {
+    transform: scale(0) translateY(-20px);
+  }
+}
+
+@keyframes particle-float {
+
+  0%,
+  100% {
+    transform: scale(0) translateY(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1) translateY(-20px);
+    opacity: 1;
+  }
+}
+
+@keyframes particle-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.6), 0 0 12px rgba(0, 255, 255, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 15px rgba(0, 255, 255, 1), 0 0 25px rgba(0, 255, 255, 0.6), 0 0 35px rgba(0, 153, 204, 0.3);
+  }
+}
+
+/* Mouse Head SVG */
+.mouse-head {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.mouse-head.visible {
+  opacity: 1;
+  transform: scale(1);
+  animation: mouse-head-glow 2s ease-in-out infinite, mouse-head-float 3s ease-in-out infinite;
+}
+
+@keyframes mouse-head-float {
+
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+  }
+
+  50% {
+    transform: scale(1.05) translateY(-5px);
+  }
+}
+
+@keyframes mouse-head-glow {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.6)) drop-shadow(0 0 25px rgba(0, 255, 255, 0.3));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 25px rgba(0, 255, 255, 0.8)) drop-shadow(0 0 40px rgba(0, 255, 255, 0.5)) drop-shadow(0 0 60px rgba(0, 153, 204, 0.3));
+  }
+}
+
+/* SVG Mouse Elements */
+.mouse-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.neon {
+  stroke: url(#neonGrad);
+  stroke-width: 0.9;
+  fill: none;
+  filter: url(#glow);
+}
+
+.eye {
+  fill: #8ef0ff;
+  opacity: 0.98;
+  filter: drop-shadow(0 2px 6px rgba(142, 240, 255, 0.35));
+}
+
+.nose {
+  fill: rgba(255, 255, 255, 0.9);
+  opacity: 0.95;
+}
+
+/* Mouse Ears */
+.mouse-ear {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  top: -20px;
+  border: 3px solid #00ffff;
+  box-shadow:
+    0 0 20px rgba(0, 255, 255, 0.8),
+    0 0 40px rgba(0, 255, 255, 0.4),
+    inset 0 0 10px rgba(0, 255, 255, 0.2);
+  animation: ear-glow 2s ease-in-out infinite;
+}
+
+@keyframes ear-glow {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(0, 255, 255, 0.8),
+      0 0 40px rgba(0, 255, 255, 0.4),
+      inset 0 0 10px rgba(0, 255, 255, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 30px rgba(0, 255, 255, 1),
+      0 0 60px rgba(0, 255, 255, 0.6),
+      inset 0 0 15px rgba(0, 255, 255, 0.4);
+  }
+}
+
+.left-ear {
+  left: 20px;
+  transform: rotate(-20deg);
+}
+
+.right-ear {
+  right: 20px;
+  transform: rotate(20deg);
+}
+
+/* Mouse Face */
+.mouse-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 35% 25%, #1e293b 0%, #0f172a 40%, #000000 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  border: 3px solid #00ffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow:
+    0 0 30px rgba(0, 255, 255, 0.6),
+    0 0 60px rgba(0, 255, 255, 0.3),
+    inset 0 0 20px rgba(0, 255, 255, 0.1),
+    inset 0 0 40px rgba(0, 0, 0, 0.3);
+  animation: face-glow 3s ease-in-out infinite;
+}
+
+@keyframes face-glow {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 30px rgba(0, 255, 255, 0.6),
+      0 0 60px rgba(0, 255, 255, 0.3),
+      inset 0 0 20px rgba(0, 255, 255, 0.1),
+      inset 0 0 40px rgba(0, 0, 0, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      0 0 40px rgba(0, 255, 255, 0.8),
+      0 0 80px rgba(0, 255, 255, 0.5),
+      inset 0 0 30px rgba(0, 255, 255, 0.2),
+      inset 0 0 60px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.mouse-face::before {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 15%;
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(circle, rgba(0, 255, 255, 0.15) 0%, rgba(0, 255, 255, 0.05) 50%, transparent 70%);
+  border-radius: 50%;
+  animation: face-highlight 3s ease-in-out infinite;
+}
+
+/* Cute Mouse Cheeks - SVG */
+.mouse-cheek {
+  fill: url(#cheekGrad);
+  opacity: 0.7;
+  animation: cheek-glow 2s ease-in-out infinite;
+}
+
+.left-cheek {
+  /* Positioned via SVG coordinates */
+}
+
+.right-cheek {
+  /* Positioned via SVG coordinates */
+}
+
+@keyframes cheek-glow {
+
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes face-highlight {
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Mouse Eyes - SVG */
+.mouse-eyes {
+  transition: all 0.5s ease;
+}
+
+.mouse-eyes.glowing {
+  animation: eyes-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes eyes-glow {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8)) drop-shadow(0 0 15px rgba(0, 255, 255, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 15px rgba(0, 255, 255, 1)) drop-shadow(0 0 25px rgba(0, 255, 255, 0.8)) drop-shadow(0 0 35px rgba(0, 153, 204, 0.4));
+  }
+}
+
+/* SVG Eye styles are handled in the SVG itself */
+
+/* NON Text - SVG */
+.non-text {
+  fill: #00f0f0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  font-family: 'Arial', sans-serif;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  filter: drop-shadow(0 0 10px rgba(0, 240, 240, 1)) drop-shadow(0 0 20px rgba(0, 240, 240, 0.8));
+}
+
+.non-text.visible {
+  opacity: 1;
+  transform: scale(1);
+  animation: non-text-glow 2s ease-in-out infinite;
+}
+
+@keyframes non-text-glow {
+
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px rgba(0, 255, 255, 1),
+      0 0 20px rgba(0, 255, 255, 0.8),
+      0 0 30px rgba(0, 255, 255, 0.6),
+      0 0 40px rgba(0, 255, 255, 0.4);
+  }
+
+  50% {
+    text-shadow:
+      0 0 15px rgba(0, 255, 255, 1),
+      0 0 30px rgba(0, 255, 255, 1),
+      0 0 45px rgba(0, 255, 255, 0.8),
+      0 0 60px rgba(0, 255, 255, 0.6),
+      0 0 80px rgba(0, 255, 255, 0.3);
+  }
+}
+
+/* Energy Rings */
+.energy-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+}
+
+.energy-ring {
+  position: absolute;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: energy-pulse 3s ease-in-out infinite;
+}
+
+.energy-rings.active .energy-ring {
+  opacity: 1;
+}
+
+.ring-1 {
+  width: 150px;
+  height: 150px;
+  border-color: rgba(0, 255, 255, 0.4);
+  animation-delay: 0s;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.ring-2 {
+  width: 180px;
+  height: 180px;
+  border-color: rgba(0, 255, 255, 0.3);
+  animation-delay: 0.5s;
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+}
+
+.ring-3 {
+  width: 210px;
+  height: 210px;
+  border-color: rgba(0, 255, 255, 0.2);
+  animation-delay: 1s;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+}
+
+@keyframes energy-pulse {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Glow Effect */
+.glow-effect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0, 255, 255, 0.15) 0%, rgba(0, 255, 255, 0.05) 50%, transparent 70%);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+
+.glow-effect.active {
+  opacity: 1;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+
+
 
 /* New Gradient Spinner Styles */
 @layer utilities {

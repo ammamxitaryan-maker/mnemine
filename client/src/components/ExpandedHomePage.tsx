@@ -17,12 +17,13 @@ import {
   History,
   Server,
   Shield,
+  Sparkles,
   Ticket,
   UserPlus
 } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
 import { MainBalanceDisplay } from './MainBalanceDisplay';
 import { SimpleStats } from './SimpleStats';
 
@@ -46,7 +47,7 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
     if (forceRefresh) {
       forceRefresh();
     }
-  }, [user.telegramId, forceRefresh]);
+  }, [user.telegramId]); // Remove forceRefresh from dependencies to prevent infinite loop
 
   const displayName = user.firstName || user.username || t('profile.user');
   const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'U';
@@ -68,39 +69,61 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/5 relative overflow-hidden">
+      {/* Modern Background Pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(5,150,105,0.03),transparent_50%)] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-secondary/5 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-      {/* Header - Compact */}
-      <header className="px-4 pt-3 pb-3">
+      {/* Compact Header */}
+      <header className="relative z-10 px-4 pt-4 pb-3">
         <div className="flex items-center justify-between">
-          <div>
-            <div className="text-base font-bold text-white mb-1 professional-glow hover:professional-scale transition-all duration-500 ease-in-out">
-              {t('appName')}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-1.5 bg-primary/10 rounded-lg">
+                <Sparkles className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-white professional-glow hover:professional-scale transition-all duration-500 ease-in-out">
+                  {t('appName')}
+                </div>
+                <div className="text-xs text-muted-foreground font-medium">
+                  {t('cryptoMining')}
+                </div>
+              </div>
             </div>
-            <h1 className="text-lg font-light text-foreground">
-              {displayName}
+            <h1 className="text-lg font-light text-foreground mb-1">
+              Welcome back, {displayName}
             </h1>
-            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
-                <CircleDot className="w-2 h-2 text-primary" />
-                <span>{onlineUsers.toLocaleString()} {t('online')}</span>
+                <div className="relative">
+                  <CircleDot className="w-2 h-2 text-primary" />
+                  <div className="absolute inset-0 w-2 h-2 bg-primary/30 rounded-full animate-ping" />
+                </div>
+                <span className="font-medium">{onlineUsers.toLocaleString()} {t('online')}</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="status-dot online" />
-                <span>{totalUsers.toLocaleString()} {t('users')}</span>
+                <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
+                <span className="font-medium">{totalUsers.toLocaleString()} {t('users')}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <LanguageSwitcher />
             <ThemeSwitcher />
-            <Avatar className="h-8 w-8 border-2 border-primary">
-              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName || t('profile.user')} />}
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
-                {fallbackInitial}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-lg">
+                {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName || t('profile.user')} />}
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-sm">
+                  {fallbackInitial}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full border-2 border-background flex items-center justify-center">
+                <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -110,86 +133,100 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
         <MainBalanceDisplay />
       </div>
 
-      {/* Stats - Mining Power and Active Slots - Very Compact */}
-      <div className="px-4 mb-2">
+      {/* Stats - Mining Power and Active Slots - Compact */}
+      <div className="px-4 mb-4">
         <SimpleStats telegramId={user.telegramId} />
       </div>
 
-      {/* Main Actions - Compact */}
-      <div className="px-4 mb-3">
-        <div className="grid grid-cols-2 gap-2">
+      {/* Main Actions - Compact Grid */}
+      <div className="px-4 mb-4">
+        <div className="grid grid-cols-2 gap-3">
           <Link
             to="/slots"
-            className="minimal-card text-center p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
+            className="group relative bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-xl p-4 hover:scale-105 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 cursor-pointer overflow-hidden"
             onClick={() => hapticLight()}
           >
-            <div className="p-1.5 bg-primary/10 rounded-lg mb-1">
-              <Server className="w-4 h-4 mx-auto text-primary" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg mb-3 group-hover:scale-110 transition-transform duration-300">
+                <Server className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm mb-1 group-hover:text-primary transition-colors duration-300">
+                {t('miningSlots')}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-2">
+                {activeSlots.length} {t('activeSlots')}
+              </p>
+              <div className="flex items-center text-primary text-xs font-medium group-hover:translate-x-1 transition-transform duration-300">
+                <span>Start Mining</span>
+                <ChevronRight className="w-3 h-3 ml-1" />
+              </div>
             </div>
-            <h3 className="font-medium text-foreground text-xs">
-              {t('miningSlots')}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {activeSlots.length} {t('activeSlots')}
-            </p>
           </Link>
 
           <Link
             to="/lottery"
-            className="minimal-card text-center p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
+            className="group relative bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-xl p-4 hover:scale-105 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 cursor-pointer overflow-hidden"
             onClick={() => hapticLight()}
           >
-            <div className="p-1.5 bg-accent/10 rounded-lg mb-1">
-              <Ticket className="w-4 h-4 mx-auto text-accent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-accent/20 to-accent/10 rounded-lg mb-3 group-hover:scale-110 transition-transform duration-300">
+                <Ticket className="w-5 h-5 text-accent" />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm mb-1 group-hover:text-accent transition-colors duration-300">
+                {t('dailyLottery')}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-2">
+                {t('jackpotAvailable')}
+              </p>
+              <div className="flex items-center text-accent text-xs font-medium group-hover:translate-x-1 transition-transform duration-300">
+                <span>Join Now</span>
+                <ChevronRight className="w-3 h-3 ml-1" />
+              </div>
             </div>
-            <h3 className="font-medium text-foreground text-xs">
-              {t('dailyLottery')}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {t('jackpotAvailable')}
-            </p>
           </Link>
         </div>
       </div>
 
-      {/* Wallet Actions - Compact */}
-      <div className="px-4 mb-3">
-        <div className="grid grid-cols-3 gap-1.5">
+      {/* Wallet Actions - Compact Grid */}
+      <div className="px-4 mb-4">
+        <div className="grid grid-cols-3 gap-2">
           <Link
             to="/deposit"
-            className="minimal-card text-center p-1.5 hover:scale-105 transition-all duration-200 cursor-pointer"
+            className="group relative bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-lg p-3 hover:scale-105 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer text-center"
             onClick={() => hapticLight()}
           >
-            <div className="p-1 bg-primary/10 rounded-lg mb-1">
-              <ArrowDownToLine className="w-3 h-3 mx-auto text-primary" />
+            <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg mb-2 mx-auto group-hover:scale-110 transition-transform duration-300">
+              <ArrowDownToLine className="w-4 h-4 text-primary" />
             </div>
-            <h3 className="font-medium text-foreground text-xs">
+            <h3 className="font-semibold text-foreground text-xs group-hover:text-primary transition-colors duration-300">
               {t('deposit')}
             </h3>
           </Link>
 
           <Link
             to="/withdraw"
-            className="minimal-card text-center p-1.5 hover:scale-105 transition-all duration-200 cursor-pointer"
+            className="group relative bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-lg p-3 hover:scale-105 hover:shadow-lg hover:shadow-secondary/5 transition-all duration-300 cursor-pointer text-center"
             onClick={() => hapticLight()}
           >
-            <div className="p-1 bg-secondary/10 rounded-lg mb-1">
-              <ArrowUpFromLine className="w-3 h-3 mx-auto text-secondary" />
+            <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-lg mb-2 mx-auto group-hover:scale-110 transition-transform duration-300">
+              <ArrowUpFromLine className="w-4 h-4 text-secondary" />
             </div>
-            <h3 className="font-medium text-foreground text-xs">
+            <h3 className="font-semibold text-foreground text-xs group-hover:text-secondary transition-colors duration-300">
               {t('withdraw')}
             </h3>
           </Link>
 
           <Link
             to="/wallet"
-            className="minimal-card text-center p-1.5 hover:scale-105 transition-all duration-200 cursor-pointer"
+            className="group relative bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-lg p-3 hover:scale-105 hover:shadow-lg hover:shadow-accent/5 transition-all duration-300 cursor-pointer text-center"
             onClick={() => hapticLight()}
           >
-            <div className="p-1 bg-accent/10 rounded-lg mb-1">
-              <History className="w-3 h-3 mx-auto text-accent" />
+            <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-accent/20 to-accent/10 rounded-lg mb-2 mx-auto group-hover:scale-110 transition-transform duration-300">
+              <History className="w-4 h-4 text-accent" />
             </div>
-            <h3 className="font-medium text-foreground text-xs">
+            <h3 className="font-semibold text-foreground text-xs group-hover:text-accent transition-colors duration-300">
               {t('history')}
             </h3>
           </Link>
@@ -198,57 +235,63 @@ export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
 
 
       {/* Referrals Section - Compact */}
-      <div className="px-4 mb-3">
+      <div className="px-4 mb-4">
         <Link
           to="/referrals"
-          className="minimal-card p-2 hover:scale-105 transition-all duration-200 cursor-pointer"
+          className="group relative bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-xl p-4 hover:scale-105 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 cursor-pointer block"
           onClick={() => hapticLight()}
         >
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-emerald-500/10 rounded-lg">
-              <UserPlus className="w-4 h-4 text-emerald-500" />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
+              <UserPlus className="w-5 h-5 text-emerald-500" />
             </div>
             <div className="flex-1">
-              <h3 className="font-medium text-foreground text-xs">
+              <h3 className="font-semibold text-foreground text-sm mb-1 group-hover:text-emerald-500 transition-colors duration-300">
                 {t('inviteFriends')}
               </h3>
               <p className="text-xs text-muted-foreground">
                 {t('earnFromReferrals')}
               </p>
             </div>
-            <ChevronRight className="w-3 h-3 text-muted-foreground" />
+            <div className="flex items-center text-emerald-500 group-hover:translate-x-1 transition-transform duration-300">
+              <span className="text-xs font-medium mr-1">Invite</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
           </div>
         </Link>
       </div>
 
       {/* Admin Panel (conditional) - Compact */}
       {isAdmin && (
-        <div className="px-4 mb-3">
+        <div className="px-4 mb-4">
           <Link
             to="/admin"
-            className="minimal-card p-2 hover:scale-105 transition-all duration-200 cursor-pointer block"
+            className="group relative bg-gradient-to-r from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-xl p-4 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer block"
             onClick={() => hapticLight()}
           >
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-purple-500/10 rounded-lg">
-                <Shield className="w-4 h-4 text-purple-500" />
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <Shield className="w-5 h-5 text-purple-500" />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-foreground text-xs">
+                <h3 className="font-semibold text-foreground text-sm mb-1 group-hover:text-purple-500 transition-colors duration-300">
                   {t('adminPanel')}
                 </h3>
                 <p className="text-xs text-muted-foreground">
                   {t('manageSystem')}
                 </p>
               </div>
-              <ChevronRight className="w-3 h-3 text-muted-foreground" />
+              <div className="flex items-center text-purple-500 group-hover:translate-x-1 transition-transform duration-300">
+                <span className="text-xs font-medium mr-1">Manage</span>
+                <ChevronRight className="w-4 h-4" />
+              </div>
             </div>
           </Link>
         </div>
       )}
 
-      {/* Bottom spacing - Reduced */}
-      <div className="h-2" />
+      {/* Bottom spacing for better mobile experience */}
+      <div className="h-4" />
 
     </div>
   );

@@ -45,18 +45,18 @@ export const createUSDTPayment = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Exchange rate not available' });
     }
 
-    // Convert NON to USD (USDT amount)
+    // Convert NON to USD (USDT amount) for NOWPayments
     const usdtAmount = mneAmount * exchangeRate.rate;
 
     // Generate unique order ID
     const orderId = `usdt_${Date.now()}_${user.id}`;
 
-    // Create payment record in database
+    // Create payment record in database (USD for NOWPayments, but will credit NON)
     const payment = await prisma.payment.create({
       data: {
         orderId,
         userId: user.id,
-        amount: usdtAmount,
+        amount: usdtAmount, // USD amount for NOWPayments
         currency: 'USDT',
         description: description || `NON Purchase: ${mneAmount.toFixed(6)} NON`,
         status: 'PENDING',

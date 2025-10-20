@@ -1,8 +1,7 @@
-﻿import { Request, Response } from 'express';
+﻿import { ActivityLogType } from '@prisma/client';
+import { Request, Response } from 'express';
+import { DAILY_BONUS_AMOUNT, DIVIDEND_BASE_RATE, DIVIDEND_COOLDOWN_HOURS, DIVIDEND_RAND_MAX, DIVIDEND_RAND_MIN, INVESTMENT_GROWTH_BONUS_AMOUNT, LEADERBOARD_BONUS_AMOUNT } from '../constants.js'; // Added dividend constants
 import prisma from '../prisma.js';
-import { DAILY_BONUS_AMOUNT, LEADERBOARD_BONUS_AMOUNT, INVESTMENT_GROWTH_BONUS_AMOUNT, DIVIDEND_BASE_RATE, DIVIDEND_RAND_MIN, DIVIDEND_RAND_MAX, DIVIDEND_COOLDOWN_HOURS } from '../constants.js'; // Added dividend constants
-import { ActivityLogType, Wallet } from '@prisma/client';
-import { isUserEligible } from '../utils/helpers.js';
 import { userSelectWithoutMiningSlots } from '../utils/dbSelects.js'; // Import userSelect
 
 const COOLDOWN_HOURS = 24;
@@ -35,13 +34,13 @@ export const getBonusesSummary = async (req: Request, res: Response) => {
 
     // 2. Dividends Bonus Check
     if (user.totalInvested > 0) {
-        const lastDividendClaim = await prisma.activityLog.findFirst({
-            where: { userId: user.id, type: ActivityLogType.DIVIDEND_BONUS },
-            orderBy: { createdAt: 'desc' },
-        });
-        if (!lastDividendClaim || (new Date().getTime() - lastDividendClaim.createdAt.getTime() >= DIVIDEND_COOLDOWN_HOURS * 60 * 60 * 1000)) {
-            claimableCount++;
-        }
+      const lastDividendClaim = await prisma.activityLog.findFirst({
+        where: { userId: user.id, type: ActivityLogType.DIVIDEND_BONUS },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (!lastDividendClaim || (new Date().getTime() - lastDividendClaim.createdAt.getTime() >= DIVIDEND_COOLDOWN_HOURS * 60 * 60 * 1000)) {
+        claimableCount++;
+      }
     }
 
     // 3. Leaderboard Bonus Check
@@ -254,7 +253,7 @@ export const claimInvestmentGrowthBonus = async (req: Request, res: Response) =>
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
+
     const hasRecentInvestmentActivity = await prisma.activityLog.count({
       where: {
         userId: user.id,
@@ -278,12 +277,12 @@ export const claimInvestmentGrowthBonus = async (req: Request, res: Response) =>
       return res.status(400).json({ error: 'Investment growth bonus already claimed recently.' });
     }
 
-    const USDWallet = user.wallets.find(w => w.currency === 'USD');
-    if (!USDWallet) return res.status(400).json({ error: 'USD wallet not found' });
+    const NONWallet = user.wallets.find(w => w.currency === 'NON');
+    if (!NONWallet) return res.status(400).json({ error: 'NON wallet not found' });
 
     await prisma.$transaction([
       prisma.wallet.update({
-        where: { id: USDWallet.id },
+        where: { id: NONWallet.id },
         data: { balance: { increment: INVESTMENT_GROWTH_BONUS_AMOUNT } },
       }),
       prisma.user.update({
@@ -295,13 +294,13 @@ export const claimInvestmentGrowthBonus = async (req: Request, res: Response) =>
           userId: user.id,
           type: ActivityLogType.INVESTMENT_GROWTH_BONUS,
           amount: INVESTMENT_GROWTH_BONUS_AMOUNT,
-          description: `Claimed investment growth bonus of ${INVESTMENT_GROWTH_BONUS_AMOUNT} USD.`,
+          description: `Claimed investment growth bonus of ${INVESTMENT_GROWTH_BONUS_AMOUNT} NON.`,
           ipAddress: ipAddress,
         },
       }),
     ]);
 
-    res.status(200).json({ message: `Claimed ${INVESTMENT_GROWTH_BONUS_AMOUNT} USD investment growth bonus!` });
+    res.status(200).json({ message: `Claimed ${INVESTMENT_GROWTH_BONUS_AMOUNT} NON investment growth bonus!` });
   } catch (error) {
     console.error(`Error claiming investment growth bonus for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
@@ -372,12 +371,12 @@ export const claimDividends = async (req: Request, res: Response) => {
     const randomFactor = DIVIDEND_RAND_MIN + Math.random() * (DIVIDEND_RAND_MAX - DIVIDEND_RAND_MIN);
     const dividendAmount = user.totalInvested * DIVIDEND_BASE_RATE * randomFactor;
 
-    const USDWallet = user.wallets.find(w => w.currency === 'USD');
-    if (!USDWallet) return res.status(400).json({ error: 'USD wallet not found' });
+    const NONWallet = user.wallets.find(w => w.currency === 'NON');
+    if (!NONWallet) return res.status(400).json({ error: 'NON wallet not found' });
 
     await prisma.$transaction([
       prisma.wallet.update({
-        where: { id: USDWallet.id },
+        where: { id: NONWallet.id },
         data: { balance: { increment: dividendAmount } },
       }),
       prisma.activityLog.create({
@@ -385,13 +384,13 @@ export const claimDividends = async (req: Request, res: Response) => {
           userId: user.id,
           type: ActivityLogType.DIVIDEND_BONUS,
           amount: dividendAmount,
-          description: `Claimed ${dividendAmount.toFixed(4)} USD dividends based on ${user.totalInvested.toFixed(4)} USD invested.`,
+          description: `Claimed ${dividendAmount.toFixed(4)} NON dividends based on ${user.totalInvested.toFixed(4)} NON invested.`,
           ipAddress: ipAddress,
         },
       }),
     ]);
 
-    res.status(200).json({ message: `Claimed ${dividendAmount.toFixed(4)} USD dividends!` });
+    res.status(200).json({ message: `Claimed ${dividendAmount.toFixed(4)} NON dividends!` });
   } catch (error) {
     console.error(`Error claiming dividends for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });

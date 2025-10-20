@@ -103,7 +103,7 @@ export class AdvancedLRUCache<T = any> {
 
     // Set up event listeners for statistics
     this.setupEventListeners();
-    
+
     // Register with memory monitoring service
     const memoryMonitor = MemoryMonitoringService.getInstance();
     memoryMonitor.registerCache(`AdvancedLRUCache_${Date.now()}`, this.cache);
@@ -127,24 +127,24 @@ export class AdvancedLRUCache<T = any> {
    */
   get(key: string): T | undefined {
     const startTime = performance.now();
-    
+
     const entry = this.cache.get(key);
-    
+
     if (entry) {
       entry.hits++;
       entry.lastAccessed = Date.now();
       this.stats.hits++;
-      
+
       const accessTime = performance.now() - startTime;
       this.accessTimes.push(accessTime);
       this.updateAverageAccessTime();
-      
+
       return entry.value;
     }
-    
+
     this.stats.misses++;
     this.updateHitRate();
-    
+
     return undefined;
   }
 
@@ -217,7 +217,7 @@ export class AdvancedLRUCache<T = any> {
     if (this.accessTimes.length > 100) {
       this.accessTimes = this.accessTimes.slice(-50); // Keep only last 50 measurements
     }
-    
+
     const sum = this.accessTimes.reduce((acc, time) => acc + time, 0);
     this.stats.averageAccessTime = sum / this.accessTimes.length;
   }
@@ -228,11 +228,11 @@ export class AdvancedLRUCache<T = any> {
   public adjustForMemoryPressure(level: 'low' | 'medium' | 'high'): void {
     const newConfig = MEMORY_AWARE_CONFIGS[level];
     const oldSize = this.cache.max;
-    
+
     // this.cache.max = newConfig.maxSize; // Readonly property
     this.config.maxSize = newConfig.maxSize;
     this.config.ttl = newConfig.ttl;
-    
+
     console.log(`[CACHE] Adjusted cache size from ${oldSize} to ${newConfig.maxSize} for ${level} memory pressure`);
   }
 
@@ -243,27 +243,27 @@ export class AdvancedLRUCache<T = any> {
     const beforeSize = this.cache.size;
     const memoryMonitor = MemoryMonitoringService.getInstance();
     const memoryCheck = memoryMonitor.checkMemoryThresholds();
-    
+
     let entriesToRemove = 0;
-    
+
     if (memoryCheck.level === 'critical') {
       entriesToRemove = Math.floor(this.cache.size * 0.5); // Remove 50%
     } else if (memoryCheck.level === 'warning') {
       entriesToRemove = Math.floor(this.cache.size * 0.3); // Remove 30%
     }
-    
+
     if (entriesToRemove > 0) {
       const keys = Array.from(this.cache.keys()).slice(0, entriesToRemove);
       for (const key of keys) {
         this.cache.delete(key);
       }
     }
-    
+
     const afterSize = this.cache.size;
     const entriesRemoved = beforeSize - afterSize;
-    
+
     console.log(`[CACHE] Memory cleanup: removed ${entriesRemoved} entries (${beforeSize} -> ${afterSize})`);
-    
+
     return { entriesRemoved, memoryFreed: entriesRemoved * 1024 }; // Rough estimate
   }
 
@@ -295,7 +295,7 @@ export class MultiLayerCache {
 
     this.redisCache = new Map();
     this.cacheStats = new Map();
-    
+
     // Register with memory monitoring
     const memoryMonitor = MemoryMonitoringService.getInstance();
     // memoryMonitor.registerCache('MultiLayerCache_memory', this.memoryCache.cache); // Private property
@@ -307,11 +307,11 @@ export class MultiLayerCache {
    */
   async get<T>(key: string, fallback?: () => Promise<T>, ttl?: number): Promise<T | null> {
     const startTime = performance.now();
-    
+
     try {
       // Try memory cache first
       let value = this.memoryCache.get(key);
-      
+
       if (value) {
         this.recordCacheHit('memory', key);
         return value;
@@ -420,7 +420,7 @@ export class MultiLayerCache {
  */
 export class UserDataCache {
   private cache: MultiLayerCache;
-  private readonly TTL = 30000; // 30 seconds
+  private readonly TTL = 10000; // 10 seconds - shorter TTL for better balance sync
 
   constructor() {
     this.cache = new MultiLayerCache();
@@ -533,9 +533,9 @@ export class CacheWarmer {
    */
   async warmUpActiveUsers(activeUserIds: string[]) {
     console.log(`[CACHE] Warming up caches for ${activeUserIds.length} active users`);
-    
+
     const startTime = performance.now();
-    
+
     // Warm up user data cache
     const userDataPromises = activeUserIds.map(async (telegramId) => {
       try {
@@ -548,7 +548,7 @@ export class CacheWarmer {
     });
 
     await Promise.allSettled(userDataPromises);
-    
+
     const totalTime = performance.now() - startTime;
     console.log(`[CACHE] Cache warming completed in ${totalTime.toFixed(2)}ms`);
   }
@@ -558,7 +558,7 @@ export class CacheWarmer {
    */
   async warmUpMarketData() {
     console.log('[CACHE] Warming up market data cache');
-    
+
     try {
       await this.marketDataCache.getMarketData(async () => {
         return {
@@ -649,12 +649,12 @@ export class DatabaseOptimizer {
 
     for (let i = 0; i < queries.length; i += batchSize) {
       const batch = queries.slice(i, i + batchSize);
-      const batchPromises = batch.map(({ key, queryFn }) => 
+      const batchPromises = batch.map(({ key, queryFn }) =>
         this.executeQuery(key, queryFn)
       );
-      
+
       const batchResults = await Promise.allSettled(batchPromises);
-      results.push(...batchResults.map(result => 
+      results.push(...batchResults.map(result =>
         result.status === 'fulfilled' ? result.value : null
       ).filter(Boolean) as T[]);
     }
@@ -690,8 +690,8 @@ export class DatabaseOptimizer {
    */
   getQueryStats() {
     const totalQueries = this.queryMetrics.length;
-    const avgDuration = totalQueries > 0 
-      ? this.queryMetrics.reduce((sum, m) => sum + m.duration, 0) / totalQueries 
+    const avgDuration = totalQueries > 0
+      ? this.queryMetrics.reduce((sum, m) => sum + m.duration, 0) / totalQueries
       : 0;
 
     const slowQueries = this.queryMetrics.filter(m => m.duration > 100).length;
@@ -726,7 +726,7 @@ export const CacheService = {
   marketData: marketDataCache,
   warmer: cacheWarmer,
   database: databaseOptimizer,
-  
+
   // Utility methods
   clearAll: () => {
     userDataCache.clear();
@@ -734,7 +734,7 @@ export const CacheService = {
     marketDataCache.clear();
     databaseOptimizer.clearCache();
   },
-  
+
   getStats: () => ({
     userData: userDataCache.getStats(),
     slotsData: slotsDataCache.getStats(),

@@ -229,9 +229,9 @@ export class SlotEarningsService {
         return res.status(400).json({ error: 'No expired slots available for claiming' });
       }
 
-      const USDWallet = user.wallets[0];
-      if (!USDWallet) {
-        return res.status(400).json({ error: 'USD wallet not found' });
+      const NONWallet = user.wallets.find(w => w.currency === 'NON');
+      if (!NONWallet) {
+        return res.status(400).json({ error: 'NON wallet not found' });
       }
 
       let totalClaimedAmount = 0;
@@ -307,7 +307,7 @@ export class SlotEarningsService {
       }
 
       res.status(200).json({
-        message: `Successfully claimed ${totalClaimedAmount.toFixed(2)} USD from ${claimedSlots.length} slots`,
+        message: `Successfully claimed ${totalClaimedAmount.toFixed(2)} NON from ${claimedSlots.length} slots`,
         totalAmount: totalClaimedAmount,
         slotsClaimed: claimedSlots.length,
         claimedSlots: claimedSlots
@@ -356,9 +356,9 @@ export class SlotEarningsService {
         return res.status(404).json({ error: 'Expired slot not found' });
       }
 
-      const USDWallet = user.wallets[0];
-      if (!USDWallet) {
-        return res.status(400).json({ error: 'USD wallet not found' });
+      const NONWallet = user.wallets.find(w => w.currency === 'NON');
+      if (!NONWallet) {
+        return res.status(400).json({ error: 'NON wallet not found' });
       }
 
       const expectedEarnings = slot.principal * slot.effectiveWeeklyRate;
@@ -372,9 +372,9 @@ export class SlotEarningsService {
             accruedEarnings: expectedEarnings
           }
         }),
-        // Update user's USD wallet
+        // Update user's NON wallet
         prisma.wallet.update({
-          where: { id: USDWallet.id },
+          where: { id: NONWallet.id },
           data: {
             balance: { increment: expectedEarnings }
           }
@@ -392,7 +392,7 @@ export class SlotEarningsService {
             userId: user.id,
             type: ActivityLogType.CLAIM,
             amount: expectedEarnings,
-            description: `Claimed earnings from slot: ${expectedEarnings.toFixed(2)} USD`,
+            description: `Claimed earnings from slot: ${expectedEarnings.toFixed(2)} NON`,
             ipAddress: ipAddress,
           }
         })
@@ -416,7 +416,7 @@ export class SlotEarningsService {
       }
 
       res.status(200).json({
-        message: `Successfully claimed ${expectedEarnings.toFixed(2)} USD from slot`,
+        message: `Successfully claimed ${expectedEarnings.toFixed(2)} NON from slot`,
         slotId: slotId,
         principal: slot.principal,
         earnings: expectedEarnings
@@ -451,9 +451,9 @@ export class SlotEarningsService {
       for (const slot of expiredSlots) {
         try {
           const expectedEarnings = slot.principal * slot.effectiveWeeklyRate;
-          const USDWallet = slot.user.wallets[0];
+          const NONWallet = slot.user.wallets.find(w => w.currency === 'NON');
 
-          if (USDWallet) {
+          if (NONWallet) {
             await prisma.$transaction([
               prisma.miningSlot.update({
                 where: { id: slot.id },
@@ -463,7 +463,7 @@ export class SlotEarningsService {
                 }
               }),
               prisma.wallet.update({
-                where: { id: USDWallet.id },
+                where: { id: NONWallet.id },
                 data: {
                   balance: { increment: expectedEarnings }
                 }
@@ -479,7 +479,7 @@ export class SlotEarningsService {
                   userId: slot.userId,
                   type: ActivityLogType.CLAIM,
                   amount: expectedEarnings,
-                  description: `Auto-claimed earnings from expired slot: ${expectedEarnings.toFixed(2)} USD`,
+                  description: `Auto-claimed earnings from expired slot: ${expectedEarnings.toFixed(2)} NON`,
                   ipAddress: 'system'
                 }
               })

@@ -529,6 +529,12 @@ app.get('*', (req: any, res: any) => {
   console.log(`[SPA] Origin: ${req.get('Origin') || 'None'}`);
   console.log(`[SPA] Referer: ${req.get('Referer') || 'None'}`);
 
+  // Check if this is an API request - if so, don't serve HTML
+  if (req.path.startsWith('/api/')) {
+    console.log(`[SPA] API request detected, not serving HTML for: ${req.path}`);
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+
   // Check if user is accessing from browser (not Telegram WebApp)
   const userAgent = req.get('User-Agent') || '';
   const isTelegramWebApp = userAgent.includes('TelegramWebApp') ||

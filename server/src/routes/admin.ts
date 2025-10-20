@@ -74,7 +74,7 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
     }
 
     // Получаем текущий баланс NON
-    const nonWallet = user.wallets.find(w => w.currency === 'NON');
+    let nonWallet = user.wallets.find(w => w.currency === 'NON');
     const currentBalance = nonWallet ? nonWallet.balance : 0;
     const changeAmount = parseFloat(amount);
     let newBalance = currentBalance;
@@ -103,38 +103,39 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       });
     }
 
-    // Обновляем adminBalance пользователя вместо кошелька
+    // Обновляем основной баланс пользователя в кошельке
     await prisma.$transaction(async (tx) => {
-      // Get current admin balance
-      const currentAdminBalance = (user as any).adminBalance || 0;
-      let newAdminBalance = currentAdminBalance;
-
-      if (action === 'set') {
-        newAdminBalance = Math.max(0, changeAmount);
-      } else if (action === 'add') {
-        newAdminBalance = Math.max(0, currentAdminBalance + changeAmount);
-      } else if (action === 'subtract') {
-        newAdminBalance = Math.max(0, currentAdminBalance - changeAmount);
-      }
-
-      // Update user's adminBalance
-      await tx.user.update({
-        where: { id: userId },
-        data: { adminBalance: newAdminBalance }
-      });
-
       // Ensure NON wallet exists
       if (!nonWallet) {
         console.log(`[ADMIN] Creating new NON wallet for user: ${userId}`);
         await getOrCreateWallet(userId, 'NON');
+        // Re-fetch the wallet after creation
+        const updatedUser = await tx.user.findUnique({
+          where: { id: userId },
+          include: { wallets: { where: { currency: 'NON' } } }
+        });
+        const updatedNonWallet = updatedUser?.wallets.find(w => w.currency === 'NON');
+        if (updatedNonWallet) {
+          nonWallet = updatedNonWallet;
+        }
       }
+
+      if (!nonWallet) {
+        throw new Error('Failed to create or find NON wallet');
+      }
+
+      // Update the actual wallet balance
+      await tx.wallet.update({
+        where: { id: nonWallet.id },
+        data: { balance: newBalance }
+      });
 
       // Создаем запись в логе активности в той же транзакции
       await tx.activityLog.create({
         data: {
           userId: userId,
           type: 'ADMIN_ACTION',
-          amount: Math.abs(newAdminBalance - currentAdminBalance),
+          amount: Math.abs(newBalance - currentBalance),
           description: `Admin balance adjustment: ${action} ${changeAmount} NON`
         }
       });
@@ -153,8 +154,7 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       }
     });
 
-    const baseBalance = updatedUser?.wallets.reduce((sum, w) => sum + w.balance, 0) || 0;
-    const actualBalance = baseBalance + ((updatedUser as any)?.adminBalance || 0);
+    const actualBalance = updatedUser?.wallets.reduce((sum, w) => sum + w.balance, 0) || 0;
 
     // Use more lenient precision for balance verification (floating point precision issues)
     const precisionThreshold = 0.01; // Allow up to 0.01 difference for floating point precision
@@ -199,9 +199,10 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
 
       // Send balance update notification to the specific user
       await webSocketManager.sendToUser(user.telegramId, 'BALANCE_UPDATED', {
+        telegramId: user.telegramId,
         newBalance: actualBalance,
-        previousBalance: currentBalance + ((user as any).adminBalance || 0),
-        changeAmount: actualBalance - (currentBalance + ((user as any).adminBalance || 0)),
+        previousBalance: currentBalance,
+        changeAmount: actualBalance - currentBalance,
         action: action,
         timestamp: new Date().toISOString()
       });
@@ -225,7 +226,7 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       data: {
         userId: userId,
         telegramId: user.telegramId,
-        previousBalance: currentBalance + ((user as any).adminBalance || 0),
+        previousBalance: currentBalance,
         newBalance: actualBalance,
         actualBalance: actualBalance,
         action: action,

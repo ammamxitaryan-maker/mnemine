@@ -20,7 +20,13 @@ const fetchUserData = async (telegramId: string, bypassCache: boolean = false): 
     : `/user/${telegramId}/data`;
   console.log(`[fetchUserData] Fetching data for ${telegramId}, bypassCache: ${bypassCache}, url: ${url}`);
   const { data } = await api.get(url);
-  console.log(`[fetchUserData] Received data:`, { nonBalance: data.nonBalance, balance: data.balance });
+  console.log(`[fetchUserData] Received data for ${telegramId}:`, {
+    nonBalance: data.nonBalance,
+    balance: data.balance,
+    bypassCache,
+    url,
+    timestamp: new Date().toISOString()
+  });
   return data;
 };
 
@@ -31,12 +37,12 @@ export const useUserData = (telegramId: string | undefined) => {
     queryKey: ['userData', telegramId, forceRefresh], // Remove timestamp to allow proper caching
     queryFn: () => {
       console.log(`[useUserData] Query function called for telegramId: ${telegramId}, forceRefresh: ${forceRefresh}`);
-      // Always bypass cache to get fresh data from server
-      return fetchUserData(telegramId!, true);
+      // Only bypass cache when forceRefresh is > 0, otherwise use normal caching
+      return fetchUserData(telegramId!, forceRefresh > 0);
     },
     enabled: !!telegramId,
-    refetchInterval: 300000, // Refetch every 5 minutes (optimized)
-    staleTime: 0, // Always consider data stale - get fresh data from server
+    refetchInterval: 3000, // Refetch every 3 seconds for real-time updates
+    staleTime: 5000, // Consider data fresh for 5 seconds to allow more frequent updates
     // onError удален из опций useQuery
   });
 
@@ -65,6 +71,8 @@ export const useUserData = (telegramId: string | undefined) => {
           console.log(`[useUserData] New balance: ${data.data.newBalance}, Previous: ${data.data.previousBalance}`);
           // Force immediate refresh with cache bypass
           setForceRefresh(prev => prev + 1);
+          // Also manually refetch the query
+          query.refetch();
         }
       } catch (error) {
         // Ignore non-JSON messages
@@ -116,7 +124,7 @@ export const useUserData = (telegramId: string | undefined) => {
     console.log(`[useUserData] Manual force refresh requested for user ${telegramId}`);
     setForceRefresh(prev => prev + 1);
     query.refetch();
-  }, [telegramId, query]);
+  }, [telegramId, query.refetch]); // Use query.refetch instead of query to prevent unnecessary re-renders
 
   return {
     ...query,

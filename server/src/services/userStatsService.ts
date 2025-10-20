@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { logger, LogContext } from '../utils/logger.js';
+import { LogContext, logger } from '../utils/logger.js';
 
 interface UserStats {
   totalUsers: number;
@@ -12,7 +12,7 @@ interface UserStats {
 
 export class UserStatsService {
   private static stats: UserStats = {
-    totalUsers: 1250,
+    totalUsers: 10000,
     onlineUsers: 150,
     newUsersToday: 45,
     activeUsers: 400,
@@ -40,10 +40,10 @@ export class UserStatsService {
       clearInterval(this.updateInterval);
     }
 
-    // Обновляем статистику каждые 5 минут
+    // Обновляем статистику каждые 2 минуты для синхронизации
     this.updateInterval = setInterval(() => {
       this.updateStats();
-    }, 5 * 60 * 1000);
+    }, 2 * 60 * 1000);
 
     // Первоначальное обновление
     this.updateStats();
@@ -58,17 +58,14 @@ export class UserStatsService {
     const currentHour = now.getHours();
     const currentDay = Math.floor(currentTime / (24 * 60 * 60 * 1000));
 
-    // Обновляем общее количество пользователей каждые 24 часа
-    if (currentDay !== this.lastDayUpdate) {
-      this.updateTotalUsers();
-      this.lastDayUpdate = currentDay;
-    }
-
-    // Обновляем онлайн пользователей каждый час
+    // Обновляем общее количество пользователей каждый час (+15 пользователей)
     if (currentHour !== this.lastHourUpdate) {
-      this.updateOnlineUsers(currentHour);
+      this.updateTotalUsers();
       this.lastHourUpdate = currentHour;
     }
+
+    // Обновляем онлайн пользователей каждые 2 минуты для синхронизации
+    this.updateOnlineUsers(currentHour);
 
     // Обновляем активных пользователей
     this.updateActiveUsers();
@@ -85,55 +82,45 @@ export class UserStatsService {
 
   /**
    * Обновление общего количества пользователей
-   * Добавляем ~100 пользователей в день случайным образом
+   * Добавляем 15 пользователей в час
    */
   private static updateTotalUsers() {
-    // Базовый рост: 100 пользователей в день
-    const baseGrowth = 100;
-    
-    // Случайная вариация: ±20 пользователей
-    const randomVariation = Math.floor((Math.random() - 0.5) * 40);
-    
-    const dailyGrowth = baseGrowth + randomVariation;
-    
-    this.stats.totalUsers += dailyGrowth;
-    this.stats.newUsersToday = dailyGrowth;
+    // Рост: 15 пользователей в час
+    const hourlyGrowth = 15;
 
-    logger.server(`Daily user growth: +${dailyGrowth} users. Total: ${this.stats.totalUsers}`);
+    this.stats.totalUsers += hourlyGrowth;
+    this.stats.newUsersToday = hourlyGrowth;
+
+    logger.server(`Hourly user growth: +${hourlyGrowth} users. Total: ${this.stats.totalUsers}`);
   }
 
   /**
    * Обновление онлайн пользователей в зависимости от времени суток
+   * Обновляется каждые 2 минуты с небольшими изменениями для стабильности
    */
   private static updateOnlineUsers(hour: number) {
-    let minOnline: number;
-    let maxOnline: number;
+    let baseOnline: number;
 
-    // Определяем диапазон в зависимости от времени суток
+    // Определяем базовое количество в зависимости от времени суток
     if (hour >= 6 && hour < 12) {
       // Утро: 6:00 - 12:00
-      minOnline = 120;
-      maxOnline = 160;
+      baseOnline = 140;
     } else if (hour >= 12 && hour < 18) {
       // День: 12:00 - 18:00
-      minOnline = 150;
-      maxOnline = 182;
+      baseOnline = 165;
     } else if (hour >= 18 && hour < 22) {
       // Вечер: 18:00 - 22:00
-      minOnline = 140;
-      maxOnline = 175;
+      baseOnline = 155;
     } else {
       // Ночь: 22:00 - 6:00
-      minOnline = 45;
-      maxOnline = 111;
+      baseOnline = 80;
     }
 
-    // Генерируем случайное количество онлайн пользователей
-    this.stats.onlineUsers = Math.floor(
-      minOnline + Math.random() * (maxOnline - minOnline)
-    );
+    // Небольшие изменения для реалистичности (±10 пользователей)
+    const variation = Math.floor((Math.random() - 0.5) * 20);
+    this.stats.onlineUsers = Math.max(50, baseOnline + variation);
 
-    logger.debug(LogContext.SERVER, `Online users updated for hour ${hour}: ${this.stats.onlineUsers} (range: ${minOnline}-${maxOnline})`);
+    logger.debug(LogContext.SERVER, `Online users updated for hour ${hour}: ${this.stats.onlineUsers} (base: ${baseOnline})`);
   }
 
   /**
@@ -143,7 +130,7 @@ export class UserStatsService {
     // Активные пользователи составляют 25-40% от общего количества
     const minPercentage = 0.25;
     const maxPercentage = 0.40;
-    
+
     const percentage = minPercentage + Math.random() * (maxPercentage - minPercentage);
     this.stats.activeUsers = Math.floor(this.stats.totalUsers * percentage);
   }
@@ -183,7 +170,7 @@ export class UserStatsService {
     const weeklyGrowth = 7 * 100; // 100 пользователей в день * 7 дней
     const currentTotal = this.stats.totalUsers;
     const previousTotal = currentTotal - weeklyGrowth;
-    
+
     return ((currentTotal - previousTotal) / previousTotal) * 100;
   }
 
@@ -192,7 +179,7 @@ export class UserStatsService {
    */
   private static getPeakHours(): { start: number; end: number; description: string } {
     const hour = new Date().getHours();
-    
+
     if (hour >= 12 && hour < 18) {
       return { start: 12, end: 18, description: 'Peak activity hours' };
     } else if (hour >= 18 && hour < 22) {
@@ -225,7 +212,7 @@ export class UserStatsService {
    */
   static resetStats() {
     this.stats = {
-      totalUsers: 1250,
+      totalUsers: 10000,
       onlineUsers: 150,
       newUsersToday: 45,
       activeUsers: 400,
@@ -234,7 +221,7 @@ export class UserStatsService {
     };
     this.lastDayUpdate = 0;
     this.lastHourUpdate = 0;
-    
+
     logger.server('User stats reset to default values');
   }
 }

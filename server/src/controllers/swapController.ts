@@ -40,7 +40,7 @@ export const swapNONoNON = async (req: Request, res: Response) => {
   const ipAddress = req.ip;
 
   if (!amount || typeof amount !== 'number' || amount < MINIMUM_CONVERSION_AMOUNT) {
-    return res.status(400).json({ error: `Minimum conversion amount is ${MINIMUM_CONVERSION_AMOUNT} USD` });
+    return res.status(400).json({ error: `Minimum conversion amount is ${MINIMUM_CONVERSION_AMOUNT} NON` });
   }
 
   try {
@@ -53,11 +53,10 @@ export const swapNONoNON = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
     const NONWallet = user.wallets.find((w: Wallet) => w.currency === NON_CURRENCY);
 
-    if (!USDWallet || USDWallet.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient USD balance' });
+    if (!NONWallet || NONWallet.balance < amount) {
+      return res.status(400).json({ error: 'Insufficient NON balance' });
     }
 
     // Получаем текущий курс
@@ -72,51 +71,35 @@ export const swapNONoNON = async (req: Request, res: Response) => {
 
     const variation = Math.random() * (EXCHANGE_RATE_VARIATION_MAX - EXCHANGE_RATE_VARIATION_MIN) + EXCHANGE_RATE_VARIATION_MIN;
     const currentRate = baseRate.rate * (1 + variation);
-    const NONAmount = amount * currentRate;
+    const USDEquivalent = amount / currentRate;
 
     await prisma.$transaction(async (tx) => {
-      // Обновляем USD баланс
+      // Обновляем NON баланс
       await tx.wallet.update({
-        where: { id: USDWallet.id },
-        data: { balance: Math.max(0, USDWallet.balance - amount) },
+        where: { id: NONWallet.id },
+        data: { balance: Math.max(0, NONWallet.balance - amount) },
       });
-
-      // Обновляем или создаем NON кошелек
-      if (NONWallet) {
-        await tx.wallet.update({
-          where: { id: NONWallet.id },
-          data: { balance: { increment: NONAmount } },
-        });
-      } else {
-        await tx.wallet.create({
-          data: {
-            userId: user.id,
-            currency: NON_CURRENCY,
-            balance: NONAmount,
-          },
-        });
-      }
 
       // Логируем транзакцию
       await tx.activityLog.create({
         data: {
           userId: user.id,
-          type: ActivityLogType.SWAP_USD_TO_MNE,
+          type: ActivityLogType.EXCHANGE_RATE_CHANGE,
           amount: -amount,
-          description: `Converted ${amount.toFixed(4)} USD to ${NONAmount.toFixed(4)} NON at rate ${currentRate.toFixed(4)}`,
+          description: `Converted ${amount.toFixed(4)} NON to USD equivalent ${USDEquivalent.toFixed(4)} at rate ${currentRate.toFixed(4)}`,
           ipAddress: ipAddress,
         },
       });
     });
 
     res.status(200).json({
-      message: `Successfully converted ${amount.toFixed(4)} USD to ${NONAmount.toFixed(4)} NON`,
-      USDAmount: -amount,
-      NONAmount: NONAmount,
+      message: `Successfully converted ${amount.toFixed(4)} NON to USD equivalent ${USDEquivalent.toFixed(4)}`,
+      NONAmount: -amount,
+      USDEquivalent: USDEquivalent,
       rate: currentRate,
     });
   } catch (error) {
-    console.error(`Error converting USD to NON for user ${telegramId}:`, error);
+    console.error(`Error converting NON to USD equivalent for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -153,7 +136,6 @@ export const swapNONToUSD = async (req: Request, res: Response) => {
       });
     }
 
-    const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
     const NONWallet = user.wallets.find((w: Wallet) => w.currency === NON_CURRENCY);
 
     if (!NONWallet || NONWallet.balance < amount) {
@@ -172,7 +154,7 @@ export const swapNONToUSD = async (req: Request, res: Response) => {
 
     const variation = Math.random() * (EXCHANGE_RATE_VARIATION_MAX - EXCHANGE_RATE_VARIATION_MIN) + EXCHANGE_RATE_VARIATION_MIN;
     const currentRate = baseRate.rate * (1 + variation);
-    const USDAmount = amount / currentRate;
+    const USDEquivalent = amount / currentRate;
 
     await prisma.$transaction(async (tx) => {
       // Обновляем NON баланс
@@ -181,32 +163,26 @@ export const swapNONToUSD = async (req: Request, res: Response) => {
         data: { balance: Math.max(0, NONWallet.balance - amount) },
       });
 
-      // Обновляем USD кошелек
-      await tx.wallet.update({
-        where: { id: USDWallet!.id },
-        data: { balance: { increment: USDAmount } },
-      });
-
       // Логируем транзакцию
       await tx.activityLog.create({
         data: {
           userId: user.id,
-          type: ActivityLogType.SWAP_USD_TO_MNE,
-          amount: USDAmount,
-          description: `Converted ${amount.toFixed(4)} NON to ${USDAmount.toFixed(4)} USD at rate ${currentRate.toFixed(4)}`,
+          type: ActivityLogType.EXCHANGE_RATE_CHANGE,
+          amount: -amount,
+          description: `Converted ${amount.toFixed(4)} NON to USD equivalent ${USDEquivalent.toFixed(4)} at rate ${currentRate.toFixed(4)}`,
           ipAddress: ipAddress,
         },
       });
     });
 
     res.status(200).json({
-      message: `Successfully converted ${amount.toFixed(4)} NON to ${USDAmount.toFixed(4)} USD`,
-      USDAmount: USDAmount,
+      message: `Successfully converted ${amount.toFixed(4)} NON to USD equivalent ${USDEquivalent.toFixed(4)}`,
+      USDEquivalent: USDEquivalent,
       NONAmount: -amount,
       rate: currentRate,
     });
   } catch (error) {
-    console.error(`Error converting NON to USD for user ${telegramId}:`, error);
+    console.error(`Error converting NON to USD equivalent for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -228,7 +204,7 @@ export const getSwapHistory = async (req: Request, res: Response) => {
     const swapHistory = await prisma.activityLog.findMany({
       where: {
         userId: user.id,
-        type: ActivityLogType.SWAP_USD_TO_MNE,
+        type: ActivityLogType.EXCHANGE_RATE_CHANGE,
       },
       orderBy: { createdAt: 'desc' },
       take: 50, // Последние 50 транзакций

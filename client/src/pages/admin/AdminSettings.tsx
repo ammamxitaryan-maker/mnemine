@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -182,316 +181,361 @@ const AdminSettings = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/admin')}
-            className="text-gray-300 hover:text-white h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-white">System Settings</h1>
-            <p className="text-gray-400">Configure system parameters and features</p>
+    <div className="min-h-screen bg-gray-950 text-white">
+      {/* Professional Header */}
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 border-b border-blue-800/50">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin')}
+                className="text-blue-200 hover:bg-blue-800/30 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-white">System Settings</h1>
+                <p className="text-sm text-blue-200 mt-1">
+                  Configure system parameters and features
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={fetchSettings}
+                disabled={loading}
+                className="text-slate-400 hover:text-white hover:bg-slate-700"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={fetchSettings} disabled={loading}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
         </div>
       </div>
 
-      {/* Message */}
+      {/* Message Display */}
       {message && (
-        <div className={`p-4 rounded-lg flex items-center space-x-2 ${message.type === 'success' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'
-          }`}>
-          {message.type === 'success' ? (
-            <CheckCircle className="h-5 w-5" />
-          ) : (
-            <AlertTriangle className="h-5 w-5" />
-          )}
-          <span>{message.text}</span>
+        <div className="p-4">
+          <div className={`p-4 rounded-lg border flex items-center space-x-2 ${message.type === 'success'
+              ? 'bg-green-900/20 border-green-700/50 text-green-300'
+              : 'bg-red-900/20 border-red-700/50 text-red-300'
+            }`}>
+            {message.type === 'success' ? (
+              <CheckCircle className="h-5 w-5" />
+            ) : (
+              <AlertTriangle className="h-5 w-5" />
+            )}
+            <span>{message.text}</span>
+          </div>
         </div>
       )}
 
-      <Tabs defaultValue="exchange" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-gray-800">
-          <TabsTrigger value="exchange">Exchange</TabsTrigger>
-          <TabsTrigger value="limits">Limits</TabsTrigger>
-          <TabsTrigger value="features">Features</TabsTrigger>
-          <TabsTrigger value="system">System</TabsTrigger>
-        </TabsList>
+      {/* Settings Content */}
+      <div className="p-4">
+        <Tabs defaultValue="exchange" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 bg-slate-800/50 border border-slate-700/50">
+            <TabsTrigger value="exchange" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Exchange</TabsTrigger>
+            <TabsTrigger value="limits" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Limits</TabsTrigger>
+            <TabsTrigger value="features" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Features</TabsTrigger>
+            <TabsTrigger value="system" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">System</TabsTrigger>
+          </TabsList>
 
-        {/* Exchange Rate Settings */}
-        <TabsContent value="exchange">
-          <Card className="bg-gray-900 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center text-sm">
-                <DollarSign className="h-4 w-4 mr-2 text-green-400" />
-                Exchange Rate Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="currentRate">Current Rate</Label>
-                  <Input
-                    id="currentRate"
-                    type="number"
-                    step="0.0001"
-                    value={exchangeRate}
-                    onChange={(e) => setExchangeRate(e.target.value)}
-                    className="bg-gray-800 border-gray-600"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Current: {settings?.exchangeRate.current.toFixed(4)} NON per USD
-                  </p>
+          {/* Exchange Rate Settings */}
+          <TabsContent value="exchange">
+            <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-8 h-8 bg-green-600/20 rounded-lg flex items-center justify-center">
+                  <DollarSign className="h-4 w-4 text-green-400" />
                 </div>
-                <div>
-                  <Label>Minimum Rate</Label>
-                  <Input
-                    value="0.0001"
-                    disabled
-                    className="bg-gray-700 border-gray-600"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Very low minimum (limits removed)
-                  </p>
+                <h3 className="text-lg font-semibold text-white">Exchange Rate Settings</h3>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentRate" className="text-sm font-medium text-slate-300">Current Rate</Label>
+                    <Input
+                      id="currentRate"
+                      type="number"
+                      step="0.0001"
+                      value={exchangeRate}
+                      onChange={(e) => setExchangeRate(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white focus:border-green-500 focus:ring-green-500/20"
+                    />
+                    <p className="text-xs text-slate-400">
+                      Current: {settings?.exchangeRate.current.toFixed(4)} NON per USD
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-300">Minimum Rate</Label>
+                    <Input
+                      value="0.0001"
+                      disabled
+                      className="bg-slate-700 border-slate-600 text-slate-400"
+                    />
+                    <p className="text-xs text-slate-400">
+                      Very low minimum (limits removed)
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-300">Maximum Rate</Label>
+                    <Input
+                      value="0.1000"
+                      disabled
+                      className="bg-slate-700 border-slate-600 text-slate-400"
+                    />
+                    <p className="text-xs text-slate-400">
+                      High maximum (limits removed)
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <Label>Maximum Rate</Label>
-                  <Input
-                    value="0.1000"
-                    disabled
-                    className="bg-gray-700 border-gray-600"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    High maximum (limits removed)
-                  </p>
+
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleSaveSettings('exchange')}
+                    disabled={saving}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Exchange Rate
+                  </Button>
                 </div>
               </div>
-              <Button
-                onClick={() => handleSaveSettings('exchange')}
-                disabled={saving}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Exchange Rate
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </TabsContent>
 
-        {/* Limits Settings */}
-        <TabsContent value="limits">
-          <Card className="bg-gray-900 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center text-sm">
-                <Shield className="h-4 w-4 mr-2 text-blue-400" />
-                Transaction Limits
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="minDeposit">Minimum Deposit</Label>
-                  <Input
-                    id="minDeposit"
-                    type="number"
-                    step="0.01"
-                    value={minDeposit}
-                    onChange={(e) => setMinDeposit(e.target.value)}
-                    className="bg-gray-800 border-gray-600"
-                  />
+          {/* Limits Settings */}
+          <TabsContent value="limits">
+            <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-blue-400" />
                 </div>
-                <div>
-                  <Label htmlFor="maxDeposit">Maximum Deposit</Label>
-                  <Input
-                    id="maxDeposit"
-                    type="number"
-                    step="0.01"
-                    value={maxDeposit}
-                    onChange={(e) => setMaxDeposit(e.target.value)}
-                    className="bg-gray-800 border-gray-600"
-                  />
+                <h3 className="text-lg font-semibold text-white">Transaction Limits</h3>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="minDeposit" className="text-sm font-medium text-slate-300">Minimum Deposit</Label>
+                    <Input
+                      id="minDeposit"
+                      type="number"
+                      step="0.01"
+                      value={minDeposit}
+                      onChange={(e) => setMinDeposit(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maxDeposit" className="text-sm font-medium text-slate-300">Maximum Deposit</Label>
+                    <Input
+                      id="maxDeposit"
+                      type="number"
+                      step="0.01"
+                      value={maxDeposit}
+                      onChange={(e) => setMaxDeposit(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="minWithdrawal" className="text-sm font-medium text-slate-300">Minimum Withdrawal</Label>
+                    <Input
+                      id="minWithdrawal"
+                      type="number"
+                      step="0.01"
+                      value={minWithdrawal}
+                      onChange={(e) => setMinWithdrawal(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maxWithdrawal" className="text-sm font-medium text-slate-300">Maximum Withdrawal</Label>
+                    <Input
+                      id="maxWithdrawal"
+                      type="number"
+                      step="0.01"
+                      value={maxWithdrawal}
+                      onChange={(e) => setMaxWithdrawal(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="dailyLimit" className="text-sm font-medium text-slate-300">Daily Withdrawal Limit</Label>
+                    <Input
+                      id="dailyLimit"
+                      type="number"
+                      step="0.01"
+                      value={dailyWithdrawalLimit}
+                      onChange={(e) => setDailyWithdrawalLimit(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="minWithdrawal">Minimum Withdrawal</Label>
-                  <Input
-                    id="minWithdrawal"
-                    type="number"
-                    step="0.01"
-                    value={minWithdrawal}
-                    onChange={(e) => setMinWithdrawal(e.target.value)}
-                    className="bg-gray-800 border-gray-600"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="maxWithdrawal">Maximum Withdrawal</Label>
-                  <Input
-                    id="maxWithdrawal"
-                    type="number"
-                    step="0.01"
-                    value={maxWithdrawal}
-                    onChange={(e) => setMaxWithdrawal(e.target.value)}
-                    className="bg-gray-800 border-gray-600"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="dailyLimit">Daily Withdrawal Limit</Label>
-                  <Input
-                    id="dailyLimit"
-                    type="number"
-                    step="0.01"
-                    value={dailyWithdrawalLimit}
-                    onChange={(e) => setDailyWithdrawalLimit(e.target.value)}
-                    className="bg-gray-800 border-gray-600"
-                  />
+
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleSaveSettings('limits')}
+                    disabled={saving}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Limits
+                  </Button>
                 </div>
               </div>
-              <Button
-                onClick={() => handleSaveSettings('limits')}
-                disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Limits
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </TabsContent>
 
-        {/* Features Settings */}
-        <TabsContent value="features">
-          <Card className="bg-gray-900 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center text-sm">
-                <Globe className="h-4 w-4 mr-2 text-purple-400" />
-                Feature Toggles
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          {/* Features Settings */}
+          <TabsContent value="features">
+            <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-8 h-8 bg-purple-600/20 rounded-lg flex items-center justify-center">
+                  <Globe className="h-4 w-4 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">Feature Toggles</h3>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                   <div>
                     <h3 className="font-medium text-white">User Registration</h3>
-                    <p className="text-sm text-gray-400">Allow new user registrations</p>
+                    <p className="text-sm text-slate-400">Allow new user registrations</p>
                   </div>
                   <Button
                     variant={settings?.features.registrationEnabled ? "default" : "outline"}
                     size="sm"
+                    className={settings?.features.registrationEnabled
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "border-slate-600 text-slate-300 hover:bg-slate-700"
+                    }
                   >
                     {settings?.features.registrationEnabled ? 'Enabled' : 'Disabled'}
                   </Button>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                   <div>
                     <h3 className="font-medium text-white">Withdrawals</h3>
-                    <p className="text-sm text-gray-400">Allow user withdrawals</p>
+                    <p className="text-sm text-slate-400">Allow user withdrawals</p>
                   </div>
                   <Button
                     variant={settings?.features.withdrawalsEnabled ? "default" : "outline"}
                     size="sm"
+                    className={settings?.features.withdrawalsEnabled
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "border-slate-600 text-slate-300 hover:bg-slate-700"
+                    }
                   >
                     {settings?.features.withdrawalsEnabled ? 'Enabled' : 'Disabled'}
                   </Button>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                   <div>
                     <h3 className="font-medium text-white">Lottery System</h3>
-                    <p className="text-sm text-gray-400">Enable lottery functionality</p>
+                    <p className="text-sm text-slate-400">Enable lottery functionality</p>
                   </div>
                   <Button
                     variant={settings?.features.lotteryEnabled ? "default" : "outline"}
                     size="sm"
+                    className={settings?.features.lotteryEnabled
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "border-slate-600 text-slate-300 hover:bg-slate-700"
+                    }
                   >
                     {settings?.features.lotteryEnabled ? 'Enabled' : 'Disabled'}
                   </Button>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                   <div>
                     <h3 className="font-medium text-white">Referral System</h3>
-                    <p className="text-sm text-gray-400">Enable referral bonuses</p>
+                    <p className="text-sm text-slate-400">Enable referral bonuses</p>
                   </div>
                   <Button
                     variant={settings?.features.referralsEnabled ? "default" : "outline"}
                     size="sm"
+                    className={settings?.features.referralsEnabled
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "border-slate-600 text-slate-300 hover:bg-slate-700"
+                    }
                   >
                     {settings?.features.referralsEnabled ? 'Enabled' : 'Disabled'}
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </TabsContent>
 
-        {/* System Actions */}
-        <TabsContent value="system">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-gray-900 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center text-sm">
-                  <Database className="h-4 w-4 mr-2 text-orange-400" />
-                  Database Operations
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  onClick={() => handleSystemAction('backup')}
-                  disabled={saving}
-                  className="w-full bg-orange-600 hover:bg-orange-700"
-                >
-                  <Database className="h-4 w-4 mr-2" />
-                  Create Backup
-                </Button>
-                <Button
-                  onClick={() => handleSystemAction('cleanup')}
-                  disabled={saving}
-                  variant="outline"
-                  className="w-full border-orange-600 text-orange-400 hover:bg-orange-600/10"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Cleanup Logs
-                </Button>
-              </CardContent>
-            </Card>
+          {/* System Actions */}
+          <TabsContent value="system">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6">
+                <div className="flex items-center space-x-2 mb-6">
+                  <div className="w-8 h-8 bg-orange-600/20 rounded-lg flex items-center justify-center">
+                    <Database className="h-4 w-4 text-orange-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Database Operations</h3>
+                </div>
 
-            <Card className="bg-gray-900 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center text-sm">
-                  <Bell className="h-4 w-4 mr-2 text-yellow-400" />
-                  System Maintenance
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  onClick={() => handleSystemAction('maintenance-mode')}
-                  disabled={saving}
-                  className="w-full bg-yellow-600 hover:bg-yellow-700"
-                >
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Enable Maintenance Mode
-                </Button>
-                <Button
-                  onClick={() => handleSystemAction('cache-clear')}
-                  disabled={saving}
-                  variant="outline"
-                  className="w-full border-yellow-600 text-yellow-400 hover:bg-yellow-600/10"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Clear Cache
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => handleSystemAction('backup')}
+                    disabled={saving}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                    Create Backup
+                  </Button>
+                  <Button
+                    onClick={() => handleSystemAction('cleanup')}
+                    disabled={saving}
+                    variant="outline"
+                    className="w-full border-orange-600 text-orange-400 hover:bg-orange-600/10"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Cleanup Logs
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6">
+                <div className="flex items-center space-x-2 mb-6">
+                  <div className="w-8 h-8 bg-yellow-600/20 rounded-lg flex items-center justify-center">
+                    <Bell className="h-4 w-4 text-yellow-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">System Maintenance</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => handleSystemAction('maintenance-mode')}
+                    disabled={saving}
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Enable Maintenance Mode
+                  </Button>
+                  <Button
+                    onClick={() => handleSystemAction('cache-clear')}
+                    disabled={saving}
+                    variant="outline"
+                    className="w-full border-yellow-600 text-yellow-400 hover:bg-yellow-600/10"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Clear Cache
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

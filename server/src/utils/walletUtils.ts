@@ -4,8 +4,8 @@ import { WELCOME_BONUS_AMOUNT } from '../constants.js';
 const prisma = new PrismaClient();
 
 /**
- * Ensures that a user has both USD and NON wallets
- * Creates missing wallets automatically
+ * Ensures that a user has NON wallet
+ * Creates missing wallet automatically
  */
 export async function ensureUserWallets(userId: string): Promise<void> {
   try {
@@ -18,16 +18,7 @@ export async function ensureUserWallets(userId: string): Promise<void> {
     const existingCurrencies = existingWallets.map(w => w.currency);
     const walletsToCreate = [];
 
-    // Check if USD wallet exists
-    if (!existingCurrencies.includes('USD')) {
-      walletsToCreate.push({
-        userId,
-        currency: 'USD',
-        balance: 0
-      });
-    }
-
-    // Check if NON wallet exists
+    // Check if NON wallet exists (only currency needed)
     if (!existingCurrencies.includes('NON')) {
       walletsToCreate.push({
         userId,

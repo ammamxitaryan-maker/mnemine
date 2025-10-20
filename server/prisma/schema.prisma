@@ -54,7 +54,7 @@ model User {
   notifications                      Notification[]
   referralEarnings                   ReferralEarning[]
   swapTransactions                   SwapTransaction[]
-  referredBy                         User?             @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  referredBy                         User?             @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   referrals                          User[]            @relation("UserReferrals")
   wallets                            Wallet[]
   withdrawals                        Withdrawal[]
@@ -84,7 +84,7 @@ model Wallet {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   frozen    Boolean  @default(false)
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([frozen])
@@ -104,7 +104,7 @@ model MiningSlot {
   type                String   @default("standard")
   isLocked            Boolean  @default(false)
   accruedEarnings     Float    @default(0)
-  user                User     @relation(fields: [userId], references: [id])
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isActive])
@@ -135,7 +135,7 @@ model CompletedTask {
   taskId    String
   createdAt DateTime @default(now())
   task      Task     @relation(fields: [taskId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, taskId])
 }
@@ -150,7 +150,7 @@ model ActivityLog {
   sourceUserId String?
   ipAddress    String?
   userAgent    String?
-  user         User            @relation(fields: [userId], references: [id])
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([type])
@@ -179,7 +179,7 @@ model LotteryTicket {
   isAdminSelected Boolean  @default(false)
   createdAt       DateTime @default(now())
   lottery         Lottery  @relation(fields: [lotteryId], references: [id])
-  user            User     @relation(fields: [userId], references: [id])
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([lotteryId])
@@ -200,8 +200,7 @@ model SwapTransaction {
   exchangeRate Float
   createdAt    DateTime @default(now())
   NONAmount    Float
-  USDAmount    Float
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([createdAt])
@@ -224,7 +223,7 @@ model Notification {
   scheduledFor  DateTime?
   status        String    @default("PENDING")
   updatedAt     DateTime  @updatedAt
-  user          User      @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isRead])
@@ -248,7 +247,7 @@ model Investment {
   isLocked       Boolean          @default(true)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  user           User             @relation(fields: [userId], references: [id])
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -270,7 +269,7 @@ model Withdrawal {
   rejectionReason String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  user            User             @relation(fields: [userId], references: [id])
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -286,7 +285,7 @@ model ReferralEarning {
   level        Int
   isCapped     Boolean             @default(false)
   createdAt    DateTime            @default(now())
-  user         User                @relation(fields: [userId], references: [id])
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([sourceUserId])
@@ -334,7 +333,7 @@ model AccountFreeze {
   adminId     String
   description String?
   isActive    Boolean      @default(true)
-  user        User         @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isActive])
@@ -419,7 +418,6 @@ enum ActivityLogType {
   BALANCE_FROZEN_PENALTY
   LOTTERY_TICKET_PURCHASE
   LOTTERY_WIN
-  SWAP_USD_TO_MNE
   EXCHANGE_RATE_CHANGE
   ADMIN_LOTTERY_WIN
   LOGIN
@@ -446,10 +444,10 @@ model Payment {
   paymentId   String?     @unique
   userId      String
   amount      Float
-  currency    String      @default("USD")
+  currency    String      @default("NON")
   description String
   status      PaymentStatus @default(PENDING)
-  paymentMethod String    @default("amerpay")
+  paymentMethod String    @default("usdt")
   paymentUrl  String?
   refundReason String?
   metadata    Json?
@@ -467,7 +465,7 @@ model Transaction {
   userId      String
   type        TransactionType
   amount      Float
-  currency    String            @default("USD")
+  currency    String            @default("NON")
   description String
   status      TransactionStatus @default(PENDING)
   referenceId String?           // Reference to payment, withdrawal, etc.

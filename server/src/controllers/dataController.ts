@@ -80,7 +80,7 @@ export const getUserData = async (req: Request, res: Response) => {
       const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
       cachedData = {
-        balance: nonBalance, // Fix: balance should be NON balance, not USD
+        balance: nonBalance, // NON balance is the main balance
         nonBalance: nonBalance,
         miningPower: totalMiningPower,
         accruedEarnings: totalEarnings,
@@ -98,20 +98,17 @@ export const getUserData = async (req: Request, res: Response) => {
         // Calculate earnings
         const totalEarnings = user.miningSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
-        // Calculate NON balance including admin additions (main currency for the app)
-        const baseNonBalance = user.wallets
+        // Calculate NON balance (main currency for the app)
+        const nonBalance = user.wallets
           .filter(w => w.currency === 'NON')
           .reduce((sum, w) => sum + w.balance, 0);
-
-        // Add admin balance additions (stored in user.adminBalance)
-        const nonBalance = baseNonBalance + ((user as any).adminBalance || 0);
 
         console.log(`[DATA] User ${telegramId} NON balance: ${nonBalance}`);
 
         const totalMiningPower = user.miningSlots.reduce((sum, slot) => sum + slot.effectiveWeeklyRate, 0);
 
         return {
-          balance: nonBalance, // Fix: balance should be NON balance, not USD
+          balance: nonBalance, // NON balance is the main balance
           nonBalance: nonBalance,
           miningPower: totalMiningPower,
           accruedEarnings: totalEarnings,
@@ -247,3 +244,5 @@ export const getUserActivity = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+

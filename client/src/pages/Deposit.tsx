@@ -30,7 +30,7 @@ const Deposit = () => {
   const { t } = useTranslation();
   const { convertNONToUSD, rate, isLoading: rateLoading } = useCachedExchangeRate(user?.telegramId || '');
 
-  // Calculate USD equivalent
+  // Calculate USD equivalent for display only
   const mneAmount = parseFloat(amount) || 0;
   const usdEquivalent = convertNONToUSD(mneAmount);
 
@@ -90,13 +90,13 @@ const Deposit = () => {
               </div>
             </div>
 
-            {/* USD Equivalent Display */}
+            {/* USD Equivalent Display (for information only) */}
             {amount && mneAmount > 0 && (
               <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span className="text-sm font-medium text-gray-300">USD Equivalent</span>
+                    <span className="text-sm font-medium text-gray-300">USD Equivalent (Info)</span>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-medium text-green-500">
@@ -130,7 +130,7 @@ const Deposit = () => {
         </Card>
 
         <div className="text-center mt-4 text-sm text-gray-500">
-          <p>Your NON will be converted to USD at the current exchange rate set by the admin.</p>
+          <p>You will receive NON tokens. USD equivalent is shown for reference only.</p>
         </div>
       </div>
     </div>

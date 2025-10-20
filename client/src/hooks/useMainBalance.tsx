@@ -1,24 +1,98 @@
 import { useQuery } from '@tanstack/react-query';
+import React from 'react';
 import { useCachedExchangeRate } from './useCachedExchangeRate';
 import { useSlotsData } from './useSlotsData';
 import { useUserData } from './useUserData';
 
 interface MainBalanceData {
-  availableBalance: number; // Available balance not invested in slots
+  availableBalance: number; // User's actual wallet balance (not affected by investments)
   totalInvested: number; // Total amount invested in active slots
-  totalBalance: number; // Total balance (available + invested)
+  totalBalance: number; // Same as availableBalance (user's wallet balance)
   activeSlotsCount: number;
   totalEarnings: number; // Earnings from slots
   lastUpdate: string;
 }
 
 export const useMainBalance = (telegramId: string | undefined) => {
-  const { data: userData } = useUserData(telegramId);
-  const { data: slotsData } = useSlotsData(telegramId);
+  const { data: userData, refetch: refetchUserData } = useUserData(telegramId);
+  const { data: slotsData, refetch: refetchSlotsData } = useSlotsData(telegramId);
   const { convertNONToUSD } = useCachedExchangeRate(telegramId || '');
+  const [forceRefresh, setForceRefresh] = React.useState(0);
+
+  // Listen for balance update events
+  React.useEffect(() => {
+    const handleBalanceUpdated = (event: CustomEvent) => {
+      console.log(`[useMainBalance] Received balanceUpdated event:`, event.detail);
+      if (event.detail?.telegramId === telegramId) {
+        console.log(`[useMainBalance] Balance updated for user ${telegramId}, forcing refresh`);
+        setForceRefresh(prev => prev + 1);
+        refetchUserData();
+        refetchSlotsData();
+      }
+    };
+
+    const handleUserDataRefresh = (event: CustomEvent) => {
+      console.log(`[useMainBalance] Received userDataRefresh event:`, event.detail);
+      if (event.detail?.telegramId === telegramId) {
+        console.log(`[useMainBalance] User data refresh for user ${telegramId}, forcing refresh`);
+        setForceRefresh(prev => prev + 1);
+        refetchUserData();
+        refetchSlotsData();
+      }
+    };
+
+    const handleGlobalRefresh = () => {
+      console.log(`[useMainBalance] Received globalDataRefresh event, forcing refresh for user ${telegramId}`);
+      setForceRefresh(prev => prev + 1);
+      refetchUserData();
+      refetchSlotsData();
+    };
+
+    // Listen for WebSocket balance updates
+    const handleWebSocketMessage = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'BALANCE_UPDATED' && data.data) {
+          console.log(`[useMainBalance] WebSocket balance update received:`, data.data);
+          if (data.data.telegramId === telegramId) {
+            console.log(`[useMainBalance] WebSocket balance update for user ${telegramId}, forcing refresh`);
+            setForceRefresh(prev => prev + 1);
+            refetchUserData();
+            refetchSlotsData();
+
+            // Also dispatch events to ensure all components get updated
+            window.dispatchEvent(new CustomEvent('balanceUpdated', {
+              detail: {
+                telegramId: data.data.telegramId,
+                newBalance: data.data.newBalance,
+                previousBalance: data.data.previousBalance,
+                changeAmount: data.data.changeAmount,
+                action: data.data.action,
+                timestamp: data.data.timestamp
+              }
+            }));
+          }
+        }
+      } catch (error) {
+        // Ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener('balanceUpdated', handleBalanceUpdated as EventListener);
+    window.addEventListener('userDataRefresh', handleUserDataRefresh as EventListener);
+    window.addEventListener('globalDataRefresh', handleGlobalRefresh);
+    window.addEventListener('message', handleWebSocketMessage);
+
+    return () => {
+      window.removeEventListener('balanceUpdated', handleBalanceUpdated as EventListener);
+      window.removeEventListener('userDataRefresh', handleUserDataRefresh as EventListener);
+      window.removeEventListener('globalDataRefresh', handleGlobalRefresh);
+      window.removeEventListener('message', handleWebSocketMessage);
+    };
+  }, [telegramId, refetchUserData, refetchSlotsData]);
 
   const balanceData = useQuery<MainBalanceData>({
-    queryKey: ['mainBalance', telegramId, userData?.nonBalance, slotsData],
+    queryKey: ['mainBalance', telegramId, userData?.nonBalance, slotsData, forceRefresh],
     queryFn: () => {
       if (!userData || !slotsData) {
         return {
@@ -56,9 +130,10 @@ export const useMainBalance = (telegramId: string | undefined) => {
         return sum;
       }, 0);
 
-      // Available balance = total balance - invested amount + admin additions
-      // Admin additions are always available and not affected by investments
-      const availableBalance = Math.max(0, totalBalance - totalInvested);
+      // Available balance = total balance (user's actual wallet balance)
+      // Investments don't reduce available balance - they are separate
+      const availableBalance = totalBalance;
+
 
       return {
         availableBalance,
@@ -70,19 +145,20 @@ export const useMainBalance = (telegramId: string | undefined) => {
       };
     },
     enabled: !!telegramId && !!userData,
-    refetchInterval: 180000, // Refetch every 3 minutes (optimized)
-    staleTime: 0, // Always consider data stale - get fresh data from server
+    refetchInterval: 3000, // Refetch every 3 seconds for real-time updates
+    staleTime: 1000, // Consider data fresh for 1 second to ensure real-time updates
   });
 
+  // USD equivalents for display only
   const usdEquivalent = convertNONToUSD(balanceData.data?.availableBalance || 0);
   const totalUsdEquivalent = convertNONToUSD(balanceData.data?.totalBalance || 0);
   const earningsUsd = convertNONToUSD(balanceData.data?.totalEarnings || 0);
 
   return {
     ...balanceData.data,
-    usdEquivalent,
-    totalUsdEquivalent,
-    earningsUsd,
+    usdEquivalent, // For display only
+    totalUsdEquivalent, // For display only
+    earningsUsd, // For display only
     isLoading: balanceData.isLoading,
     error: balanceData.error,
     refetch: balanceData.refetch,

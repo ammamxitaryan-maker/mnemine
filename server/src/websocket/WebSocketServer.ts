@@ -478,7 +478,7 @@ export class WebSocketServer {
   }
 
   private startBroadcastIntervals() {
-    // Broadcast market data every 10 seconds
+    // Broadcast market data every 5 seconds
     this.broadcastIntervals.set('market', setInterval(async () => {
       try {
         const marketData = await this.getMarketData();
@@ -490,9 +490,9 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting market data:', error);
       }
-    }, 10000));
+    }, 5000));
 
-    // Broadcast user earnings every 10 seconds for real-time updates
+    // Broadcast user earnings every 3 seconds for real-time updates
     this.broadcastIntervals.set('earnings', setInterval(async () => {
       try {
         // Only broadcast to users with active connections
@@ -514,14 +514,6 @@ export class WebSocketServer {
                 },
                 timestamp: new Date().toISOString()
               });
-
-              // Also send slots data for real-time slot earnings
-              const slotsData = await this.getSlotsData(telegramId);
-              this.broadcastToUser(telegramId, {
-                type: 'slots_data_update',
-                data: slotsData,
-                timestamp: new Date().toISOString()
-              });
             }
           } catch (error) {
             console.error(`[WebSocket] Error broadcasting earnings for user ${telegramId}:`, error);
@@ -532,7 +524,35 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting earnings:', error);
       }
-    }, 10000));
+    }, 3000));
+
+    // Broadcast slots data every 5 seconds for each user
+    this.broadcastIntervals.set('slots', setInterval(async () => {
+      try {
+        // Only broadcast to users with active connections
+        const activeUsers = Array.from(this.clients.entries()).filter(([_, clients]) => clients.size > 0);
+
+        if (activeUsers.length === 0) return;
+
+        const promises = activeUsers.map(async ([telegramId, clients]) => {
+          try {
+            // Send slots data for real-time slot earnings
+            const slotsData = await this.getSlotsData(telegramId);
+            this.broadcastToUser(telegramId, {
+              type: 'slots_data_update',
+              data: slotsData,
+              timestamp: new Date().toISOString()
+            });
+          } catch (error) {
+            console.error(`[WebSocket] Error broadcasting slots for user ${telegramId}:`, error);
+          }
+        });
+
+        await Promise.allSettled(promises);
+      } catch (error) {
+        console.error('[WebSocket] Error broadcasting slots:', error);
+      }
+    }, 5000));
 
     // Broadcast price data every minute for real-time price chart
     this.broadcastIntervals.set('price', setInterval(async () => {
@@ -678,7 +698,7 @@ export class WebSocketServer {
   public async broadcastBalanceUpdate(telegramId: string, balanceData: any) {
     try {
       const message: WebSocketMessage = {
-        type: 'BALANCE_UPDATE',
+        type: 'BALANCE_UPDATED',
         data: balanceData,
         timestamp: new Date().toISOString()
       };

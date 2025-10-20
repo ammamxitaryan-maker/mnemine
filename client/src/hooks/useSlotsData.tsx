@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 export interface MiningSlot {
   id: string;
@@ -27,12 +27,12 @@ export interface RealTimeSlotData {
 
 const fetchSlotsData = async (telegramId?: string): Promise<MiningSlot[]> => {
   console.log('[useSlotsData] Fetching slots data for telegramId:', telegramId);
-  
+
   if (!telegramId) {
     console.log('[useSlotsData] No telegramId provided, returning empty array');
     return [];
   }
-  
+
   try {
     const { data } = await api.get(`/user/${telegramId}/slots`);
     console.log('[useSlotsData] Fetched slots data:', {
@@ -44,7 +44,7 @@ const fetchSlotsData = async (telegramId?: string): Promise<MiningSlot[]> => {
         effectiveWeeklyRate: slot.effectiveWeeklyRate
       }))
     });
-    
+
     // Ensure earningsPerSecond is always provided
     return data.map((slot: MiningSlot) => ({
       ...slot,
@@ -61,6 +61,7 @@ export const useSlotsData = (telegramId?: string) => {
     queryKey: ['slotsData', telegramId],
     queryFn: () => fetchSlotsData(telegramId),
     enabled: !!telegramId,
-    refetchInterval: 1000 * 60, // Refetch every minute
+    refetchInterval: 10000, // Refetch every 10 seconds to match userData
+    staleTime: 5000, // Consider data fresh for 5 seconds
   });
 };

@@ -17,6 +17,7 @@ export type WebSocketEventType =
   | 'USER_DISCONNECTED'
   | 'EARNINGS_UPDATE'
   | 'BALANCE_UPDATE'
+  | 'BALANCE_UPDATED'
   | 'SLOT_UPDATE'
   | 'LOTTERY_UPDATE'
   | 'NOTIFICATION'
@@ -68,6 +69,18 @@ export interface BalanceUpdateEvent {
     newBalance: number;
     change: number;
     reason: string;
+    timestamp: string;
+  };
+}
+
+export interface BalanceUpdatedEvent {
+  type: 'BALANCE_UPDATED';
+  data: {
+    telegramId: string;
+    newBalance: number;
+    previousBalance: number;
+    changeAmount: number;
+    action: string;
     timestamp: string;
   };
 }
@@ -160,6 +173,7 @@ export type WebSocketEvent =
   | UserDisconnectedEvent
   | EarningsUpdateEvent
   | BalanceUpdateEvent
+  | BalanceUpdatedEvent
   | SlotUpdateEvent
   | LotteryUpdateEvent
   | NotificationEvent
@@ -242,6 +256,10 @@ export const isEarningsUpdateEvent = (event: WebSocketEvent): event is EarningsU
 
 export const isBalanceUpdateEvent = (event: WebSocketEvent): event is BalanceUpdateEvent => {
   return event.type === 'BALANCE_UPDATE';
+};
+
+export const isBalanceUpdatedEvent = (event: WebSocketEvent): event is BalanceUpdatedEvent => {
+  return event.type === 'BALANCE_UPDATED';
 };
 
 export const isSlotUpdateEvent = (event: WebSocketEvent): event is SlotUpdateEvent => {

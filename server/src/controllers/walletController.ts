@@ -1,6 +1,6 @@
 ﻿import { ActivityLogType, Wallet } from '@prisma/client';
 import { Request, Response } from 'express';
-import { DIRECT_USD_WITHDRAWAL_DISABLED, FIRST_100_WITHDRAWALS_LIMIT, MINIMUM_DEPOSIT_FOR_WITHDRAWAL, MINIMUM_WITHDRAWAL_FIRST_100, MINIMUM_WITHDRAWAL_REGULAR, REFERRAL_COMMISSIONS_L1, REFERRAL_COMMISSIONS_L2, REFERRAL_DEPOSIT_BONUS, REFERRAL_INCOME_CAP_ENABLED, RESERVE_FUND_PERCENTAGE, WITHDRAWAL_DAILY_LIMIT, WITHDRAWAL_FEE_PERCENTAGE, WITHDRAWAL_MIN_BALANCE_REQUIREMENT, WITHDRAWAL_REFERRAL_REQUIREMENT, WITHDRAWAL_SLOT_REQUIREMENT } from '../constants.js'; // Updated import for ranked commissions
+import { FIRST_100_WITHDRAWALS_LIMIT, MINIMUM_DEPOSIT_FOR_WITHDRAWAL, MINIMUM_WITHDRAWAL_FIRST_100, MINIMUM_WITHDRAWAL_REGULAR, REFERRAL_COMMISSIONS_L1, REFERRAL_COMMISSIONS_L2, REFERRAL_DEPOSIT_BONUS, REFERRAL_INCOME_CAP_ENABLED, RESERVE_FUND_PERCENTAGE, WITHDRAWAL_DAILY_LIMIT, WITHDRAWAL_FEE_PERCENTAGE, WITHDRAWAL_MIN_BALANCE_REQUIREMENT, WITHDRAWAL_REFERRAL_REQUIREMENT, WITHDRAWAL_SLOT_REQUIREMENT } from '../constants.js'; // Updated import for ranked commissions
 import prisma from '../prisma.js';
 import { userSelect } from '../utils/dbSelects.js'; // Import userSelect
 import { isUserSuspicious } from '../utils/helpers.js';
@@ -9,7 +9,7 @@ import { sanitizeInput, validateAddress, validateAmount } from '../utils/validat
 // POST /api/user/:telegramId/deposit
 export const depositFunds = async (req: Request, res: Response) => {
   const { telegramId } = req.params;
-  const { amount, currency = 'USD' } = req.body;
+  const { amount } = req.body; // Only NON deposits
   const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
 
   // Validate input
@@ -33,29 +33,12 @@ export const depositFunds = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    let usdAmount = amount;
-
-    // If depositing NON, convert to USD using current exchange rate
-    if (currency === 'NON') {
-      const exchangeRate = await prisma.exchangeRate.findFirst({
-        where: { isActive: true },
-        orderBy: { createdAt: 'desc' }
-      });
-
-      if (!exchangeRate) {
-        return res.status(400).json({ error: 'Exchange rate not available' });
-      }
-
-      // Convert NON to USD: NON amount * exchange rate = USD amount
-      usdAmount = amount * exchangeRate.rate;
-    }
-
-    const reserveAmount = usdAmount * RESERVE_FUND_PERCENTAGE;
-    const netDeposit = usdAmount - reserveAmount;
+    const reserveAmount = amount * RESERVE_FUND_PERCENTAGE;
+    const netDeposit = amount - reserveAmount;
 
     await prisma.$transaction(async (tx) => {
-      const depositorWallet = depositor.wallets.find((w: Wallet) => w.currency === 'USD');
-      if (!depositorWallet) throw new Error('Depositor USD wallet not found');
+      const depositorWallet = depositor.wallets.find((w: Wallet) => w.currency === 'NON');
+      if (!depositorWallet) throw new Error('Depositor NON wallet not found');
 
       await tx.wallet.update({
         where: { id: depositorWallet.id },
@@ -65,7 +48,7 @@ export const depositFunds = async (req: Request, res: Response) => {
       await tx.user.update({
         where: { id: depositor.id },
         data: {
-          totalInvested: { increment: usdAmount },
+          totalInvested: { increment: amount },
           lastDepositAt: depositor.lastDepositAt ? depositor.lastDepositAt : new Date(),
         },
       });
@@ -75,9 +58,7 @@ export const depositFunds = async (req: Request, res: Response) => {
           userId: depositor.id,
           type: ActivityLogType.DEPOSIT,
           amount: netDeposit,
-          description: currency === 'NON'
-            ? `Deposited ${amount.toFixed(6)} NON (${usdAmount.toFixed(2)} USD, Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`
-            : `Deposited ${amount.toFixed(2)} USD (Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`,
+          description: `Deposited ${amount.toFixed(6)} NON (Net after ${RESERVE_FUND_PERCENTAGE * 100}% reserve)`,
           ipAddress: ipAddress,
         },
       });
@@ -96,17 +77,15 @@ export const depositFunds = async (req: Request, res: Response) => {
         // Определяем процент комиссии (только 2 уровня)
         const commissionRate = level === 0 ? REFERRAL_COMMISSIONS_L1 : REFERRAL_COMMISSIONS_L2;
 
-        let commissionAmount = usdAmount * commissionRate;
+        let commissionAmount = amount * commissionRate;
 
         // Ограничиваем реферальный доход текущим балансом реферера
         if (REFERRAL_INCOME_CAP_ENABLED) {
-          const referrerWallet = referrer.wallets.find((w: Wallet) => w.currency === 'USD')?.balance || 0;
+          const referrerWallet = referrer.wallets.find((w: Wallet) => w.currency === 'NON')?.balance || 0;
           commissionAmount = Math.min(commissionAmount, referrerWallet);
         }
 
-        // Убираем проверку isUserEligible для упрощения логики
-
-        const referrerWallet = referrer.wallets.find((w: Wallet) => w.currency === 'USD');
+        const referrerWallet = referrer.wallets.find((w: Wallet) => w.currency === 'NON');
 
         if (referrerWallet) {
           await tx.wallet.update({
@@ -161,20 +140,13 @@ export const withdrawFunds = async (req: Request, res: Response) => {
   const { amount, address } = req.body;
   const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
 
-  // Проверяем, разрешен ли прямой вывод USD
-  if (DIRECT_USD_WITHDRAWAL_DISABLED) {
-    return res.status(400).json({
-      error: 'Direct USD withdrawal is disabled. Please convert to NON first using the swap function.'
-    });
-  }
-
   // Validate input
   if (!validateAmount(amount) || !address || typeof address !== 'string') {
     return res.status(400).json({ error: 'Invalid amount or address' });
   }
 
   if (!validateAddress(address)) {
-    return res.status(400).json({ error: 'Invalid USD TRC20 address format' });
+    return res.status(400).json({ error: 'Invalid NON address format' });
   }
 
   // Sanitize inputs
@@ -207,15 +179,15 @@ export const withdrawFunds = async (req: Request, res: Response) => {
 
     if (!hasMinimumDeposit && activeReferralsCount < 3) {
       return res.status(400).json({
-        error: `You need either a minimum deposit of ${MINIMUM_DEPOSIT_FOR_WITHDRAWAL} USD or 3 active referrals to withdraw.`
+        error: `You need either a minimum deposit of ${MINIMUM_DEPOSIT_FOR_WITHDRAWAL} NON or 3 active referrals to withdraw.`
       });
     }
 
-    const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-    if (!USDWallet) return res.status(400).json({ error: 'USD wallet not found' });
+    const NONWallet = user.wallets.find((w: Wallet) => w.currency === 'NON');
+    if (!NONWallet) return res.status(400).json({ error: 'NON wallet not found' });
 
-    if (USDWallet.balance < WITHDRAWAL_MIN_BALANCE_REQUIREMENT) {
-      return res.status(400).json({ error: `Minimum balance for withdrawal is ${WITHDRAWAL_MIN_BALANCE_REQUIREMENT.toFixed(2)} USD` });
+    if (NONWallet.balance < WITHDRAWAL_MIN_BALANCE_REQUIREMENT) {
+      return res.status(400).json({ error: `Minimum balance for withdrawal is ${WITHDRAWAL_MIN_BALANCE_REQUIREMENT.toFixed(2)} NON` });
     }
 
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -239,9 +211,9 @@ export const withdrawFunds = async (req: Request, res: Response) => {
       ? MINIMUM_WITHDRAWAL_FIRST_100
       : MINIMUM_WITHDRAWAL_REGULAR;
 
-    if (amount < minimumWithdrawal) return res.status(400).json({ error: `Minimum withdrawal is ${minimumWithdrawal.toFixed(2)} USD` });
+    if (amount < minimumWithdrawal) return res.status(400).json({ error: `Minimum withdrawal is ${minimumWithdrawal.toFixed(2)} NON` });
 
-    if (USDWallet.balance < amount) return res.status(400).json({ error: 'Insufficient balance' });
+    if (NONWallet.balance < amount) return res.status(400).json({ error: 'Insufficient balance' });
 
     if (totalWithdrawalsCount >= FIRST_100_WITHDRAWALS_LIMIT) {
       const activeReferralsCount = await prisma.user.count({
@@ -262,7 +234,6 @@ export const withdrawFunds = async (req: Request, res: Response) => {
         return res.status(400).json({ error: `You need at least ${WITHDRAWAL_SLOT_REQUIREMENT} active mining slots to withdraw.` });
       }
     }
-
 
     const isUserCurrentlySuspicious = await isUserSuspicious(user.id);
     if (isUserCurrentlySuspicious) {
@@ -295,15 +266,15 @@ export const withdrawFunds = async (req: Request, res: Response) => {
 
     await prisma.$transaction([
       prisma.wallet.update({
-        where: { id: USDWallet.id },
-        data: { balance: Math.max(0, USDWallet.balance - amount) },
+        where: { id: NONWallet.id },
+        data: { balance: Math.max(0, NONWallet.balance - amount) },
       }),
       prisma.activityLog.create({
         data: {
           userId: user.id,
           type: ActivityLogType.WITHDRAWAL,
           amount: -amount,
-          description: `Withdrawal of ${amount.toFixed(2)} USD to ${address}. Fee: ${fee.toFixed(2)} USD.`,
+          description: `Withdrawal of ${amount.toFixed(2)} NON to ${address}. Fee: ${fee.toFixed(2)} NON.`,
           ipAddress: ipAddress,
         },
       }),
@@ -313,7 +284,7 @@ export const withdrawFunds = async (req: Request, res: Response) => {
       }),
     ]);
 
-    res.status(200).json({ message: `Withdrawal of ${amountToReceive.toFixed(2)} USD initiated.` });
+    res.status(200).json({ message: `Withdrawal of ${amountToReceive.toFixed(2)} NON initiated.` });
   } catch (error) {
     console.error(`Error processing withdrawal for user ${telegramId}:`, error);
     res.status(500).json({ error: 'Internal server error' });
@@ -355,12 +326,12 @@ export const claimEarnings = async (req: Request, res: Response) => {
       return res.status(200).json({ message: 'No significant earnings to claim.', claimedAmount: 0 });
     }
 
-    const USDWallet = user.wallets.find((w: Wallet) => w.currency === 'USD');
-    if (!USDWallet) return res.status(400).json({ error: 'USD wallet not found' });
+    const NONWallet = user.wallets.find((w: Wallet) => w.currency === 'NON');
+    if (!NONWallet) return res.status(400).json({ error: 'NON wallet not found' });
 
     await prisma.$transaction(async (tx) => {
       await tx.wallet.update({
-        where: { id: USDWallet.id },
+        where: { id: NONWallet.id },
         data: { balance: { increment: totalEarnings } }
       });
       for (const slotData of updatedSlotsData) {

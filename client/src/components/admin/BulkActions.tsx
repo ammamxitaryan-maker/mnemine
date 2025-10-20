@@ -72,7 +72,7 @@ const BulkActions = ({ selectedUsers, onClose, onSuccess }: BulkActionsProps) =>
       const response = await api.post('/admin/users/bulk-actions', {
         userIds: selectedUsers,
         action,
-        reason,
+        reason: action === 'delete' ? undefined : reason, // Don't send reason for delete actions
         newRole: action === 'changeRole' ? newRole : undefined,
         adminId: '6760298907' // Admin Telegram ID
       });

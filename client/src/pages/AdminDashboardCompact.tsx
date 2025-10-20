@@ -127,15 +127,11 @@ const AdminDashboardCompact = () => {
       return;
     }
 
-    const reason = prompt('Enter reason for deleting all users:');
-    if (!reason) {
-      showError('Reason is required for this action.');
-      return;
-    }
-
+    const reason = prompt('Enter reason for deleting all users (optional):');
+    
     try {
       const response = await api.delete('/admin/delete-all-users', {
-        data: { reason: reason }
+        data: { reason: reason || 'No reason provided' }
       });
 
       if (response.data.success) {

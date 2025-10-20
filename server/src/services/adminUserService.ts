@@ -338,13 +338,7 @@ export class AdminUserService {
   static async deleteAllUsers(req: Request, res: Response) {
     try {
       const { reason } = req.body;
-
-      if (!reason) {
-        return res.status(400).json({
-          success: false,
-          error: 'Reason is required for deleting all users'
-        });
-      }
+      const deleteReason = reason || 'No reason provided';
 
       // Получаем всех пользователей для логирования
       const allUsers = await prisma.user.findMany({
@@ -389,14 +383,14 @@ export class AdminUserService {
       });
 
       // Логируем действие администратора
-      console.log(`[ADMIN ACTION] All users deleted by admin. Reason: ${reason}. Deleted ${result.count} users.`);
+      console.log(`[ADMIN ACTION] All users deleted by admin. Reason: ${deleteReason}. Deleted ${result.count} users.`);
 
       res.status(200).json({
         success: true,
         message: `Successfully deleted all ${result.count} users`,
         data: {
           deletedCount: result.count,
-          reason: reason,
+          reason: deleteReason,
           deletedUsers: allUsers.map(user => ({
             id: user.id,
             telegramId: user.telegramId,
@@ -446,6 +440,9 @@ export class AdminUserService {
             case 'reset_activity':
               result = await this.resetUserActivity(userId);
               break;
+            case 'delete':
+              result = await this.deleteUserById(userId);
+              break;
             default:
               throw new Error(`Unknown action: ${action}`);
           }
@@ -478,6 +475,49 @@ export class AdminUserService {
   }
 
   // Вспомогательные методы
+  private static async deleteUserById(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        wallets: true,
+        miningSlots: true,
+        referrals: true,
+        activityLogs: true
+      }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Удаляем пользователя и связанные данные
+    await prisma.$transaction([
+      // Сначала обновляем всех пользователей, которые ссылаются на удаляемого пользователя как реферера
+      prisma.user.updateMany({
+        where: { referredById: userId },
+        data: { referredById: null }
+      }),
+      // Удаляем связанные записи в правильном порядке (сначала дочерние, потом родительские)
+      prisma.activityLog.deleteMany({ where: { userId: userId } }),
+      prisma.referralEarning.deleteMany({ where: { userId: userId } }),
+      prisma.notification.deleteMany({ where: { userId: userId } }),
+      prisma.completedTask.deleteMany({ where: { userId: userId } }),
+      prisma.lotteryTicket.deleteMany({ where: { userId: userId } }),
+      prisma.swapTransaction.deleteMany({ where: { userId: userId } }),
+      prisma.withdrawal.deleteMany({ where: { userId: userId } }),
+      prisma.investment.deleteMany({ where: { userId: userId } }),
+      prisma.payment.deleteMany({ where: { userId: userId } }),
+      prisma.transaction.deleteMany({ where: { userId: userId } }),
+      prisma.wallet.deleteMany({ where: { userId: userId } }),
+      prisma.miningSlot.deleteMany({ where: { userId: userId } }),
+      prisma.accountFreeze.deleteMany({ where: { userId: userId } }),
+      // Удаляем самого пользователя
+      prisma.user.delete({ where: { id: userId } })
+    ]);
+
+    return { status: 'deleted', userId: user.telegramId };
+  }
+
   private static async freezeUser(userId: string, reason: string) {
     const user = await prisma.user.update({
       where: { id: userId },

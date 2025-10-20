@@ -83,10 +83,34 @@ const InvestmentSlots = () => {
       const toastId = showLoading('Creating investment slot...');
       return { toastId };
     },
-    onSuccess: (_data, _variables, context) => {
+    onSuccess: async (_data, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
       showSuccess('Investment slot created successfully!');
       setAmount('');
+
+      // Immediately refresh user data to get updated balance
+      try {
+        const response = await api.get(`/user/${user?.telegramId}/data?bypassCache=true&t=${Date.now()}`);
+        console.log('[InvestmentSlots] Fresh user data after investment:', response.data);
+
+        // Dispatch events to force immediate UI update
+        window.dispatchEvent(new CustomEvent('userDataRefresh', {
+          detail: { telegramId: user?.telegramId }
+        }));
+        window.dispatchEvent(new CustomEvent('balanceUpdated', {
+          detail: {
+            telegramId: user?.telegramId,
+            newBalance: response.data.nonBalance,
+            previousBalance: currentBalance,
+            changeAmount: response.data.nonBalance - currentBalance,
+            action: 'SLOT_INVESTMENT',
+            timestamp: new Date().toISOString()
+          }
+        }));
+      } catch (error) {
+        console.error('[InvestmentSlots] Error refreshing user data:', error);
+      }
+
       fetchInvestmentSlots();
       queryClient.invalidateQueries({ queryKey: ['userData', user?.telegramId] });
     },

@@ -1,22 +1,19 @@
 ﻿"use client";
 
 import BulkActions from '@/components/admin/BulkActions';
+import { ForceRefreshButton } from '@/components/ForceRefreshButton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ForceRefreshButton } from '@/components/ForceRefreshButton';
 import { api } from '@/lib/api';
 import { AdminUser } from '@/types/admin';
 import {
   ArrowLeft,
-  Ban,
   CheckCircle,
   DollarSign,
   Download,
   Search,
   Trash2,
-  UserPlus,
   Users,
   UserX
 } from 'lucide-react';
@@ -156,114 +153,48 @@ const AdminUsers = () => {
           break;
         case 'balance': {
           const currentBalance = user?.nonBalance || 0;
-          const action = prompt(
-            `Balance Management for ${userName}\n\n` +
+          const newBalance = prompt(
+            `💰 Balance Management for ${userName}\n\n` +
             `Current balance: ${currentBalance.toFixed(4)} NON\n\n` +
-            `Choose action:\n` +
-            `1. Set new balance\n` +
-            `2. Add amount\n` +
-            `3. Subtract amount\n\n` +
-            `Enter: 1, 2, or 3`
+            `Enter new balance:`
           );
 
-          if (action === '1') {
-            const newBalance = prompt(`Enter new balance for ${userName} (current: ${currentBalance.toFixed(4)} NON):`);
-            if (newBalance !== null && newBalance.trim() !== '') {
-              const amount = parseFloat(newBalance);
-              if (!isNaN(amount) && amount >= 0) {
-                try {
-                  const response = await api.post(`/admin/users/${userId}/balance`, {
-                    action: 'set',
-                    amount: amount
-                  });
+          if (newBalance !== null && newBalance.trim() !== '') {
+            const amount = parseFloat(newBalance);
+            if (!isNaN(amount) && amount >= 0) {
+              try {
+                const response = await api.post(`/admin/users/${userId}/balance`, {
+                  action: 'set',
+                  amount: amount
+                });
 
-                  if (response.data.success) {
-                    alert(`✅ Balance set to ${amount.toFixed(4)} NON for ${userName}\nPrevious balance: ${response.data.data.previousBalance.toFixed(4)} NON`);
-                    await fetchUsers();
-                    // Force refresh user data cache
-                    window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
-                  } else {
-                    alert(`❌ Error: ${response.data.error || 'Unknown error'}`);
-                  }
-                } catch (error: any) {
-                  console.error('Balance update error:', error);
-                  alert(`❌ Error: ${error.response?.data?.error || error.message}`);
+                if (response.data.success) {
+                  alert(`✅ Balance updated!\n\n` +
+                    `User: ${userName}\n` +
+                    `Previous: ${response.data.data.previousBalance.toFixed(4)} NON\n` +
+                    `New: ${amount.toFixed(4)} NON\n\n` +
+                    `The user will see the change immediately!`);
+
+                  await fetchUsers();
+
+                  // Force refresh user data cache with multiple approaches
+                  console.log(`[AdminUsers] Dispatching userDataRefresh event for telegramId: ${user?.telegramId}`);
+
+                  // Approach 1: Dispatch events
+                  window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
+                  window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { telegramId: user?.telegramId, newBalance: amount } }));
+                  window.dispatchEvent(new CustomEvent('globalDataRefresh'));
+
+                  console.log(`[AdminUsers] Events dispatched successfully`);
+                } else {
+                  alert(`❌ Error: ${response.data.error || 'Unknown error'}`);
                 }
-              } else {
-                alert('❌ Please enter a valid positive number');
+              } catch (error: any) {
+                console.error('Balance update error:', error);
+                alert(`❌ Error: ${error.response?.data?.error || error.message}`);
               }
-            }
-          } else if (action === '2') {
-            const addAmount = prompt(`Enter amount to ADD to ${userName}'s balance (current: ${currentBalance.toFixed(4)} NON):`);
-            if (addAmount !== null && addAmount.trim() !== '') {
-              const amount = parseFloat(addAmount);
-              if (!isNaN(amount) && amount > 0) {
-                try {
-                  const response = await api.post(`/admin/users/${userId}/balance`, {
-                    action: 'add',
-                    amount: amount
-                  });
-
-                  if (response.data.success) {
-                    alert(`✅ Added ${amount.toFixed(4)} NON to ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} NON`);
-                    await fetchUsers();
-
-                    // Force refresh user data cache with multiple approaches
-                    console.log(`[AdminUsers] Dispatching userDataRefresh event for telegramId: ${user?.telegramId}`);
-
-                    // Approach 1: Dispatch events
-                    window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
-                    window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { telegramId: user?.telegramId, newBalance: response.data.data.newBalance } }));
-                    window.dispatchEvent(new CustomEvent('globalDataRefresh'));
-
-                    // Approach 2: Force page refresh for the user (if they're viewing the dashboard)
-                    if (user?.telegramId === '6760298907') { // Only for the current user
-                      console.log(`[AdminUsers] Forcing page refresh for current user`);
-                      // Show a message to the user
-                      alert('Balance updated! The page will refresh to show the new balance.');
-                      setTimeout(() => {
-                        window.location.reload();
-                      }, 1000);
-                    }
-
-                    console.log(`[AdminUsers] Events dispatched successfully`);
-                  } else {
-                    alert(`❌ Error: ${response.data.error || 'Unknown error'}`);
-                  }
-                } catch (error: any) {
-                  console.error('Balance update error:', error);
-                  alert(`❌ Error: ${error.response?.data?.error || error.message}`);
-                }
-              } else {
-                alert('❌ Please enter a valid positive number');
-              }
-            }
-          } else if (action === '3') {
-            const subtractAmount = prompt(`Enter amount to SUBTRACT from ${userName}'s balance (current: ${currentBalance.toFixed(4)} NON):`);
-            if (subtractAmount !== null && subtractAmount.trim() !== '') {
-              const amount = parseFloat(subtractAmount);
-              if (!isNaN(amount) && amount > 0) {
-                try {
-                  const response = await api.post(`/admin/users/${userId}/balance`, {
-                    action: 'subtract',
-                    amount: amount
-                  });
-
-                  if (response.data.success) {
-                    alert(`✅ Subtracted ${amount.toFixed(4)} NON from ${userName}'s balance\nNew balance: ${response.data.data.newBalance.toFixed(4)} NON`);
-                    await fetchUsers();
-                    // Force refresh user data cache
-                    window.dispatchEvent(new CustomEvent('userDataRefresh', { detail: { telegramId: user?.telegramId } }));
-                  } else {
-                    alert(`❌ Error: ${response.data.error || 'Unknown error'}`);
-                  }
-                } catch (error: any) {
-                  console.error('Balance update error:', error);
-                  alert(`❌ Error: ${error.response?.data?.error || error.message}`);
-                }
-              } else {
-                alert('❌ Please enter a valid positive number');
-              }
+            } else {
+              alert('❌ Please enter a valid positive number');
             }
           }
           break;
@@ -282,21 +213,14 @@ const AdminUsers = () => {
           );
 
           if (confirmDelete) {
-            const deleteReason = prompt(`Enter reason for deleting ${userName}'s account:`);
-            if (deleteReason && deleteReason.trim()) {
-              // Выполняем удаление
-              const response = await api.delete(`/admin/delete-user/${userId}`, {
-                data: { reason: deleteReason }
-              });
+            // Выполняем удаление без требования причины
+            const response = await api.delete(`/admin/delete-user/${userId}`);
 
-              if (response.data.success) {
-                alert(`✅ Account for ${userName} has been permanently deleted.`);
-                await fetchUsers(); // Обновляем список только после успешного удаления
-              } else {
-                alert(`❌ Failed to delete account: ${response.data.error || 'Unknown error'}`);
-              }
+            if (response.data.success) {
+              alert(`✅ Account for ${userName} has been permanently deleted.`);
+              await fetchUsers(); // Обновляем список только после успешного удаления
             } else {
-              alert('❌ Deletion cancelled. Reason is required.');
+              alert(`❌ Failed to delete account: ${response.data.error || 'Unknown error'}`);
             }
           }
           break;
@@ -444,312 +368,177 @@ const AdminUsers = () => {
   }
 
   return (
-    <div className="space-y-2 p-1">
-      {/* Ultra Compact Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-md p-2 text-white">
-        <div className="flex items-center justify-between mb-1">
+    <div className="min-h-screen bg-gray-950 text-white">
+      {/* Professional Header */}
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 border-b border-blue-800/50">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin')}
+                className="text-blue-200 hover:bg-blue-800/30 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold text-white">User Management</h1>
+                <p className="text-sm text-blue-200">Manage users, roles, and permissions</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="text-right">
+                <div className="text-2xl font-bold text-white">{totalUsers.toLocaleString()}</div>
+                <div className="text-xs text-blue-200">Total Users</div>
+              </div>
+              <div className="h-8 w-px bg-blue-700"></div>
+              <div className="text-right">
+                <div className="text-lg font-semibold text-green-400">{users.filter(u => u.isOnline).length}</div>
+                <div className="text-xs text-blue-200">Online</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Toolbar */}
+      <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-2">
+        <div className="flex items-center justify-between gap-4">
+          {/* Search and Filters */}
+          <div className="flex items-center space-x-3 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by name, username, or ID..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-10 bg-slate-800 border-slate-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/20"
+              />
+            </div>
+            <select
+              value={filterRole}
+              onChange={(e) => {
+                setFilterRole(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-white text-sm focus:border-blue-500 focus:ring-blue-500/20"
+            >
+              <option value="all">All Roles</option>
+              <option value="ADMIN">Admin</option>
+              <option value="STAFF">Staff</option>
+              <option value="USER">User</option>
+            </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-white text-sm focus:border-blue-500 focus:ring-blue-500/20"
+            >
+              <option value="all">All Status</option>
+              <option value="online">Online</option>
+              <option value="active">Active</option>
+              <option value="frozen">Frozen</option>
+              <option value="suspicious">Suspicious</option>
+            </select>
+          </div>
+
+          {/* Action Buttons */}
           <div className="flex items-center space-x-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              onClick={() => navigate('/admin')}
-              className="text-white hover:bg-white/20 h-6 w-6 p-0"
+              onClick={handleExportUsers}
+              className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
             >
-              <ArrowLeft className="h-3 w-3" />
+              <Download className="h-4 w-4 mr-2" />
+              Export
             </Button>
-            <h1 className="text-lg font-bold">User Management</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={selectedUsers.length === 0}
+              onClick={() => setShowBulkActions(true)}
+              className="border-blue-600 text-blue-300 hover:bg-blue-700/20 hover:text-white"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Bulk ({selectedUsers.length})
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteAllUsers}
+              className="bg-red-600/20 border-red-600 text-red-300 hover:bg-red-600/30"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete All
+            </Button>
           </div>
-          <div className="text-xs text-blue-100">
-            {totalUsers.toLocaleString()} users
-          </div>
-        </div>
-        <p className="text-blue-100 text-xs">
-          Manage users, roles, and permissions
-        </p>
-      </div>
-
-      {/* Ultra Compact Action Buttons */}
-      <div className="grid grid-cols-3 gap-1">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExportUsers}
-          className="h-8 text-xs border-gray-600"
-        >
-          <Download className="h-3 w-3 mr-1" />
-          Export
-        </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleDeleteAllUsers}
-          className="h-8 text-xs"
-        >
-          <Trash2 className="h-3 w-3 mr-1" />
-          Delete All
-        </Button>
-        <Button size="sm" className="h-8 text-xs bg-blue-600">
-          <UserPlus className="h-3 w-3 mr-1" />
-          Add User
-        </Button>
-      </div>
-
-      {/* Ultra Compact Search and Filters */}
-      <div className="grid grid-cols-1 gap-1">
-        <div className="relative">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-          <Input
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-7 bg-gray-900 border-gray-700 text-white h-8 text-xs"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-1">
-          <select
-            value={filterRole}
-            onChange={(e) => {
-              setFilterRole(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="bg-gray-900 border border-gray-700 rounded-md px-2 py-1 text-white text-xs h-8"
-          >
-            <option value="all">All Roles</option>
-            <option value="ADMIN">Admin</option>
-            <option value="STAFF">Staff</option>
-            <option value="USER">User</option>
-          </select>
-          <select
-            value={filterStatus}
-            onChange={(e) => {
-              setFilterStatus(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="bg-gray-900 border border-gray-700 rounded-md px-2 py-1 text-white text-xs h-8"
-          >
-            <option value="all">All Status</option>
-            <option value="online">Online</option>
-            <option value="active">Active</option>
-            <option value="frozen">Frozen</option>
-            <option value="suspicious">Suspicious</option>
-          </select>
         </div>
       </div>
 
-      {/* Users Table */}
-      <Card className="bg-gray-900 border-gray-700">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between text-sm">
-            <span>
-              Users ({users.length} of {totalUsers.toLocaleString()}) •
-              Page {currentPage} of {totalPages}
-            </span>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={selectedUsers.length === 0}
-                onClick={() => setShowBulkActions(true)}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Bulk Actions ({selectedUsers.length})
-              </Button>
+      {/* Professional Data Table */}
+      <div className="bg-slate-900/30 border border-slate-700/50 rounded-lg mx-4 mt-4 overflow-hidden">
+        {/* Table Header */}
+        <div className="bg-slate-800/50 border-b border-slate-700/50 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-slate-300">
+                Showing <span className="font-semibold text-white">{users.length}</span> of{' '}
+                <span className="font-semibold text-white">{totalUsers.toLocaleString()}</span> users
+              </div>
+              <div className="text-xs text-slate-400">
+                Page {currentPage} of {totalPages}
+              </div>
             </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-600 bg-gray-800"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedUsers(users.map(u => u.id));
-                        } else {
-                          setSelectedUsers([]);
-                        }
-                      }}
-                    />
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">User</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Role</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">
-                    Status
-                    <div className="text-xs text-gray-500 mt-1 flex items-center">
-                      <span className="online-dot online-indicator"></span>
-                      <span>Online</span>
-                    </div>
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Balance</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Last Login</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Joined</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                    <td className="py-3 px-4">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-600 bg-gray-800"
-                        checked={selectedUsers.includes(user.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedUsers([...selectedUsers, user.id]);
-                          } else {
-                            setSelectedUsers(selectedUsers.filter(id => id !== user.id));
-                          }
-                        }}
-                      />
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center space-x-3">
-                        <div>
-                          <div className="font-medium text-white">
-                            {user.firstName || user.username || `User ${user.telegramId}`}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            @{user.username || 'N/A'} • {user.telegramId}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      {getRoleBadge(user.role)}
-                    </td>
-                    <td className="py-3 px-4">
-                      {getStatusBadge(user)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="text-sm">
-                        <div className="font-mono text-yellow-400">
-                          {user.nonBalance.toFixed(4)} NON
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {user.totalInvested.toFixed(2)} invested
-                        </div>
-                        <div className="text-xs text-blue-400">
-                          {user.activeSlotsCount}/{user.totalSlotsCount} slots
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="text-sm text-gray-300">
-                        {formatLastLogin(user.lastSeenAt)}
-                      </div>
-                      <div className="text-xs text-gray-400 flex items-center">
-                        {user.isOnline ? (
-                          <>
-                            <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1 animate-pulse"></div>
-                            Online
-                          </>
-                        ) : (
-                          <>
-                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1"></div>
-                            Offline
-                          </>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="text-sm text-gray-300">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {user.referralCount} referrals
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/admin/user/${user.id}`)}
-                        >
-                          View
-                        </Button>
-                        {user.isFrozen ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUserAction(user.id, 'unfreeze')}
-                            title="Unfreeze Account"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUserAction(user.id, 'freeze')}
-                            title="Freeze Account"
-                          >
-                            <UserX className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {user.isSuspicious ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUserAction(user.id, 'unban')}
-                            title="Unban Account"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUserAction(user.id, 'ban')}
-                            title="Ban Account"
-                          >
-                            <Ban className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUserAction(user.id, 'balance')}
-                          className="text-green-400 border-green-600 hover:bg-green-600/10"
-                          title="Manage Balance"
-                        >
-                          <DollarSign className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUserAction(user.id, 'delete')}
-                          className="text-red-400 border-red-600 hover:bg-red-600/10"
-                          title="Delete Account"
-                        >
-                          <UserX className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="flex items-center space-x-2">
+              <div className="text-xs text-slate-400">
+                {selectedUsers.length} selected
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* Mobile View */}
-          <div className="md:hidden space-y-4">
-            {users.map((user) => (
-              <div key={user.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-3">
+        {/* Desktop Table */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-800/30">
+              <tr>
+                <th className="text-left py-3 px-4 w-12">
+                  <input
+                    type="checkbox"
+                    className="rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/20"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedUsers(users.map(u => u.id));
+                      } else {
+                        setSelectedUsers([]);
+                      }
+                    }}
+                  />
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300 min-w-[200px]">User</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300 w-20">Role</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300 w-24">Status</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300 w-32">Balance</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300 w-28">Activity</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300 w-24">Joined</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300 w-40">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700/50">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="py-3 px-4">
                     <input
                       type="checkbox"
-                      className="rounded border-gray-600 bg-gray-800"
+                      className="rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/20"
                       checked={selectedUsers.includes(user.id)}
                       onChange={(e) => {
                         if (e.target.checked) {
@@ -759,201 +548,326 @@ const AdminUsers = () => {
                         }
                       }}
                     />
-                    <div>
-                      <div className="font-medium text-white">
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                          {(user.firstName || user.username || 'U').charAt(0).toUpperCase()}
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-white truncate">
+                          {user.firstName || user.username || `User ${user.telegramId}`}
+                        </div>
+                        <div className="text-sm text-slate-400 truncate">
+                          @{user.username || 'N/A'} • ID: {user.telegramId}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    {getRoleBadge(user.role)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-2">
+                      {getStatusBadge(user)}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="space-y-1">
+                      <div className="font-mono text-sm text-yellow-400">
+                        {user.nonBalance.toFixed(4)} NON
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        ${user.totalInvested.toFixed(2)} invested
+                      </div>
+                      <div className="text-xs text-blue-400">
+                        {user.activeSlotsCount}/{user.totalSlotsCount} slots
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="space-y-1">
+                      <div className="text-sm text-slate-300">
+                        {formatLastLogin(user.lastSeenAt)}
+                      </div>
+                      <div className="flex items-center text-xs">
+                        <div className={`w-2 h-2 rounded-full mr-2 ${user.isOnline ? 'bg-green-400 animate-pulse' : 'bg-slate-500'}`}></div>
+                        <span className="text-slate-400">{user.isOnline ? 'Online' : 'Offline'}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="space-y-1">
+                      <div className="text-sm text-slate-300">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        {user.referralCount} refs
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/admin/user/${user.id}`)}
+                        className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700"
+                        title="View Details"
+                      >
+                        <Users className="h-4 w-4" />
+                      </Button>
+                      {user.isFrozen ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleUserAction(user.id, 'unfreeze')}
+                          className="h-8 w-8 p-0 text-green-400 hover:text-green-300 hover:bg-green-900/20"
+                          title="Unfreeze Account"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleUserAction(user.id, 'freeze')}
+                          className="h-8 w-8 p-0 text-orange-400 hover:text-orange-300 hover:bg-orange-900/20"
+                          title="Freeze Account"
+                        >
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleUserAction(user.id, 'balance')}
+                        className="h-8 w-8 p-0 text-green-400 hover:text-green-300 hover:bg-green-900/20"
+                        title="Manage Balance"
+                      >
+                        <DollarSign className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleUserAction(user.id, 'delete')}
+                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        title="Delete Account"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile/Tablet View */}
+        <div className="lg:hidden">
+          <div className="space-y-3 p-4">
+            {users.map((user) => (
+              <div key={user.id} className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 hover:bg-slate-800/70 transition-colors">
+                {/* User Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      className="rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/20 flex-shrink-0"
+                      checked={selectedUsers.includes(user.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedUsers([...selectedUsers, user.id]);
+                        } else {
+                          setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                        }
+                      }}
+                    />
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        {(user.firstName || user.username || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-white truncate">
                         {user.firstName || user.username || `User ${user.telegramId}`}
                       </div>
-                      <div className="text-sm text-gray-400">
-                        @{user.username || 'N/A'} • {user.telegramId}
+                      <div className="text-sm text-slate-400 truncate">
+                        @{user.username || 'N/A'} • ID: {user.telegramId}
                       </div>
                     </div>
                   </div>
-                  <div className="flex space-x-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/admin/user/${user.id}`)}
-                    >
-                      View
-                    </Button>
+                  <div className="flex items-center space-x-1">
+                    {getRoleBadge(user.role)}
+                    <div className="ml-2">
+                      {getStatusBadge(user)}
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <div className="text-xs text-gray-400">Role</div>
-                    <div>{getRoleBadge(user.role)}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-400">Status</div>
-                    <div>{getStatusBadge(user)}</div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <div className="text-xs text-gray-400">Balance</div>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <div className="text-xs text-slate-400 uppercase tracking-wide">Balance</div>
                     <div className="font-mono text-yellow-400 text-sm">
                       {user.nonBalance.toFixed(4)} NON
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {user.totalInvested.toFixed(2)} invested
+                    <div className="text-xs text-slate-400">
+                      ${user.totalInvested.toFixed(2)} invested
                     </div>
                     <div className="text-xs text-blue-400">
                       {user.activeSlotsCount}/{user.totalSlotsCount} slots
                     </div>
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-400">Last Login</div>
-                    <div className="text-sm text-gray-300">
+                  <div className="space-y-2">
+                    <div className="text-xs text-slate-400 uppercase tracking-wide">Activity</div>
+                    <div className="text-sm text-slate-300">
                       {formatLastLogin(user.lastSeenAt)}
                     </div>
-                    <div className="text-xs text-gray-400 flex items-center">
-                      {user.isOnline ? (
-                        <>
-                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1 animate-pulse"></div>
-                          Online
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1"></div>
-                          Offline
-                        </>
-                      )}
+                    <div className="flex items-center text-xs">
+                      <div className={`w-2 h-2 rounded-full mr-2 ${user.isOnline ? 'bg-green-400 animate-pulse' : 'bg-slate-500'}`}></div>
+                      <span className="text-slate-400">{user.isOnline ? 'Online' : 'Offline'}</span>
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      {user.referralCount} refs
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <div className="text-xs text-gray-400">Joined</div>
-                    <div className="text-sm text-gray-300">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {user.referralCount} referrals
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex space-x-2 pt-2 border-t border-gray-700">
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-700/50">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/admin/user/${user.id}`)}
+                    className="text-slate-400 hover:text-white hover:bg-slate-700 text-xs"
+                  >
+                    <Users className="h-3 w-3 mr-1" />
+                    View
+                  </Button>
                   {user.isFrozen ? (
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => handleUserAction(user.id, 'unfreeze')}
-                      className="flex-1"
+                      className="text-green-400 hover:text-green-300 hover:bg-green-900/20 text-xs"
                     >
-                      <CheckCircle className="h-4 w-4 mr-1" />
+                      <CheckCircle className="h-3 w-3 mr-1" />
                       Unfreeze
                     </Button>
                   ) : (
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => handleUserAction(user.id, 'freeze')}
-                      className="flex-1"
+                      className="text-orange-400 hover:text-orange-300 hover:bg-orange-900/20 text-xs"
                     >
-                      <UserX className="h-4 w-4 mr-1" />
+                      <UserX className="h-3 w-3 mr-1" />
                       Freeze
                     </Button>
                   )}
-                  {user.isSuspicious ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleUserAction(user.id, 'unban')}
-                      className="flex-1"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Unban
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleUserAction(user.id, 'ban')}
-                      className="flex-1"
-                    >
-                      <Ban className="h-4 w-4 mr-1" />
-                      Ban
-                    </Button>
-                  )}
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleUserAction(user.id, 'balance')}
-                    className="text-green-400 border-green-600 hover:bg-green-600/10 flex-1"
+                    className="text-green-400 hover:text-green-300 hover:bg-green-900/20 text-xs"
                   >
-                    <DollarSign className="h-4 w-4 mr-1" />
+                    <DollarSign className="h-3 w-3 mr-1" />
                     Balance
                   </Button>
                   <ForceRefreshButton
                     telegramId={user.telegramId}
                     onRefresh={() => fetchUsers()}
-                    className="flex-1"
+                    className="text-xs"
                   />
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleUserAction(user.id, 'delete')}
-                    className="text-red-400 border-red-600 hover:bg-red-600/10 flex-1"
+                    className="text-red-400 hover:text-red-300 hover:bg-red-900/20 text-xs"
                   >
-                    <UserX className="h-4 w-4 mr-1" />
+                    <Trash2 className="h-3 w-3 mr-1" />
                     Delete
                   </Button>
                 </div>
               </div>
             ))}
           </div>
-        </CardContent>
-
-        {/* Pagination */}
+        </div>
+        {/* Professional Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-700">
-            <div className="flex items-center space-x-2 text-sm text-gray-400">
-              <span>Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers.toLocaleString()} users</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-              >
-                First
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <span className="px-3 py-1 text-sm text-gray-300">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-              >
-                Last
-              </Button>
+          <div className="bg-slate-800/30 border-t border-slate-700/50 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-slate-400">
+                Showing <span className="font-semibold text-white">{((currentPage - 1) * pageSize) + 1}</span> to{' '}
+                <span className="font-semibold text-white">{Math.min(currentPage * pageSize, totalUsers)}</span> of{' '}
+                <span className="font-semibold text-white">{totalUsers.toLocaleString()}</span> users
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="text-slate-400 hover:text-white disabled:opacity-50"
+                >
+                  First
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="text-slate-400 hover:text-white disabled:opacity-50"
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                    if (page > totalPages) return null;
+                    return (
+                      <Button
+                        key={page}
+                        variant={page === currentPage ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 p-0 ${page === currentPage
+                            ? 'bg-blue-600 text-white'
+                            : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                          }`}
+                      >
+                        {page}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="text-slate-400 hover:text-white disabled:opacity-50"
+                >
+                  Next
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="text-slate-400 hover:text-white disabled:opacity-50"
+                >
+                  Last
+                </Button>
+              </div>
             </div>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Bulk Actions Modal */}
       {showBulkActions && (

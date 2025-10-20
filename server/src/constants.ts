@@ -29,19 +29,18 @@ export const REFERRAL_INCOME_CAP_ENABLED = true; // Ограничение ре�
 
 // Блокировки
 export const WELCOME_SLOT_LOCKED_DAYS = 7; // Дни блокировки приветственного слота
-export const DIRECT_USD_WITHDRAWAL_DISABLED = true; // Прямой вывод USD запрещен
 
 export const REFERRAL_SIGNUP_BONUS = 3.0; // Бонус за регистрацию
 export const REFERRAL_DEPOSIT_BONUS = 1.0; // Бонус за реферала, вложившего реальные деньги
 export const REFERRAL_3_IN_3_DAYS_BONUS = 1.0; // Бонус за 3 рефералов за 3 дня
 
-export const SLOT_EXTENSION_COST = 1.0; // в USD
+export const SLOT_EXTENSION_COST = 1.0; // в NON
 export const SLOT_EXTENSION_DAYS = 7;
 
 // Новые константы для доходности слотов
 export const SLOT_WEEKLY_RATE = 0.3; // Доходность всех слотов (всегда 30%)
 
-// Новые константы для рангов (пороги в USD)
+// Новые константы для рангов (пороги в NON)
 export const BRONZE_INVESTOR_THRESHOLD = 10.0;
 export const GOLD_MAGNATE_THRESHOLD = 50.0;
 export const PLATINUM_GOD_THRESHOLD = 200.0;
@@ -72,7 +71,7 @@ export const SUSPICIOUS_DEVICE_THRESHOLD = 3; // Более 3 устройств
 // REMOVED: SLOT_PURCHASE_DAILY_LIMIT - no daily limits for slot purchases
 export const WITHDRAWAL_DAILY_LIMIT = 1; // Не более 1 вывода за 24 часа
 
-export const REFERRAL_INCOME_CAP_THRESHOLD = 20.0; // Если V_i <= 20 USDT, реферальный доход <= Bal_i(t)
+export const REFERRAL_INCOME_CAP_THRESHOLD = 20.0; // Если V_i <= 20 NON, реферальный доход <= Bal_i(t)
 export const INVESTMENT_GROWTH_BONUS_AMOUNT = 3.0; // Бонус за рост вложений
 export const REFERRAL_ZERO_IN_7_DAYS_PENALTY_ENABLED = true; // Включить штраф за 0 рефералов за 7 дней
 
@@ -80,7 +79,7 @@ export const REFERRAL_ZERO_IN_7_DAYS_PENALTY_ENABLED = true; // Включить
 export const LEADERBOARD_BONUS_AMOUNT = 5.0;
 
 // Новые константы для бонуса "Дивиденды"
-export const DIVIDEND_BASE_RATE = 0.15; // 0.15 * USD V_i
+export const DIVIDEND_BASE_RATE = 0.15; // 0.15 * NON V_i
 export const DIVIDEND_RAND_MIN = 0.8;
 export const DIVIDEND_RAND_MAX = 1.3;
 export const DIVIDEND_COOLDOWN_HOURS = 24; // Например, раз в 24 часа

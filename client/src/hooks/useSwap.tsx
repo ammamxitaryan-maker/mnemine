@@ -8,7 +8,7 @@ interface SwapParams {
 
 interface SwapResult {
   message: string;
-  USDAmount: number;
+  USDEquivalent?: number;
   NONAmount: number;
   rate: number;
 }
@@ -20,13 +20,13 @@ interface ExchangeRate {
   lastUpdated: string;
 }
 
-// Swap USD to NON
+// Convert NON to USD equivalent (display only)
 const swapNONoNON = async ({ telegramId, amount }: SwapParams): Promise<SwapResult> => {
   const { data } = await api.post(`/user/${telegramId}/swap/USD-to-NON`, { amount });
   return data;
 };
 
-// Swap NON to USD
+// Convert NON to USD equivalent (display only)
 const swapNONToUSD = async ({ telegramId, amount }: SwapParams): Promise<SwapResult> => {
   const { data } = await api.post(`/user/${telegramId}/swap/NON-to-USD`, { amount });
   return data;

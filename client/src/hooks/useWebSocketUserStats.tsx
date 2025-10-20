@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
 interface UserStats {
   totalUsers: number;
@@ -17,7 +17,7 @@ interface UserStats {
 
 // Global state to ensure all components see the same data
 let globalUserStats: UserStats = {
-  totalUsers: 1250,
+  totalUsers: 10000,
   onlineUsers: 150,
   newUsersToday: 45,
   activeUsers: 400,
@@ -43,7 +43,7 @@ const fetchServerStats = async (): Promise<UserStats | null> => {
 // Centralized update function that fetches from server
 const updateGlobalStats = async () => {
   const serverStats = await fetchServerStats();
-  
+
   if (serverStats) {
     globalUserStats = {
       ...serverStats,
@@ -51,15 +51,15 @@ const updateGlobalStats = async () => {
     };
   } else {
     // Fallback to local calculation if server is unavailable
-    const baseTotalUsers = 1250;
+    // Only calculate total users locally, keep other stats from server if available
+    const baseTotalUsers = 10000;
     const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50;
     const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
-    
-    const onlinePercentage = 0.08 + (Math.random() * 0.07);
-    const onlineUsers = Math.floor(totalUsers * onlinePercentage);
-    
-    const newUsersToday = Math.floor(totalUsers * (0.02 + Math.random() * 0.03));
-    const activeUsers = Math.floor(totalUsers * (0.25 + Math.random() * 0.15));
+
+    // Use cached server stats for online users if available, otherwise use fallback
+    const onlineUsers = globalUserStats?.onlineUsers || 150; // Default fallback
+    const newUsersToday = globalUserStats?.newUsersToday || 45; // Default fallback
+    const activeUsers = globalUserStats?.activeUsers || 400; // Default fallback
 
     globalUserStats = {
       totalUsers,
@@ -81,7 +81,7 @@ let globalInterval: NodeJS.Timeout | null = null;
 const startGlobalUpdates = () => {
   if (!globalInterval) {
     updateGlobalStats(); // Initial update
-    globalInterval = setInterval(updateGlobalStats, 30000); // Update every 30 seconds
+    globalInterval = setInterval(updateGlobalStats, 120000); // Update every 2 minutes
   }
 };
 
@@ -103,18 +103,18 @@ export const useWebSocketUserStats = () => {
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
         const wsUrl = backendUrl.replace('http', 'ws') + '/ws/userstats';
-        
+
         const ws = new WebSocket(wsUrl);
-        
+
         ws.onopen = () => {
           console.log('[UserStats] WebSocket connected');
           setIsConnected(true);
           setWsConnection(ws);
-          
+
           // Request initial stats
           ws.send(JSON.stringify({ type: 'requestStats' }));
         };
-        
+
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
@@ -130,25 +130,25 @@ export const useWebSocketUserStats = () => {
             console.error('[UserStats] Error parsing WebSocket message:', error);
           }
         };
-        
+
         ws.onclose = () => {
           console.log('[UserStats] WebSocket disconnected');
           setIsConnected(false);
           setWsConnection(null);
-          
+
           // Fallback to HTTP polling
           startGlobalUpdates();
         };
-        
+
         ws.onerror = (error) => {
           console.error('[UserStats] WebSocket error:', error);
           setIsConnected(false);
           setWsConnection(null);
-          
+
           // Fallback to HTTP polling
           startGlobalUpdates();
         };
-        
+
       } catch (error) {
         console.error('[UserStats] Failed to create WebSocket connection:', error);
         // Fallback to HTTP polling
@@ -165,13 +165,13 @@ export const useWebSocketUserStats = () => {
 
     return () => {
       globalListeners.delete(listener);
-      
+
       // Close WebSocket connection
       if (wsConnection) {
         wsConnection.close();
         setWsConnection(null);
       }
-      
+
       // Only stop global updates if no other components are listening
       if (globalListeners.size === 0) {
         stopGlobalUpdates();

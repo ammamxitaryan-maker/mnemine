@@ -45,25 +45,25 @@ export const PERFORMANCE_CONFIG = {
 export const QUERY_OPTIMIZATION = {
   // Refetch intervals (in milliseconds)
   REFETCH_INTERVALS: {
-    USER_DATA: 300000, // 5 minutes
-    BALANCE: 180000, // 3 minutes
+    USER_DATA: 30000, // 30 seconds
+    BALANCE: 5000, // 5 seconds
     ADMIN_DATA: 180000, // 3 minutes
-    SLOTS: 240000, // 4 minutes
+    SLOTS: 5000, // 5 seconds
     LOTTERY: 300000, // 5 minutes
     REFERRALS: 300000, // 5 minutes
-    EARNINGS: 180000, // 3 minutes
+    EARNINGS: 3000, // 3 seconds
     LEADERBOARD: 300000, // 5 minutes
   },
 
   // Stale time (in milliseconds)
   STALE_TIME: {
-    USER_DATA: 120000, // 2 minutes
-    BALANCE: 60000, // 1 minute
+    USER_DATA: 15000, // 15 seconds
+    BALANCE: 0, // Always fresh
     ADMIN_DATA: 120000, // 2 minutes
-    SLOTS: 120000, // 2 minutes
+    SLOTS: 0, // Always fresh
     LOTTERY: 180000, // 3 minutes
     REFERRALS: 180000, // 3 minutes
-    EARNINGS: 60000, // 1 minute
+    EARNINGS: 0, // Always fresh
     LEADERBOARD: 180000, // 3 minutes
   },
 } as const;

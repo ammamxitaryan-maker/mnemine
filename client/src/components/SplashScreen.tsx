@@ -1,12 +1,15 @@
-import { GradientSpinner } from './GradientSpinner';
+import { LoadingAnimation } from './LoadingAnimation';
 
 export const SplashScreen = () => {
   return (
     <div className="splash-screen">
-      <div className="splash-content">
-        <GradientSpinner />
-        <h1 className="splash-title">NONMINE</h1>
-      </div>
+      <LoadingAnimation
+        duration={4000}
+        onComplete={() => {
+          // Animation completed, app is ready
+          console.log('Loading animation completed - app is ready');
+        }}
+      />
     </div>
   );
 };

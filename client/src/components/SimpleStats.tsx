@@ -37,40 +37,43 @@ export const SimpleStats = ({ telegramId, className = '' }: SimpleStatsProps) =>
   const referralIncomePercentage = getReferralIncomePercentage();
 
   return (
-    <div className={`bg-muted/20 rounded-lg p-3 border border-border/30 ${className}`}>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="text-center p-2 bg-background/50 rounded-md border border-border/20">
-          <div className="flex items-center justify-center mb-1">
-            <div className="p-1 bg-primary/10 rounded">
-              <TrendingUp className="w-3 h-3 text-primary" />
+    <div className={`relative bg-gradient-to-br from-card to-card/80 rounded-xl p-4 border border-border/50 shadow-lg ${className}`}>
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl opacity-30" />
+
+      <div className="relative z-10 grid grid-cols-2 gap-3">
+        <div className="text-center p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border border-primary/20 hover:scale-105 transition-transform duration-300">
+          <div className="flex items-center justify-center mb-2">
+            <div className="p-1.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
+              <TrendingUp className="w-4 h-4 text-primary" />
             </div>
           </div>
-          <div className="text-lg font-light text-primary mb-1 tracking-tight">
+          <div className="text-xl font-light text-primary mb-1 tracking-tight">
             30.0%
           </div>
-          <div className="text-xs text-muted-foreground font-medium">{t('miningPower')}</div>
+          <div className="text-xs text-muted-foreground font-semibold">{t('miningPower')}</div>
         </div>
-        <div className="text-center p-2 bg-background/50 rounded-md border border-border/20">
-          <div className="flex items-center justify-center mb-1">
-            <div className="p-1 bg-secondary/10 rounded">
-              <Server className="w-3 h-3 text-secondary" />
+        <div className="text-center p-3 bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-lg border border-secondary/20 hover:scale-105 transition-transform duration-300">
+          <div className="flex items-center justify-center mb-2">
+            <div className="p-1.5 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-lg">
+              <Server className="w-4 h-4 text-secondary" />
             </div>
           </div>
-          <div className="text-lg font-light text-secondary mb-1 tracking-tight">
+          <div className="text-xl font-light text-secondary mb-1 tracking-tight">
             {activeSlots.length}
           </div>
-          <div className="text-xs text-muted-foreground font-medium">{t('activeSlots')}</div>
+          <div className="text-xs text-muted-foreground font-semibold">{t('activeSlots')}</div>
         </div>
       </div>
 
-      {/* Enhanced referral income section - Non-clickable */}
+      {/* Compact referral income section - Non-clickable */}
       {referralIncomePercentage !== null && referralIncomePercentage > 0 && (
-        <div className="mt-3 pt-3 border-t border-border/30">
-          <div className="text-center p-2 bg-background/50 rounded-md border border-border/20">
-            <div className="text-lg font-light text-accent mb-1 tracking-tight">
+        <div className="relative z-10 mt-3 pt-3 border-t border-border/30">
+          <div className="text-center p-3 bg-gradient-to-br from-accent/10 to-accent/5 rounded-lg border border-accent/20 hover:scale-105 transition-transform duration-300">
+            <div className="text-xl font-light text-accent mb-1 tracking-tight">
               +{referralIncomePercentage.toFixed(1)}%
             </div>
-            <div className="text-xs text-muted-foreground font-medium mb-1">{t('referralIncome')}</div>
+            <div className="text-xs text-muted-foreground font-semibold mb-1">{t('referralIncome')}</div>
             <div className="text-xs text-muted-foreground">
               {referralStats?.activeReferralsCount || 0} {t('activeReferrals')}
             </div>

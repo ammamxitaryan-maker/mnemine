@@ -25,8 +25,11 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // WebSocket подключение для пользователей
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
+  const wsUrl = backendUrl.replace('http', 'ws') + '/ws/earnings';
+
   const { client, connected, error, connect, disconnect } = useWebSocket({
-    url: 'ws://localhost:8080',
+    url: wsUrl,
     token: user?.telegramId || 'anonymous', // В реальном приложении использовать JWT
     userType: 'user',
   });
@@ -92,6 +95,29 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
     };
 
     client.onNotification(handleNotification);
+
+    // Обработка WebSocket сообщений для баланса
+    client.onMessage((message) => {
+      if (message.type === 'BALANCE_UPDATED' && message.data) {
+        console.log('[WebSocket] Balance updated:', message.data);
+        // Dispatch custom event for balance updates
+        window.dispatchEvent(new CustomEvent('balanceUpdated', {
+          detail: {
+            telegramId: message.data.telegramId,
+            newBalance: message.data.newBalance,
+            previousBalance: message.data.previousBalance,
+            changeAmount: message.data.changeAmount,
+            action: message.data.action,
+            timestamp: message.data.timestamp
+          }
+        }));
+
+        // Also dispatch userDataRefresh event
+        window.dispatchEvent(new CustomEvent('userDataRefresh', {
+          detail: { telegramId: message.data.telegramId }
+        }));
+      }
+    });
 
     return () => {
       // Очистка обработчика

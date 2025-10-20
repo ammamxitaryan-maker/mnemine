@@ -35,7 +35,7 @@ export const useLotteryData = () => {
   const statusQuery = useQuery<Lottery, Error>({
     queryKey: ['lotteryStatus'],
     queryFn: fetchLotteryStatus,
-    refetchInterval: 300000, // Refetch every 5 minutes (optimized)
+    refetchInterval: 300000, // Refetch every 5 minutes (keep as is)
     retry: 3,
     retryDelay: 1000,
   });
@@ -51,7 +51,7 @@ export const useLotteryData = () => {
   const lastDrawQuery = useQuery<Lottery | null, Error>({
     queryKey: ['lastLotteryDraw'],
     queryFn: fetchLastDraw,
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 300000, // Refetch every 5 minutes (keep as is)
     retry: 3,
     retryDelay: 1000,
   });
