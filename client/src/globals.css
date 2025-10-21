@@ -1,13 +1,13 @@
-﻿/* Layout Template System removed - no longer needed */
+﻿/* Import smooth animations */
+@import './styles/smooth-animations.css';
+
+/* Layout Template System removed - no longer needed */
 
 /* stylelint-disable at-rule-no-unknown */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 /* stylelint-enable at-rule-no-unknown */
-
-/* Import smooth animations */
-@import './styles/smooth-animations.css';
 
 @layer base {
   :root {
