@@ -87,6 +87,7 @@ export const useWebSocketEarnings = (telegramId: string | undefined) => {
                   });
 
                   // Update the global earnings manager with server data
+                  // The manager will intelligently decide whether to apply the update
                   globalEarningsManager.updateServerEarnings(telegramId, message.data.earnings);
                 }
                 break;

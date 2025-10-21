@@ -4,6 +4,7 @@ import adminAuthRoutes from './adminAuth.js'; // Import admin auth routes
 import adminBrowserRoutes from './adminBrowser.js'; // Import browser admin routes
 import adminLotteryRoutes from './adminLottery.js'; // Import admin lottery routes
 import authRoutes from './auth.js';
+import enhancedStatsRoutes from './enhancedStats.js'; // Import enhanced stats routes
 import exchangeRoutes from './exchange.js'; // Import exchange routes
 import leaderboardRoutes from './leaderboard.js';
 import loginRoutes from './login.js'; // Import login routes
@@ -58,5 +59,6 @@ router.use('/admin/memory', memoryMonitoringRoutes); // Add memory monitoring ro
 router.use('/admin/websocket', webSocketMonitoringRoutes); // Add WebSocket monitoring routes
 router.use('/payments', paymentRoutes); // Add payment routes
 router.use('/payments/usdt', usdtPaymentRoutes); // Add USDT payment routes
+router.use('/api/stats', enhancedStatsRoutes); // Add enhanced stats routes
 
 export default router;

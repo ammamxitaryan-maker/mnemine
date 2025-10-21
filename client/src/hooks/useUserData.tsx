@@ -35,11 +35,11 @@ export const useUserData = (telegramId: string | undefined) => {
     queryKey: ['userData', telegramId], // Remove forceRefresh from query key
     queryFn: () => {
       console.log(`[useUserData] Query function called for telegramId: ${telegramId}`);
-      return fetchUserData(telegramId!, true); // Always use cache bypass for fresh data
+      return fetchUserData(telegramId!, false); // Use cache for better performance
     },
     enabled: !!telegramId,
-    refetchInterval: 3000, // Refetch every 3 seconds for real-time updates
-    staleTime: 1000, // Consider data fresh for only 1 second to allow more frequent updates
+    refetchInterval: 30000, // Refetch every 30 seconds to reduce conflicts
+    staleTime: 15000, // Consider data fresh for 15 seconds
   });
 
   // Use centralized balance event handlers

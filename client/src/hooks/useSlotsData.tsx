@@ -64,7 +64,7 @@ export const useSlotsData = (telegramId?: string) => {
     queryKey: ['slotsData', telegramId],
     queryFn: () => fetchSlotsData(telegramId),
     enabled: !!telegramId,
-    refetchInterval: 10000, // Refetch every 10 seconds to match userData
-    staleTime: 5000, // Consider data fresh for 5 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds to match userData
+    staleTime: 15000, // Consider data fresh for 15 seconds
   });
 };

@@ -1169,8 +1169,8 @@ router.get('/settings', isAdmin, async (req, res) => {
     const settings = {
       exchangeRate: {
         current: exchangeRate?.rate || 1.0,
-        min: 0.0001,
-        max: 100.0
+        min: 0.00001,
+        max: 1000.0
       },
       limits: {
         minDeposit: 10,

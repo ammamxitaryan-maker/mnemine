@@ -134,8 +134,8 @@ export const RANK_BENEFITS = {
 export const BASE_REFERRAL_COMMISSIONS = [0.20, 0.10, 0.05];
 
 // Exchange Rate Constants - Limits removed
-export const MIN_EXCHANGE_RATE = 0.0001; // 0.01% - Very low minimum
-export const MAX_EXCHANGE_RATE = 0.1;    // 10% - Higher maximum
+export const MIN_EXCHANGE_RATE = 0.00001; // 0.001% - Very low minimum
+export const MAX_EXCHANGE_RATE = 1000;    // 100000% - Higher maximum
 export const DEFAULT_EXCHANGE_RATE = 0.01; // 1%
 
 // NON Currency Support

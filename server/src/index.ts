@@ -103,10 +103,7 @@ import { SLOT_WEEKLY_RATE, tasks } from './constants.js';
 import { authLogger, businessLogger, requestLogger, websocketLogger } from './middleware/requestLogger.js';
 import prisma from './prisma.js';
 import apiRoutes from './routes/index.js';
-import userStatsRoutes from './routes/userStatsRoutes.js';
 import { MemoryMonitoringService } from './services/memoryMonitoringService.js';
-import { UserStatsService } from './services/userStatsService.js';
-import { UserStatsWebSocketService } from './services/userStatsWebSocketService.js';
 import { generateUniqueReferralCode } from './utils/helpers.js';
 import { ProductionHealthCheck } from './utils/productionHealthCheck.js';
 import './utils/slotProcessor.js';
@@ -856,10 +853,14 @@ async function startServer() {
       MemoryMonitoringService.getInstance();
       logger.server('Memory monitoring service initialized');
 
-      // Initialize user stats services
-      UserStatsService.initialize();
-      UserStatsWebSocketService.initialize();
-      logger.server('User stats services initialized');
+      // Initialize enhanced stats services
+      try {
+        const { StatsCacheService } = await import('./services/statsCacheService.js');
+        await StatsCacheService.warmUp();
+        logger.server('Enhanced stats services initialized');
+      } catch (error) {
+        logger.error(LogContext.SERVER, 'Failed to initialize enhanced stats services', error);
+      }
 
       // Initialize WebSocket server with a small delay to ensure HTTP server is ready
       setTimeout(() => {

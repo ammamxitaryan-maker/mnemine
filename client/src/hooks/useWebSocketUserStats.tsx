@@ -27,12 +27,20 @@ let globalUserStats: UserStats = {
 
 const globalListeners: Set<() => void> = new Set();
 
-// Fetch stats from server
+// Fetch stats from server using new enhanced API
 const fetchServerStats = async (): Promise<UserStats | null> => {
   try {
-    const response = await api.get('/stats/users');
+    const response = await api.get('/api/stats/enhanced');
     if (response.data.success) {
-      return response.data.data;
+      const stats = response.data.data;
+      return {
+        totalUsers: stats.totalUsers,
+        onlineUsers: stats.onlineUsers,
+        newUsersToday: stats.newUsersToday,
+        activeUsers: stats.activeUsers,
+        lastUpdate: stats.lastUpdate,
+        isFictitious: !stats.isRealData
+      };
     }
   } catch (error) {
     console.error('[UserStats] Failed to fetch server stats:', error);

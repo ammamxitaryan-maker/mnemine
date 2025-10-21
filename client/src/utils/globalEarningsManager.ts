@@ -1,5 +1,5 @@
-import { calculateTotalEarnings } from './earningsCalculator';
 import { MiningSlot } from '@/hooks/useSlotsData';
+import { calculateTotalEarnings } from './earningsCalculator';
 
 interface PersistentEarningsState {
   totalEarnings: number;
@@ -13,8 +13,8 @@ interface PersistentEarningsState {
 }
 
 const LOCAL_STORAGE_KEY = 'globalPersistentEarnings';
-const SYNC_INTERVAL_MS = 30000; // Sync with server every 30 seconds
-const SERVER_SYNC_INTERVAL_MS = 300000; // Force server sync every 5 minutes
+const SYNC_INTERVAL_MS = 60000; // Sync with server every 60 seconds
+const SERVER_SYNC_INTERVAL_MS = 600000; // Force server sync every 10 minutes
 
 class GlobalEarningsManager {
   private state: PersistentEarningsState | null = null;
@@ -35,26 +35,26 @@ class GlobalEarningsManager {
         try {
           const parsed: PersistentEarningsState = JSON.parse(saved);
           const now = Date.now();
-          
+
           // Check if we need to sync with server (more than 5 minutes since last sync)
           const needsServerSync = !parsed.serverSyncTime || (now - parsed.serverSyncTime) > SERVER_SYNC_INTERVAL_MS;
-          
+
           if (needsServerSync) {
             console.log('[EarningsManager] Need server sync, resetting state');
             this.state = null;
             return;
           }
-          
+
           // Calculate accumulated earnings since last update
           const timeElapsedSeconds = (now - parsed.lastUpdateTime) / 1000;
           const accumulatedEarnings = parsed.perSecondRate * timeElapsedSeconds;
-          
+
           this.state = {
             ...parsed,
             totalEarnings: parsed.totalEarnings + accumulatedEarnings,
             lastUpdateTime: now,
           };
-          
+
           console.log('[EarningsManager] Loaded from storage:', {
             totalEarnings: this.state.totalEarnings,
             perSecondRate: this.state.perSecondRate,
@@ -105,12 +105,12 @@ class GlobalEarningsManager {
 
   public subscribe(listener: (state: PersistentEarningsState) => void): () => void {
     this.listeners.add(listener);
-    
+
     // Immediately notify with current state
     if (this.state) {
       listener(this.state);
     }
-    
+
     return () => {
       this.listeners.delete(listener);
     };
@@ -139,7 +139,7 @@ class GlobalEarningsManager {
         serverEarnings: serverEarnings || 0,
         lastServerSlotsHash: slotsHash,
       };
-      
+
       console.log('[EarningsManager] Initialized state:', {
         totalEarnings: this.state.totalEarnings,
         perSecondRate: this.state.perSecondRate,
@@ -150,13 +150,13 @@ class GlobalEarningsManager {
     } else {
       // Check if slots data has changed
       const slotsChanged = this.state.lastServerSlotsHash !== slotsHash;
-      
+
       // Calculate accumulated earnings since last update
       const timeElapsedSeconds = (now - this.state.lastUpdateTime) / 1000;
       const accumulatedEarnings = this.state.perSecondRate * timeElapsedSeconds;
-      
+
       let newTotalEarnings = this.state.totalEarnings + accumulatedEarnings;
-      
+
       // If we have server earnings and slots changed, sync with server
       if (serverEarnings !== undefined && slotsChanged) {
         console.log('[EarningsManager] Slots changed, syncing with server:', {
@@ -164,11 +164,11 @@ class GlobalEarningsManager {
           serverEarnings,
           difference: serverEarnings - newTotalEarnings
         });
-        
+
         // Use server earnings as the base, but keep accumulated earnings since last sync
         newTotalEarnings = serverEarnings;
       }
-      
+
       this.state = {
         totalEarnings: newTotalEarnings,
         perSecondRate: totalPerSecondRate,
@@ -194,27 +194,27 @@ class GlobalEarningsManager {
 
   private startUpdateTimer(): void {
     this.stopUpdateTimer();
-    
+
     if (this.state && this.state.isActive && this.state.perSecondRate > 0) {
       this.updateInterval = setInterval(() => {
         if (this.state && this.state.isActive) {
           const now = Date.now();
           const timeElapsedSeconds = (now - this.state.lastUpdateTime) / 1000;
           const accumulatedEarnings = this.state.perSecondRate * timeElapsedSeconds;
-          
+
           this.state = {
             ...this.state,
             totalEarnings: this.state.totalEarnings + accumulatedEarnings,
             lastUpdateTime: now,
           };
-          
+
           console.log('[EarningsManager] Updated earnings:', {
             totalEarnings: this.state.totalEarnings,
             perSecondRate: this.state.perSecondRate,
             accumulatedEarnings,
             timeElapsedSeconds
           });
-          
+
           this.saveToStorage();
           this.notifyListeners();
         }
@@ -231,7 +231,7 @@ class GlobalEarningsManager {
 
   public startSyncTimer(refetchSlots: () => void, refetchUserData: () => void): void {
     this.stopSyncTimer();
-    
+
     this.syncInterval = setInterval(() => {
       refetchSlots();
       refetchUserData();
@@ -260,23 +260,39 @@ class GlobalEarningsManager {
       const now = Date.now();
       const timeElapsedSeconds = (now - this.state.lastUpdateTime) / 1000;
       const accumulatedEarnings = this.state.perSecondRate * timeElapsedSeconds;
-      
-      this.state = {
-        ...this.state,
-        totalEarnings: serverEarnings + accumulatedEarnings,
-        lastUpdateTime: now,
-        serverEarnings: serverEarnings,
-        serverSyncTime: now,
-      };
-      
-      console.log('[EarningsManager] Updated with server earnings:', {
-        serverEarnings,
-        totalEarnings: this.state.totalEarnings,
-        accumulatedEarnings
-      });
-      
-      this.saveToStorage();
-      this.notifyListeners();
+
+      // Only update if server earnings are significantly different (more than 5 seconds worth of earnings)
+      // This prevents constant resets from WebSocket updates
+      const earningsDifference = Math.abs(serverEarnings - this.state.serverEarnings);
+      const fiveSecondEarnings = this.state.perSecondRate * 5;
+
+      if (earningsDifference > fiveSecondEarnings || this.state.serverEarnings === 0) {
+        this.state = {
+          ...this.state,
+          totalEarnings: serverEarnings + accumulatedEarnings,
+          lastUpdateTime: now,
+          serverEarnings: serverEarnings,
+          serverSyncTime: now,
+        };
+
+        console.log('[EarningsManager] Updated with server earnings:', {
+          serverEarnings,
+          totalEarnings: this.state.totalEarnings,
+          accumulatedEarnings,
+          earningsDifference,
+          fiveSecondEarnings
+        });
+
+        this.saveToStorage();
+        this.notifyListeners();
+      } else {
+        console.log('[EarningsManager] Skipping server update - difference too small:', {
+          earningsDifference,
+          fiveSecondEarnings,
+          serverEarnings,
+          currentServerEarnings: this.state.serverEarnings
+        });
+      }
     }
   }
 

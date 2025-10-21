@@ -23,9 +23,9 @@ export const useServerEarnings = (telegramId: string | undefined) => {
     queryKey: ['serverEarnings', telegramId],
     queryFn: () => fetchServerEarnings(telegramId!),
     enabled: !!telegramId,
-    refetchInterval: 180000, // Refetch every 3 minutes (optimized)
+    refetchInterval: 300000, // Refetch every 5 minutes to reduce conflicts
     retry: 3,
     retryDelay: 1000,
-    staleTime: 60000, // Consider data fresh for 1 minute
+    staleTime: 120000, // Consider data fresh for 2 minutes
   });
 };

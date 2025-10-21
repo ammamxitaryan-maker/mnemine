@@ -73,7 +73,13 @@ export const EarningsProvider = ({ children, telegramId }: EarningsProviderProps
         slotsCount: slotsData.length,
         earnings
       });
-      globalEarningsManager.updateSlotsData(telegramId, slotsData, earnings);
+
+      // Add a longer delay to prevent cache conflicts
+      const timeoutId = setTimeout(() => {
+        globalEarningsManager.updateSlotsData(telegramId, slotsData, earnings);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
     } else {
       console.log('[EarningsContext] Skipping update - missing data:', {
         hasSlotsData: !!slotsData,

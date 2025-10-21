@@ -2,7 +2,6 @@
 import { URL } from 'url';
 import { WebSocketServer as WSWebSocketServer, WebSocket } from 'ws';
 import prisma from '../prisma.js';
-import { UserStatsWebSocketService } from '../services/userStatsWebSocketService.js';
 
 interface AuthenticatedWebSocket extends WebSocket {
   telegramId?: string;
@@ -145,13 +144,10 @@ export class WebSocketServer {
 
     console.log('[WebSocket] User stats client connected:', clientId);
 
-    // Add client to user stats service
-    UserStatsWebSocketService.addClient(ws, clientId);
-
     ws.on('message', (data: any) => {
       try {
         const message = data.toString();
-        UserStatsWebSocketService.handleMessage(clientId, message);
+        console.log('[WebSocket] User stats message received:', message);
       } catch (error) {
         console.error('[WebSocket] Error handling user stats message:', error);
       }
@@ -159,16 +155,14 @@ export class WebSocketServer {
 
     ws.on('close', () => {
       console.log('[WebSocket] User stats client disconnected:', clientId);
-      UserStatsWebSocketService.removeClient(clientId);
     });
 
     ws.on('pong', () => {
-      UserStatsWebSocketService.handlePong(clientId);
+      console.log('[WebSocket] User stats client pong received:', clientId);
     });
 
     ws.on('error', (error) => {
       console.error('[WebSocket] User stats client error:', error);
-      UserStatsWebSocketService.removeClient(clientId);
     });
   }
 
@@ -409,29 +403,20 @@ export class WebSocketServer {
     const wallet = user.wallets.find(w => w.currency === 'USD');
     const balance = wallet ? wallet.balance : 0;
 
-    // Calculate real-time earnings (this is for display only, actual earnings are persisted by the processor)
+    // Use persisted accruedEarnings from database instead of real-time calculation
+    // The client-side earnings manager handles real-time updates
     const activeSlots = user.miningSlots.filter(slot =>
       slot.isActive && new Date(slot.expiresAt) > new Date()
     );
 
-    // Calculate earnings directly from user data for better performance
-    const currentTime = new Date();
-    let totalEarnings = 0;
-
-    for (const slot of activeSlots) {
-      const timeElapsedMs = currentTime.getTime() - slot.lastAccruedAt.getTime();
-      if (timeElapsedMs > 0) {
-        const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
-        const earnings = earningsPerSecond * (timeElapsedMs / 1000);
-        totalEarnings += earnings;
-      }
-    }
+    // Sum up the persisted accruedEarnings from all active slots
+    const totalEarnings = activeSlots.reduce((sum, slot) => sum + slot.accruedEarnings, 0);
 
     return {
       ...user,
       balance,
       accruedEarnings: totalEarnings,
-      lastUpdate: currentTime.toISOString()
+      lastUpdate: new Date().toISOString()
     };
   }
 
@@ -496,7 +481,7 @@ export class WebSocketServer {
       }
     }, 5000));
 
-    // Broadcast user earnings every 3 seconds for real-time updates
+    // Broadcast user earnings every 10 seconds for real-time updates (reduced frequency to prevent conflicts)
     this.broadcastIntervals.set('earnings', setInterval(async () => {
       try {
         // Only broadcast to users with active connections
@@ -528,7 +513,7 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting earnings:', error);
       }
-    }, 3000));
+    }, 10000));
 
     // Broadcast slots data every 5 seconds for each user
     this.broadcastIntervals.set('slots', setInterval(async () => {
@@ -649,30 +634,38 @@ export class WebSocketServer {
   }
 
   private async getUserStatistics() {
-    // Use consistent fictitious data for all users
-    // This ensures all users see the same statistics
-    const baseTotalUsers = 1250; // Base number of users
-    const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50; // Hourly variation
-    const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
+    try {
+      // Use the new unified stats service
+      const { UnifiedStatsService } = await import('../services/unifiedStatsService.js');
+      const stats = await UnifiedStatsService.getUserStats();
 
-    // Online users: 8-15% of total users with realistic variation
-    const onlinePercentage = 0.08 + (Math.random() * 0.07); // 8-15%
-    const onlineUsers = Math.floor(totalUsers * onlinePercentage);
+      return {
+        totalUsers: stats.totalUsers,
+        onlineUsers: stats.onlineUsers,
+        newUsersToday: stats.newUsersToday,
+        activeUsers: stats.activeUsers,
+        lastUpdate: stats.lastUpdate,
+        isFictitious: !stats.isRealData,
+        dataSource: stats.dataSource
+      };
+    } catch (error) {
+      console.error('[WebSocket] Error getting user statistics:', error);
 
-    // New users today: 2-5% of total users
-    const newUsersToday = Math.floor(totalUsers * (0.02 + Math.random() * 0.03));
+      // Fallback to simple calculation
+      const baseTotalUsers = 10000;
+      const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50;
+      const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
 
-    // Active users: 25-40% of total users
-    const activeUsers = Math.floor(totalUsers * (0.25 + Math.random() * 0.15));
-
-    return {
-      totalUsers,
-      onlineUsers,
-      newUsersToday,
-      activeUsers,
-      lastUpdate: new Date().toISOString(),
-      isFictitious: true // Flag to indicate this is fictitious data
-    };
+      return {
+        totalUsers,
+        onlineUsers: Math.floor(totalUsers * 0.12),
+        newUsersToday: Math.floor(totalUsers * 0.03),
+        activeUsers: Math.floor(totalUsers * 0.35),
+        lastUpdate: new Date().toISOString(),
+        isFictitious: true,
+        dataSource: 'fallback'
+      };
+    }
   }
 
   private broadcastToAll(message: WebSocketMessage) {

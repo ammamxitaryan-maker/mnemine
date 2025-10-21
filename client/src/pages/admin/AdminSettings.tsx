@@ -101,8 +101,8 @@ const AdminSettings = () => {
           if (isNaN(rate) || rate <= 0) {
             validationErrors.push('Exchange rate must be a positive number');
           }
-          if (rate < 0.0001 || rate > 100) {
-            validationErrors.push('Exchange rate must be between 0.0001 and 100');
+          if (rate < 0.00001 || rate > 1000) {
+            validationErrors.push('Exchange rate must be between 0.00001 and 1000');
           }
           if (validationErrors.length === 0) {
             payload = { exchangeRate: rate };
