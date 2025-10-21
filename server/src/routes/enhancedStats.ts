@@ -24,22 +24,22 @@ router.get('/fake', async (req, res) => {
     const growthSinceDayStart = secondsSinceDayStart * SECOND_USER_GROWTH;
     const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
 
-    // Online users calculation: 4-7% of total users
-    const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
-    const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
-    
-    // Calculate base online users as percentage of total users
-    const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE + 
-      (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
-    
-    let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
-    
-    // Add small random variation (±1%) for more frequent updates
-    const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
-    onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
-    
-    // Ensure minimum of 1 online user
-    onlineUsers = Math.max(1, onlineUsers);
+     // Online users calculation: 4-7% of total users
+     const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
+     const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
+     
+     // Calculate base online users as percentage of total users
+     const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE + 
+       (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
+     
+     let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
+     
+     // Add small random variation (±1%) for more frequent updates
+     const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
+     onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
+     
+     // Ensure minimum of 1 online user
+     onlineUsers = Math.max(1, onlineUsers);
 
     const newUsersToday = Math.floor(secondsSinceDayStart * SECOND_USER_GROWTH);
     const activeUsers = Math.floor(totalUsers * 0.35);
