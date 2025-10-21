@@ -14,7 +14,7 @@ interface PersistentEarningsState {
 
 const LOCAL_STORAGE_KEY = 'globalPersistentEarnings';
 const SYNC_INTERVAL_MS = 60000; // Sync with server every 60 seconds
-const SERVER_SYNC_INTERVAL_MS = 600000; // Force server sync every 10 minutes
+const SERVER_SYNC_INTERVAL_MS = 300000; // Force server sync every 5 minutes (reduced from 10 minutes for better sync with 1-minute server updates)
 
 class GlobalEarningsManager {
   private state: PersistentEarningsState | null = null;

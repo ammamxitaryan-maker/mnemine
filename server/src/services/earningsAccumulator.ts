@@ -31,11 +31,11 @@ export class EarningsAccumulator {
     console.log('Starting earnings accumulator service...');
     this.isRunning = true;
 
-    // Запускаем накопление каждые 10 секунд для демонстрации
-    // В продакшене можно использовать более частые интервалы или WebSocket события
+    // Запускаем накопление каждую минуту для оптимизации производительности
+    // Интервал 1 минута обеспечивает баланс между точностью и нагрузкой на сервер
     this.intervalId = setInterval(() => {
       this.accumulateEarnings();
-    }, 10000);
+    }, 60000); // 1 минута = 60 секунд
 
     // Немедленное накопление при запуске
     this.accumulateEarnings();

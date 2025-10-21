@@ -467,7 +467,7 @@ export class WebSocketServer {
   }
 
   private startBroadcastIntervals() {
-    // Broadcast market data every 5 seconds
+    // Broadcast market data every 20 seconds
     this.broadcastIntervals.set('market', setInterval(async () => {
       try {
         const marketData = await this.getMarketData();
@@ -479,9 +479,9 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting market data:', error);
       }
-    }, 5000));
+    }, 20000)); // 20 секунд
 
-    // Broadcast user earnings every 10 seconds for real-time updates (reduced frequency to prevent conflicts)
+    // Broadcast user earnings every 1 minute for real-time updates (optimized frequency)
     this.broadcastIntervals.set('earnings', setInterval(async () => {
       try {
         // Only broadcast to users with active connections
@@ -513,9 +513,9 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting earnings:', error);
       }
-    }, 10000));
+    }, 60000)); // 1 минута = 60 секунд
 
-    // Broadcast slots data every 5 seconds for each user
+    // Broadcast slots data every 1 minute for each user (synchronized with earnings)
     this.broadcastIntervals.set('slots', setInterval(async () => {
       try {
         // Only broadcast to users with active connections
@@ -541,7 +541,7 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting slots:', error);
       }
-    }, 5000));
+    }, 60000)); // 1 минута = 60 секунд
 
     // Broadcast price data every minute for real-time price chart
     this.broadcastIntervals.set('price', setInterval(async () => {

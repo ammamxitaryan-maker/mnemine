@@ -17,14 +17,14 @@ export const getExchangeRate = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Exchange rate not configured' });
     }
 
-    // Добавляем случайное отклонение от 0 до 5%
-    const variation = Math.random() * (EXCHANGE_RATE_VARIATION_MAX - EXCHANGE_RATE_VARIATION_MIN) + EXCHANGE_RATE_VARIATION_MIN;
+    // Добавляем случайное отклонение от -2% до +2%
+    const variation = Math.random() * 0.04 - 0.02; // -2% to +2%
     const currentRate = baseRate.rate * (1 + variation);
 
     res.status(200).json({
       rate: currentRate,
       baseRate: baseRate.rate,
-      variation: variation * 100, // В процентах
+      variation: variation * 100, // В процентах (-2% to +2%)
       lastUpdated: new Date().toISOString()
     });
   } catch (error) {

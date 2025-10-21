@@ -69,7 +69,7 @@ export const useExchangeRate = (telegramId: string) => {
     queryKey: ['exchangeRate', telegramId],
     queryFn: () => fetchExchangeRate(telegramId),
     enabled: !!telegramId,
-    refetchInterval: 5000, // Refresh every 5 seconds for rate updates
+    refetchInterval: 10 * 60 * 1000, // Refresh every 10 minutes for rate updates
   });
 };
 

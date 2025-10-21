@@ -1,6 +1,5 @@
 import prisma from '../prisma.js';
-import { LogContext } from '../utils/logger.js';
-import { logger } from '../utils/logger.js';
+import { LogContext, logger } from '../utils/logger.js';
 
 interface UnifiedUserStats {
   totalUsers: number;
@@ -25,8 +24,20 @@ interface StatsCache {
 
 export class UnifiedStatsService {
   private static cache: StatsCache | null = null;
-  private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private static readonly CACHE_TTL = 1 * 60 * 1000; // 1 minute for more frequent updates
   private static readonly REAL_DATA_THRESHOLD = 100; // Minimum users for real data
+
+  // Fake user algorithm constants
+  private static readonly BASE_TOTAL_USERS = 10000;
+  private static readonly BASE_ONLINE_USERS = 150;
+  private static readonly DAILY_USER_GROWTH = 300; // 300 users per day
+  private static readonly HOURLY_USER_GROWTH = 12.5; // 300/24 = 12.5 users per hour
+  private static readonly MINUTE_USER_GROWTH = 0.208; // 12.5/60 = 0.208 users per minute
+
+  // Time-based variation for online users (UTC time)
+  private static readonly PEAK_HOURS = { start: 14, end: 22 }; // 2 PM - 10 PM UTC
+  private static readonly MIN_ONLINE_MULTIPLIER = 0.7; // 70% of base during low activity
+  private static readonly MAX_ONLINE_MULTIPLIER = 1.4; // 140% of base during peak hours
 
   /**
    * Get unified user statistics with intelligent fallback
@@ -38,27 +49,14 @@ export class UnifiedStatsService {
     }
 
     try {
-      // Try to get real data from database
-      const realStats = await this.getRealStats();
-
-      if (realStats.totalUsers >= this.REAL_DATA_THRESHOLD) {
-        // Use real data if we have enough users
-        this.cache = {
-          data: { ...realStats, isRealData: true, dataSource: 'database' },
-          timestamp: Date.now(),
-          ttl: this.CACHE_TTL
-        };
-        return this.cache.data;
-      } else {
-        // Use hybrid approach: real data + calculated growth
-        const hybridStats = await this.getHybridStats(realStats);
-        this.cache = {
-          data: { ...hybridStats, isRealData: false, dataSource: 'hybrid' },
-          timestamp: Date.now(),
-          ttl: this.CACHE_TTL
-        };
-        return this.cache.data;
-      }
+      // Always use fake user statistics, never show real user counts
+      const calculatedStats = this.getCalculatedStats();
+      this.cache = {
+        data: { ...calculatedStats, isRealData: false, dataSource: 'calculated' },
+        timestamp: Date.now(),
+        ttl: this.CACHE_TTL
+      };
+      return this.cache.data;
     } catch (error) {
       logger.error(LogContext.SERVER, 'Error getting user stats:', error);
       // Fallback to calculated data
@@ -149,16 +147,13 @@ export class UnifiedStatsService {
    * Get hybrid statistics (real data + calculated growth)
    */
   private static async getHybridStats(realStats: UnifiedUserStats): Promise<UnifiedUserStats> {
-    // Calculate growth based on real data
-    const growthRate = this.calculateGrowthRate(realStats);
-    const timeSinceLastUpdate = Date.now() - new Date(realStats.lastUpdate).getTime();
-    const hoursSinceUpdate = timeSinceLastUpdate / (1000 * 60 * 60);
+    const now = new Date();
 
-    // Apply growth to real data
-    const totalUsers = Math.floor(realStats.totalUsers + (growthRate * hoursSinceUpdate));
-    const onlineUsers = Math.floor(totalUsers * 0.12); // 12% online
-    const newUsersToday = Math.floor(totalUsers * 0.03); // 3% new today
-    const activeUsers = Math.floor(totalUsers * 0.35); // 35% active
+    // Use the same algorithm as calculated stats but start from real data
+    const totalUsers = this.calculateTotalUsers(now);
+    const onlineUsers = this.calculateOnlineUsers(now, totalUsers);
+    const newUsersToday = this.calculateNewUsersToday(now, totalUsers);
+    const activeUsers = Math.floor(totalUsers * 0.35); // 35% active users
 
     return {
       ...realStats,
@@ -166,31 +161,37 @@ export class UnifiedStatsService {
       onlineUsers,
       newUsersToday,
       activeUsers,
-      lastUpdate: new Date().toISOString()
+      usersWithDeposits: Math.floor(totalUsers * 0.15),
+      usersWithActiveSlots: Math.floor(totalUsers * 0.20),
+      lastUpdate: now.toISOString()
     };
   }
 
   /**
-   * Get calculated statistics (fallback)
+   * Get calculated statistics (fallback) - Enhanced fake user algorithm
    */
   private static getCalculatedStats(): UnifiedUserStats {
     const now = new Date();
-    const baseUsers = 10000;
-    const timeVariation = Math.sin(now.getTime() / (1000 * 60 * 60)) * 50;
-    const randomVariation = Math.random() * 20;
 
-    const totalUsers = Math.floor(baseUsers + timeVariation + randomVariation);
-    const onlineUsers = Math.floor(totalUsers * (0.08 + Math.random() * 0.07));
-    const newUsersToday = Math.floor(totalUsers * (0.02 + Math.random() * 0.03));
-    const activeUsers = Math.floor(totalUsers * (0.25 + Math.random() * 0.15));
+    // Calculate total users with consistent growth
+    const totalUsers = this.calculateTotalUsers(now);
+
+    // Calculate online users with time-based variation
+    const onlineUsers = this.calculateOnlineUsers(now, totalUsers);
+
+    // Calculate other metrics based on total users
+    const newUsersToday = this.calculateNewUsersToday(now, totalUsers);
+    const activeUsers = Math.floor(totalUsers * 0.35); // 35% active users
+    const usersWithDeposits = Math.floor(totalUsers * 0.15); // 15% with deposits
+    const usersWithActiveSlots = Math.floor(totalUsers * 0.20); // 20% with active slots
 
     return {
       totalUsers,
       onlineUsers,
       newUsersToday,
       activeUsers,
-      usersWithDeposits: Math.floor(totalUsers * 0.15),
-      usersWithActiveSlots: Math.floor(totalUsers * 0.20),
+      usersWithDeposits,
+      usersWithActiveSlots,
       totalInvested: totalUsers * 50, // Estimated
       totalEarnings: totalUsers * 25, // Estimated
       conversionRate: 15 + Math.random() * 10,
@@ -198,6 +199,72 @@ export class UnifiedStatsService {
       isRealData: false,
       dataSource: 'calculated'
     };
+  }
+
+  /**
+   * Calculate total users with persistent growth
+   */
+  private static calculateTotalUsers(now: Date): number {
+    // Use a deterministic seed based on date to ensure consistency across all users
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const minutesSinceDayStart = (now.getTime() - dayStart.getTime()) / (1000 * 60);
+
+    // Calculate base users + growth since day start
+    const growthSinceDayStart = minutesSinceDayStart * this.MINUTE_USER_GROWTH;
+    const totalUsers = Math.floor(this.BASE_TOTAL_USERS + growthSinceDayStart);
+
+    return totalUsers;
+  }
+
+  /**
+   * Calculate online users with time-based variation
+   */
+  private static calculateOnlineUsers(now: Date, totalUsers: number): number {
+    const hour = now.getUTCHours();
+
+    // Calculate time-based multiplier
+    let timeMultiplier = this.MIN_ONLINE_MULTIPLIER;
+
+    if (hour >= this.PEAK_HOURS.start && hour <= this.PEAK_HOURS.end) {
+      // Peak hours: linear increase from min to max
+      const peakProgress = (hour - this.PEAK_HOURS.start) / (this.PEAK_HOURS.end - this.PEAK_HOURS.start);
+      timeMultiplier = this.MIN_ONLINE_MULTIPLIER +
+        (this.MAX_ONLINE_MULTIPLIER - this.MIN_ONLINE_MULTIPLIER) * peakProgress;
+    } else if (hour > this.PEAK_HOURS.end) {
+      // After peak hours: gradual decrease
+      const hoursAfterPeak = hour - this.PEAK_HOURS.end;
+      const decreaseFactor = Math.max(0, 1 - (hoursAfterPeak / 8)); // Decrease over 8 hours
+      timeMultiplier = this.MAX_ONLINE_MULTIPLIER * decreaseFactor +
+        this.MIN_ONLINE_MULTIPLIER * (1 - decreaseFactor);
+    } else {
+      // Before peak hours: gradual increase
+      const hoursBeforePeak = this.PEAK_HOURS.start - hour;
+      const increaseFactor = Math.max(0, 1 - (hoursBeforePeak / 8)); // Increase over 8 hours
+      timeMultiplier = this.MIN_ONLINE_MULTIPLIER +
+        (this.MAX_ONLINE_MULTIPLIER - this.MIN_ONLINE_MULTIPLIER) * increaseFactor;
+    }
+
+    // Calculate base online users with time variation
+    const baseOnlineUsers = Math.floor(this.BASE_ONLINE_USERS * timeMultiplier);
+
+    // Add small random variation (±5%) for realism
+    const randomVariation = (Math.random() - 0.5) * 0.1; // ±5%
+    const onlineUsers = Math.floor(baseOnlineUsers * (1 + randomVariation));
+
+    return Math.max(50, onlineUsers); // Minimum 50 online users
+  }
+
+  /**
+   * Calculate new users today
+   */
+  private static calculateNewUsersToday(now: Date, totalUsers: number): number {
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const minutesSinceDayStart = (now.getTime() - dayStart.getTime()) / (1000 * 60);
+
+    // Calculate new users based on growth rate
+    const newUsersToday = Math.floor(minutesSinceDayStart * this.MINUTE_USER_GROWTH);
+
+    return Math.max(0, newUsersToday);
   }
 
   /**
@@ -228,6 +295,45 @@ export class UnifiedStatsService {
       hasCache: true,
       age: Date.now() - this.cache.timestamp,
       ttl: this.cache.ttl
+    };
+  }
+
+  /**
+   * Get algorithm status for debugging
+   */
+  static getAlgorithmStatus(): {
+    baseTotalUsers: number;
+    baseOnlineUsers: number;
+    dailyGrowth: number;
+    currentTime: string;
+    peakHours: { start: number; end: number };
+    timeMultiplier: number;
+    calculatedTotalUsers: number;
+    calculatedOnlineUsers: number;
+  } {
+    const now = new Date();
+    const totalUsers = this.calculateTotalUsers(now);
+    const onlineUsers = this.calculateOnlineUsers(now, totalUsers);
+
+    // Calculate current time multiplier
+    const hour = now.getUTCHours();
+    let timeMultiplier = this.MIN_ONLINE_MULTIPLIER;
+
+    if (hour >= this.PEAK_HOURS.start && hour <= this.PEAK_HOURS.end) {
+      const peakProgress = (hour - this.PEAK_HOURS.start) / (this.PEAK_HOURS.end - this.PEAK_HOURS.start);
+      timeMultiplier = this.MIN_ONLINE_MULTIPLIER +
+        (this.MAX_ONLINE_MULTIPLIER - this.MIN_ONLINE_MULTIPLIER) * peakProgress;
+    }
+
+    return {
+      baseTotalUsers: this.BASE_TOTAL_USERS,
+      baseOnlineUsers: this.BASE_ONLINE_USERS,
+      dailyGrowth: this.DAILY_USER_GROWTH,
+      currentTime: now.toISOString(),
+      peakHours: this.PEAK_HOURS,
+      timeMultiplier,
+      calculatedTotalUsers: totalUsers,
+      calculatedOnlineUsers: onlineUsers
     };
   }
 }
