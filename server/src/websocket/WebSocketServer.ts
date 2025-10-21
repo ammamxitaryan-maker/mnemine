@@ -656,9 +656,26 @@ export class WebSocketServer {
       const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50;
       const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
 
+      // Online users calculation: 4-7% of total users
+      const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
+      const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
+
+      // Calculate base online users as percentage of total users
+      const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
+        (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
+
+      let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
+
+      // Add small random variation (±1%) for more frequent updates
+      const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
+      onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
+
+      // Ensure minimum of 1 online user
+      onlineUsers = Math.max(1, onlineUsers);
+
       return {
         totalUsers,
-        onlineUsers: Math.floor(totalUsers * 0.12),
+        onlineUsers,
         newUsersToday: Math.floor(totalUsers * 0.03),
         activeUsers: Math.floor(totalUsers * 0.35),
         lastUpdate: new Date().toISOString(),

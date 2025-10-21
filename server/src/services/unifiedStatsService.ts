@@ -34,12 +34,9 @@ export class UnifiedStatsService {
   private static readonly HOURLY_USER_GROWTH = 12.5; // 300/24 = 12.5 users per hour
   private static readonly MINUTE_USER_GROWTH = 0.208; // 12.5/60 = 0.208 users per minute
 
-  // Time-based variation for online users (UTC time)
-  private static readonly PEAK_HOURS = { start: 14, end: 22 }; // 2 PM - 10 PM UTC
-  private static readonly MIN_ONLINE_USERS = 50; // Minimum online users
-  private static readonly MAX_ONLINE_USERS = 180; // Maximum online users
-  private static readonly MIN_ONLINE_MULTIPLIER = 0.5; // Minimum time multiplier
-  private static readonly MAX_ONLINE_MULTIPLIER = 1.5; // Maximum time multiplier
+  // Online users calculation: 4-7% of total users
+  private static readonly MIN_ONLINE_PERCENTAGE = 0.04; // 4%
+  private static readonly MAX_ONLINE_PERCENTAGE = 0.07; // 7%
 
   /**
    * Get unified user statistics with intelligent fallback
@@ -219,39 +216,21 @@ export class UnifiedStatsService {
   }
 
   /**
-   * Calculate online users with time-based variation (50-180 range)
+   * Calculate online users as 4-7% of total users
    */
   private static calculateOnlineUsers(now: Date, totalUsers: number): number {
-    const hour = now.getUTCHours();
+    // Online users calculation: 4-7% of total users
+    const baseOnlinePercentage = this.MIN_ONLINE_PERCENTAGE +
+      (Math.random() * (this.MAX_ONLINE_PERCENTAGE - this.MIN_ONLINE_PERCENTAGE));
 
-    // Calculate time-based online users (50-180 range)
-    let onlineUsers = this.MIN_ONLINE_USERS;
+    let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
 
-    if (hour >= this.PEAK_HOURS.start && hour <= this.PEAK_HOURS.end) {
-      // Peak hours: linear increase from min to max
-      const peakProgress = (hour - this.PEAK_HOURS.start) / (this.PEAK_HOURS.end - this.PEAK_HOURS.start);
-      onlineUsers = this.MIN_ONLINE_USERS +
-        (this.MAX_ONLINE_USERS - this.MIN_ONLINE_USERS) * peakProgress;
-    } else if (hour > this.PEAK_HOURS.end) {
-      // After peak hours: gradual decrease
-      const hoursAfterPeak = hour - this.PEAK_HOURS.end;
-      const decreaseFactor = Math.max(0, 1 - (hoursAfterPeak / 8)); // Decrease over 8 hours
-      onlineUsers = this.MAX_ONLINE_USERS * decreaseFactor +
-        this.MIN_ONLINE_USERS * (1 - decreaseFactor);
-    } else {
-      // Before peak hours: gradual increase
-      const hoursBeforePeak = this.PEAK_HOURS.start - hour;
-      const increaseFactor = Math.max(0, 1 - (hoursBeforePeak / 8)); // Increase over 8 hours
-      onlineUsers = this.MIN_ONLINE_USERS +
-        (this.MAX_ONLINE_USERS - this.MIN_ONLINE_USERS) * increaseFactor;
-    }
-
-    // Add small random variation (±3%) for realism
-    const randomVariation = (Math.random() - 0.5) * 0.06; // ±3%
+    // Add small random variation (±1%) for more frequent updates
+    const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
     onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
 
-    // Ensure within bounds
-    return Math.max(this.MIN_ONLINE_USERS, Math.min(this.MAX_ONLINE_USERS, onlineUsers));
+    // Ensure minimum of 1 online user
+    return Math.max(1, onlineUsers);
   }
 
   /**
@@ -306,8 +285,7 @@ export class UnifiedStatsService {
     baseOnlineUsers: number;
     dailyGrowth: number;
     currentTime: string;
-    peakHours: { start: number; end: number };
-    timeMultiplier: number;
+    onlinePercentageRange: string;
     calculatedTotalUsers: number;
     calculatedOnlineUsers: number;
   } {
@@ -315,23 +293,12 @@ export class UnifiedStatsService {
     const totalUsers = this.calculateTotalUsers(now);
     const onlineUsers = this.calculateOnlineUsers(now, totalUsers);
 
-    // Calculate current time multiplier
-    const hour = now.getUTCHours();
-    let timeMultiplier = this.MIN_ONLINE_MULTIPLIER;
-
-    if (hour >= this.PEAK_HOURS.start && hour <= this.PEAK_HOURS.end) {
-      const peakProgress = (hour - this.PEAK_HOURS.start) / (this.PEAK_HOURS.end - this.PEAK_HOURS.start);
-      timeMultiplier = this.MIN_ONLINE_MULTIPLIER +
-        (this.MAX_ONLINE_MULTIPLIER - this.MIN_ONLINE_MULTIPLIER) * peakProgress;
-    }
-
     return {
       baseTotalUsers: this.BASE_TOTAL_USERS,
       baseOnlineUsers: this.BASE_ONLINE_USERS,
       dailyGrowth: this.DAILY_USER_GROWTH,
       currentTime: now.toISOString(),
-      peakHours: this.PEAK_HOURS,
-      timeMultiplier,
+      onlinePercentageRange: '4-7%',
       calculatedTotalUsers: totalUsers,
       calculatedOnlineUsers: onlineUsers
     };
