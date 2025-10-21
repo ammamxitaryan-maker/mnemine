@@ -2,56 +2,140 @@ import { Router } from 'express';
 import { StatsAnalyticsService } from '../services/statsAnalyticsService.js';
 import { StatsCacheService } from '../services/statsCacheService.js';
 import { UnifiedStatsService } from '../services/unifiedStatsService.js';
-import { LogContext } from '../utils/logger.js';
-import { logger } from '../utils/logger.js';
+import { LogContext, logger } from '../utils/logger.js';
 
 const router = Router();
+
+/**
+ * GET /api/stats/fake - Get fake data for real-time updates (every 10 seconds)
+ */
+router.get('/fake', async (req, res) => {
+  try {
+    console.log('[FAKE-STATS] Request received for real-time fake data');
+
+    const now = new Date();
+    const BASE_TOTAL_USERS = 10000;
+    const MINUTE_USER_GROWTH = 0.208; // 12.5/60 = 0.208 users per minute
+    const SECOND_USER_GROWTH = MINUTE_USER_GROWTH / 60; // Growth per second
+
+    // Calculate total users with second-level precision for more frequent updates
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const secondsSinceDayStart = (now.getTime() - dayStart.getTime()) / 1000;
+    const growthSinceDayStart = secondsSinceDayStart * SECOND_USER_GROWTH;
+    const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
+
+    // Online users calculation: 4-7% of total users
+    const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
+    const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
+    
+    // Calculate base online users as percentage of total users
+    const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE + 
+      (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
+    
+    let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
+    
+    // Add small random variation (±1%) for more frequent updates
+    const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
+    onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
+    
+    // Ensure minimum of 1 online user
+    onlineUsers = Math.max(1, onlineUsers);
+
+    const newUsersToday = Math.floor(secondsSinceDayStart * SECOND_USER_GROWTH);
+    const activeUsers = Math.floor(totalUsers * 0.35);
+
+    const fakeStats = {
+      totalUsers,
+      onlineUsers,
+      newUsersToday: Math.max(0, newUsersToday),
+      activeUsers,
+      usersWithDeposits: Math.floor(totalUsers * 0.15),
+      usersWithActiveSlots: Math.floor(totalUsers * 0.20),
+      totalInvested: totalUsers * 50,
+      totalEarnings: totalUsers * 25,
+      conversionRate: 15 + Math.random() * 10,
+      lastUpdate: now.toISOString(),
+      isRealData: false,
+      dataSource: 'fake-realtime',
+      updateInterval: '10s'
+    };
+
+    const response = {
+      success: true,
+      data: fakeStats,
+      timestamp: now.toISOString()
+    };
+
+    console.log('[FAKE-STATS] Sending real-time fake data:', fakeStats);
+    res.json(response);
+  } catch (error) {
+    console.error('[FAKE-STATS] Error generating fake data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate fake data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
 /**
  * GET /api/stats/enhanced - Enhanced user statistics
  */
 router.get('/enhanced', async (req, res) => {
   try {
-    const { includeAnalytics = 'false', days = '30' } = req.query;
+    console.log('[ENHANCED-STATS] Request received');
 
-    // Get basic stats with caching
-    const stats = await StatsCacheService.getOrSet(
-      'enhanced-stats',
-      () => UnifiedStatsService.getUserStats(),
-      5 * 60 * 1000, // 5 minutes cache
-      { source: 'api', tags: ['enhanced-stats', 'public'] }
-    );
+    // Try to get stats directly from UnifiedStatsService first
+    let stats;
+    try {
+      stats = await UnifiedStatsService.getUserStats();
+      console.log('[ENHANCED-STATS] Got stats from UnifiedStatsService:', stats);
+    } catch (serviceError) {
+      console.error('[ENHANCED-STATS] Error getting stats from service:', serviceError);
 
-    let response: any = {
-      success: true,
-      data: stats,
-      cache: {
-        hit: StatsCacheService.getCacheStatus().hasCache,
-        age: StatsCacheService.getCacheStatus().age
-      }
-    };
+      // Fallback to simple calculation
+      const now = new Date();
+      const BASE_TOTAL_USERS = 10000;
+      const MINUTE_USER_GROWTH = 0.208;
 
-    // Include analytics if requested
-    if (includeAnalytics === 'true') {
-      const analytics = await StatsCacheService.getOrSet(
-        `analytics-${days}`,
-        () => StatsAnalyticsService.getAnalytics(parseInt(days as string)),
-        15 * 60 * 1000, // 15 minutes cache
-        { source: 'api', tags: ['analytics', 'detailed'] }
-      );
+      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const minutesSinceDayStart = (now.getTime() - dayStart.getTime()) / (1000 * 60);
+      const growthSinceDayStart = minutesSinceDayStart * MINUTE_USER_GROWTH;
+      const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
 
-      const healthScore = await StatsAnalyticsService.getHealthScore();
+      stats = {
+        totalUsers,
+        onlineUsers: Math.floor(totalUsers * 0.12),
+        newUsersToday: Math.floor(minutesSinceDayStart * MINUTE_USER_GROWTH),
+        activeUsers: Math.floor(totalUsers * 0.35),
+        usersWithDeposits: Math.floor(totalUsers * 0.15),
+        usersWithActiveSlots: Math.floor(totalUsers * 0.20),
+        totalInvested: totalUsers * 50,
+        totalEarnings: totalUsers * 25,
+        conversionRate: 15 + Math.random() * 10,
+        lastUpdate: now.toISOString(),
+        isRealData: false,
+        dataSource: 'fallback'
+      };
 
-      response.analytics = analytics;
-      response.healthScore = healthScore;
+      console.log('[ENHANCED-STATS] Using fallback calculation:', stats);
     }
 
+    const response = {
+      success: true,
+      data: stats,
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('[ENHANCED-STATS] Sending response:', response);
     res.json(response);
   } catch (error) {
+    console.error('[ENHANCED-STATS] Critical error:', error);
     logger.error(LogContext.SERVER, 'Error fetching enhanced stats:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch enhanced statistics'
+      error: 'Failed to fetch enhanced statistics',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });

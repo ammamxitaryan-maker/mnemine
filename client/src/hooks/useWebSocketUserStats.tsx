@@ -19,10 +19,7 @@ const BASE_TOTAL_USERS = 10000;
 const DAILY_USER_GROWTH = 300; // 300 users per day
 const MINUTE_USER_GROWTH = 0.208; // 12.5/60 = 0.208 users per minute
 
-// Time-based variation for online users (UTC time)
-const PEAK_HOURS = { start: 14, end: 22 }; // 2 PM - 10 PM UTC
-const MIN_ONLINE_USERS = 50; // Minimum online users
-const MAX_ONLINE_USERS = 180; // Maximum online users
+// Online users will be calculated as 4-7% of total users
 
 // Global state to ensure all components see the same data
 let globalUserStats: UserStats = {
@@ -36,74 +33,36 @@ let globalUserStats: UserStats = {
 
 const globalListeners: Set<() => void> = new Set();
 
-// Calculate total users with persistent growth (same algorithm as server)
+// Calculate total users with deterministic growth (same algorithm as server)
 const calculateTotalUsers = (now: Date): number => {
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const minutesSinceDayStart = (now.getTime() - dayStart.getTime()) / (1000 * 60);
 
-  // Get last saved total users from localStorage
-  const lastSavedUsers = localStorage.getItem('fakeTotalUsers');
-  const lastSavedTime = localStorage.getItem('fakeTotalUsersTime');
+  // Use deterministic calculation based on current time (same as server)
+  const growthSinceDayStart = minutesSinceDayStart * MINUTE_USER_GROWTH;
+  const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
 
-  let baseUsers = BASE_TOTAL_USERS;
-
-  if (lastSavedUsers && lastSavedTime) {
-    const lastTime = new Date(lastSavedTime);
-    const timeDiff = now.getTime() - lastTime.getTime();
-    const minutesDiff = timeDiff / (1000 * 60);
-
-    // Calculate growth since last save
-    const growthSinceLastSave = minutesDiff * MINUTE_USER_GROWTH;
-    baseUsers = Math.floor(parseInt(lastSavedUsers) + growthSinceLastSave);
-
-    // Save updated value
-    localStorage.setItem('fakeTotalUsers', baseUsers.toString());
-    localStorage.setItem('fakeTotalUsersTime', now.toISOString());
-  } else {
-    // First time or no saved data - use day-based calculation
-    const growthSinceDayStart = minutesSinceDayStart * MINUTE_USER_GROWTH;
-    baseUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
-
-    // Save initial value
-    localStorage.setItem('fakeTotalUsers', baseUsers.toString());
-    localStorage.setItem('fakeTotalUsersTime', now.toISOString());
-  }
-
-  return baseUsers;
+  return totalUsers;
 };
 
-// Calculate online users with time-based variation (50-180 range, same as server)
+// Calculate online users as 4-7% of total users (same as server)
 const calculateOnlineUsers = (now: Date, totalUsers: number): number => {
-  const hour = now.getUTCHours();
-
-  // Calculate time-based online users (50-180 range)
-  let onlineUsers = MIN_ONLINE_USERS;
-
-  if (hour >= PEAK_HOURS.start && hour <= PEAK_HOURS.end) {
-    // Peak hours: linear increase from min to max
-    const peakProgress = (hour - PEAK_HOURS.start) / (PEAK_HOURS.end - PEAK_HOURS.start);
-    onlineUsers = MIN_ONLINE_USERS +
-      (MAX_ONLINE_USERS - MIN_ONLINE_USERS) * peakProgress;
-  } else if (hour > PEAK_HOURS.end) {
-    // After peak hours: gradual decrease
-    const hoursAfterPeak = hour - PEAK_HOURS.end;
-    const decreaseFactor = Math.max(0, 1 - (hoursAfterPeak / 8));
-    onlineUsers = MAX_ONLINE_USERS * decreaseFactor +
-      MIN_ONLINE_USERS * (1 - decreaseFactor);
-  } else {
-    // Before peak hours: gradual increase
-    const hoursBeforePeak = PEAK_HOURS.start - hour;
-    const increaseFactor = Math.max(0, 1 - (hoursBeforePeak / 8));
-    onlineUsers = MIN_ONLINE_USERS +
-      (MAX_ONLINE_USERS - MIN_ONLINE_USERS) * increaseFactor;
-  }
-
-  // Add small random variation (±3%) for realism
-  const randomVariation = (Math.random() - 0.5) * 0.06; // ±3%
+  // Online users calculation: 4-7% of total users
+  const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
+  const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
+  
+  // Calculate base online users as percentage of total users
+  const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE + 
+    (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
+  
+  let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
+  
+  // Add small random variation (±1%) for more frequent updates
+  const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
   onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
-
-  // Ensure within bounds
-  return Math.max(MIN_ONLINE_USERS, Math.min(MAX_ONLINE_USERS, onlineUsers));
+  
+  // Ensure minimum of 1 online user
+  return Math.max(1, onlineUsers);
 };
 
 // Calculate new users today (same algorithm as server)
@@ -116,44 +75,75 @@ const calculateNewUsersToday = (now: Date): number => {
   return Math.max(0, newUsersToday);
 };
 
-// Fetch stats from server (for initial connection)
-const fetchServerStats = async (): Promise<UserStats | null> => {
+// Fetch fake stats from server (for real-time updates every 10 seconds)
+const fetchFakeStatsFromServer = async (): Promise<UserStats | null> => {
   try {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
-    const response = await fetch(`${backendUrl}/api/stats/enhanced`);
-    if (response.ok) {
-      const data = await response.json();
-      if (data.success) {
-        const stats = data.data;
-        return {
-          totalUsers: stats.totalUsers,
-          onlineUsers: stats.onlineUsers,
-          newUsersToday: stats.newUsersToday,
-          activeUsers: stats.activeUsers,
-          lastUpdate: stats.lastUpdate,
-          isFictitious: !stats.isRealData
-        };
+
+    // Try the new fake data endpoint first
+    const endpoints = [
+      `${backendUrl}/api/stats/fake`, // New dedicated fake data endpoint
+      `${backendUrl}/api/stats/enhanced`,
+      `${backendUrl}/api/stats/simple`,
+      `${backendUrl}/api/health`
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`[UserStats] Trying endpoint: ${endpoint}`);
+        const response = await fetch(endpoint);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`[UserStats] Success with ${endpoint}:`, data);
+
+          // Check if this is a stats endpoint
+          if (data.data && data.data.totalUsers) {
+            const stats = data.data;
+            return {
+              totalUsers: stats.totalUsers,
+              onlineUsers: stats.onlineUsers,
+              newUsersToday: stats.newUsersToday,
+              activeUsers: stats.activeUsers,
+              lastUpdate: stats.lastUpdate,
+              isFictitious: !stats.isRealData || stats.dataSource === 'fake-realtime'
+            };
+          }
+
+          // If this is a health endpoint, we'll continue to next endpoint
+          if (data.status === 'ok') {
+            console.log(`[UserStats] Health endpoint works, but no stats data`);
+            continue;
+          }
+        } else {
+          console.log(`[UserStats] Endpoint ${endpoint} failed with status: ${response.status}`);
+        }
+      } catch (endpointError) {
+        console.log(`[UserStats] Endpoint ${endpoint} error:`, endpointError);
       }
     }
+
+    console.log('[UserStats] All server endpoints failed, using local calculation');
   } catch (error) {
-    console.log('[UserStats] Server not available, using local calculation');
+    console.log('[UserStats] Server not available, using local calculation:', error);
   }
   return null;
 };
 
-// Centralized update function that tries server first, then uses cached data
+// Centralized update function that fetches fake data from server every 10 seconds
 const updateGlobalStats = async () => {
   const now = new Date();
 
-  // Try to get data from server first (for consistency across all users)
-  const serverStats = await fetchServerStats();
+  // Try to get fake data from server first (for consistency across all users)
+  const serverStats = await fetchFakeStatsFromServer();
 
   if (serverStats) {
-    // Use server data (consistent for all users)
+    // Use server fake data (consistent for all users)
     globalUserStats = {
       ...serverStats,
       isFictitious: true // Always mark as fake data
     };
+    console.log('[UserStats] Updated with server fake data:', globalUserStats);
   } else {
     // Fallback to local calculation with cached total users
     const totalUsers = calculateTotalUsers(now);
@@ -169,6 +159,7 @@ const updateGlobalStats = async () => {
       lastUpdate: now.toISOString(),
       isFictitious: true // Always use fake data
     };
+    console.log('[UserStats] Updated with local fake data:', globalUserStats);
   }
 
   // Notify all listeners
@@ -181,7 +172,7 @@ let globalInterval: NodeJS.Timeout | null = null;
 const startGlobalUpdates = () => {
   if (!globalInterval) {
     updateGlobalStats(); // Initial update
-    globalInterval = setInterval(updateGlobalStats, 60000); // Update every 1 minute to match server cache
+    globalInterval = setInterval(updateGlobalStats, 10000); // Update every 10 seconds for real-time fake data
   }
 };
 
@@ -198,6 +189,14 @@ export const useWebSocketUserStats = () => {
   const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
 
   useEffect(() => {
+    // Clear any old localStorage data that might interfere with new logic
+    localStorage.removeItem('fakeTotalUsers');
+    localStorage.removeItem('fakeTotalUsersTime');
+
+    // Start fetching fake data immediately when app opens
+    console.log('[UserStats] App opened - starting immediate fake data fetch');
+    updateGlobalStats(); // Immediate fetch on app open
+
     // Try to connect to WebSocket for real-time updates
     const connectWebSocket = () => {
       try {
@@ -282,11 +281,13 @@ export const useWebSocketUserStats = () => {
     };
   }, []);
 
-  // Function to reset fake user counter (for admin use)
-  const resetFakeUserCounter = () => {
+  // Function to refresh fake user counter (for admin use)
+  const refreshFakeUserCounter = () => {
+    // Clear any old localStorage data that might interfere
     localStorage.removeItem('fakeTotalUsers');
     localStorage.removeItem('fakeTotalUsersTime');
-    // Force refresh
+
+    // Force refresh - no localStorage needed since we use deterministic calculation
     updateGlobalStats();
   };
 
@@ -300,6 +301,6 @@ export const useWebSocketUserStats = () => {
     userGrowthRate: userStats.userGrowthRate,
     peakHours: userStats.peakHours,
     timezone: userStats.timezone,
-    resetFakeUserCounter // Expose reset function
+    refreshFakeUserCounter // Expose refresh function
   };
 };

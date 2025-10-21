@@ -324,6 +324,46 @@ app.get('/health', async (req: Request, res: Response) => {
   }
 });
 
+// Simple fake user stats endpoint (fallback)
+app.get('/api/stats/simple', async (req: Request, res: Response) => {
+  try {
+    console.log('[SIMPLE-STATS] Request received');
+
+    const now = new Date();
+    const BASE_TOTAL_USERS = 10000;
+    const MINUTE_USER_GROWTH = 0.208;
+
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const minutesSinceDayStart = (now.getTime() - dayStart.getTime()) / (1000 * 60);
+    const growthSinceDayStart = minutesSinceDayStart * MINUTE_USER_GROWTH;
+    const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
+
+    const stats = {
+      totalUsers,
+      onlineUsers: Math.floor(totalUsers * 0.12),
+      newUsersToday: Math.floor(minutesSinceDayStart * MINUTE_USER_GROWTH),
+      activeUsers: Math.floor(totalUsers * 0.35),
+      lastUpdate: now.toISOString(),
+      isRealData: false,
+      dataSource: 'simple'
+    };
+
+    console.log('[SIMPLE-STATS] Calculated stats:', stats);
+
+    res.json({
+      success: true,
+      data: stats,
+      timestamp: now.toISOString()
+    });
+  } catch (error) {
+    console.error('[SIMPLE-STATS] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch simple statistics'
+    });
+  }
+});
+
 // Initialize bot and setup webhook
 let bot: Telegraf | null = null;
 let botUsername: string | null = null;
