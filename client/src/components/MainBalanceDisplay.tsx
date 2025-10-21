@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useCachedExchangeRate } from '@/hooks/useCachedExchangeRate';
 import { useEarnings } from '@/hooks/useEarnings';
 import { useMainBalance } from '@/hooks/useMainBalance';
+import { useSmoothEarnings, useSmoothUSD } from '@/hooks/useSmoothNumber';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { ArrowRight, TrendingUp, Wallet, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,11 @@ export const MainBalanceDisplay = ({
   const { user } = useTelegramAuth();
   const { totalEarnings: liveEarnings, perSecondRate, isActive } = useEarnings();
   const { convertNONToUSD } = useCachedExchangeRate(user?.telegramId || '');
+  
+  // Use smooth animations for live earnings
+  const smoothLiveEarnings = useSmoothEarnings(liveEarnings || 0);
+  const liveEarningsUSD = convertNONToUSD(liveEarnings || 0);
+  const smoothLiveEarningsUSD = useSmoothUSD(liveEarningsUSD);
   const {
     availableBalance,
     totalInvested,
@@ -112,7 +118,7 @@ export const MainBalanceDisplay = ({
 
       {/* Live Earnings - Compact Display */}
       {isActive && (liveEarnings || 0) > 0 && (
-        <div className="relative z-10 text-center mb-3 p-3 bg-gradient-to-r from-yellow-500/10 to-yellow-600/5 rounded-lg border border-yellow-500/30 shadow-lg">
+        <div className="relative z-10 text-center mb-3 p-3 bg-gradient-to-r from-yellow-500/10 to-yellow-600/5 rounded-lg border border-yellow-500/30 shadow-lg transition-all duration-300">
           <div className="flex items-center justify-center gap-2 mb-2">
             <div className="relative">
               <Zap className="w-4 h-4 text-yellow-500 animate-pulse" />
@@ -120,16 +126,20 @@ export const MainBalanceDisplay = ({
             </div>
             <h3 className="text-sm font-semibold text-yellow-500">{t('liveEarnings')}</h3>
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse" />
-              <span className="text-xs text-yellow-500 font-medium">{t('live')}</span>
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-xs text-green-400 font-medium">{t('live')}</span>
             </div>
           </div>
-          <div className="text-2xl font-light text-yellow-500 mb-1 tracking-tight">
-            +{(liveEarnings || 0).toFixed(6)} NON
+          <div className={`text-2xl font-light text-yellow-500 mb-1 tracking-tight transition-all duration-200 ${
+            smoothLiveEarnings.isAnimating ? 'scale-105 drop-shadow-lg' : 'scale-100'
+          }`}>
+            +{smoothLiveEarnings.formatted} NON
           </div>
-          {convertNONToUSD(liveEarnings || 0) > 0 && (
-            <div className="text-xs text-muted-foreground font-medium">
-              ≈ +${convertNONToUSD(liveEarnings || 0).toFixed(4)} USD
+          {smoothLiveEarningsUSD.value > 0 && (
+            <div className={`text-xs text-muted-foreground font-medium transition-all duration-200 ${
+              smoothLiveEarningsUSD.isAnimating ? 'opacity-80' : 'opacity-100'
+            }`}>
+              ≈ +${smoothLiveEarningsUSD.formatted} USD
             </div>
           )}
         </div>

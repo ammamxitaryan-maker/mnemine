@@ -6,6 +6,9 @@
 @tailwind utilities;
 /* stylelint-enable at-rule-no-unknown */
 
+/* Import smooth animations */
+@import './styles/smooth-animations.css';
+
 @layer base {
   :root {
     /* Minimalist Dark Theme - Mobile-First Design */

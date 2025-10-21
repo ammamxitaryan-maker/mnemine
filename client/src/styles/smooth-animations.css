@@ -1,0 +1,117 @@
+/* Smooth animations for live earnings */
+
+@keyframes smoothPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes smoothGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+  }
+}
+
+@keyframes smoothFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes smoothShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Smooth number transition classes */
+.smooth-number-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-earnings-glow {
+  animation: smoothGlow 2s ease-in-out infinite;
+}
+
+.smooth-earnings-float {
+  animation: smoothFloat 3s ease-in-out infinite;
+}
+
+.smooth-earnings-pulse {
+  animation: smoothPulse 2s ease-in-out infinite;
+}
+
+/* Shimmer effect for live earnings */
+.smooth-earnings-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: smoothShimmer 2s infinite;
+}
+
+/* Enhanced live indicator */
+.live-indicator {
+  position: relative;
+  display: inline-block;
+}
+
+.live-indicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: rgba(34, 197, 94, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: smoothPulse 1.5s ease-in-out infinite;
+}
+
+/* Smooth scale animation for earnings updates */
+.earnings-update {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.earnings-update.updating {
+  transform: scale(1.05);
+}
+
+/* Smooth color transitions */
+.smooth-color-transition {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Enhanced pulse for live elements */
+.enhanced-pulse {
+  animation: smoothPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Smooth border glow */
+.smooth-border-glow {
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.smooth-border-glow:hover {
+  border-color: rgba(34, 197, 94, 0.6);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}

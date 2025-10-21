@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/PageHeader';
+import { SmoothSlotEarnings } from '@/components/SmoothSlotEarnings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -339,8 +340,8 @@ const InvestmentSlots = () => {
                               <span className="text-sm text-emerald-300">Live Earnings:</span>
                               <div className="ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                             </div>
-                            <span className="text-lg font-bold text-emerald-400 animate-pulse">
-                              +{slot.currentEarnings.toFixed(4)} NON
+                            <span className="text-lg font-bold text-emerald-400">
+                              <SmoothSlotEarnings earnings={slot.currentEarnings} />
                             </span>
                           </div>
                         </div>
@@ -399,7 +400,7 @@ const InvestmentSlots = () => {
                               <span className="text-sm text-gold">Earnings:</span>
                             </div>
                             <span className="text-lg font-bold text-gold">
-                              +{slot.currentEarnings.toFixed(4)} NON
+                              <SmoothSlotEarnings earnings={slot.currentEarnings} />
                             </span>
                           </div>
                           <p className="text-xs text-gray-400 mt-1">30% return achieved!</p>
