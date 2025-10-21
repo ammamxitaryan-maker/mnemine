@@ -4,14 +4,15 @@ import AdminAnalytics from "../pages/admin/AdminAnalytics";
 import AdminDashboardUltraCompact from "../pages/admin/AdminDashboardUltraCompact";
 import AdminExchange from "../pages/admin/AdminExchange";
 import AdminLogs from "../pages/admin/AdminLogs";
+import AdminLotteryEnhanced from "../pages/admin/AdminLotteryEnhanced";
 import { AdminNotificationsPage } from "../pages/admin/AdminNotifications";
 import AdminProcessing from "../pages/admin/AdminProcessing";
+import AdminRealTimeMonitoring from "../pages/admin/AdminRealTimeMonitoring";
 import AdminSettings from "../pages/admin/AdminSettings";
 import AdminTransactions from "../pages/admin/AdminTransactions";
 import AdminUsers from "../pages/admin/AdminUsers";
 import AdminDashboardCompact from "../pages/AdminDashboardCompact";
 import AdminLogin from "../pages/AdminLogin";
-import AdminLottery from "../pages/AdminLottery";
 import AdminPanel from "../pages/AdminPanel";
 import AdminStaff from "../pages/AdminStaff";
 import AdminUserDetail from "../pages/AdminUserDetail";
@@ -96,7 +97,8 @@ export const AppContent: React.FC = () => {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/transactions" element={<AdminTransactions />} />
               <Route path="/admin/analytics" element={<AdminAnalytics />} />
-              <Route path="/admin/lottery" element={<AdminLottery />} />
+              <Route path="/admin/lottery" element={<AdminLotteryEnhanced />} />
+              <Route path="/admin/monitoring" element={<AdminRealTimeMonitoring />} />
               <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
               <Route path="/admin/processing" element={<AdminProcessing />} />
               <Route path="/admin/exchange" element={<AdminExchange />} />

@@ -3,6 +3,7 @@ import adminRoutes from './admin.js'; // Import admin routes
 import adminAuthRoutes from './adminAuth.js'; // Import admin auth routes
 import adminBrowserRoutes from './adminBrowser.js'; // Import browser admin routes
 import adminLotteryRoutes from './adminLottery.js'; // Import admin lottery routes
+import adminMonitoringRoutes from './adminMonitoring.js'; // Import admin monitoring routes
 import authRoutes from './auth.js';
 import enhancedStatsRoutes from './enhancedStats.js'; // Import enhanced stats routes
 import exchangeRoutes from './exchange.js'; // Import exchange routes
@@ -50,6 +51,7 @@ router.use('/admin', adminBrowserRoutes); // Add browser admin routes
 router.use('/realtime', realTimeRoutes); // Add real-time routes
 router.use('/exchange', exchangeRoutes); // Add exchange routes
 router.use('/admin/lottery', adminLotteryRoutes); // Add admin lottery routes
+router.use('/admin', adminMonitoringRoutes); // Add admin monitoring routes
 router.use('/user', swapRoutes); // Add swap routes
 router.use('/user', notificationRoutes); // Add notification routes
 router.use('/', processingRoutes); // Add processing routes

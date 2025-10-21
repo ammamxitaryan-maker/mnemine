@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { 
-  getLotteryParticipants,
-  selectLotteryWinner,
-  removeLotteryWinner,
+import {
   completeLotteryDraw,
-  getLotteryStats
+  getLotteryParticipants,
+  getLotteryStats,
+  removeLotteryWinner,
+  selectLotteryWinner
 } from '../controllers/adminLotteryController.js';
 import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
@@ -115,6 +115,70 @@ router.get('/tickets', isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error fetching lottery tickets:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch tickets' });
+  }
+});
+
+// New endpoint to get participants grouped by user with their tickets
+router.get('/participants-grouped', isAdmin, async (req, res) => {
+  try {
+    const currentLottery = await prisma.lottery.findFirst({
+      where: { isDrawn: false },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!currentLottery) {
+      return res.json({ success: true, data: { participants: [] } });
+    }
+
+    const participants = await prisma.user.findMany({
+      where: {
+        lotteryTickets: {
+          some: { lotteryId: currentLottery.id }
+        }
+      },
+      include: {
+        lotteryTickets: {
+          where: { lotteryId: currentLottery.id },
+          select: {
+            id: true,
+            numbers: true,
+            isWinner: true,
+            prizeAmount: true,
+            createdAt: true
+          },
+          orderBy: { createdAt: 'desc' }
+        }
+      },
+      orderBy: { firstName: 'asc' }
+    });
+
+    const participantsWithTickets = participants.map(participant => ({
+      id: participant.id,
+      firstName: participant.firstName,
+      username: participant.username,
+      telegramId: participant.telegramId,
+      ticketCount: participant.lotteryTickets.length,
+      tickets: participant.lotteryTickets.map(ticket => ({
+        id: ticket.id,
+        numbers: ticket.numbers,
+        isWinner: ticket.isWinner,
+        prizeAmount: ticket.prizeAmount,
+        purchaseDate: ticket.createdAt
+      })),
+      hasWinningTicket: participant.lotteryTickets.some(ticket => ticket.isWinner)
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        participants: participantsWithTickets,
+        totalParticipants: participantsWithTickets.length,
+        totalTickets: participantsWithTickets.reduce((sum, p) => sum + p.ticketCount, 0)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching grouped participants:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch participants' });
   }
 });
 

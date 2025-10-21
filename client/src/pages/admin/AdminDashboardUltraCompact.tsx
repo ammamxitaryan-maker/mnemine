@@ -66,6 +66,7 @@ const adminFunctions: AdminFunction[] = [
   { path: '/admin/transactions', label: 'Transactions', icon: CreditCard, color: 'bg-green-600', shortLabel: 'Pay' },
   { path: '/admin/analytics', label: 'Analytics', icon: BarChart3, color: 'bg-orange-600', shortLabel: 'Stats' },
   { path: '/admin/lottery', label: 'Lottery', icon: Ticket, color: 'bg-purple-600', shortLabel: 'Lottery' },
+  { path: '/admin/monitoring', label: 'Real-time Monitoring', icon: Activity, color: 'bg-cyan-600', shortLabel: 'Live' },
   { path: '/admin/notifications', label: 'Notifications', icon: Bell, color: 'bg-yellow-600', shortLabel: 'Alerts' },
   { path: '/admin/processing', label: 'Processing', icon: Cog, color: 'bg-indigo-600', shortLabel: 'Slots' },
   { path: '/admin/exchange', label: 'Exchange', icon: TrendingUp, color: 'bg-teal-600', shortLabel: 'Rates' },

@@ -1,6 +1,6 @@
-﻿import { Request, Response } from 'express';
+﻿import { ActivityLogType } from '@prisma/client';
+import { Request, Response } from 'express';
 import prisma from '../prisma.js';
-import { ActivityLogType } from '@prisma/client';
 
 // GET /api/admin/lottery/participants - Get all lottery participants with ticket counts
 export const getLotteryParticipants = async (req: Request, res: Response) => {
@@ -72,16 +72,20 @@ export const getLotteryParticipants = async (req: Request, res: Response) => {
 
 // POST /api/admin/lottery/select-winner - Manually select lottery winner
 export const selectLotteryWinner = async (req: Request, res: Response) => {
-  const { ticketId, prizeAmount } = req.body;
+  const { ticketId, prizeAmount, winnerTicketId, amount } = req.body;
   const adminUserId = (req as { user?: { id: string } }).user?.id;
 
-  if (!ticketId || typeof prizeAmount !== 'number' || prizeAmount < 0) {
+  // Support both old and new parameter names
+  const finalTicketId = ticketId || winnerTicketId;
+  const finalPrizeAmount = prizeAmount || amount;
+
+  if (!finalTicketId || typeof finalPrizeAmount !== 'number' || finalPrizeAmount < 0) {
     return res.status(400).json({ error: 'Invalid ticket ID or prize amount' });
   }
 
   try {
     const ticket = await prisma.lotteryTicket.findUnique({
-      where: { id: ticketId },
+      where: { id: finalTicketId },
       include: {
         user: {
           include: { wallets: { where: { currency: 'USD' } } }
@@ -106,10 +110,10 @@ export const selectLotteryWinner = async (req: Request, res: Response) => {
     await prisma.$transaction(async (tx) => {
       // Update ticket as winner
       await tx.lotteryTicket.update({
-        where: { id: ticketId },
+        where: { id: finalTicketId },
         data: {
           isWinner: true,
-          prizeAmount,
+          prizeAmount: finalPrizeAmount,
           // isAdminSelected: true, // Temporarily disabled until database schema is fixed
         },
       });
@@ -117,7 +121,7 @@ export const selectLotteryWinner = async (req: Request, res: Response) => {
       // Add prize to user's wallet
       await tx.wallet.update({
         where: { id: USDWallet.id },
-        data: { balance: { increment: prizeAmount } },
+        data: { balance: { increment: finalPrizeAmount } },
       });
 
       // Log the win
@@ -125,8 +129,8 @@ export const selectLotteryWinner = async (req: Request, res: Response) => {
         data: {
           userId: ticket.userId,
           type: ActivityLogType.ADMIN_LOTTERY_WIN,
-          amount: prizeAmount,
-          description: `Admin-selected lottery winner - Prize: ${prizeAmount.toFixed(4)} USD`,
+          amount: finalPrizeAmount,
+          description: `Admin-selected lottery winner - Prize: ${finalPrizeAmount.toFixed(4)} USD`,
           sourceUserId: adminUserId,
         },
       });
@@ -134,8 +138,8 @@ export const selectLotteryWinner = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message: 'Winner selected successfully',
-      ticketId,
-      prizeAmount,
+      ticketId: finalTicketId,
+      prizeAmount: finalPrizeAmount,
       user: {
         id: ticket.user.id,
         firstName: ticket.user.firstName,
@@ -237,13 +241,13 @@ export const completeLotteryDraw = async (req: Request, res: Response) => {
     }
 
     const totalPrizes = currentLottery.tickets.reduce(
-      (sum, ticket) => sum + (ticket.prizeAmount || 0), 
+      (sum, ticket) => sum + (ticket.prizeAmount || 0),
       0
     );
 
     await prisma.lottery.update({
       where: { id: currentLottery.id },
-      data: { 
+      data: {
         isDrawn: true,
         winningNumbers: 'ADMIN_SELECTED', // Mark as admin-selected
       },
@@ -320,7 +324,7 @@ const generateFakeWinners = (count: number) => {
     'Alex', 'Maria', 'John', 'Anna', 'David', 'Elena', 'Mike', 'Sofia', 'Tom', 'Lisa',
     'Chris', 'Nina', 'Sam', 'Kate', 'Nick', 'Olga', 'Dan', 'Irina', 'Max', 'Tanya'
   ];
-  
+
   const fakeWinners = [];
   for (let i = 0; i < count; i++) {
     fakeWinners.push({
@@ -330,7 +334,7 @@ const generateFakeWinners = (count: number) => {
       isFake: true
     });
   }
-  
+
   return fakeWinners.sort((a, b) => b.prize - a.prize);
 };
 
