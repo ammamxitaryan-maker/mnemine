@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>WebSocket Test - Fixed</title>
+</head>
+
+<body>
+  <h1>WebSocket Test - Fixed Path</h1>
+  <div id="status">Connecting...</div>
+  <div id="messages"></div>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+    const messagesDiv = document.getElementById('messages');
+
+    // Test WebSocket connection with correct path
+    const ws = new WebSocket('ws://localhost:10112/ws/earnings');
+
+    ws.onopen = function () {
+      statusDiv.textContent = 'Connected to WebSocket!';
+      statusDiv.style.color = 'green';
+
+      // Send authentication
+      const authMessage = {
+        type: 'auth',
+        telegramId: '987654321'
+      };
+      ws.send(JSON.stringify(authMessage));
+      console.log('Sent auth message:', authMessage);
+    };
+
+    ws.onmessage = function (event) {
+      const message = JSON.parse(event.data);
+      console.log('WebSocket message received:', message);
+
+      const messageDiv = document.createElement('div');
+      messageDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${JSON.stringify(message, null, 2)}`;
+      messageDiv.style.border = '1px solid #ccc';
+      messageDiv.style.margin = '5px';
+      messageDiv.style.padding = '5px';
+      messagesDiv.appendChild(messageDiv);
+
+      if (message.type === 'BALANCE_UPDATED') {
+        messageDiv.style.backgroundColor = '#e8f5e8';
+        messageDiv.innerHTML = `<strong>BALANCE UPDATE:</strong><br/>${JSON.stringify(message.data, null, 2)}`;
+      }
+    };
+
+    ws.onclose = function () {
+      statusDiv.textContent = 'Disconnected from WebSocket';
+      statusDiv.style.color = 'red';
+    };
+
+    ws.onerror = function (error) {
+      statusDiv.textContent = 'WebSocket Error: ' + error;
+      statusDiv.style.color = 'red';
+    };
+
+    // Test investment function
+    async function testInvestment() {
+      try {
+        const response = await fetch('http://localhost:10112/api/user/987654321/invest', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount: 3
+          })
+        });
+
+        const result = await response.json();
+        console.log('Investment result:', result);
+
+        const resultDiv = document.createElement('div');
+        resultDiv.innerHTML = `<strong>Investment Result:</strong><br/>${JSON.stringify(result, null, 2)}`;
+        resultDiv.style.border = '1px solid #blue';
+        resultDiv.style.margin = '5px';
+        resultDiv.style.padding = '5px';
+        resultDiv.style.backgroundColor = '#e8f0ff';
+        messagesDiv.appendChild(resultDiv);
+
+      } catch (error) {
+        console.error('Investment error:', error);
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `<strong>Investment Error:</strong><br/>${error.message}`;
+        errorDiv.style.border = '1px solid #red';
+        errorDiv.style.margin = '5px';
+        errorDiv.style.padding = '5px';
+        errorDiv.style.backgroundColor = '#ffe8e8';
+        messagesDiv.appendChild(errorDiv);
+      }
+    }
+
+    // Add test button
+    const button = document.createElement('button');
+    button.textContent = 'Test Investment';
+    button.onclick = testInvestment;
+    document.body.appendChild(button);
+  </script>
+</body>
+
+</html>

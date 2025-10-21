@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "Error Handling",
+  "description": "Write resilient, predictable code.",
+  "prompt": "Always handle edge cases and unexpected input. Validate all external data. Never assume values exist. Use try/catch around network or file operations. Prefer early returns for invalid inputs."
+}
+{
+  "name": "Error Handling",
+  "description": "Write resilient, predictable code.",
+  "prompt": "Always handle edge cases and unexpected input. Validate all external data. Never assume values exist. Use try/catch around network or file operations. Prefer early returns for invalid inputs."
+}

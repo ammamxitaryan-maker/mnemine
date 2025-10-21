@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "PowerShell Environment",
+  "description": "Use PowerShell syntax for all terminal commands.",
+  "prompt": "Assume that all terminal commands are executed in PowerShell by default. Do not use Bash or Unix-style syntax. Always use correct PowerShell syntax and command chaining (e.g., use semicolons instead of &&, use backticks for line breaks)."
+}
+{
+  "name": "PowerShell Environment",
+  "description": "Use PowerShell syntax for all terminal commands.",
+  "prompt": "Assume that all terminal commands are executed in PowerShell by default. Do not use Bash or Unix-style syntax. Always use correct PowerShell syntax and command chaining (e.g., use semicolons instead of &&, use backticks for line breaks)."
+}

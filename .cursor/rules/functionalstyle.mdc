@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "Functional Style",
+  "description": "Prefer functional programming patterns where possible.",
+  "prompt": "Favor pure functions and immutability. Avoid side effects. Prefer map/filter/reduce over loops. In React, use function components and hooks instead of class components."
+}
+{
+  "name": "Functional Style",
+  "description": "Prefer functional programming patterns where possible.",
+  "prompt": "Favor pure functions and immutability. Avoid side effects. Prefer map/filter/reduce over loops. In React, use function components and hooks instead of class components."
+}

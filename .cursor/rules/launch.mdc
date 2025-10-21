@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "Server Launch Policy",
+  "description": "Avoid launching multiple servers accidentally.",
+  "prompt": "Never start any server (frontend, backend, websocket, or any other) if a server process is already running. Always check if a process is listening on the expected ports before running any start command. If a server is already active, do not run a new instance."
+}
+{
+  "name": "Server Launch Policy",
+  "description": "Avoid launching multiple servers accidentally.",
+  "prompt": "Never start any server (frontend, backend, websocket, or any other) if a server process is already running. Always check if a process is listening on the expected ports before running any start command. If a server is already active, do not run a new instance."
+}

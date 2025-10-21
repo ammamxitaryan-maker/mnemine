@@ -102,9 +102,11 @@ export const useWebSocketUserStats = () => {
     const connectWebSocket = () => {
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
-        const wsUrl = backendUrl.replace('http', 'ws') + '/ws/userstats';
+        const wsUrl = backendUrl.replace('http', 'ws') + '/ws';
 
-        const ws = new WebSocket(wsUrl);
+        // Add type parameter to the URL
+        const wsWithType = `${wsUrl}?type=userstats&token=anonymous`;
+        const ws = new WebSocket(wsWithType);
 
         ws.onopen = () => {
           console.log('[UserStats] WebSocket connected');

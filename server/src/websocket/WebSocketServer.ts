@@ -35,31 +35,35 @@ export class WebSocketServer {
     this.wss.on('connection', (ws: AuthenticatedWebSocket, request: IncomingMessage) => {
       console.log('[WebSocket] New connection attempt');
 
-      // Extract telegramId from URL
+      // Extract path from URL
       const url = new URL(request.url || '', `http://${request.headers.host}`);
-      const pathParts = url.pathname.split('/');
-      const telegramId = pathParts[pathParts.length - 1];
+      const pathParts = url.pathname.split('/').filter(part => part.length > 0);
 
-      if (!telegramId || telegramId === 'notifications') {
-        // Handle notification connections
-        this.handleNotificationConnection(ws);
-        return;
+      console.log('[WebSocket] Connection path:', url.pathname);
+      console.log('[WebSocket] Path parts:', pathParts);
+
+      // Since all connections now use /ws, we need to determine the connection type
+      // based on the query parameters or headers
+      const queryParams = new URLSearchParams(url.search);
+      const connectionType = queryParams.get('type') || 'earnings';
+
+      console.log('[WebSocket] Connection type:', connectionType);
+
+      // Route based on connection type
+      switch (connectionType) {
+        case 'notifications':
+          this.handleNotificationConnection(ws);
+          return;
+
+        case 'userstats':
+          this.handleUserStatsConnection(ws);
+          return;
+
+        case 'earnings':
+        default:
+          this.handleEarningsConnection(ws);
+          return;
       }
-
-      if (telegramId === 'userstats') {
-        // Handle user stats connections
-        this.handleUserStatsConnection(ws);
-        return;
-      }
-
-      if (telegramId === 'earnings') {
-        // Handle earnings connections
-        this.handleEarningsConnection(ws);
-        return;
-      }
-
-      // Authenticate user
-      this.authenticateUser(ws, telegramId);
     });
   }
 

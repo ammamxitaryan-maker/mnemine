@@ -50,8 +50,11 @@ const fetchSlotsData = async (telegramId?: string): Promise<MiningSlot[]> => {
       ...slot,
       earningsPerSecond: slot.earningsPerSecond || 0
     }));
-  } catch (error) {
-    console.error('[useSlotsData] Error fetching slots:', error);
+  } catch (error: any) {
+    // Don't log aborted requests as errors - they're normal when components unmount
+    if (error.name !== 'AxiosError' || error.code !== 'ECONNABORTED') {
+      console.error('[useSlotsData] Error fetching slots:', error);
+    }
     return [];
   }
 };

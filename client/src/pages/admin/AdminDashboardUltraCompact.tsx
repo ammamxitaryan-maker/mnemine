@@ -17,7 +17,6 @@ import {
   Database,
   DollarSign,
   FileText,
-  History,
   Settings,
   Shield,
   Ticket,
@@ -73,8 +72,7 @@ const adminFunctions: AdminFunction[] = [
   { path: '/admin/logs', label: 'Logs', icon: FileText, color: 'bg-gray-600', shortLabel: 'Logs' },
   { path: '/admin/settings', label: 'Settings', icon: Settings, color: 'bg-slate-600', shortLabel: 'Config' },
   { path: '/admin/staff', label: 'Staff', icon: Shield, color: 'bg-red-600', shortLabel: 'Staff' },
-  { path: '/admin/user', label: 'User Detail', icon: UserCheck, color: 'bg-pink-600', shortLabel: 'User' },
-  { path: '/admin/processing', label: 'Queue', icon: History, color: 'bg-cyan-600', shortLabel: 'Queue' }
+  { path: '/admin/user', label: 'User Detail', icon: UserCheck, color: 'bg-pink-600', shortLabel: 'User' }
 ];
 
 const AdminDashboardUltraCompact = () => {

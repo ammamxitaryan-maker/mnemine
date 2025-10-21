@@ -31,7 +31,6 @@ import USDTPayment from "../pages/USDTPayment";
 import Wallet from "../pages/Wallet";
 import Withdraw from "../pages/Withdraw";
 import { AppInitializer } from "./AppInitializer";
-import { DevWarning } from "./DevWarning";
 import GlassGlowOverlay from "./GlassGlowOverlay";
 import { AdminLayoutCompact } from "./layout/AdminLayoutCompact";
 import { AdminRoute } from "./layout/AdminRoute";
@@ -48,7 +47,6 @@ export const AppContent: React.FC = () => {
     <>
       <WaveBackground />
       <GlassGlowOverlay />
-      <DevWarning />
       <BrowserRouter
         future={{
           v7_startTransition: true,

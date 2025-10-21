@@ -19,27 +19,73 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
   autoConnect: true,
   reconnectOnFocus: true,
 }) => {
-  const { user } = useTelegramAuth();
+  const { user, loading } = useTelegramAuth();
   const { addNotification } = useNotifications();
   const logger = useLogger();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // WebSocket подключение для пользователей
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
-  const wsUrl = backendUrl.replace('http', 'ws') + '/ws/earnings';
+  const wsUrl = backendUrl.replace('http', 'ws') + '/ws';
+
+  // Only create WebSocket connection when user is authenticated and not loading
+  const shouldConnect = !loading && user?.telegramId && config.enabled;
 
   const { client, connected, error, connect, disconnect } = useWebSocket({
     url: wsUrl,
     token: user?.telegramId || 'anonymous', // В реальном приложении использовать JWT
-    userType: 'user',
+    userType: 'notifications' as const,
   });
 
   // Автоматическое подключение
   useEffect(() => {
     if (config.enabled && config.autoConnect && user?.telegramId) {
-      connect().catch(err => {
-        logger.error('Failed to connect to WebSocket', err as Error);
-      });
+      // Check if WebSocket connections are disabled due to repeated failures
+      const wsDisabled = localStorage.getItem('websocketDisabled');
+      const wsDisabledTime = wsDisabled ? parseInt(wsDisabled) : 0;
+      const timeSinceDisabled = Date.now() - wsDisabledTime;
+
+      // Re-enable WebSocket after 5 minutes
+      if (timeSinceDisabled > 300000) {
+        localStorage.removeItem('websocketDisabled');
+      }
+
+      if (wsDisabled && timeSinceDisabled <= 300000) {
+        console.log('[WebSocketNotifications] WebSocket connections disabled due to repeated failures');
+        return;
+      }
+
+      // Add a shorter delay since we removed the server reachability check
+      const timeoutId = setTimeout(() => {
+        connect().catch(err => {
+          // Only log connection errors occasionally
+          const now = Date.now();
+          const lastConnectErrorTime = localStorage.getItem('lastWebSocketConnectError');
+          const timeSinceLastConnectError = lastConnectErrorTime ? now - parseInt(lastConnectErrorTime) : Infinity;
+
+          if (timeSinceLastConnectError > 15000) { // Only log every 15 seconds
+            logger.error('Failed to connect to WebSocket', err as Error);
+            localStorage.setItem('lastWebSocketConnectError', now.toString());
+
+            // Disable WebSocket connections if we have too many failures
+            const failureCount = parseInt(localStorage.getItem('websocketFailureCount') || '0') + 1;
+            localStorage.setItem('websocketFailureCount', failureCount.toString());
+
+            if (failureCount >= 5) {
+              localStorage.setItem('websocketDisabled', now.toString());
+              localStorage.removeItem('websocketFailureCount');
+              console.log('[WebSocketNotifications] Disabling WebSocket connections due to repeated failures');
+            }
+          }
+        });
+      }, 1000); // 1 second delay
+
+      return () => {
+        clearTimeout(timeoutId);
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+      };
     }
 
     return () => {
@@ -68,6 +114,8 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
 
   // Обработка входящих уведомлений
   useEffect(() => {
+    if (!client) return;
+
     const handleNotification = (notification: NotificationData) => {
       logger.info('WebSocket notification received', LogCategory.SYSTEM, {
         title: notification.title,
@@ -98,23 +146,46 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
 
     // Обработка WebSocket сообщений для баланса
     client.onMessage((message) => {
+      console.log('[WebSocket] Received message:', message);
+
       if (message.type === 'BALANCE_UPDATED' && message.data) {
         console.log('[WebSocket] Balance updated:', message.data);
         // Dispatch custom event for balance updates
         window.dispatchEvent(new CustomEvent('balanceUpdated', {
           detail: {
-            telegramId: message.data.telegramId,
-            newBalance: message.data.newBalance,
-            previousBalance: message.data.previousBalance,
-            changeAmount: message.data.changeAmount,
-            action: message.data.action,
-            timestamp: message.data.timestamp
+            telegramId: (message.data as any).telegramId,
+            newBalance: (message.data as any).newBalance,
+            previousBalance: (message.data as any).previousBalance,
+            changeAmount: (message.data as any).changeAmount,
+            action: (message.data as any).action,
+            timestamp: (message.data as any).timestamp,
+            currency: (message.data as any).currency
           }
         }));
 
         // Also dispatch userDataRefresh event
         window.dispatchEvent(new CustomEvent('userDataRefresh', {
-          detail: { telegramId: message.data.telegramId }
+          detail: { telegramId: (message.data as any).telegramId }
+        }));
+      }
+
+      if (message.type === 'USER_DATA_UPDATED' && message.data) {
+        console.log('[WebSocket] User data updated:', message.data);
+        // Dispatch userDataUpdated event
+        window.dispatchEvent(new CustomEvent('userDataUpdated', {
+          detail: { telegramId: (message.data as any).telegramId }
+        }));
+      }
+
+      if (message.type === 'SLOT_UPDATE' && message.data) {
+        console.log('[WebSocket] Slot updated:', message.data);
+        // Dispatch slot update event
+        window.dispatchEvent(new CustomEvent('slotUpdated', {
+          detail: {
+            telegramId: (message.data as any).telegramId,
+            slotId: (message.data as any).slotId,
+            action: (message.data as any).action
+          }
         }));
       }
     });
@@ -127,7 +198,22 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
   // Обработка ошибок подключения
   useEffect(() => {
     if (error) {
-      logger.error('WebSocket connection error', new Error(error), LogCategory.SYSTEM);
+      // Only log WebSocket errors occasionally to avoid spam
+      const now = Date.now();
+      const lastErrorTime = localStorage.getItem('lastWebSocketError');
+      const timeSinceLastError = lastErrorTime ? now - parseInt(lastErrorTime) : Infinity;
+
+      if (timeSinceLastError > 30000) { // Only log every 30 seconds
+        // Log more detailed error information
+        const errorDetails = {
+          message: error,
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+          timestamp: new Date().toISOString()
+        };
+        logger.error('WebSocket connection error', new Error(JSON.stringify(errorDetails)), LogCategory.SYSTEM);
+        localStorage.setItem('lastWebSocketError', now.toString());
+      }
 
       // Показываем уведомление об ошибке только если это не первая попытка
       if (reconnectTimeoutRef.current) {
@@ -145,6 +231,10 @@ export const useWebSocketNotifications = (config: WebSocketNotificationsConfig =
   useEffect(() => {
     if (connected) {
       logger.info('WebSocket connected successfully', LogCategory.SYSTEM);
+
+      // Reset failure count on successful connection
+      localStorage.removeItem('websocketFailureCount');
+      localStorage.removeItem('websocketDisabled');
 
       // Убираем уведомления об ошибках подключения
       // (в реальном приложении можно добавить логику для удаления конкретных уведомлений)

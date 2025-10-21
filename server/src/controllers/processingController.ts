@@ -94,46 +94,29 @@ export const processSlot = async (slot: {
     }
   });
 
-  // Add earnings to user's NON wallet
-  const nonWallet = slot.user.wallets.find((w: { currency: string }) => w.currency === 'NON');
-  if (nonWallet) {
-    await prisma.wallet.update({
-      where: { id: nonWallet.id },
-      data: {
-        balance: {
-          increment: earnings
-        }
-      }
-    });
-  } else {
-    // Create NON wallet if it doesn't exist
-    await prisma.wallet.create({
-      data: {
-        userId: slot.userId,
-        currency: 'NON',
-        balance: earnings
-      }
-    });
-  }
+  // NOTE: Earnings are NOT added to wallet balance during mining
+  // They are only accumulated in the slot and will be added to balance
+  // when the slot expires or is manually claimed
 
-  // Create transaction record
+  // Create transaction record for tracking (but not adding to balance)
   await prisma.transaction.create({
     data: {
       userId: slot.userId,
-      type: 'MINING_EARNINGS',
+      type: 'MINING_EARNINGS_ACCUMULATED',
       amount: earnings,
       currency: 'NON',
-      description: `Mining earnings from slot ${slot.id} (Principal: ${slot.principal}, Rate: ${(hourlyRate * 100).toFixed(4)}%/hour, Hours: ${hoursElapsed.toFixed(2)})`,
+      description: `Mining earnings accumulated in slot ${slot.id} (Principal: ${slot.principal}, Rate: ${(hourlyRate * 100).toFixed(4)}%/hour, Hours: ${hoursElapsed.toFixed(2)}) - NOT added to balance yet`,
       referenceId: slot.id
     }
   });
 
-  logger.business(`Processed slot ${slot.id}: +${earnings} NON`, {
+  logger.business(`Processed slot ${slot.id}: +${earnings} NON (accumulated, not added to balance)`, {
     slotId: slot.id,
     userId: slot.userId,
     earnings,
     principal: slot.principal,
-    hoursElapsed
+    hoursElapsed,
+    note: 'Earnings accumulated in slot, will be added to balance when slot expires'
   });
 
   return earnings;

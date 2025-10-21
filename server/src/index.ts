@@ -92,6 +92,7 @@ logger.server('Environment configuration loaded', {
 });
 
 import compression from 'compression';
+import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -122,6 +123,28 @@ const port = parseInt(process.env.PORT || '10112', 10);
 
 // Trust proxy for Render deployment
 app.set('trust proxy', 1);
+
+// CORS configuration
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://web.telegram.org',
+    'https://telegram.org',
+    process.env.FRONTEND_URL || 'http://localhost:5173'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'x-telegram-init-data'
+  ],
+  exposedHeaders: ['x-telegram-init-data']
+}));
 
 // Add structured logging middleware
 app.use(requestLogger);
@@ -240,18 +263,7 @@ app.use((req, res, next) => {
     console.log(`[TELEGRAM] Init Data Header: ${req.headers['x-telegram-init-data'] || 'None'}`);
   }
 
-  // CORS handling
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, x-telegram-init-data');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    console.log(`[CORS] Handling preflight request for ${req.path} from origin: ${origin || 'undefined'}`);
-    res.status(200).end();
-    return;
-  }
+  // CORS is now handled by the cors middleware above
 
   // Log response when finished
   res.on('finish', () => {

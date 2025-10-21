@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "Build Command Usage",
+  "description": "Avoid unnecessary builds.",
+  "prompt": "Before running any build command, confirm that a rebuild is actually required. Do not rebuild if no source files or dependencies have changed. Avoid running build scripts automatically unless explicitly requested."
+}
+{
+  "name": "Build Command Usage",
+  "description": "Avoid unnecessary builds.",
+  "prompt": "Before running any build command, confirm that a rebuild is actually required. Do not rebuild if no source files or dependencies have changed. Avoid running build scripts automatically unless explicitly requested."
+}

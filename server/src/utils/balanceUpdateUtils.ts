@@ -53,7 +53,12 @@ export const updateUserBalance = async (options: BalanceUpdateOptions): Promise<
     }
 
     const previousBalance = wallet.balance;
-    const newBalance = Math.max(0, previousBalance + amount);
+    const newBalance = previousBalance + amount;
+
+    // Prevent negative balance for deductions
+    if (newBalance < 0) {
+      throw new Error(`Insufficient balance. Available: ${previousBalance.toFixed(2)} ${currency}, Required: ${Math.abs(amount).toFixed(2)} ${currency}`);
+    }
 
     // Update balance
     const updatedWallet = await prisma.wallet.update({
@@ -117,7 +122,12 @@ export const updateMultipleBalances = async (updates: BalanceUpdateOptions[]): P
       }
 
       const previousBalance = wallet.balance;
-      const newBalance = Math.max(0, previousBalance + update.amount);
+      const newBalance = previousBalance + update.amount;
+
+      // Prevent negative balance for deductions
+      if (newBalance < 0) {
+        throw new Error(`Insufficient balance. Available: ${previousBalance.toFixed(2)} ${update.currency}, Required: ${Math.abs(update.amount).toFixed(2)} ${update.currency}`);
+      }
 
       // Update balance
       const updatedWallet = await tx.wallet.update({

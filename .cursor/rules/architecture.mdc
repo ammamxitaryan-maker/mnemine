@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "Project Architecture",
+  "description": "Follow consistent architecture principles.",
+  "prompt": "All data access should go through repository or API layers. Keep separation between business logic and UI. Do not access the database directly from components. Use async/await instead of callbacks."
+}
+{
+  "name": "Project Architecture",
+  "description": "Follow consistent architecture principles.",
+  "prompt": "All data access should go through repository or API layers. Keep separation between business logic and UI. Do not access the database directly from components. Use async/await instead of callbacks."
+}

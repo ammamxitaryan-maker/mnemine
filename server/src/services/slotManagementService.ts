@@ -317,45 +317,125 @@ export class SlotManagementService {
       const now = new Date();
       const weeklyRate = 0.3; // 30% return over 7 days
 
-      // Use centralized balance update utility
-      await updateUserBalance({
-        userId: user.id,
-        amount: -amount, // Negative amount to deduct
-        currency: 'NON',
-        description: `Created investment slot: ${amount.toFixed(2)} NON`,
-        activityLogType: ActivityLogType.NEW_SLOT_PURCHASE,
-        createActivityLog: true
+      // Execute balance update and slot creation in a transaction
+      const result = await prisma.$transaction(async (tx) => {
+        // Update balance within transaction
+        const previousBalance = NONWallet.balance;
+        const newBalance = previousBalance - amount;
+
+        if (newBalance < 0) {
+          throw new Error(`Insufficient balance. Available: ${previousBalance.toFixed(2)} NON, Required: ${amount.toFixed(2)} NON`);
+        }
+
+        // Update wallet balance
+        const updatedWallet = await tx.wallet.update({
+          where: { id: NONWallet.id },
+          data: { balance: newBalance }
+        });
+
+        // Create activity log
+        await tx.activityLog.create({
+          data: {
+            userId: user.id,
+            type: ActivityLogType.NEW_SLOT_PURCHASE,
+            amount: amount,
+            description: `Created investment slot: ${amount.toFixed(2)} NON`
+          }
+        });
+
+        // Create the mining slot
+        const miningSlot = await tx.miningSlot.create({
+          data: {
+            userId: user.id,
+            principal: amount,
+            startAt: now,
+            lastAccruedAt: now,
+            effectiveWeeklyRate: weeklyRate,
+            expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000),
+            isActive: true,
+            type: 'investment',
+            isLocked: true,
+          },
+        });
+
+        // Update user's last slot purchase time
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            lastSlotPurchaseAt: now,
+          },
+        });
+
+        return {
+          previousBalance,
+          newBalance,
+          changeAmount: -amount,
+          walletId: NONWallet.id,
+          slotId: miningSlot.id
+        };
       });
 
-      // Create the mining slot
-      await prisma.miningSlot.create({
-        data: {
-          userId: user.id,
-          principal: amount,
-          startAt: now,
-          lastAccruedAt: now,
-          effectiveWeeklyRate: weeklyRate,
-          expiresAt: new Date(now.getTime() + 7 * 24 * 3600 * 1000),
-          isActive: true,
-          type: 'investment',
-          isLocked: true,
-        },
-      });
-
-      // Update user's last slot purchase time
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          lastSlotPurchaseAt: now,
-        },
+      console.log(`[SLOTS] Transaction completed for user ${telegramId}:`, {
+        previousBalance: result.previousBalance,
+        newBalance: result.newBalance,
+        changeAmount: result.changeAmount,
+        amount: amount,
+        slotId: result.slotId
       });
 
       // Очищаем кэш пользователя после создания инвестиционного слота
       try {
-        // Простая очистка кэша через заголовки
+        // Import cache service dynamically to avoid circular dependencies
+        const { CacheService } = await import('../services/cacheService.js');
+
+        // Invalidate user data cache
+        await CacheService.userData.invalidateUserData(telegramId);
+
+        // Also invalidate slots data cache
+        CacheService.slotsData.invalidateSlotsData(telegramId);
+
         console.log(`[SLOTS] Cache invalidated for user ${telegramId} after investment slot creation`);
       } catch (cacheError) {
         console.error('[SLOTS] Error invalidating cache:', cacheError);
+      }
+
+      // Send WebSocket notification for real-time balance update
+      try {
+        const { webSocketManager } = await import('../websocket/WebSocketManager.js');
+
+        const wsMessage = {
+          telegramId: telegramId,
+          newBalance: result.newBalance,
+          previousBalance: result.previousBalance,
+          changeAmount: result.changeAmount,
+          action: 'SLOT_INVESTMENT',
+          timestamp: new Date().toISOString(),
+          currency: 'NON'
+        };
+
+        console.log(`[SLOTS] Sending WebSocket balance update to user ${telegramId}:`, wsMessage);
+
+        // Send multiple WebSocket notifications to ensure delivery
+        await webSocketManager.broadcastBalanceUpdate(telegramId, wsMessage);
+
+        // Also send a general user data update
+        await webSocketManager.sendToUser(telegramId, 'USER_DATA_UPDATED', {
+          telegramId: telegramId,
+          timestamp: new Date().toISOString(),
+          action: 'SLOT_INVESTMENT'
+        });
+
+        // Send slot update notification
+        await webSocketManager.broadcastSlotUpdate(telegramId, {
+          telegramId: telegramId,
+          slotId: result.slotId,
+          action: 'SLOT_CREATED',
+          timestamp: new Date().toISOString()
+        });
+
+        console.log(`[SLOTS] WebSocket notifications sent successfully to user ${telegramId}`);
+      } catch (wsError) {
+        console.error('[SLOTS] Error sending WebSocket notification:', wsError);
       }
 
       // Добавляем заголовки для отключения кэширования

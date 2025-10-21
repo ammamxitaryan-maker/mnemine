@@ -55,12 +55,12 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({ children }) =>
     });
   };
 
-  // Simulate loading progress
+  // Simulate loading progress (much faster)
   useEffect(() => {
     const progressInterval = setInterval(() => {
       setLoadingState(prev => {
         if (prev.loadingProgress < 90 && !prev.isAppReady) {
-          const newProgress = prev.loadingProgress + Math.random() * 10;
+          const newProgress = prev.loadingProgress + Math.random() * 25 + 10; // Much faster progress
           return {
             ...prev,
             loadingProgress: newProgress,
@@ -69,19 +69,19 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({ children }) =>
         }
         return prev;
       });
-    }, 200);
+    }, 50); // Much faster updates
 
     return () => clearInterval(progressInterval);
   }, []);
 
-  // Mark app as ready when all conditions are met
+  // Mark app as ready when all conditions are met (much faster)
   useEffect(() => {
     if (loadingState.loadingProgress >= 90 && loadingState.isAnimationComplete) {
       const timer = setTimeout(() => {
         setAppReady(true);
         setLoadingMessage('Ready!');
         setLoadingProgress(100);
-      }, 500);
+      }, 100); // Much faster transition
 
       return () => clearTimeout(timer);
     }

@@ -35,11 +35,11 @@ export const useUserData = (telegramId: string | undefined) => {
     queryKey: ['userData', telegramId], // Remove forceRefresh from query key
     queryFn: () => {
       console.log(`[useUserData] Query function called for telegramId: ${telegramId}`);
-      return fetchUserData(telegramId!, false);
+      return fetchUserData(telegramId!, true); // Always use cache bypass for fresh data
     },
     enabled: !!telegramId,
     refetchInterval: 3000, // Refetch every 3 seconds for real-time updates
-    staleTime: 5000, // Consider data fresh for 5 seconds to allow more frequent updates
+    staleTime: 1000, // Consider data fresh for only 1 second to allow more frequent updates
   });
 
   // Use centralized balance event handlers
@@ -47,18 +47,22 @@ export const useUserData = (telegramId: string | undefined) => {
     telegramId,
     onBalanceUpdate: () => {
       console.log(`[useUserData] Balance updated for user ${telegramId}, forcing refresh`);
+      // Force refetch with cache bypass
       query.refetch();
     },
     onUserDataRefresh: () => {
       console.log(`[useUserData] User data refresh for user ${telegramId}, forcing refresh`);
+      // Force refetch with cache bypass
       query.refetch();
     },
     onGlobalRefresh: () => {
       console.log(`[useUserData] Global refresh for user ${telegramId}, forcing refresh`);
+      // Force refetch with cache bypass
       query.refetch();
     },
     onUserDataUpdated: () => {
       console.log(`[useUserData] User data updated for user ${telegramId}, forcing refresh`);
+      // Force refetch with cache bypass
       query.refetch();
     }
   });

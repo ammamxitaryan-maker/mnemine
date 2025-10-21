@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "Code Style",
+  "description": "Maintain consistent formatting and naming conventions.",
+  "prompt": "Use 2-space indentation. Prefer single quotes in JS/TS. No semicolons. Use kebab-case for file names, camelCase for variables, PascalCase for components. Boolean vars start with is/has. Avoid long functions (>50 lines)."
+}
+{
+  "name": "Code Style",
+  "description": "Maintain consistent formatting and naming conventions.",
+  "prompt": "Use 2-space indentation. Prefer single quotes in JS/TS. No semicolons. Use kebab-case for file names, camelCase for variables, PascalCase for components. Boolean vars start with is/has. Avoid long functions (>50 lines)."
+}

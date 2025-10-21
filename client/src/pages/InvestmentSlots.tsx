@@ -88,31 +88,72 @@ const InvestmentSlots = () => {
       showSuccess('Investment slot created successfully!');
       setAmount('');
 
-      // Immediately refresh user data to get updated balance
-      try {
-        const response = await api.get(`/user/${user?.telegramId}/data?bypassCache=true&t=${Date.now()}`);
-        console.log('[InvestmentSlots] Fresh user data after investment:', response.data);
+      console.log('[InvestmentSlots] Investment successful, starting data refresh...');
 
-        // Dispatch events to force immediate UI update
-        window.dispatchEvent(new CustomEvent('userDataRefresh', {
-          detail: { telegramId: user?.telegramId }
-        }));
-        window.dispatchEvent(new CustomEvent('balanceUpdated', {
-          detail: {
-            telegramId: user?.telegramId,
-            newBalance: response.data.availableBalance,
-            previousBalance: currentBalance,
-            changeAmount: response.data.availableBalance - currentBalance,
-            action: 'SLOT_INVESTMENT',
-            timestamp: new Date().toISOString()
-          }
-        }));
-      } catch (error) {
-        console.error('[InvestmentSlots] Error refreshing user data:', error);
-      }
+      // Calculate expected new balance
+      const investmentAmount = parseFloat(amount);
+      const expectedNewBalance = Math.max(0, currentBalance - investmentAmount);
 
-      fetchInvestmentSlots();
+      // Dispatch balance update event immediately
+      window.dispatchEvent(new CustomEvent('balanceUpdated', {
+        detail: {
+          telegramId: user?.telegramId,
+          newBalance: expectedNewBalance,
+          previousBalance: currentBalance,
+          changeAmount: -investmentAmount,
+          action: 'SLOT_INVESTMENT',
+          timestamp: new Date().toISOString(),
+          currency: 'NON'
+        }
+      }));
+
+      // Dispatch user data refresh event
+      window.dispatchEvent(new CustomEvent('userDataRefresh', {
+        detail: { telegramId: user?.telegramId }
+      }));
+
+      // Force immediate UI refresh by invalidating all relevant queries
       queryClient.invalidateQueries({ queryKey: ['userData', user?.telegramId] });
+      queryClient.invalidateQueries({ queryKey: ['mainBalance', user?.telegramId] });
+      queryClient.invalidateQueries({ queryKey: ['slotsData', user?.telegramId] });
+
+      // Refresh investment slots data immediately
+      fetchInvestmentSlots();
+
+      // Multiple refresh attempts to ensure data is updated
+      const refreshAttempts = [500, 1000, 2000, 3000];
+
+      refreshAttempts.forEach((delay, index) => {
+        setTimeout(async () => {
+          try {
+            console.log(`[InvestmentSlots] Refresh attempt ${index + 1} after ${delay}ms`);
+
+            // Force refetch with cache bypass
+            const response = await api.get(`/user/${user?.telegramId}/data?bypassCache=true&t=${Date.now()}`);
+            console.log(`[InvestmentSlots] Refresh attempt ${index + 1} - Fresh data:`, {
+              balance: response.data.balance,
+              availableBalance: response.data.availableBalance,
+              timestamp: new Date().toISOString()
+            });
+
+            // Force another UI update with fresh data
+            queryClient.invalidateQueries({ queryKey: ['userData', user?.telegramId] });
+            queryClient.invalidateQueries({ queryKey: ['mainBalance', user?.telegramId] });
+            queryClient.invalidateQueries({ queryKey: ['slotsData', user?.telegramId] });
+
+            // Dispatch another refresh event
+            window.dispatchEvent(new CustomEvent('userDataUpdated', {
+              detail: { telegramId: user?.telegramId }
+            }));
+
+            // Refresh slots data
+            fetchInvestmentSlots();
+
+          } catch (error) {
+            console.error(`[InvestmentSlots] Error in refresh attempt ${index + 1}:`, error);
+          }
+        }, delay);
+      });
     },
     onError: (error: any, _variables, context) => {
       if (context?.toastId) dismissToast(context.toastId);
@@ -171,7 +212,7 @@ const InvestmentSlots = () => {
     claimSlotMutation.mutate({ telegramId: user.telegramId, slotId });
   };
 
-  const currentBalance = userData?.balance ?? 0;
+  const currentBalance = userData?.availableBalance ?? 0;
   const canInvest = parseFloat(amount) > 0 && parseFloat(amount) <= currentBalance;
 
   const activeSlots = slotsData?.slots.filter(slot => slot.status === 'active') ?? [];

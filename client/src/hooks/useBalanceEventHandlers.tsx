@@ -102,6 +102,7 @@ export const useBalanceEventHandlers = (options: UseBalanceEventHandlersOptions 
 
     if (!telegramId || event.detail?.telegramId === telegramId) {
       console.log(`[BalanceEventHandlers] Balance updated for user ${telegramId}, forcing refresh`);
+      console.log(`[BalanceEventHandlers] New balance: ${event.detail?.newBalance}, Previous: ${event.detail?.previousBalance}, Change: ${event.detail?.changeAmount}`);
 
       setForceRefresh(prev => prev + 1);
 
@@ -155,6 +156,22 @@ export const useBalanceEventHandlers = (options: UseBalanceEventHandlersOptions 
     }
   }, [telegramId, onUserDataUpdated, enableCustomEvents]);
 
+  const handleSlotUpdated = React.useCallback((event: CustomEvent<{ telegramId: string, slotId: string, action: string }>) => {
+    if (!enableCustomEvents) return;
+
+    console.log('[BalanceEventHandlers] Received slotUpdated event:', event.detail);
+
+    if (!telegramId || event.detail?.telegramId === telegramId) {
+      console.log(`[BalanceEventHandlers] Slot updated for ${telegramId}, forcing refresh`);
+
+      setForceRefresh(prev => prev + 1);
+
+      if (onUserDataUpdated) {
+        onUserDataUpdated(event.detail.telegramId);
+      }
+    }
+  }, [telegramId, onUserDataUpdated, enableCustomEvents]);
+
   // Set up event listeners
   React.useEffect(() => {
     const eventListeners: Array<[string, EventListener]> = [
@@ -162,6 +179,7 @@ export const useBalanceEventHandlers = (options: UseBalanceEventHandlersOptions 
       ['userDataRefresh', handleUserDataRefresh as EventListener],
       ['globalDataRefresh', handleGlobalRefresh],
       ['userDataUpdated', handleUserDataUpdated as EventListener],
+      ['slotUpdated', handleSlotUpdated as EventListener],
       ['message', handleWebSocketMessage]
     ];
 
@@ -181,6 +199,7 @@ export const useBalanceEventHandlers = (options: UseBalanceEventHandlersOptions 
     handleUserDataRefresh,
     handleGlobalRefresh,
     handleUserDataUpdated,
+    handleSlotUpdated,
     handleWebSocketMessage
   ]);
 

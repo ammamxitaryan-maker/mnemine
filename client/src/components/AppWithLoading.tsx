@@ -7,7 +7,7 @@ export const AppWithLoading: React.FC = () => {
   const { loadingState } = useLoading();
 
   if (!loadingState.isAppReady) {
-    return <LoadingAnimation duration={1500} />;
+    return <LoadingAnimation duration={400} />;
   }
 
   return <AppContent />;

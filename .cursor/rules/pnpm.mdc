@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "Package Manager Policy",
+  "description": "Always use pnpm instead of npm or yarn.",
+  "prompt": "Never use npm or yarn commands. Always use pnpm for installing, running, or managing packages. For example, use 'pnpm install', 'pnpm run dev', etc. If code or instructions reference npm or yarn, automatically convert them to pnpm syntax."
+}
+{
+  "name": "Package Manager Policy",
+  "description": "Always use pnpm instead of npm or yarn.",
+  "prompt": "Never use npm or yarn commands. Always use pnpm for installing, running, or managing packages. For example, use 'pnpm install', 'pnpm run dev', etc. If code or instructions reference npm or yarn, automatically convert them to pnpm syntax."
+}
