@@ -1,9 +1,14 @@
 "use client";
 
 import ActivityHeatmap from '@/components/admin/ActivityHeatmap';
+import AdvancedAnalytics from '@/components/admin/AdvancedAnalytics';
+import AdvancedUserManagement from '@/components/admin/AdvancedUserManagement';
+import AuditLogSystem from '@/components/admin/AuditLogSystem';
 import BroadcastMessenger from '@/components/admin/BroadcastMessenger';
+import NotificationSystem from '@/components/admin/NotificationSystem';
 import RealTimeErrorMonitor from '@/components/admin/RealTimeErrorMonitor';
 import RealTimeUserMap from '@/components/admin/RealTimeUserMap';
+import SettingsManagement from '@/components/admin/SettingsManagement';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,9 +17,12 @@ import {
   Activity,
   AlertTriangle,
   ArrowLeft,
+  BarChart3,
   Bell,
+  FileText,
   MapPin,
   MessageSquare,
+  Settings,
   Shield,
   TrendingUp,
   Users
@@ -50,6 +58,36 @@ const AdminRealTimeMonitoring = () => {
       label: 'Массовая рассылка',
       icon: MessageSquare,
       description: 'Отправка уведомлений всем пользователям'
+    },
+    {
+      id: 'analytics',
+      label: 'Расширенная аналитика',
+      icon: BarChart3,
+      description: 'Детальный анализ производительности и метрик'
+    },
+    {
+      id: 'user-management',
+      label: 'Управление пользователями',
+      icon: Users,
+      description: 'Полный контроль над пользователями и их активностью'
+    },
+    {
+      id: 'notifications',
+      label: 'Система уведомлений',
+      icon: Bell,
+      description: 'Управление уведомлениями и правилами алертов'
+    },
+    {
+      id: 'audit-logs',
+      label: 'Аудит и логи',
+      icon: FileText,
+      description: 'Мониторинг всех действий пользователей'
+    },
+    {
+      id: 'settings',
+      label: 'Настройки системы',
+      icon: Settings,
+      description: 'Конфигурация всех параметров системы'
     }
   ];
 
@@ -63,6 +101,16 @@ const AdminRealTimeMonitoring = () => {
         return <RealTimeErrorMonitor />;
       case 'broadcast':
         return <BroadcastMessenger />;
+      case 'analytics':
+        return <AdvancedAnalytics />;
+      case 'user-management':
+        return <AdvancedUserManagement />;
+      case 'notifications':
+        return <NotificationSystem />;
+      case 'audit-logs':
+        return <AuditLogSystem />;
+      case 'settings':
+        return <SettingsManagement />;
       default:
         return <RealTimeUserMap />;
     }
@@ -166,7 +214,7 @@ const AdminRealTimeMonitoring = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 bg-gray-800">
                 {monitoringTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (

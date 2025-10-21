@@ -19,12 +19,8 @@ router.get('/users/locations', isAdmin, async (req, res) => {
         username: true,
         telegramId: true,
         lastSeenAt: true,
-        country: true,
-        city: true,
-        latitude: true,
-        longitude: true,
         wallets: {
-          where: { currency: 'USD' },
+          where: { currency: 'NON' },
           select: { balance: true }
         }
       }
@@ -36,10 +32,10 @@ router.get('/users/locations', isAdmin, async (req, res) => {
       userId: user.id,
       firstName: user.firstName,
       username: user.username,
-      country: user.country || 'Unknown',
-      city: user.city || 'Unknown',
-      latitude: user.latitude || (Math.random() * 180 - 90),
-      longitude: user.longitude || (Math.random() * 360 - 180),
+      country: 'Unknown', // Location data not available in schema
+      city: 'Unknown', // Location data not available in schema
+      latitude: Math.random() * 180 - 90, // Mock data
+      longitude: Math.random() * 360 - 180, // Mock data
       lastSeen: user.lastSeenAt?.toISOString() || new Date().toISOString(),
       isOnline: Math.random() > 0.3, // 70% онлайн
       activity: ['mining', 'lottery', 'wallet', 'idle'][Math.floor(Math.random() * 4)]
@@ -60,10 +56,9 @@ router.get('/users/country-stats', isAdmin, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       select: {
-        country: true,
         lastSeenAt: true,
         wallets: {
-          where: { currency: 'USD' },
+          where: { currency: 'NON' },
           select: { balance: true }
         }
       }
@@ -71,7 +66,7 @@ router.get('/users/country-stats', isAdmin, async (req, res) => {
 
     // Группируем по странам
     const countryStats = users.reduce((acc, user) => {
-      const country = user.country || 'Unknown';
+      const country = 'Unknown'; // Location data not available in schema
       if (!acc[country]) {
         acc[country] = {
           country,
@@ -179,7 +174,7 @@ router.get('/monitoring/errors', isAdmin, async (req, res) => {
       'File upload failed'
     ];
 
-    const errors = [];
+    const errors: any[] = [];
     const errorCount = Math.floor(Math.random() * 20) + 5; // 5-25 ошибок
 
     for (let i = 0; i < errorCount; i++) {
