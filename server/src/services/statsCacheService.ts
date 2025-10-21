@@ -1,5 +1,5 @@
 import { LRUCache } from 'lru-cache';
-import { LogContext } from '../types/logging.js';
+import { LogContext } from '../utils/logger.js';
 import { logger } from '../utils/logger.js';
 
 interface CacheEntry<T> {
@@ -165,6 +165,17 @@ export class StatsCacheService {
   static getStats(): CacheStats {
     this.updateStats();
     return { ...this.stats };
+  }
+
+  /**
+   * Get cache status for monitoring
+   */
+  static getCacheStatus(): { hasCache: boolean; age: number } {
+    const stats = this.getStats();
+    return {
+      hasCache: stats.size > 0,
+      age: stats.averageAge
+    };
   }
 
   /**

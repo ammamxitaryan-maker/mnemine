@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { StatsAnalyticsService } from '../services/statsAnalyticsService.js';
 import { StatsCacheService } from '../services/statsCacheService.js';
 import { UnifiedStatsService } from '../services/unifiedStatsService.js';
-import { LogContext } from '../types/logging.js';
+import { LogContext } from '../utils/logger.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();

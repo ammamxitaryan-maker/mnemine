@@ -503,7 +503,6 @@ if (token && bot) {
 
 // API routes
 app.use('/api', apiRoutes);
-app.use('/api/stats', userStatsRoutes);
 
 // Static file serving
 const projectRoot = process.cwd();
