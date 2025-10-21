@@ -1,6 +1,5 @@
 "use client";
 
-import { api } from '@/lib/api';
 import { useEffect, useState } from 'react';
 
 interface UserStats {
@@ -17,14 +16,13 @@ interface UserStats {
 
 // Fake user algorithm constants (same as server)
 const BASE_TOTAL_USERS = 10000;
-const BASE_ONLINE_USERS = 150;
 const DAILY_USER_GROWTH = 300; // 300 users per day
 const MINUTE_USER_GROWTH = 0.208; // 12.5/60 = 0.208 users per minute
 
 // Time-based variation for online users (UTC time)
 const PEAK_HOURS = { start: 14, end: 22 }; // 2 PM - 10 PM UTC
-const MIN_ONLINE_MULTIPLIER = 0.7; // 70% of base during low activity
-const MAX_ONLINE_MULTIPLIER = 1.4; // 140% of base during peak hours
+const MIN_ONLINE_USERS = 50; // Minimum online users
+const MAX_ONLINE_USERS = 180; // Maximum online users
 
 // Global state to ensure all components see the same data
 let globalUserStats: UserStats = {
@@ -74,33 +72,38 @@ const calculateTotalUsers = (now: Date): number => {
   return baseUsers;
 };
 
-// Calculate online users with time-based variation (same algorithm as server)
+// Calculate online users with time-based variation (50-180 range, same as server)
 const calculateOnlineUsers = (now: Date, totalUsers: number): number => {
   const hour = now.getUTCHours();
 
-  let timeMultiplier = MIN_ONLINE_MULTIPLIER;
+  // Calculate time-based online users (50-180 range)
+  let onlineUsers = MIN_ONLINE_USERS;
 
   if (hour >= PEAK_HOURS.start && hour <= PEAK_HOURS.end) {
+    // Peak hours: linear increase from min to max
     const peakProgress = (hour - PEAK_HOURS.start) / (PEAK_HOURS.end - PEAK_HOURS.start);
-    timeMultiplier = MIN_ONLINE_MULTIPLIER +
-      (MAX_ONLINE_MULTIPLIER - MIN_ONLINE_MULTIPLIER) * peakProgress;
+    onlineUsers = MIN_ONLINE_USERS +
+      (MAX_ONLINE_USERS - MIN_ONLINE_USERS) * peakProgress;
   } else if (hour > PEAK_HOURS.end) {
+    // After peak hours: gradual decrease
     const hoursAfterPeak = hour - PEAK_HOURS.end;
     const decreaseFactor = Math.max(0, 1 - (hoursAfterPeak / 8));
-    timeMultiplier = MAX_ONLINE_MULTIPLIER * decreaseFactor +
-      MIN_ONLINE_MULTIPLIER * (1 - decreaseFactor);
+    onlineUsers = MAX_ONLINE_USERS * decreaseFactor +
+      MIN_ONLINE_USERS * (1 - decreaseFactor);
   } else {
+    // Before peak hours: gradual increase
     const hoursBeforePeak = PEAK_HOURS.start - hour;
     const increaseFactor = Math.max(0, 1 - (hoursBeforePeak / 8));
-    timeMultiplier = MIN_ONLINE_MULTIPLIER +
-      (MAX_ONLINE_MULTIPLIER - MIN_ONLINE_MULTIPLIER) * increaseFactor;
+    onlineUsers = MIN_ONLINE_USERS +
+      (MAX_ONLINE_USERS - MIN_ONLINE_USERS) * increaseFactor;
   }
 
-  const baseOnlineUsers = Math.floor(BASE_ONLINE_USERS * timeMultiplier);
-  const randomVariation = (Math.random() - 0.5) * 0.1; // ±5%
-  const onlineUsers = Math.floor(baseOnlineUsers * (1 + randomVariation));
+  // Add small random variation (±3%) for realism
+  const randomVariation = (Math.random() - 0.5) * 0.06; // ±3%
+  onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
 
-  return Math.max(50, onlineUsers);
+  // Ensure within bounds
+  return Math.max(MIN_ONLINE_USERS, Math.min(MAX_ONLINE_USERS, onlineUsers));
 };
 
 // Calculate new users today (same algorithm as server)
@@ -113,25 +116,60 @@ const calculateNewUsersToday = (now: Date): number => {
   return Math.max(0, newUsersToday);
 };
 
-// Note: Server stats fetching removed - we only use fake data now
+// Fetch stats from server (for initial connection)
+const fetchServerStats = async (): Promise<UserStats | null> => {
+  try {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
+    const response = await fetch(`${backendUrl}/api/stats/enhanced`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        const stats = data.data;
+        return {
+          totalUsers: stats.totalUsers,
+          onlineUsers: stats.onlineUsers,
+          newUsersToday: stats.newUsersToday,
+          activeUsers: stats.activeUsers,
+          lastUpdate: stats.lastUpdate,
+          isFictitious: !stats.isRealData
+        };
+      }
+    }
+  } catch (error) {
+    console.log('[UserStats] Server not available, using local calculation');
+  }
+  return null;
+};
 
-// Centralized update function that uses only fake data
+// Centralized update function that tries server first, then uses cached data
 const updateGlobalStats = async () => {
-  // Always use fake user statistics, never fetch from server
   const now = new Date();
-  const totalUsers = calculateTotalUsers(now);
-  const onlineUsers = calculateOnlineUsers(now, totalUsers);
-  const newUsersToday = calculateNewUsersToday(now);
-  const activeUsers = Math.floor(totalUsers * 0.35); // 35% active users
 
-  globalUserStats = {
-    totalUsers,
-    onlineUsers,
-    newUsersToday,
-    activeUsers,
-    lastUpdate: now.toISOString(),
-    isFictitious: true // Always use fake data
-  };
+  // Try to get data from server first (for consistency across all users)
+  const serverStats = await fetchServerStats();
+
+  if (serverStats) {
+    // Use server data (consistent for all users)
+    globalUserStats = {
+      ...serverStats,
+      isFictitious: true // Always mark as fake data
+    };
+  } else {
+    // Fallback to local calculation with cached total users
+    const totalUsers = calculateTotalUsers(now);
+    const onlineUsers = calculateOnlineUsers(now, totalUsers);
+    const newUsersToday = calculateNewUsersToday(now);
+    const activeUsers = Math.floor(totalUsers * 0.35); // 35% active users
+
+    globalUserStats = {
+      totalUsers,
+      onlineUsers,
+      newUsersToday,
+      activeUsers,
+      lastUpdate: now.toISOString(),
+      isFictitious: true // Always use fake data
+    };
+  }
 
   // Notify all listeners
   globalListeners.forEach(listener => listener());
@@ -182,8 +220,13 @@ export const useWebSocketUserStats = () => {
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'userStats') {
-              // Ignore server data and update with fake data
-              updateGlobalStats();
+              // Use server data for consistency across all users
+              globalUserStats = {
+                ...data.data,
+                isFictitious: true // Always mark as fake data
+              };
+              setUserStats({ ...globalUserStats });
+              globalListeners.forEach(listener => listener());
             }
           } catch (error) {
             console.error('[UserStats] Error parsing WebSocket message:', error);
