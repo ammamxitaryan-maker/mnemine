@@ -21,18 +21,6 @@ const MINUTE_USER_GROWTH = 0.208; // 12.5/60 = 0.208 users per minute
 
 // Online users will be calculated as 4-7% of total users
 
-// Global state to ensure all components see the same data
-let globalUserStats: UserStats = {
-  totalUsers: calculateTotalUsers(new Date()), // Use current calculation instead of static value
-  onlineUsers: 150,
-  newUsersToday: 45,
-  activeUsers: 400,
-  lastUpdate: new Date().toISOString(),
-  isFictitious: true
-};
-
-const globalListeners: Set<() => void> = new Set();
-
 // Calculate total users with deterministic growth (same algorithm as server)
 const calculateTotalUsers = (now: Date): number => {
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -45,22 +33,34 @@ const calculateTotalUsers = (now: Date): number => {
   return totalUsers;
 };
 
+// Global state to ensure all components see the same data
+let globalUserStats: UserStats = {
+  totalUsers: calculateTotalUsers(new Date()), // Use current calculation instead of static value
+  onlineUsers: 150,
+  newUsersToday: 45,
+  activeUsers: 400,
+  lastUpdate: new Date().toISOString(),
+  isFictitious: true
+};
+
+const globalListeners: Set<() => void> = new Set();
+
 // Calculate online users as 4-7% of total users (same as server)
 const calculateOnlineUsers = (now: Date, totalUsers: number): number => {
   // Online users calculation: 4-7% of total users
   const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
   const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
-  
+
   // Calculate base online users as percentage of total users
-  const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE + 
+  const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
     (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
-  
+
   let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
-  
+
   // Add small random variation (±1%) for more frequent updates
   const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
   onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
-  
+
   // Ensure minimum of 1 online user
   return Math.max(1, onlineUsers);
 };
@@ -196,14 +196,14 @@ export const useWebSocketUserStats = () => {
     // Start fetching fake data immediately when app opens
     console.log('[UserStats] App opened - starting immediate fake data fetch');
     updateGlobalStats(); // Immediate fetch on app open
-    
+
     // Force immediate update with current calculation
     const now = new Date();
     const totalUsers = calculateTotalUsers(now);
     const onlineUsers = calculateOnlineUsers(now, totalUsers);
     const newUsersToday = calculateNewUsersToday(now);
     const activeUsers = Math.floor(totalUsers * 0.35);
-    
+
     globalUserStats = {
       totalUsers,
       onlineUsers,
@@ -212,7 +212,7 @@ export const useWebSocketUserStats = () => {
       lastUpdate: now.toISOString(),
       isFictitious: true
     };
-    
+
     setUserStats({ ...globalUserStats });
     globalListeners.forEach(listener => listener());
 

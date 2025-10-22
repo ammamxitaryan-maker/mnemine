@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { AuthenticatedUser } from '@/types/telegram';
 import { TelegramInstructions } from '@/components/TelegramInstructions';
+import { AuthenticatedUser } from '@/types/telegram';
+import { useEffect, useState } from 'react';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
 
@@ -8,7 +8,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10112';
 const createTelegramUser = (user: Record<string, unknown>): AuthenticatedUser => {
   // Check if this is a backend user (has telegramId field) or Telegram WebApp user
   const isBackendUser = user.telegramId !== undefined;
-  
+
   return {
     id: isBackendUser ? String(user.id) : String(user.id),
     telegramId: isBackendUser ? String(user.telegramId) : String(user.id),
@@ -34,13 +34,13 @@ const createTelegramUser = (user: Record<string, unknown>): AuthenticatedUser =>
 // Fallback authentication for development
 const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void, setUserAndCache: (user: AuthenticatedUser) => void) => {
   // console.log('[AUTH] Using fallback authentication (development mode)');
-  
+
   // Check if we're in local development mode
-  const isLocalDev = window.location.hostname === 'localhost' || 
-                     window.location.hostname === '127.0.0.1' ||
-                     window.location.hostname.includes('192.168.') ||
-                     window.location.hostname.includes('10.0.');
-  
+  const isLocalDev = window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.includes('192.168.') ||
+    window.location.hostname.includes('10.0.');
+
   if (!isLocalDev) {
     console.warn('[AUTH] Fallback auth only available in local development');
     throw new Error('Fallback auth only available in local development');
@@ -49,7 +49,7 @@ const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void, setUserA
   // Try to get stored test user or create a default one
   const storedUser = localStorage.getItem('testUser');
   let testUserData;
-  
+
   if (storedUser) {
     try {
       testUserData = JSON.parse(storedUser);
@@ -58,7 +58,7 @@ const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void, setUserA
       testUserData = null;
     }
   }
-  
+
   if (!testUserData) {
     // Create a default test user with admin ID for development
     testUserData = {
@@ -79,29 +79,29 @@ const fallbackAuth = async (setUser: (user: AuthenticatedUser) => void, setUserA
     const response = await fetch(`${backendUrl}/api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        id: testUserData.id, 
+      body: JSON.stringify({
+        id: testUserData.id,
         username: testUserData.username,
         first_name: testUserData.first_name,
         last_name: testUserData.last_name
       })
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const text = await response.text();
     if (text) {
       const data = JSON.parse(text);
       console.log('[AUTH] Fallback login response:', data);
-      
+
       if (data.user) {
         setUser(createTelegramUser(data.user));
         return;
       }
     }
-    
+
     // Fallback to test user
     setUserAndCache(createTelegramUser(testUserData));
   } catch (err) {
@@ -125,7 +125,7 @@ export const useTelegramAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authAttempted, setAuthAttempted] = useState(false);
-  
+
   console.log('[useTelegramAuth] Current state:', {
     hasUser: !!user,
     telegramId: user?.telegramId,
@@ -139,7 +139,7 @@ export const useTelegramAuth = () => {
   const setUserAndCache = (userData: AuthenticatedUser | null) => {
     setUser(userData);
     authCache = { user: userData, timestamp: Date.now() };
-    
+
     // Clear cache if user changes
     if (userData && authCache.user && authCache.user.telegramId !== userData.telegramId) {
       console.log('[AUTH] User changed, clearing cache');
@@ -163,18 +163,18 @@ export const useTelegramAuth = () => {
       console.log('[AUTH] Starting authentication validation...');
       setLoading(true);
       setError(null);
-      
+
       setAuthAttempted(true);
-      
+
       const tg = window.Telegram?.WebApp;
-      
+
       console.log('[TELEGRAM_AUTH] Telegram WebApp object:', tg);
       console.log('[TELEGRAM_AUTH] initDataUnsafe:', tg?.initDataUnsafe);
       console.log('[TELEGRAM_AUTH] initData:', tg?.initData);
       console.log('[TELEGRAM_AUTH] window.Telegram:', window.Telegram);
       console.log('[TELEGRAM_AUTH] window.location:', window.location);
       console.log('[TELEGRAM_AUTH] User agent:', navigator.userAgent);
-      
+
       // Additional diagnostics
       console.log('[TELEGRAM_AUTH] Has Telegram object:', !!window.Telegram);
       console.log('[TELEGRAM_AUTH] Has WebApp object:', !!tg);
@@ -186,77 +186,81 @@ export const useTelegramAuth = () => {
       console.log('[TELEGRAM_AUTH] Referrer:', document.referrer);
 
       // Check if we're in production environment (not localhost)
-      const isProduction = !window.location.hostname.includes('localhost') && 
-                          !window.location.hostname.includes('127.0.0.1') &&
-                          !window.location.hostname.includes('192.168.') &&
-                          !window.location.hostname.includes('10.0.') &&
-                          window.location.protocol === 'https:';
+      const isProduction = !window.location.hostname.includes('localhost') &&
+        !window.location.hostname.includes('127.0.0.1') &&
+        !window.location.hostname.includes('192.168.') &&
+        !window.location.hostname.includes('10.0.') &&
+        window.location.protocol === 'https:';
 
       console.log('[AUTH] Environment check - isProduction:', isProduction, 'hostname:', window.location.hostname);
 
       // Check if we're in a Telegram WebApp environment (even without user data)
       const isTelegramWebApp = tg && tg.initDataUnsafe;
       const hasTelegramUser = !!(tg && tg.initDataUnsafe?.user?.id);
-      
+
       console.log('[AUTH] Telegram WebApp detected:', isTelegramWebApp);
       console.log('[AUTH] Has Telegram user data:', hasTelegramUser);
       console.log('[AUTH] User ID from Telegram:', tg?.initDataUnsafe?.user?.id);
-      
+
       // Check if we have URL parameters that might contain Telegram data
       const urlParams = new URLSearchParams(window.location.search);
       const tgWebAppData = urlParams.get('tgWebAppData');
       const tgWebAppStartParam = urlParams.get('tgWebAppStartParam');
       const refParam = urlParams.get('ref'); // Referral code from bot
-      
+
       console.log('[AUTH] URL parameters - tgWebAppData:', tgWebAppData, 'tgWebAppStartParam:', tgWebAppStartParam, 'ref:', refParam);
-      
+
       // In production, we prefer Telegram WebApp data but allow fallback for testing
       if (isProduction && !isTelegramWebApp && !tgWebAppData && !tgWebAppStartParam) {
         console.warn('[AUTH] Production environment - no Telegram WebApp detected');
         console.warn('[AUTH] This may be normal if opening directly in browser');
         console.warn('[AUTH] For proper Telegram WebApp, use the bot button');
-        
-        // Show a more helpful error message only if no Telegram data at all
-        setError('Please open this app through Telegram bot. Use /start command and click the "🚀 Launch App" button.');
-        setLoading(false);
-        return;
+
+        // In production, show error. In development, continue with fallback
+        if (isProduction) {
+          setError('Please open this app through Telegram bot. Use /start command and click the "🚀 Launch App" button.');
+          setLoading(false);
+          return;
+        } else {
+          console.log('[AUTH] Development mode - continuing with fallback authentication');
+        }
       }
 
       // URL parameters already checked above
-      
+
       // Check if we have valid Telegram WebApp data
       if (tg && tg.initData && tg.initDataUnsafe?.user?.id) {
         // Real Telegram WebApp environment with user data
         tg.expand();
-        
+
         const user = tg.initDataUnsafe.user;
         console.log('[AUTH] Telegram user:', user);
-        
+
         // Store initData for API calls
         setInitData(tg.initData);
-        
+
         try {
           // Use start_param from Telegram WebApp, or fallback to ref parameter from URL
           const referralCode = tg.initDataUnsafe.start_param || refParam;
           console.log('[AUTH] Using referral code:', referralCode);
-          
+
           // Call backend validation endpoint to create/update user in database
           const response = await fetch(`${backendUrl}/api/auth/validate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               initData: tg.initData,
               startParam: referralCode
             })
           });
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-          
+
           const data = await response.json();
           console.log('[AUTH] Telegram auth response:', data);
-          
+
           if (data.user) {
             // Use the user data from backend
             setUserAndCache(createTelegramUser(data.user));
@@ -267,36 +271,36 @@ export const useTelegramAuth = () => {
           console.error('[AUTH] Telegram auth failed:', err);
           setError(`Authentication failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
         }
-        
+
         setLoading(false);
       } else if (tg && tg.initDataUnsafe?.user?.id) {
         // Telegram WebApp is available but initData is missing
         // This can happen in some cases, try to use the user data directly
         console.log('[AUTH] Telegram WebApp available but initData missing, using direct login');
         tg.expand();
-        
+
         const user = tg.initDataUnsafe.user;
-        
+
         try {
           // Call backend login endpoint to create user in database
           const response = await fetch(`${backendUrl}/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               id: user.id,
               username: user.username,
               first_name: user.first_name,
               last_name: user.last_name
             })
           });
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-          
+
           const data = await response.json();
           console.log('[AUTH] Direct Telegram login response:', data);
-          
+
           if (data.user) {
             setUserAndCache(createTelegramUser(data.user));
           } else if (data.success) {
@@ -308,7 +312,7 @@ export const useTelegramAuth = () => {
           console.error('[AUTH] Direct Telegram login failed:', err);
           setError(`Login failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
         }
-        
+
         setLoading(false);
       } else {
         // No valid Telegram WebApp data

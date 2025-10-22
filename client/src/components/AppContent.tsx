@@ -16,6 +16,7 @@ import AdminLogin from "../pages/AdminLogin";
 import AdminPanel from "../pages/AdminPanel";
 import AdminStaff from "../pages/AdminStaff";
 import AdminUserDetail from "../pages/AdminUserDetail";
+import Debug from "../pages/Debug";
 import Deposit from "../pages/Deposit";
 import Index from "../pages/Index";
 import InvestmentSlots from "../pages/InvestmentSlots";
@@ -26,8 +27,10 @@ import NotFound from "../pages/NotFound";
 import Profile from "../pages/Profile";
 import Referrals from "../pages/Referrals";
 import Settings from "../pages/Settings";
+import SimpleTest from "../pages/SimpleTest";
 import Slots from "../pages/Slots";
 import Stats from "../pages/Stats";
+import TestAuth from "../pages/TestAuth";
 import USDTPayment from "../pages/USDTPayment";
 import Wallet from "../pages/Wallet";
 import Withdraw from "../pages/Withdraw";
@@ -112,6 +115,11 @@ export const AppContent: React.FC = () => {
             <Route path="/admin-panel" element={<AdminPanel />} />
             <Route path="/admin/dashboard" element={<AdminDashboardCompact />} />
           </Route>
+
+          {/* Debug routes */}
+          <Route path="/debug" element={<Debug />} />
+          <Route path="/test-auth" element={<TestAuth />} />
+          <Route path="/simple-test" element={<SimpleTest />} />
 
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />

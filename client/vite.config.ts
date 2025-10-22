@@ -39,7 +39,7 @@ export default defineConfig(() => {
             utils: ['clsx', 'tailwind-merge', 'class-variance-authority'],
             i18n: ['react-i18next', 'i18next', 'i18next-browser-languagedetector', 'i18next-http-backend'],
             charts: ['recharts'],
-            date: ['date-fns'],
+            // Remove date-fns from manual chunks to avoid initialization issues
           },
         },
       },
@@ -64,6 +64,7 @@ export default defineConfig(() => {
         'lucide-react',
         'clsx',
         'tailwind-merge',
+        'date-fns',
       ],
     },
     // Enhanced CSS optimization

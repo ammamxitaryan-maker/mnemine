@@ -65,6 +65,6 @@ router.use('/admin/memory', memoryMonitoringRoutes); // Add memory monitoring ro
 router.use('/admin/websocket', webSocketMonitoringRoutes); // Add WebSocket monitoring routes
 router.use('/payments', paymentRoutes); // Add payment routes
 router.use('/payments/usdt', usdtPaymentRoutes); // Add USDT payment routes
-router.use('/api/stats', enhancedStatsRoutes); // Add enhanced stats routes
+router.use('/stats', enhancedStatsRoutes); // Add enhanced stats routes
 
 export default router;
