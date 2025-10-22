@@ -50,3 +50,4 @@ setTimeout(() => {
   connections.forEach(ws => ws.close());
   process.exit(0);
 }, 10000);
+

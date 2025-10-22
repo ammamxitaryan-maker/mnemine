@@ -7,6 +7,8 @@ interface AuthenticatedWebSocket extends WebSocket {
   telegramId?: string;
   subscriptions?: Set<string>;
   isAlive?: boolean;
+  connectionId?: string;
+  connectedAt?: Date;
 }
 
 interface WebSocketMessage {
@@ -154,8 +156,10 @@ export class WebSocketServer {
     // Add to clients map for anonymous user
     if (!this.clients.has('anonymous')) {
       this.clients.set('anonymous', new Set());
+      console.log('[WebSocket] Created new anonymous user set');
     }
     this.clients.get('anonymous')!.add(ws);
+    console.log('[WebSocket] Added userstats connection to clients map. Total anonymous connections:', this.clients.get('anonymous')!.size);
 
     // Send initial user statistics
     this.sendUserStats(ws);
@@ -701,13 +705,16 @@ export class WebSocketServer {
   }
 
   private async getUserStatistics() {
+    console.log('[WebSocket] getUserStatistics called');
     try {
       // Use the new unified stats service
       const { UnifiedStatsService } = await import('../services/unifiedStatsService.js');
       const stats = await UnifiedStatsService.getUserStats();
 
       // Count actual WebSocket connections
+      console.log('[WebSocket] About to call getActualOnlineUsersCount');
       const actualOnlineUsers = this.getActualOnlineUsersCount();
+      console.log('[WebSocket] getActualOnlineUsersCount returned:', actualOnlineUsers);
 
       return {
         totalUsers: stats.totalUsers,
@@ -727,7 +734,9 @@ export class WebSocketServer {
       const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
 
       // Count actual WebSocket connections
+      console.log('[WebSocket] Fallback: About to call getActualOnlineUsersCount');
       const actualOnlineUsers = this.getActualOnlineUsersCount();
+      console.log('[WebSocket] Fallback: getActualOnlineUsersCount returned:', actualOnlineUsers);
 
       return {
         totalUsers,
@@ -746,11 +755,12 @@ export class WebSocketServer {
     this.clients.forEach((userConnections) => {
       totalConnections += userConnections.size;
     });
-    
+
+    console.log('[WebSocket] getActualOnlineUsersCount called');
     console.log('[WebSocket] Total clients map size:', this.clients.size);
     console.log('[WebSocket] Total connections:', totalConnections);
     console.log('[WebSocket] Clients map:', Array.from(this.clients.entries()).map(([key, connections]) => ({ user: key, count: connections.size })));
-    
+
     // Ensure minimum of 1 online user for display purposes
     return Math.max(1, totalConnections);
   }
