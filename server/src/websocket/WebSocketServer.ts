@@ -144,6 +144,22 @@ export class WebSocketServer {
 
     console.log('[WebSocket] User stats client connected:', clientId);
 
+    // Set up the connection properties
+    ws.telegramId = 'anonymous'; // Anonymous user for stats
+    ws.subscriptions = new Set(['userstats']);
+    ws.isAlive = true;
+    ws.connectionId = clientId;
+    ws.connectedAt = new Date();
+
+    // Add to clients map for anonymous user
+    if (!this.clients.has('anonymous')) {
+      this.clients.set('anonymous', new Set());
+    }
+    this.clients.get('anonymous')!.add(ws);
+
+    // Send initial user statistics
+    this.sendUserStats(ws);
+
     ws.on('message', (data: any) => {
       try {
         const message = data.toString();
@@ -155,11 +171,33 @@ export class WebSocketServer {
 
     ws.on('close', () => {
       console.log('[WebSocket] User stats client disconnected:', clientId);
+      // Remove from clients map
+      const anonymousClients = this.clients.get('anonymous');
+      if (anonymousClients) {
+        anonymousClients.delete(ws);
+        if (anonymousClients.size === 0) {
+          this.clients.delete('anonymous');
+        }
+      }
     });
 
     ws.on('pong', () => {
       console.log('[WebSocket] User stats client pong received:', clientId);
+      ws.isAlive = true;
     });
+
+    // Start ping interval
+    const pingInterval = setInterval(() => {
+      if (ws.isAlive === false) {
+        clearInterval(pingInterval);
+        ws.terminate();
+        return;
+      }
+      ws.isAlive = false;
+      ws.ping();
+    }, 10000);
+
+    ws.on('close', () => clearInterval(pingInterval));
 
     ws.on('error', (error) => {
       console.error('[WebSocket] User stats client error:', error);
@@ -649,15 +687,31 @@ export class WebSocketServer {
     };
   }
 
+  private async sendUserStats(ws: AuthenticatedWebSocket) {
+    try {
+      const userStats = await this.getUserStatistics();
+      ws.send(JSON.stringify({
+        type: 'userStats',
+        data: userStats,
+        timestamp: new Date().toISOString()
+      }));
+    } catch (error) {
+      console.error('[WebSocket] Error sending user stats:', error);
+    }
+  }
+
   private async getUserStatistics() {
     try {
       // Use the new unified stats service
       const { UnifiedStatsService } = await import('../services/unifiedStatsService.js');
       const stats = await UnifiedStatsService.getUserStats();
 
+      // Count actual WebSocket connections
+      const actualOnlineUsers = this.getActualOnlineUsersCount();
+
       return {
         totalUsers: stats.totalUsers,
-        onlineUsers: stats.onlineUsers,
+        onlineUsers: actualOnlineUsers, // Use actual connection count
         newUsersToday: stats.newUsersToday,
         activeUsers: stats.activeUsers,
         lastUpdate: stats.lastUpdate,
@@ -672,26 +726,12 @@ export class WebSocketServer {
       const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50;
       const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
 
-      // Online users calculation: 4-7% of total users
-      const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
-      const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
-
-      // Calculate base online users as percentage of total users
-      const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
-        (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
-
-      let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
-
-      // Add small random variation (±1%) for more frequent updates
-      const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
-      onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
-
-      // Ensure minimum of 1 online user
-      onlineUsers = Math.max(1, onlineUsers);
+      // Count actual WebSocket connections
+      const actualOnlineUsers = this.getActualOnlineUsersCount();
 
       return {
         totalUsers,
-        onlineUsers,
+        onlineUsers: actualOnlineUsers, // Use actual connection count
         newUsersToday: Math.floor(totalUsers * 0.03),
         activeUsers: Math.floor(totalUsers * 0.35),
         lastUpdate: new Date().toISOString(),
@@ -699,6 +739,20 @@ export class WebSocketServer {
         dataSource: 'fallback'
       };
     }
+  }
+
+  private getActualOnlineUsersCount(): number {
+    let totalConnections = 0;
+    this.clients.forEach((userConnections) => {
+      totalConnections += userConnections.size;
+    });
+    
+    console.log('[WebSocket] Total clients map size:', this.clients.size);
+    console.log('[WebSocket] Total connections:', totalConnections);
+    console.log('[WebSocket] Clients map:', Array.from(this.clients.entries()).map(([key, connections]) => ({ user: key, count: connections.size })));
+    
+    // Ensure minimum of 1 online user for display purposes
+    return Math.max(1, totalConnections);
   }
 
   private broadcastToAll(message: WebSocketMessage) {
