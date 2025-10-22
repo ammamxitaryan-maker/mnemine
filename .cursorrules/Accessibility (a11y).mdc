@@ -1,0 +1,11 @@
+---
+description: Accessibility guidelines for semantic HTML, ARIA attributes, and keyboard navigation
+globs: false
+alwaysApply: true
+---
+
+Use semantic HTML.
+
+Apply appropriate ARIA attributes.
+
+Ensure full keyboard navigation.

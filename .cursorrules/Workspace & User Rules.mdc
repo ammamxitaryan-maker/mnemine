@@ -1,0 +1,34 @@
+---
+description: Comprehensive workspace and user-specific rules for project management and development
+globs: false
+alwaysApply: true
+---
+
+## Always Applied Workspace Rules:
+1. **Project Architecture** - All data access through repository/API layers, separation of business logic and UI, use async/await
+2. **Build Command Usage** - Avoid unnecessary builds, confirm rebuilds are required
+3. **Code Style** - 2-space indentation, single quotes, no semicolons, kebab-case files, camelCase variables, PascalCase components
+4. **Functional Style** - Prefer pure functions, immutability, map/filter/reduce over loops, function components with hooks
+5. **Error Handling** - Handle edge cases, validate external data, use try/catch, prefer early returns
+6. **Server Launch Policy** - Never start multiple servers, check for existing processes first
+7. **Package Manager Policy** - Always use pnpm instead of npm/yarn
+8. **PowerShell Environment** - Use PowerShell syntax for all terminal commands
+
+## User-Specific Rules:
+1. **Minimal Changes** - Make focused edits per change, prioritize iteration over duplication
+2. **Network & Dates** - Use fetch for requests, prefer date-fns for date handling
+3. **Production Testing** - Run locally with production-like settings (NODE_ENV=production)
+4. **Clean Project** - Keep minimal, avoid unnecessary files
+5. **No Test Files** - Remove any files with test/tmp/example/sample/demo in names
+6. **PostgreSQL Only** - Never use SQLite, always use PostgreSQL on Render
+7. **Telegram Web App** - Optimized for mobile devices
+
+## Core Principles:
+- Generate production-ready, clean code with zero technical debt
+- Follow DRY and KISS principles
+- Use British English spelling
+- Include comprehensive error handling
+- Write concise, actionable responses
+- Use functional programming patterns where possible
+
+These rules guide all code generation, file operations, and project management decisions in this workspace.

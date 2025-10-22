@@ -1,0 +1,13 @@
+---
+description: Error handling and validation best practices
+globs: false
+alwaysApply: true
+---
+
+Validate inputs and preconditions early (guard clauses).
+
+Place happy-path logic last.
+
+Provide clear, user‑friendly error messages.
+
+Log or report unexpected errors.

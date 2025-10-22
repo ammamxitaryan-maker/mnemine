@@ -1,0 +1,15 @@
+---
+description: Code style and structure guidelines for TypeScript and functional patterns
+globs: false
+alwaysApply: true
+---
+
+Write concise, technical TypeScript. Follow Standard.js rules.
+
+Use functional, declarative patterns; avoid classes.
+
+Favor loops and small helper modules over duplicate code.
+
+Use descriptive names with auxiliary verbs (e.g. isLoading, hasError).
+
+File layout: exported component → subcomponents → hooks/helpers → static content.
