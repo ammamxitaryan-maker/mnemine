@@ -408,10 +408,11 @@ app.get('/health', async (req: Request, res: Response) => {
   }
 });
 
-// Simple fake user stats endpoint (fallback)
+// Simple fake user stats endpoint - ALWAYS shows fake data only (DEV & PRODUCTION)
 app.get('/api/stats/simple', async (req: Request, res: Response) => {
   try {
-    console.log('[SIMPLE-STATS] Request received');
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    console.log(`[SIMPLE-STATS] Request received - Mode: ${nodeEnv}`);
 
     const now = new Date();
     const BASE_TOTAL_USERS = 10000;

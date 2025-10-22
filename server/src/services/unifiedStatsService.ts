@@ -25,7 +25,7 @@ interface StatsCache {
 export class UnifiedStatsService {
   private static cache: StatsCache | null = null;
   private static readonly CACHE_TTL = 1 * 60 * 1000; // 1 minute for more frequent updates
-  private static readonly REAL_DATA_THRESHOLD = 100; // Minimum users for real data
+  private static readonly REAL_DATA_THRESHOLD = 0; // Use real data when available
 
   // Fake user algorithm constants
   private static readonly BASE_TOTAL_USERS = 10000;
@@ -39,7 +39,8 @@ export class UnifiedStatsService {
   private static readonly MAX_ONLINE_PERCENTAGE = 0.07; // 7%
 
   /**
-   * Get unified user statistics with intelligent fallback
+   * Get unified user statistics - Use real data when available, fallback to calculated
+   * Works in both DEVELOPMENT and PRODUCTION modes
    */
   static async getUserStats(): Promise<UnifiedUserStats> {
     // Check cache first
@@ -48,14 +49,30 @@ export class UnifiedStatsService {
     }
 
     try {
-      // Always use fake user statistics, never show real user counts
-      const calculatedStats = this.getCalculatedStats();
-      this.cache = {
-        data: { ...calculatedStats, isRealData: false, dataSource: 'calculated' },
-        timestamp: Date.now(),
-        ttl: this.CACHE_TTL
-      };
-      return this.cache.data;
+      // Try to get real data first
+      const realStats = await this.getRealStats();
+
+      // Use real data if we have enough users
+      if (realStats.totalUsers >= this.REAL_DATA_THRESHOLD) {
+        logger.info(LogContext.SERVER, `Using real data - Total users: ${realStats.totalUsers}, Online: ${realStats.onlineUsers}`);
+        this.cache = {
+          data: realStats,
+          timestamp: Date.now(),
+          ttl: this.CACHE_TTL
+        };
+        return this.cache.data;
+      } else {
+        // Fallback to calculated data if not enough real users
+        const nodeEnv = process.env.NODE_ENV || 'development';
+        logger.info(LogContext.SERVER, `Using calculated fake data (not enough real users: ${realStats.totalUsers}) - Mode: ${nodeEnv}`);
+        const calculatedStats = this.getCalculatedStats();
+        this.cache = {
+          data: { ...calculatedStats, isRealData: false, dataSource: 'calculated' },
+          timestamp: Date.now(),
+          ttl: this.CACHE_TTL
+        };
+        return this.cache.data;
+      }
     } catch (error) {
       logger.error(LogContext.SERVER, 'Error getting user stats:', error);
       // Fallback to calculated data
@@ -76,6 +93,8 @@ export class UnifiedStatsService {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    logger.info(LogContext.SERVER, 'Fetching real statistics from database...');
 
     // Single optimized query for all user counts
     const [
@@ -125,6 +144,18 @@ export class UnifiedStatsService {
     });
 
     const conversionRate = totalUsers > 0 ? (usersWithDeposits / totalUsers) * 100 : 0;
+
+    logger.info(LogContext.SERVER, 'Real statistics fetched:', {
+      totalUsers,
+      onlineUsers,
+      newUsersToday,
+      activeUsers,
+      usersWithDeposits,
+      usersWithActiveSlots,
+      totalInvested: financialStats._sum.totalInvested || 0,
+      totalEarnings: financialStats._sum.totalEarnings || 0,
+      conversionRate
+    });
 
     return {
       totalUsers,

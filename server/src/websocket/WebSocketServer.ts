@@ -711,12 +711,12 @@ export class WebSocketServer {
       const { UnifiedStatsService } = await import('../services/unifiedStatsService.js');
       const stats = await UnifiedStatsService.getUserStats();
 
-      // Always use fake data for consistency across all environments
-      console.log('[WebSocket] Using fake data for consistency');
+      // Use real data when available, fallback to calculated data
+      console.log(`[WebSocket] Using ${stats.isRealData ? 'real' : 'calculated'} data - Total: ${stats.totalUsers}, Online: ${stats.onlineUsers}`);
 
       return {
         totalUsers: stats.totalUsers,
-        onlineUsers: stats.onlineUsers, // Use fake data from stats service
+        onlineUsers: stats.onlineUsers, // Use data from stats service
         newUsersToday: stats.newUsersToday,
         activeUsers: stats.activeUsers,
         lastUpdate: stats.lastUpdate,
