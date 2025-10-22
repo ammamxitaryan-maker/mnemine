@@ -37,7 +37,6 @@ import { AdminLayoutCompact } from "./layout/AdminLayoutCompact";
 import { AdminRoute } from "./layout/AdminRoute";
 import { MainLayout } from "./layout/MainLayout";
 import { MinimalistLayout } from "./layout/MinimalistLayout";
-import { LoadingTest } from "./LoadingTest";
 import { LocalDevAuth } from "./LocalDevAuth";
 import { PaymentSuccess } from "./PaymentSuccess";
 import { ViewportOptimizer } from "./ViewportOptimizer";
@@ -84,7 +83,6 @@ export const AppContent: React.FC = () => {
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/lottery-history" element={<LotteryHistory />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/loading-test" element={<LoadingTest />} />
 
           {/* Admin Login Route - Not protected */}
           <Route path="/admin-login" element={<AdminLogin />} />

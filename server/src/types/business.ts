@@ -124,7 +124,8 @@ export type TransactionType =
   | 'LOTTERY_WIN'
   | 'SWAP'
   | 'ADMIN_ADJUSTMENT'
-  | 'SYSTEM_BONUS';
+  | 'SYSTEM_BONUS'
+  | 'MINING_EARNINGS_RECOVERED';
 
 export type TransactionStatus =
   | 'PENDING'

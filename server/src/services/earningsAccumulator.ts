@@ -31,6 +31,13 @@ export class EarningsAccumulator {
     console.log('Starting earnings accumulator service...');
     this.isRunning = true;
 
+    // Сначала восстанавливаем доходы за время простоя сервера
+    this.recoverEarningsFromDowntime().then(() => {
+      console.log('✅ Earnings recovery from server downtime completed');
+    }).catch((error) => {
+      console.error('❌ Error recovering earnings from downtime:', error);
+    });
+
     // Запускаем накопление каждую минуту для оптимизации производительности
     // Интервал 1 минута обеспечивает баланс между точностью и нагрузкой на сервер
     this.intervalId = setInterval(() => {
@@ -51,6 +58,145 @@ export class EarningsAccumulator {
     }
     this.isRunning = false;
     console.log('Earnings accumulator service stopped');
+  }
+
+  /**
+   * Восстановление доходов за время простоя сервера
+   */
+  public async recoverEarningsFromDowntime(): Promise<void> {
+    try {
+      console.log('🔄 Starting earnings recovery from server downtime...');
+
+      const activeSlots = await prisma.miningSlot.findMany({
+        where: {
+          isActive: true,
+          expiresAt: {
+            gt: new Date()
+          }
+        },
+        include: {
+          user: {
+            select: {
+              telegramId: true,
+              id: true
+            }
+          }
+        }
+      });
+
+      if (activeSlots.length === 0) {
+        console.log('📊 No active slots found for earnings recovery');
+        return;
+      }
+
+      const currentTime = new Date();
+      let recoveredSlots = 0;
+      let totalRecoveredEarnings = 0;
+
+      // Батчевая обработка для большого количества слотов
+      const BATCH_SIZE = 50;
+      const batches = [];
+      for (let i = 0; i < activeSlots.length; i += BATCH_SIZE) {
+        batches.push(activeSlots.slice(i, i + BATCH_SIZE));
+      }
+
+      console.log(`📊 Processing ${activeSlots.length} slots in ${batches.length} batches`);
+
+      for (const batch of batches) {
+        const batchResults = await Promise.allSettled(
+          batch.map(async (slot) => {
+            const lastAccrued = new Date(slot.lastAccruedAt);
+            const timeDiffMs = currentTime.getTime() - lastAccrued.getTime();
+
+            // Если прошло больше 5 минут с последнего обновления - восстанавливаем доходы
+            if (timeDiffMs > 5 * 60 * 1000) {
+              const secondsElapsed = timeDiffMs / 1000;
+              const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+              let recoveredEarnings = earningsPerSecond * secondsElapsed;
+
+              // Защита от чрезмерного восстановления - максимум 7 дней (время жизни слота)
+              const maxRecoveryTimeMs = 7 * 24 * 60 * 60 * 1000; // 7 дней в миллисекундах
+              if (timeDiffMs > maxRecoveryTimeMs) {
+                console.warn(`⚠️ Slot ${slot.id} downtime exceeds 7 days (${(timeDiffMs / (24 * 60 * 60 * 1000)).toFixed(1)} days), limiting recovery to 7 days`);
+                recoveredEarnings = earningsPerSecond * (maxRecoveryTimeMs / 1000);
+              }
+
+              // Защита от переполнения - максимум 200% от основной суммы
+              const maxEarnings = slot.principal * 2; // Максимум 200% от principal
+              if (recoveredEarnings > maxEarnings) {
+                console.warn(`⚠️ Slot ${slot.id} recovered earnings (${recoveredEarnings.toFixed(8)}) exceed 200% of principal (${slot.principal}), capping to ${maxEarnings.toFixed(8)}`);
+                recoveredEarnings = maxEarnings;
+              }
+
+              if (recoveredEarnings > 0) {
+                const newAccruedEarnings = slot.accruedEarnings + recoveredEarnings;
+
+                // Обновляем слот с восстановленными доходами
+                await prisma.miningSlot.update({
+                  where: { id: slot.id },
+                  data: {
+                    accruedEarnings: newAccruedEarnings,
+                    lastAccruedAt: currentTime
+                  }
+                });
+
+                // Создаем запись о восстановлении доходов
+                await prisma.transaction.create({
+                  data: {
+                    userId: slot.userId,
+                    type: 'MINING_EARNINGS_RECOVERED',
+                    amount: recoveredEarnings,
+                    currency: 'NON',
+                    description: `Earnings recovered from server downtime: ${recoveredEarnings.toFixed(8)} NON (${(secondsElapsed / 3600).toFixed(2)} hours)`,
+                    referenceId: slot.id
+                  }
+                });
+
+                // Отправляем уведомление пользователю через WebSocket
+                webSocketManager.sendToUser(slot.user.telegramId, 'earnings_recovered', {
+                  slotId: slot.id,
+                  recoveredAmount: recoveredEarnings,
+                  downtimeHours: (secondsElapsed / 3600).toFixed(2),
+                  newAccruedEarnings: newAccruedEarnings
+                });
+
+                return { recovered: true, amount: recoveredEarnings };
+              }
+            }
+            return { recovered: false, amount: 0 };
+          })
+        );
+
+        // Подсчитываем результаты батча
+        for (const result of batchResults) {
+          if (result.status === 'fulfilled' && result.value.recovered) {
+            recoveredSlots++;
+            totalRecoveredEarnings += result.value.amount;
+          } else if (result.status === 'rejected') {
+            console.error('❌ Error processing slot in batch:', result.reason);
+          }
+        }
+      }
+
+      if (recoveredSlots > 0) {
+        console.log(`✅ Earnings recovery completed: ${recoveredSlots} slots recovered, total: ${totalRecoveredEarnings.toFixed(8)} NON`);
+
+        // Алерт если восстановлено слишком много
+        if (totalRecoveredEarnings > 1000) { // Больше 1000 NON
+          console.warn(`🚨 HIGH RECOVERY ALERT: Recovered ${totalRecoveredEarnings.toFixed(8)} NON from ${recoveredSlots} slots`);
+        }
+
+        // Алерт если много слотов нуждались в восстановлении
+        if (recoveredSlots > 100) { // Больше 100 слотов
+          console.warn(`🚨 HIGH SLOT COUNT ALERT: ${recoveredSlots} slots needed recovery`);
+        }
+      } else {
+        console.log('📊 No earnings recovery needed - all slots are up to date');
+      }
+
+    } catch (error) {
+      console.error('❌ Error during earnings recovery from downtime:', error);
+    }
   }
 
   /**
@@ -265,6 +411,85 @@ export class EarningsAccumulator {
   public async hasEarningsToClaim(telegramId: string): Promise<boolean> {
     const totalEarnings = await this.getUserAccruedEarnings(telegramId);
     return totalEarnings > 0.01; // Минимальная сумма для claim
+  }
+
+  /**
+   * Получить информацию о восстановленных доходах за время простоя
+   */
+  public async getRecoveryInfo(telegramId: string): Promise<{
+    hasRecoveredEarnings: boolean;
+    totalRecovered: number;
+    recoveryDetails: Array<{
+      slotId: string;
+      recoveredAmount: number;
+      downtimeHours: number;
+      lastAccruedAt: Date;
+    }>;
+  }> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { telegramId },
+        include: {
+          miningSlots: {
+            where: { isActive: true }
+          }
+        }
+      });
+
+      if (!user) {
+        return {
+          hasRecoveredEarnings: false,
+          totalRecovered: 0,
+          recoveryDetails: []
+        };
+      }
+
+      const currentTime = new Date();
+      const recoveryDetails: Array<{
+        slotId: string;
+        recoveredAmount: number;
+        downtimeHours: number;
+        lastAccruedAt: Date;
+      }> = [];
+
+      let totalRecovered = 0;
+
+      for (const slot of user.miningSlots) {
+        const lastAccrued = new Date(slot.lastAccruedAt);
+        const timeDiffMs = currentTime.getTime() - lastAccrued.getTime();
+
+        // Если прошло больше 5 минут - считаем это временем простоя
+        if (timeDiffMs > 5 * 60 * 1000) {
+          const secondsElapsed = timeDiffMs / 1000;
+          const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+          const recoveredEarnings = earningsPerSecond * secondsElapsed;
+
+          if (recoveredEarnings > 0) {
+            recoveryDetails.push({
+              slotId: slot.id,
+              recoveredAmount: recoveredEarnings,
+              downtimeHours: secondsElapsed / 3600,
+              lastAccruedAt: lastAccrued
+            });
+            totalRecovered += recoveredEarnings;
+          }
+        }
+      }
+
+      return {
+        hasRecoveredEarnings: totalRecovered > 0,
+        totalRecovered,
+        recoveryDetails
+      };
+
+    } catch (error) {
+      console.error('Error getting recovery info:', error);
+      return {
+        hasRecoveredEarnings: false,
+        totalRecovered: 0,
+        recoveryDetails: []
+      };
+    }
   }
 }
 

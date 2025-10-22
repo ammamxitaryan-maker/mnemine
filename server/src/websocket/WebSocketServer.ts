@@ -218,6 +218,22 @@ export class WebSocketServer {
 
   private async sendInitialEarningsData(ws: AuthenticatedWebSocket, telegramId: string) {
     try {
+      // Check for recovered earnings from server downtime
+      const { earningsAccumulator } = await import('../services/earningsAccumulator.js');
+      const recoveryInfo = await earningsAccumulator.getRecoveryInfo(telegramId);
+
+      if (recoveryInfo.hasRecoveredEarnings) {
+        this.sendToClient(ws, {
+          type: 'earnings_recovered',
+          data: {
+            totalRecovered: recoveryInfo.totalRecovered,
+            recoveryDetails: recoveryInfo.recoveryDetails,
+            message: `Восстановлено ${recoveryInfo.totalRecovered.toFixed(8)} NON за время простоя сервера`
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+
       // Get user's current earnings data
       const userData = await this.getUserData(telegramId);
       if (userData) {

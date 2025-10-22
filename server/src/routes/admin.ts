@@ -16,6 +16,7 @@ import { setExchangeRate } from '../controllers/exchangeController.js';
 import { isAdmin } from '../middleware-stubs.js';
 import prisma from '../prisma.js';
 // import { CacheService } from '../services/cacheService.js';
+import { earningsAccumulator } from '../services/earningsAccumulator.js';
 import { updateUserBalance, validateBalanceOperation } from '../utils/balanceUpdateUtils.js';
 import { calculateAvailableBalance } from '../utils/balanceUtils.js';
 
@@ -39,6 +40,85 @@ router.delete('/delete-user/:userId', isAdmin, deleteUser);
 
 // Удаление всех пользователей
 router.delete('/delete-all-users', isAdmin, deleteAllUsers);
+
+// Ручной запуск восстановления доходов
+router.post('/earnings/recovery', isAdmin, async (req, res) => {
+  try {
+    console.log('[ADMIN] Manual earnings recovery triggered');
+
+    // Запускаем восстановление доходов
+    await earningsAccumulator.recoverEarningsFromDowntime();
+
+    res.json({
+      success: true,
+      message: 'Earnings recovery process completed successfully'
+    });
+  } catch (error) {
+    console.error('[ADMIN] Error during manual earnings recovery:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error during earnings recovery process',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Получить статистику восстановления доходов
+router.get('/earnings/recovery-stats', isAdmin, async (req, res) => {
+  try {
+    const activeSlots = await prisma.miningSlot.findMany({
+      where: {
+        isActive: true,
+        expiresAt: { gt: new Date() }
+      },
+      select: {
+        id: true,
+        principal: true,
+        effectiveWeeklyRate: true,
+        lastAccruedAt: true,
+        accruedEarnings: true
+      }
+    });
+
+    const currentTime = new Date();
+    let totalPotentialRecovery = 0;
+    let slotsNeedingRecovery = 0;
+    let maxDowntimeHours = 0;
+
+    for (const slot of activeSlots) {
+      const lastAccrued = new Date(slot.lastAccruedAt);
+      const timeDiffMs = currentTime.getTime() - lastAccrued.getTime();
+
+      if (timeDiffMs > 5 * 60 * 1000) { // Больше 5 минут
+        const secondsElapsed = timeDiffMs / 1000;
+        const earningsPerSecond = (slot.principal * slot.effectiveWeeklyRate) / (7 * 24 * 60 * 60);
+        const potentialRecovery = earningsPerSecond * secondsElapsed;
+
+        totalPotentialRecovery += potentialRecovery;
+        slotsNeedingRecovery++;
+        maxDowntimeHours = Math.max(maxDowntimeHours, secondsElapsed / 3600);
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        totalActiveSlots: activeSlots.length,
+        slotsNeedingRecovery,
+        totalPotentialRecovery: totalPotentialRecovery.toFixed(8),
+        maxDowntimeHours: maxDowntimeHours.toFixed(2),
+        lastCheck: currentTime.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('[ADMIN] Error getting recovery stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting recovery statistics',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
 // Управление балансом пользователя
 router.post('/users/:userId/balance', isAdmin, async (req, res) => {

@@ -7,6 +7,7 @@ import { buyNewSlot, claimCompletedSlot, claimEarnings, createInvestmentSlot, ex
 import { claimTaskReward } from '../controllers/taskController.js';
 import { depositFunds, withdrawFunds } from '../controllers/walletController.js';
 import { authenticateUser, extractUserIdFromParams } from '../middleware-stubs.js';
+import { earningsAccumulator } from '../services/earningsAccumulator.js';
 
 const router = Router();
 
@@ -24,6 +25,16 @@ router.post('/:telegramId/withdraw', authenticateUser, extractUserIdFromParams, 
 router.get('/:telegramId/slots', authenticateUser, extractUserIdFromParams, getUserSlots);
 router.get('/:telegramId/real-time-income', authenticateUser, extractUserIdFromParams, getRealTimeIncome);
 router.get('/:telegramId/slots/earnings', authenticateUser, extractUserIdFromParams, getUserAccruedEarnings);
+router.get('/:telegramId/earnings/recovery-info', authenticateUser, extractUserIdFromParams, async (req, res) => {
+  try {
+    const { telegramId } = req.params;
+    const recoveryInfo = await earningsAccumulator.getRecoveryInfo(telegramId);
+    res.json({ success: true, data: recoveryInfo });
+  } catch (error) {
+    console.error('Error getting recovery info:', error);
+    res.status(500).json({ success: false, message: 'Error getting recovery info' });
+  }
+});
 router.post('/:telegramId/slots/claim', authenticateUser, extractUserIdFromParams, claimEarnings);
 router.post('/:telegramId/slots/buy', authenticateUser, extractUserIdFromParams, buyNewSlot);
 router.post('/:telegramId/slots/:slotId/extend', authenticateUser, extractUserIdFromParams, extendSlot);
