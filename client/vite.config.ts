@@ -52,7 +52,7 @@ export default defineConfig(() => {
     },
     define: {
       // Ensure proper debugging environment
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
       // Define environment variables for production build
       'import.meta.env.VITE_BACKEND_URL': JSON.stringify(process.env.VITE_BACKEND_URL || 'https://mnemine-fanp.onrender.com'),
       'import.meta.env.VITE_WS_URL': JSON.stringify(process.env.VITE_WS_URL || 'wss://mnemine-fanp.onrender.com/ws'),
