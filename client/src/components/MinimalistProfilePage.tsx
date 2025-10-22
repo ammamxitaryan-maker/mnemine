@@ -1,30 +1,30 @@
 "use client";
 
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { 
-  User, 
-  Settings, 
-  Bell, 
-  Shield, 
-  HelpCircle,
-  LogOut,
-  Globe,
-  Moon,
-  ChevronRight,
-  Award,
-  TrendingUp,
-  Users
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useSlotsData } from '@/hooks/useSlotsData';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useUserData } from '@/hooks/useUserData';
-import { useSlotsData } from '@/hooks/useSlotsData';
-import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { Button } from '@/components/ui/button';
+import {
+  Award,
+  Bell,
+  ChevronRight,
+  Globe,
+  HelpCircle,
+  LogOut,
+  Moon,
+  Settings,
+  Shield,
+  TrendingUp,
+  User,
+  Users
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 // import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BackButton } from './BackButton';
 
 export const MinimalistProfilePage = () => {
@@ -37,8 +37,8 @@ export const MinimalistProfilePage = () => {
   const isLoading = userDataLoading || slotsLoading;
   const displayName = user?.firstName || user?.username || t('profile.user');
   const fallbackInitial = displayName?.charAt(0).toUpperCase() || 'U';
-  
-  const activeSlots = slotsData?.filter(slot => 
+
+  const activeSlots = slotsData?.filter(slot =>
     slot.isActive && new Date(slot.expiresAt) > new Date()
   ) || [];
 
@@ -137,11 +137,11 @@ export const MinimalistProfilePage = () => {
               </AvatarFallback>
             </Avatar>
           </div>
-          
+
           <h2 className="text-xl font-medium text-foreground mb-1">
             {displayName}
           </h2>
-          
+
           <p className="text-sm text-muted-foreground mb-4">
             @{user?.username || 'user'}
           </p>
@@ -227,7 +227,7 @@ export const MinimalistProfilePage = () => {
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full border-destructive/20 text-destructive hover:bg-destructive/10"
+          className="w-full border-destructive/20 text-destructive hover:bg-destructive/10 modern-button"
         >
           <LogOut className="w-4 h-4 mr-2" />
           Logout

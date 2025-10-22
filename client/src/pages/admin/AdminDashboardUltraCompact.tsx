@@ -232,7 +232,7 @@ const AdminDashboardUltraCompact = () => {
               key={func.path}
               onClick={() => navigate(func.path)}
               size="admin-compact"
-              className={`${func.color} hover:opacity-90 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 touch-manipulation`}
+              className={`${func.color} hover:opacity-90 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 touch-manipulation modern-button`}
             >
               <Icon className="h-4 w-4" />
               <span className="text-xs font-medium leading-tight">{func.shortLabel}</span>
@@ -245,7 +245,7 @@ const AdminDashboardUltraCompact = () => {
           onClick={handleResetDatabase}
           disabled={isResetting}
           size="admin-compact"
-          className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 active:scale-95 touch-manipulation"
+          className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 active:scale-95 touch-manipulation modern-button"
         >
           <Database className="h-4 w-4" />
           <span className="text-xs font-medium leading-tight">

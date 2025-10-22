@@ -111,15 +111,20 @@ router.get('/enhanced', async (req, res) => {
       const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
       const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
 
+      // Use deterministic calculation based on time to ensure consistency
+      const timeBasedSeed = Math.floor(now.getTime() / (1000 * 60)); // Change every minute
+      const deterministicRandom = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280;
+
       // Calculate base online users as percentage of total users
       const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
-        (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
+        (deterministicRandom * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
 
       let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
 
-      // Add small random variation (±1%) for more frequent updates
-      const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
-      onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
+      // Add small deterministic variation (±1%) for more frequent updates
+      const deterministicVariation = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280 - 0.5;
+      const variation = deterministicVariation * 0.02; // ±1%
+      onlineUsers = Math.floor(onlineUsers * (1 + variation));
 
       // Ensure minimum of 1 online user
       onlineUsers = Math.max(1, onlineUsers);

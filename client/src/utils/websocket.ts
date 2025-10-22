@@ -77,11 +77,16 @@ class WebSocketClient {
       }
 
       this.isConnecting = true;
-      // Fix URL construction to avoid duplicate parameters
-      const separator = this.config.url.includes('?') ? '&' : '?';
-      const wsUrl = `${this.config.url}${separator}token=${this.config.token}&type=${this.config.userType}`;
+
+      // Construct WebSocket URL with proper parameters
+      const baseUrl = this.config.url;
+      const separator = baseUrl.includes('?') ? '&' : '?';
+      const wsUrl = `${baseUrl}${separator}token=${this.config.token}&type=${this.config.userType}`;
 
       console.log('[WEBSOCKET] Attempting to connect to:', wsUrl);
+      console.log('[WEBSOCKET] Base URL:', baseUrl);
+      console.log('[WEBSOCKET] Token:', this.config.token);
+      console.log('[WEBSOCKET] UserType:', this.config.userType);
 
       // Direct WebSocket connection attempt without server reachability check
       this.attemptWebSocketConnection(wsUrl, resolve, reject);

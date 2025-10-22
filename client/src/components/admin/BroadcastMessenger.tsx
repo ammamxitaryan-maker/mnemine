@@ -260,8 +260,8 @@ const BroadcastMessenger = () => {
               <div
                 key={segment.name}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${message.targetAudience === segment.name
-                    ? 'bg-blue-900/20 border-blue-600'
-                    : 'bg-gray-800 border-gray-700 hover:bg-gray-750'
+                  ? 'bg-blue-900/20 border-blue-600'
+                  : 'bg-gray-800 border-gray-700 hover:bg-gray-750'
                   }`}
                 onClick={() => setMessage({ ...message, targetAudience: segment.name as any })}
               >
@@ -384,7 +384,8 @@ const BroadcastMessenger = () => {
               <Button
                 onClick={() => handleSendMessage(true)}
                 disabled={sending || !message.title || !message.content || estimatedRecipients === 0}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                variant="gradient"
+                className="shimmer-button ripple-button modern-button"
               >
                 <Send className="h-4 w-4 mr-2" />
                 {sending ? 'Отправка...' : 'Отправить сейчас'}
@@ -394,7 +395,7 @@ const BroadcastMessenger = () => {
                 onClick={() => handleSendMessage(false)}
                 disabled={sending || !message.title || !message.content || estimatedRecipients === 0}
                 variant="outline"
-                className="border-yellow-600 text-yellow-400 hover:bg-yellow-600 hover:text-white"
+                className="border-yellow-600 text-yellow-400 hover:bg-yellow-600 hover:text-white modern-button"
               >
                 <Clock className="h-4 w-4 mr-2" />
                 Запланировать
@@ -411,7 +412,7 @@ const BroadcastMessenger = () => {
                   setEstimatedRecipients(0);
                 }}
                 variant="outline"
-                className="border-gray-600 text-gray-300"
+                className="border-gray-600 text-gray-300 modern-button"
               >
                 Очистить
               </Button>

@@ -263,7 +263,7 @@ export const MinimalistSlotsPage = () => {
               <Button
                 variant="outline"
                 onClick={() => setAmount(currentBalance.toFixed(4))}
-                className="h-12 px-4 sm:px-6 whitespace-nowrap"
+                className="h-12 px-4 sm:px-6 whitespace-nowrap modern-button"
               >
                 {t('max')}
               </Button>
@@ -277,7 +277,7 @@ export const MinimalistSlotsPage = () => {
             <Button
               onClick={handleBuySlot}
               disabled={mutation.isPending || !canInvest}
-              className="w-full h-12 text-lg font-semibold"
+              className="w-full h-12 text-lg font-semibold shimmer-button ripple-button modern-button"
               size="lg"
             >
               {mutation.isPending ? (

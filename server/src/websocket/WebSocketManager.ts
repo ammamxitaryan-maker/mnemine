@@ -19,8 +19,8 @@ class WebSocketManager {
 
   public setWebSocketServer(wsServer: WebSocketServer) {
     this.wsServer = wsServer;
-    // Initialize unified manager with the server
-    this.unifiedManager.initialize(wsServer as any);
+    // The unified manager is now initialized directly in index.ts
+    // No need to initialize it here
   }
 
   public async broadcastBalanceUpdate(telegramId: string, balanceData: any) {

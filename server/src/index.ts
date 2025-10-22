@@ -108,8 +108,6 @@ import { generateUniqueReferralCode } from './utils/helpers.js';
 import { ProductionHealthCheck } from './utils/productionHealthCheck.js';
 import './utils/slotProcessor.js';
 import { validateEnvironment } from './utils/validation.js';
-import { webSocketManager } from './websocket/WebSocketManager.js';
-import { WebSocketServer } from './websocket/WebSocketServer.js';
 
 // Validate environment variables
 validateEnvironment();
@@ -594,6 +592,12 @@ app.get('*', (req: any, res: any) => {
   console.log(`[SPA] Origin: ${req.get('Origin') || 'None'}`);
   console.log(`[SPA] Referer: ${req.get('Referer') || 'None'}`);
 
+  // Check if this is a WebSocket upgrade request - if so, don't serve HTML
+  if (req.headers.upgrade === 'websocket') {
+    console.log(`[SPA] WebSocket upgrade request detected, not serving HTML for: ${req.path}`);
+    return res.status(404).json({ error: 'WebSocket endpoint not found' });
+  }
+
   // Check if this is an API request - if so, don't serve HTML
   if (req.path.startsWith('/api/')) {
     console.log(`[SPA] API request detected, not serving HTML for: ${req.path}`);
@@ -898,6 +902,17 @@ async function startServer() {
     await Promise.race([dbConnectionPromise, dbTimeoutPromise]);
     logger.database('Database connection successful');
 
+    // Initialize WebSocket server before starting HTTP server
+    try {
+      // Initialize the unified WebSocket manager directly with the HTTP server
+      const { UnifiedWebSocketManager } = await import('./services/unifiedWebSocketManager.js');
+      const unifiedManager = UnifiedWebSocketManager.getInstance();
+      unifiedManager.initialize(server);
+      logger.websocket('Unified WebSocket server initialized with connection pooling');
+    } catch (wsError) {
+      logger.error(LogContext.WEBSOCKET, 'Failed to initialize WebSocket server', wsError);
+    }
+
     server.listen(port, '0.0.0.0', async () => {
       logger.server(`Backend server listening on port ${port}`);
       logger.websocket(`WebSocket server available at ws://localhost:${port}/ws`);
@@ -917,17 +932,6 @@ async function startServer() {
       } catch (error) {
         logger.error(LogContext.SERVER, 'Failed to initialize enhanced stats services', error);
       }
-
-      // Initialize WebSocket server with a small delay to ensure HTTP server is ready
-      setTimeout(() => {
-        try {
-          const wsServer = new WebSocketServer(server);
-          webSocketManager.setWebSocketServer(wsServer);
-          logger.websocket('Unified WebSocket server initialized with connection pooling');
-        } catch (wsError) {
-          logger.error(LogContext.WEBSOCKET, 'Failed to initialize WebSocket server', wsError);
-        }
-      }, 100);
 
       if (bot && token && token.length > 0) {
         const webhookPath = `/api/webhook/${token}`;

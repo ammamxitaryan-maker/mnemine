@@ -23,7 +23,7 @@ export const MainBalanceDisplay = ({
   const { user } = useTelegramAuth();
   const { totalEarnings: liveEarnings, isActive: _isActive } = useEarnings();
   const { convertNONToUSD } = useCachedExchangeRate(user?.telegramId || '');
-  
+
   // Use smooth animations for live earnings
   const smoothLiveEarnings = useSmoothEarnings(liveEarnings || 0);
   const liveEarningsUSD = convertNONToUSD(liveEarnings || 0);
@@ -97,7 +97,8 @@ export const MainBalanceDisplay = ({
             <Link to="/slots">
               <Button
                 size="mobile"
-                className="w-full bg-gradient-to-r from-primary via-primary to-accent hover:from-primary/90 hover:via-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 active:scale-95 touch-manipulation rounded-lg py-3 text-sm font-semibold"
+                variant="gradient"
+                className="w-full shimmer-button ripple-button modern-button"
               >
                 <TrendingUp className="w-4 h-4 mr-2" />
                 <span className="font-semibold">{t('investNow')}</span>
@@ -125,15 +126,13 @@ export const MainBalanceDisplay = ({
               <span className="text-xs text-green-400 font-medium">{t('live')}</span>
             </div>
           </div>
-          <div className={`text-2xl font-light text-yellow-500 mb-1 tracking-tight transition-all duration-200 ${
-            smoothLiveEarnings.isAnimating ? 'scale-105 drop-shadow-lg' : 'scale-100'
-          }`}>
+          <div className={`text-2xl font-light text-yellow-500 mb-1 tracking-tight transition-all duration-200 ${smoothLiveEarnings.isAnimating ? 'scale-105 drop-shadow-lg' : 'scale-100'
+            }`}>
             +{smoothLiveEarnings.formatted} NON
           </div>
           {smoothLiveEarningsUSD.value > 0 && (
-            <div className={`text-xs text-muted-foreground font-medium transition-all duration-200 ${
-              smoothLiveEarningsUSD.isAnimating ? 'opacity-80' : 'opacity-100'
-            }`}>
+            <div className={`text-xs text-muted-foreground font-medium transition-all duration-200 ${smoothLiveEarningsUSD.isAnimating ? 'opacity-80' : 'opacity-100'
+              }`}>
               ≈ +${smoothLiveEarningsUSD.formatted} USD
             </div>
           )}

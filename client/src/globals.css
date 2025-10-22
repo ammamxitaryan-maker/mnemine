@@ -2677,6 +2677,197 @@
   animation: fade-in-out 3s ease-in-out forwards;
 }
 
+/* Modern Button Effects */
+@layer components {
+
+  /* Glassmorphism effect for buttons */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .glass-effect:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+  }
+
+  /* Neon glow effects */
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.3), 0 0 40px rgba(34, 211, 238, 0.1);
+  }
+
+  .glow-cyan:hover {
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.5), 0 0 60px rgba(34, 211, 238, 0.2);
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.3), 0 0 40px rgba(147, 51, 234, 0.1);
+  }
+
+  .glow-purple:hover {
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.5), 0 0 60px rgba(147, 51, 234, 0.2);
+  }
+
+  .glow-pink {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.3), 0 0 40px rgba(236, 72, 153, 0.1);
+  }
+
+  .glow-pink:hover {
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.5), 0 0 60px rgba(236, 72, 153, 0.2);
+  }
+
+  /* Shimmer effect for buttons */
+  .shimmer-button {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .shimmer-button:hover::before {
+    left: 100%;
+  }
+
+  /* Ripple effect for buttons */
+  .ripple-button {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ripple-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .ripple-button:active::after {
+    width: 300px;
+    height: 300px;
+  }
+
+  /* Floating button animation */
+  .floating-button {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Pulse animation for important buttons */
+  .pulse-button {
+    animation: pulse-glow 2s infinite;
+  }
+
+  @keyframes pulse-glow {
+
+    0%,
+    100% {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+
+    50% {
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
+    }
+  }
+
+  /* Gradient border effect */
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 400% 400%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: var(--background);
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Modern button hover effects */
+  .modern-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .modern-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  .modern-button:hover::before {
+    transform: translateX(100%);
+  }
+
+  /* 3D button effect */
+  .button-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.2s;
+  }
+
+  .button-3d:hover {
+    transform: translateY(-2px) rotateX(5deg);
+  }
+
+  .button-3d:active {
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
 /* Online status indicator animation */
 @keyframes online-pulse {
 
