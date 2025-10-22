@@ -23,7 +23,7 @@ const MINUTE_USER_GROWTH = 0.208; // 12.5/60 = 0.208 users per minute
 
 // Global state to ensure all components see the same data
 let globalUserStats: UserStats = {
-  totalUsers: 10000,
+  totalUsers: calculateTotalUsers(new Date()), // Use current calculation instead of static value
   onlineUsers: 150,
   newUsersToday: 45,
   activeUsers: 400,
@@ -172,7 +172,7 @@ let globalInterval: NodeJS.Timeout | null = null;
 const startGlobalUpdates = () => {
   if (!globalInterval) {
     updateGlobalStats(); // Initial update
-    globalInterval = setInterval(updateGlobalStats, 10000); // Update every 10 seconds for real-time fake data
+    globalInterval = setInterval(updateGlobalStats, 5000); // Update every 5 seconds for more frequent updates
   }
 };
 
@@ -196,6 +196,25 @@ export const useWebSocketUserStats = () => {
     // Start fetching fake data immediately when app opens
     console.log('[UserStats] App opened - starting immediate fake data fetch');
     updateGlobalStats(); // Immediate fetch on app open
+    
+    // Force immediate update with current calculation
+    const now = new Date();
+    const totalUsers = calculateTotalUsers(now);
+    const onlineUsers = calculateOnlineUsers(now, totalUsers);
+    const newUsersToday = calculateNewUsersToday(now);
+    const activeUsers = Math.floor(totalUsers * 0.35);
+    
+    globalUserStats = {
+      totalUsers,
+      onlineUsers,
+      newUsersToday,
+      activeUsers,
+      lastUpdate: now.toISOString(),
+      isFictitious: true
+    };
+    
+    setUserStats({ ...globalUserStats });
+    globalListeners.forEach(listener => listener());
 
     // Try to connect to WebSocket for real-time updates
     const connectWebSocket = () => {
