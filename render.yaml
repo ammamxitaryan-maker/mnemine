@@ -1,7 +1,7 @@
 services:
   # Backend Service
   - type: web
-    name: mnemine-backend
+    name: fastmine-backend
     env: node
     plan: starter
     buildCommand: |
@@ -20,16 +20,16 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        value: postgresql://mnemine_f1a3_user:975WPspBMdzAxnLV94zJeWP51FBFQk0Z@dpg-d3nkeg3e5dus73ed2br0-a.frankfurt-postgres.render.com/mnemine_f1a3
+        value: postgresql://fastmine_user:tpormjFKIYZmslVCDDkMkTBlkVFdvRJI@dpg-d3mqjku3jp1c73d0ec5g-a.ohio-postgres.render.com/fastmine
       - key: BOT_TOKEN
         sync: false
       - key: WEBAPP_URL
-        value: mnemine-fanp.onrender.com
+        value: fastmine.onrender.com
       # Frontend Environment Variables
       - key: VITE_BACKEND_URL
-        value: https://mnemine-fanp.onrender.com
+        value: https://fastmine.onrender.com
       - key: VITE_WS_URL
-        value: wss://mnemine-fanp.onrender.com/ws
+        value: wss://fastmine.onrender.com/ws
       - key: VITE_APP_NAME
         value: FastMine
       - key: VITE_APP_VERSION
@@ -54,11 +54,11 @@ services:
       - key: TELEGRAM_WEBHOOK_SECRET
         sync: false
       - key: TELEGRAM_WEBHOOK_URL
-        value: https://mnemine-fanp.onrender.com/api/webhook
+        value: https://fastmine.onrender.com/api/webhook
       - key: BACKEND_URL
-        value: https://mnemine-fanp.onrender.com
+        value: https://fastmine.onrender.com
       - key: FRONTEND_URL
-        value: https://mnemine-fanp.onrender.com
+        value: https://fastmine.onrender.com
       - key: LOCAL_DEV_MODE
         value: "false"
       - key: ENABLE_FALLBACK_AUTH

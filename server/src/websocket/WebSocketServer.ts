@@ -711,14 +711,12 @@ export class WebSocketServer {
       const { UnifiedStatsService } = await import('../services/unifiedStatsService.js');
       const stats = await UnifiedStatsService.getUserStats();
 
-      // Count actual WebSocket connections
-      console.log('[WebSocket] About to call getActualOnlineUsersCount');
-      const actualOnlineUsers = this.getActualOnlineUsersCount();
-      console.log('[WebSocket] getActualOnlineUsersCount returned:', actualOnlineUsers);
+      // Always use fake data for consistency across all environments
+      console.log('[WebSocket] Using fake data for consistency');
 
       return {
         totalUsers: stats.totalUsers,
-        onlineUsers: actualOnlineUsers, // Use actual connection count
+        onlineUsers: stats.onlineUsers, // Use fake data from stats service
         newUsersToday: stats.newUsersToday,
         activeUsers: stats.activeUsers,
         lastUpdate: stats.lastUpdate,
@@ -728,19 +726,28 @@ export class WebSocketServer {
     } catch (error) {
       console.error('[WebSocket] Error getting user statistics:', error);
 
-      // Fallback to simple calculation
+      // Fallback to simple calculation with fake data
       const baseTotalUsers = 10000;
       const timeVariation = Math.sin(Date.now() / (1000 * 60 * 60)) * 50;
       const totalUsers = Math.floor(baseTotalUsers + timeVariation + Math.random() * 20);
 
-      // Count actual WebSocket connections
-      console.log('[WebSocket] Fallback: About to call getActualOnlineUsersCount');
-      const actualOnlineUsers = this.getActualOnlineUsersCount();
-      console.log('[WebSocket] Fallback: getActualOnlineUsersCount returned:', actualOnlineUsers);
+      // Calculate fake online users (4-7% of total users)
+      const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
+      const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
+      const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
+        (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
+      let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
+
+      // Add small random variation (±1%) for more frequent updates
+      const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
+      onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
+      onlineUsers = Math.max(1, onlineUsers); // Ensure minimum of 1 online user
+
+      console.log('[WebSocket] Fallback: Using fake data calculation');
 
       return {
         totalUsers,
-        onlineUsers: actualOnlineUsers, // Use actual connection count
+        onlineUsers: onlineUsers, // Use fake data calculation
         newUsersToday: Math.floor(totalUsers * 0.03),
         activeUsers: Math.floor(totalUsers * 0.35),
         lastUpdate: new Date().toISOString(),

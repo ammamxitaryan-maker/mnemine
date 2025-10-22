@@ -121,13 +121,45 @@ app.set('trust proxy', 1);
 
 // CORS configuration
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://web.telegram.org',
-    'https://telegram.org',
-    process.env.FRONTEND_URL || 'http://localhost:5173'
-  ],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
+      'https://web.telegram.org',
+      'https://telegram.org',
+      'https://fastmine.onrender.com',
+      'https://*.onrender.com',
+      process.env.FRONTEND_URL || 'http://localhost:5173'
+    ];
+
+    // In development mode, be more permissive
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[CORS] Development mode - allowing origin: ${origin}`);
+      return callback(null, true);
+    }
+
+    // Check if origin is allowed
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (allowedOrigin.includes('*')) {
+        const pattern = allowedOrigin.replace('*', '.*');
+        return new RegExp(pattern).test(origin);
+      }
+      return allowedOrigin === origin;
+    });
+
+    if (isAllowed) {
+      console.log(`[CORS] Allowed origin: ${origin}`);
+      callback(null, true);
+    } else {
+      console.log(`[CORS] Blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
   allowedHeaders: [
@@ -140,6 +172,58 @@ app.use(cors({
   ],
   exposedHeaders: ['x-telegram-init-data']
 }));
+
+// Handle preflight OPTIONS requests
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  console.log(`[CORS] OPTIONS request from origin: ${origin}`);
+
+  // In development mode, be more permissive
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[CORS] Development mode - allowing OPTIONS for origin: ${origin}`);
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, x-telegram-init-data');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    res.sendStatus(200);
+    return;
+  }
+
+  // Check if origin is allowed
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
+    'https://web.telegram.org',
+    'https://telegram.org',
+    'https://fastmine.onrender.com',
+    'https://*.onrender.com',
+    process.env.FRONTEND_URL || 'http://localhost:5173'
+  ];
+
+  const isAllowed = allowedOrigins.some(allowedOrigin => {
+    if (allowedOrigin.includes('*')) {
+      const pattern = allowedOrigin.replace('*', '.*');
+      return new RegExp(pattern).test(origin || '');
+    }
+    return allowedOrigin === origin;
+  });
+
+  if (isAllowed || !origin) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, x-telegram-init-data');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    console.log(`[CORS] OPTIONS response sent for origin: ${origin}`);
+    res.sendStatus(200);
+  } else {
+    console.log(`[CORS] OPTIONS request blocked for origin: ${origin}`);
+    res.status(403).json({ error: 'Origin not allowed' });
+  }
+});
 
 // Add structured logging middleware
 app.use(requestLogger);
@@ -238,6 +322,7 @@ app.use((req, res, next) => {
   console.log(`[REQUEST] Referer: ${referer}`);
   console.log(`[REQUEST] Content-Type: ${req.get('Content-Type') || 'None'}`);
   console.log(`[REQUEST] IP: ${req.ip}`);
+  console.log(`[REQUEST] Headers:`, JSON.stringify(req.headers, null, 2));
 
   // Detect Telegram WebApp requests
   const isTelegramBot = userAgent.includes('TelegramBot');
@@ -267,6 +352,7 @@ app.use((req, res, next) => {
 
     if (res.statusCode >= 400) {
       console.error(`[ERROR] ${req.method} ${req.path} returned ${res.statusCode}`);
+      console.error(`[ERROR] Response headers:`, JSON.stringify(res.getHeaders(), null, 2));
     }
   });
 
@@ -558,6 +644,27 @@ if (token && bot) {
 
 // API routes
 app.use('/api', apiRoutes);
+
+// Debug: Log all registered routes
+console.log('[SERVER] Registered API routes:');
+console.log('[SERVER] - /api/health');
+console.log('[SERVER] - /api/login');
+console.log('[SERVER] - /api/auth/validate');
+console.log('[SERVER] - /api/user/*');
+console.log('[SERVER] - /api/stats/*');
+console.log('[SERVER] - /api/webhook');
+
+// Test endpoint for debugging
+app.get('/api/test', (req, res) => {
+  console.log('[TEST] Test endpoint called');
+  res.json({
+    success: true,
+    message: 'Server is working!',
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin,
+    userAgent: req.get('User-Agent')
+  });
+});
 
 // Static file serving
 const projectRoot = process.cwd();

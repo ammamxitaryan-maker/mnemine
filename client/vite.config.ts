@@ -26,7 +26,7 @@ export default defineConfig(() => {
     build: {
       outDir: '../server/public', // Build to server public directory
       sourcemap: false, // Disable source maps for production
-      minify: 'terser',
+      minify: true, // Enable minification for production
       rollupOptions: {
         output: {
           manualChunks: {
@@ -51,11 +51,19 @@ export default defineConfig(() => {
       assetsInlineLimit: 4096,
     },
     define: {
-      // Ensure proper debugging environment
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
-      // Define environment variables for production build
-      'import.meta.env.VITE_BACKEND_URL': JSON.stringify(process.env.VITE_BACKEND_URL || 'https://mnemine-fanp.onrender.com'),
-      'import.meta.env.VITE_WS_URL': JSON.stringify(process.env.VITE_WS_URL || 'wss://mnemine-fanp.onrender.com/ws'),
+      // Set environment based on mode
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      // Define environment variables - use localhost for dev, production URLs for build
+      'import.meta.env.VITE_BACKEND_URL': JSON.stringify(
+        process.env.NODE_ENV === 'production'
+          ? (process.env.VITE_BACKEND_URL || 'https://fastmine.onrender.com')
+          : 'http://localhost:10112'
+      ),
+      'import.meta.env.VITE_WS_URL': JSON.stringify(
+        process.env.NODE_ENV === 'production'
+          ? (process.env.VITE_WS_URL || 'wss://fastmine.onrender.com/ws')
+          : 'ws://localhost:10112/ws'
+      ),
       'import.meta.env.VITE_APP_NAME': JSON.stringify(process.env.VITE_APP_NAME || 'FastMine'),
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.VITE_APP_VERSION || '1.0.0'),
       'import.meta.env.VITE_ADMIN_TELEGRAM_IDS': JSON.stringify(process.env.VITE_ADMIN_TELEGRAM_IDS || '6760298907'),
@@ -75,7 +83,7 @@ export default defineConfig(() => {
     },
     // Enhanced CSS optimization
     css: {
-      devSourcemap: false,
+      devSourcemap: false, // Disable CSS source maps for production
     },
   };
 });
