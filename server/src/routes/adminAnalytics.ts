@@ -11,7 +11,7 @@ router.get('/advanced', isAdmin, async (req, res) => {
 
     // Вычисляем дату начала на основе диапазона
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
 
     switch (range) {
       case '1d':

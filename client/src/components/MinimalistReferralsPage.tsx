@@ -37,7 +37,7 @@ export const MinimalistReferralsPage = () => {
         await navigator.clipboard.writeText(referralData.referralLink);
         showSuccess(t('referrals.linkCopied'));
         hapticLight();
-      } catch (error) {
+      } catch (_error) {
         showError(t('referrals.copyFailed'));
       }
     }
@@ -52,7 +52,7 @@ export const MinimalistReferralsPage = () => {
           url: referralData.referralLink,
         });
         hapticLight();
-      } catch (error) {
+      } catch (_error) {
         // Fallback to copy
         copyReferralLink();
       }

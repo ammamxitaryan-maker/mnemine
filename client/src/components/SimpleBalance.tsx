@@ -11,7 +11,7 @@ interface SimpleBalanceProps {
 }
 
 export const SimpleBalance = ({ telegramId, className = '' }: SimpleBalanceProps) => {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const { data: userData } = useUserData(telegramId);
   const { convertNONToUSD } = useCachedExchangeRate(telegramId);
 

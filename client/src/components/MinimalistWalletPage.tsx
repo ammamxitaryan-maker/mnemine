@@ -25,7 +25,7 @@ import { SimpleBalance } from './SimpleBalance';
 export const MinimalistWalletPage = () => {
   const { t } = useTranslation();
   const { user } = useTelegramAuth();
-  const { data: userData, isLoading: userDataLoading } = useUserData(user?.telegramId);
+  const { isLoading: userDataLoading } = useUserData(user?.telegramId);
   const { data: activities, isLoading: activityLoading } = useActivityData(user?.telegramId);
   const { hapticLight } = useHapticFeedback();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);

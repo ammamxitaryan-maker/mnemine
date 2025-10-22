@@ -45,7 +45,7 @@ const TEST_USERS: TestUser[] = [
 ];
 
 export const LocalDevAuth: React.FC = () => {
-  const [selectedUser, setSelectedUser] = useState<TestUser | null>(null);
+  const [_selectedUser, setSelectedUser] = useState<TestUser | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   // Only show in local development

@@ -32,7 +32,7 @@ export const MinimalistSlotsPage = () => {
   const { user } = useTelegramAuth();
   const { data: slotsData, isLoading: slotsLoading, error } = useSlotsData(user?.telegramId);
   const { data: userData, isLoading: userDataLoading } = useUserData(user?.telegramId);
-  const { totalEarnings: liveEarnings, perSecondRate, isActive } = useEarnings();
+  const { totalEarnings: _liveEarnings, perSecondRate: _perSecondRate, isActive: _isActive } = useEarnings();
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState('');
   const [showHistory, setShowHistory] = useState(false);

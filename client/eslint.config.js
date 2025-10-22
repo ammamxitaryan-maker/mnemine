@@ -27,10 +27,15 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "warn", // Change from error to warning
-      "react-hooks/exhaustive-deps": "warn", // Change from error to warning
-      "@typescript-eslint/no-unused-expressions": "warn", // Change from error to warning
+      "@typescript-eslint/no-unused-vars": ["error", { 
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }],
+      "@typescript-eslint/no-explicit-any": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      "@typescript-eslint/no-unused-expressions": "warn",
+      "no-unused-vars": "off", // Отключаем базовое правило в пользу TypeScript версии
     },
   },
   // Specific overrides for performance optimization files

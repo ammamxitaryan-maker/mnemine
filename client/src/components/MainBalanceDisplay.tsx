@@ -12,16 +12,16 @@ import { Link } from 'react-router-dom';
 
 interface MainBalanceDisplayProps {
   className?: string;
-  showDetails?: boolean;
+  _showDetails?: boolean;
 }
 
 export const MainBalanceDisplay = ({
   className = '',
-  showDetails = true
+  _showDetails = true
 }: MainBalanceDisplayProps) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user } = useTelegramAuth();
-  const { totalEarnings: liveEarnings, perSecondRate, isActive } = useEarnings();
+  const { totalEarnings: liveEarnings, isActive: _isActive } = useEarnings();
   const { convertNONToUSD } = useCachedExchangeRate(user?.telegramId || '');
   
   // Use smooth animations for live earnings
@@ -30,12 +30,7 @@ export const MainBalanceDisplay = ({
   const smoothLiveEarningsUSD = useSmoothUSD(liveEarningsUSD);
   const {
     availableBalance,
-    totalInvested,
-    activeSlotsCount,
-    totalEarnings,
     usdEquivalent,
-    totalUsdEquivalent,
-    earningsUsd,
     isLoading,
     error
   } = useMainBalance(user?.telegramId);
@@ -63,7 +58,7 @@ export const MainBalanceDisplay = ({
   }
 
   // Check for data inconsistency - this should not happen with the new logic
-  const hasDataInconsistency = false; // Removed since we now prevent negative balances
+  const _hasDataInconsistency = false; // Removed since we now prevent negative balances
 
   return (
     <div className={`relative bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-xl p-4 shadow-lg ${className}`}>
@@ -117,7 +112,7 @@ export const MainBalanceDisplay = ({
       </div>
 
       {/* Live Earnings - Compact Display */}
-      {isActive && (liveEarnings || 0) > 0 && (
+      {_isActive && (liveEarnings || 0) > 0 && (
         <div className="relative z-10 text-center mb-3 p-3 bg-gradient-to-r from-yellow-500/10 to-yellow-600/5 rounded-lg border border-yellow-500/30 shadow-lg transition-all duration-300">
           <div className="flex items-center justify-center gap-2 mb-2">
             <div className="relative">

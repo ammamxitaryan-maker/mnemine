@@ -13,7 +13,7 @@ interface SimpleStatsProps {
 
 export const SimpleStats = ({ telegramId, className = '' }: SimpleStatsProps) => {
   const { t } = useTranslation();
-  const { data: userData } = useUserData(telegramId);
+  const { data: _userData } = useUserData(telegramId);
   const { data: slotsData } = useSlotsData(telegramId);
   const { data: referralStats } = useReferralStats(telegramId);
 

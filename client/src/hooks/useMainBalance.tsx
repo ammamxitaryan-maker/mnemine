@@ -64,9 +64,13 @@ export const useMainBalance = (telegramId: string | undefined) => {
       const availableBalance = userData.balance || 0;
 
       // Use centralized utilities for calculations
-      const totalInvested = calculateTotalInvested(slotsData);
-      const activeSlotsCount = calculateActiveSlotsCount(slotsData);
-      const totalEarnings = calculateUserTotalEarnings(slotsData);
+      const slotsWithStartAt = slotsData.map(slot => ({
+        ...slot,
+        startAt: slot.startAt || slot.createdAt || new Date().toISOString()
+      }));
+      const totalInvested = calculateTotalInvested(slotsWithStartAt as any);
+      const activeSlotsCount = calculateActiveSlotsCount(slotsWithStartAt as any);
+      const totalEarnings = calculateUserTotalEarnings(slotsWithStartAt as any);
 
       return {
         availableBalance,

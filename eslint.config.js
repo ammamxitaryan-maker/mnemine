@@ -38,12 +38,16 @@ export default tseslint.config(
       },
     },
     rules: {
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-unused-vars": ["error", { 
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }],
       "@typescript-eslint/no-explicit-any": "warn",
       "no-console": ["warn", { "allow": ["warn", "error", "log"] }],
       "no-empty": ["error", { "allowEmptyCatch": true }],
-      "prefer-const": "warn",
-      "no-var": "warn",
+      "prefer-const": "error",
+      "no-var": "error",
       "prefer-rest-params": "warn",
       "prefer-spread": "warn",
       "no-prototype-builtins": "warn",
@@ -55,6 +59,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-function-type": "warn",
       "@typescript-eslint/no-require-imports": "warn",
       "no-constant-condition": "warn",
+      "no-unused-vars": "off", // Отключаем базовое правило в пользу TypeScript версии
     },
   },
   {
@@ -85,10 +90,15 @@ export default tseslint.config(
       },
     },
     rules: {
+      "no-unused-vars": ["error", { 
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }],
       "no-console": ["warn", { "allow": ["warn", "error", "log"] }],
       "no-empty": ["error", { "allowEmptyCatch": true }],
-      "prefer-const": "warn",
-      "no-var": "warn",
+      "prefer-const": "error",
+      "no-var": "error",
       "prefer-rest-params": "warn",
       "prefer-spread": "warn",
       "no-prototype-builtins": "warn",

@@ -11,19 +11,17 @@ import {
   LogOut,
   Globe,
   Moon,
-  Sun,
   ChevronRight,
   Award,
   TrendingUp,
-  Users,
-  Loader2
+  Users
 } from 'lucide-react';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { useUserData } from '@/hooks/useUserData';
 import { useSlotsData } from '@/hooks/useSlotsData';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+// import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
@@ -32,7 +30,7 @@ import { BackButton } from './BackButton';
 export const MinimalistProfilePage = () => {
   const { t } = useTranslation();
   const { user, logout } = useTelegramAuth();
-  const { data: userData, isLoading: userDataLoading } = useUserData(user?.telegramId);
+  const { isLoading: userDataLoading } = useUserData(user?.telegramId);
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user?.telegramId);
   const { hapticLight, hapticWarning } = useHapticFeedback();
 

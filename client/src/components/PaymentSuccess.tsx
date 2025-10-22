@@ -10,7 +10,7 @@ export const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [paymentStatus, setPaymentStatus] = useState<'loading' | 'success' | 'failed'>('loading');
-  const [paymentData, setPaymentData] = useState<any>(null);
+  const [_paymentData, setPaymentData] = useState<any>(null);
 
   const orderId = searchParams.get('orderId');
 
@@ -77,17 +77,17 @@ export const PaymentSuccess = () => {
               {t('payment.successDescription')}
             </p>
 
-            {paymentData && (
+            {_paymentData && (
               <div className="bg-muted/20 rounded-lg p-4 mb-6 text-left">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-muted-foreground">{t('payment.amount')}</span>
                   <span className="font-semibold text-emerald-500">
-                    ${paymentData.amount} {paymentData.currency}
+                    ${_paymentData.amount} {_paymentData.currency}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-muted-foreground">{t('payment.orderId')}</span>
-                  <span className="text-sm font-mono">{paymentData.orderId}</span>
+                  <span className="text-sm font-mono">{_paymentData.orderId}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">{t('payment.status')}</span>

@@ -18,6 +18,7 @@ import {
   Edit,
   Eye,
   Filter,
+  XCircle,
   Info,
   MessageSquare,
   RefreshCw,

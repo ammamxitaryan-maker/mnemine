@@ -180,7 +180,7 @@ export const useBalanceEventHandlers = (options: UseBalanceEventHandlersOptions 
       ['globalDataRefresh', handleGlobalRefresh],
       ['userDataUpdated', handleUserDataUpdated as EventListener],
       ['slotUpdated', handleSlotUpdated as EventListener],
-      ['message', handleWebSocketMessage]
+      ['message', handleWebSocketMessage as EventListener]
     ];
 
     // Add event listeners

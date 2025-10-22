@@ -12,7 +12,7 @@ interface RealTimeEarningsProps {
 }
 
 export const RealTimeEarnings = ({ className = '' }: RealTimeEarningsProps) => {
-  const { t, i18n } = useTranslation();
+  const { t: _t, i18n: _i18n } = useTranslation();
   const { user } = useTelegramAuth();
   const { convertNONToUSD } = useCachedExchangeRate(user?.telegramId || '');
   const { totalEarnings, perSecondRate, isActive } = useEarnings();

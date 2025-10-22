@@ -18,6 +18,7 @@ import {
   Download,
   Edit,
   Eye,
+  XCircle,
   EyeOff,
   FileText,
   Globe,

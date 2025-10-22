@@ -79,7 +79,7 @@ const RealTimeErrorMonitor = () => {
       setStats(newStats);
 
       // Звуковое уведомление о новых критических ошибках
-      if (soundEnabled && newErrors.some(e => e.type === 'critical' && !e.resolved)) {
+      if (soundEnabled && newErrors.some((e: any) => e.type === 'critical' && !e.resolved)) {
         playNotificationSound();
       }
     } catch (error) {

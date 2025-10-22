@@ -267,13 +267,13 @@ class WebSocketClient {
 
       case 'notification':
         if (message.data) {
-          this.onNotificationCallback?.(message.data);
+          this.onNotificationCallback?.(message.data as any);
         }
         break;
 
       case 'admin_notification':
         if (message.data) {
-          this.onNotificationCallback?.(message.data);
+          this.onNotificationCallback?.(message.data as any);
         }
         break;
 

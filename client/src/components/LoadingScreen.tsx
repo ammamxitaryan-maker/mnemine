@@ -74,7 +74,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     }
   }
 
-  const pulseVariants = {
+  const _pulseVariants = {
     pulse: {
       scale: [1, 1.05, 1],
       opacity: [0.8, 1, 0.8],

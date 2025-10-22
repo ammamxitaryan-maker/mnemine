@@ -24,7 +24,7 @@ export const isFeatureSupported = (feature: string, version: string = '6.0'): bo
 /**
  * Get the current Telegram WebApp instance with version checking
  */
-export const getTelegramWebApp = (): TelegramWebApp | null => {
+export const getTelegramWebApp = (): any => {
   const tg = window.Telegram?.WebApp;
   if (!tg) {
     console.warn('[TelegramWebApp] Telegram WebApp not found');

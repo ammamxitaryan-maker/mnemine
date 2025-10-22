@@ -33,10 +33,10 @@ interface ExpandedHomePageProps {
 
 export const ExpandedHomePage = ({ user }: ExpandedHomePageProps) => {
   const { t } = useTranslation();
-  const { data: userData, isLoading: userDataLoading, forceRefresh } = useUserData(user.telegramId);
+  const { isLoading: userDataLoading, forceRefresh } = useUserData(user.telegramId);
   const { data: slotsData, isLoading: slotsLoading } = useSlotsData(user.telegramId);
   const { totalUsers, onlineUsers } = useWebSocketUserStats();
-  const { hapticLight, hapticWarning } = useHapticFeedback();
+  const { hapticLight } = useHapticFeedback();
 
   // Check if user is admin
   const isAdmin = isAdminUser(user.telegramId);
