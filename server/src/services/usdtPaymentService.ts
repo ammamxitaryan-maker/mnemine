@@ -352,7 +352,7 @@ export class USDTPaymentService {
             status: 'COMPLETED',
             referenceId: payment.id
           });
-          
+
           try {
             const transaction = await tx.transaction.create({
               data: {
@@ -369,9 +369,9 @@ export class USDTPaymentService {
           } catch (transactionError) {
             console.error(`[NOWPAYMENTS] Error creating transaction:`, transactionError);
             console.error(`[NOWPAYMENTS] Transaction error details:`, {
-              message: transactionError.message,
-              code: transactionError.code,
-              meta: transactionError.meta
+              message: transactionError instanceof Error ? transactionError.message : String(transactionError),
+              code: (transactionError as any)?.code || 'UNKNOWN',
+              meta: (transactionError as any)?.meta || null
             });
             throw transactionError;
           }
@@ -385,6 +385,18 @@ export class USDTPaymentService {
               lastDepositAt: new Date()
             }
           });
+
+          // Create activity log entry
+          console.log(`[NOWPAYMENTS] Creating activity log entry for user ${payment.userId}`);
+          await tx.activityLog.create({
+            data: {
+              userId: payment.userId,
+              type: 'DEPOSIT',
+              amount: mneAmount,
+              description: `USDT Payment: ${webhookData.price_amount || 0} USD converted to ${mneAmount.toFixed(6)} NON`
+            }
+          });
+          console.log(`[NOWPAYMENTS] Activity log entry created successfully`);
 
           return { mneAmount, exchangeRate };
         });
