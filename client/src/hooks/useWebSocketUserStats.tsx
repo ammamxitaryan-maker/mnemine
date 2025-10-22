@@ -130,7 +130,7 @@ const fetchFakeStatsFromServer = async (): Promise<UserStats | null> => {
   return null;
 };
 
-// Centralized update function that fetches fake data from server every 10 seconds
+// Centralized update function that fetches fake data from server every minute
 const updateGlobalStats = async () => {
   const now = new Date();
 
@@ -172,7 +172,7 @@ let globalInterval: NodeJS.Timeout | null = null;
 const startGlobalUpdates = () => {
   if (!globalInterval) {
     updateGlobalStats(); // Initial update
-    globalInterval = setInterval(updateGlobalStats, 5000); // Update every 5 seconds for more frequent updates
+    globalInterval = setInterval(updateGlobalStats, 60000); // Update every 1 minute to match server
   }
 };
 

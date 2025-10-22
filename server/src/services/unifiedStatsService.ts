@@ -184,6 +184,10 @@ export class UnifiedStatsService {
     const usersWithDeposits = Math.floor(totalUsers * 0.15); // 15% with deposits
     const usersWithActiveSlots = Math.floor(totalUsers * 0.20); // 20% with active slots
 
+    // Use deterministic calculation for conversion rate consistency
+    const timeBasedSeed = Math.floor(now.getTime() / (1000 * 60)); // Change every minute
+    const deterministicRandom = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280;
+
     return {
       totalUsers,
       onlineUsers,
@@ -193,7 +197,7 @@ export class UnifiedStatsService {
       usersWithActiveSlots,
       totalInvested: totalUsers * 50, // Estimated
       totalEarnings: totalUsers * 25, // Estimated
-      conversionRate: 15 + Math.random() * 10,
+      conversionRate: 15 + (deterministicRandom * 10), // Use deterministic value
       lastUpdate: now.toISOString(),
       isRealData: false,
       dataSource: 'calculated'
@@ -216,18 +220,23 @@ export class UnifiedStatsService {
   }
 
   /**
-   * Calculate online users as 4-7% of total users
+   * Calculate online users as 4-7% of total users (deterministic for consistency)
    */
   private static calculateOnlineUsers(now: Date, totalUsers: number): number {
     // Online users calculation: 4-7% of total users
+    // Use deterministic calculation based on time to ensure all users see the same data
+    const timeBasedSeed = Math.floor(now.getTime() / (1000 * 60)); // Change every minute
+    const deterministicRandom = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280;
+
     const baseOnlinePercentage = this.MIN_ONLINE_PERCENTAGE +
-      (Math.random() * (this.MAX_ONLINE_PERCENTAGE - this.MIN_ONLINE_PERCENTAGE));
+      (deterministicRandom * (this.MAX_ONLINE_PERCENTAGE - this.MIN_ONLINE_PERCENTAGE));
 
     let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
 
-    // Add small random variation (±1%) for more frequent updates
-    const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
-    onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
+    // Add small deterministic variation (±1%) for more frequent updates
+    const deterministicVariation = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280 - 0.5;
+    const variation = deterministicVariation * 0.02; // ±1%
+    onlineUsers = Math.floor(onlineUsers * (1 + variation));
 
     // Ensure minimum of 1 online user
     return Math.max(1, onlineUsers);

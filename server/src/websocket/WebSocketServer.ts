@@ -573,7 +573,7 @@ export class WebSocketServer {
       }
     }, 60000));
 
-    // Broadcast user statistics every 5 minutes
+    // Broadcast user statistics every 1 minute for real-time updates
     this.broadcastIntervals.set('user_stats', setInterval(async () => {
       try {
         const userStats = await this.getUserStatistics();
@@ -585,7 +585,7 @@ export class WebSocketServer {
       } catch (error) {
         console.error('[WebSocket] Error broadcasting user statistics:', error);
       }
-    }, 5 * 60 * 1000));
+    }, 60 * 1000)); // 1 minute = 60 seconds
   }
 
   private async getMarketData() {

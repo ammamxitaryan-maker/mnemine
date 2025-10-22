@@ -24,19 +24,23 @@ router.get('/fake', async (req, res) => {
     const growthSinceDayStart = secondsSinceDayStart * SECOND_USER_GROWTH;
     const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
 
-    // Online users calculation: 4-7% of total users
+    // Online users calculation: 4-7% of total users (deterministic for consistency)
     const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
     const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
 
-    // Calculate base online users as percentage of total users
+    // Use deterministic calculation based on time to ensure all users see the same data
+    const timeBasedSeed = Math.floor(now.getTime() / (1000 * 60)); // Change every minute
+    const deterministicRandom = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280;
+
     const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
-      (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
+      (deterministicRandom * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
 
     let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
 
-    // Add small random variation (±1%) for more frequent updates
-    const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
-    onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
+    // Add small deterministic variation (±1%) for more frequent updates
+    const deterministicVariation = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280 - 0.5;
+    const variation = deterministicVariation * 0.02; // ±1%
+    onlineUsers = Math.floor(onlineUsers * (1 + variation));
 
     // Ensure minimum of 1 online user
     onlineUsers = Math.max(1, onlineUsers);
@@ -53,7 +57,7 @@ router.get('/fake', async (req, res) => {
       usersWithActiveSlots: Math.floor(totalUsers * 0.20),
       totalInvested: totalUsers * 50,
       totalEarnings: totalUsers * 25,
-      conversionRate: 15 + Math.random() * 10,
+      conversionRate: 15 + (deterministicRandom * 10), // Use deterministic value
       lastUpdate: now.toISOString(),
       isRealData: false,
       dataSource: 'fake-realtime',
@@ -129,7 +133,7 @@ router.get('/enhanced', async (req, res) => {
         usersWithActiveSlots: Math.floor(totalUsers * 0.20),
         totalInvested: totalUsers * 50,
         totalEarnings: totalUsers * 25,
-        conversionRate: 15 + Math.random() * 10,
+        conversionRate: 15 + (deterministicRandom * 10), // Use deterministic value
         lastUpdate: now.toISOString(),
         isRealData: false,
         dataSource: 'fallback'
