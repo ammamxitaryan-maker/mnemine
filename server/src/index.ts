@@ -408,54 +408,25 @@ app.get('/health', async (req: Request, res: Response) => {
   }
 });
 
-// Simple fake user stats endpoint - ALWAYS shows fake data only (DEV & PRODUCTION)
+// Simple user stats endpoint - Uses UnifiedStatsService for consistent data
 app.get('/api/stats/simple', async (req: Request, res: Response) => {
   try {
-    const nodeEnv = process.env.NODE_ENV || 'development';
-    console.log(`[SIMPLE-STATS] Request received - Mode: ${nodeEnv}`);
+    console.log('[SIMPLE-STATS] Request received');
 
-    const now = new Date();
-    const BASE_TOTAL_USERS = 10000;
-    const MINUTE_USER_GROWTH = 0.208;
+    // Use UnifiedStatsService for consistent data across all endpoints
+    const { UnifiedStatsService } = await import('./services/unifiedStatsService.js');
+    const stats = await UnifiedStatsService.getUserStats();
 
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const minutesSinceDayStart = (now.getTime() - dayStart.getTime()) / (1000 * 60);
-    const growthSinceDayStart = minutesSinceDayStart * MINUTE_USER_GROWTH;
-    const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
-
-    // Online users calculation: 4-7% of total users
-    const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
-    const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
-
-    // Calculate base online users as percentage of total users
-    const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
-      (Math.random() * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
-
-    let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
-
-    // Add small random variation (±1%) for more frequent updates
-    const randomVariation = (Math.random() - 0.5) * 0.02; // ±1%
-    onlineUsers = Math.floor(onlineUsers * (1 + randomVariation));
-
-    // Ensure minimum of 1 online user
-    onlineUsers = Math.max(1, onlineUsers);
-
-    const stats = {
-      totalUsers,
-      onlineUsers,
-      newUsersToday: Math.floor(minutesSinceDayStart * MINUTE_USER_GROWTH),
-      activeUsers: Math.floor(totalUsers * 0.35),
-      lastUpdate: now.toISOString(),
-      isRealData: false,
-      dataSource: 'simple'
-    };
-
-    console.log('[SIMPLE-STATS] Calculated stats:', stats);
+    console.log(`[SIMPLE-STATS] Using ${stats.isRealData ? 'real' : 'calculated'} data:`, {
+      totalUsers: stats.totalUsers,
+      onlineUsers: stats.onlineUsers,
+      dataSource: stats.dataSource
+    });
 
     res.json({
       success: true,
       data: stats,
-      timestamp: now.toISOString()
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('[SIMPLE-STATS] Error:', error);

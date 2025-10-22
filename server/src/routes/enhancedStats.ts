@@ -8,66 +8,72 @@ const router = Router();
 
 /**
  * GET /api/stats/fake - Get fake data for real-time updates (every 10 seconds)
+ * Uses UnifiedStatsService but forces calculated data for consistency
  */
 router.get('/fake', async (req, res) => {
   try {
     console.log('[FAKE-STATS] Request received for real-time fake data');
 
-    const now = new Date();
-    const BASE_TOTAL_USERS = 10000;
-    const MINUTE_USER_GROWTH = 0.208; // 12.5/60 = 0.208 users per minute
-    const SECOND_USER_GROWTH = MINUTE_USER_GROWTH / 60; // Growth per second
+    // Use UnifiedStatsService but clear cache to force fresh calculation
+    UnifiedStatsService.clearCache();
+    const stats = await UnifiedStatsService.getUserStats();
 
-    // Calculate total users with second-level precision for more frequent updates
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const secondsSinceDayStart = (now.getTime() - dayStart.getTime()) / 1000;
-    const growthSinceDayStart = secondsSinceDayStart * SECOND_USER_GROWTH;
-    const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
+    // If we got real data, we need to force calculated data for this endpoint
+    let fakeStats;
+    if (stats.isRealData) {
+      // Force calculated data by calling the private method directly
+      const now = new Date();
+      const BASE_TOTAL_USERS = 10000;
+      const MINUTE_USER_GROWTH = 0.208;
+      const SECOND_USER_GROWTH = MINUTE_USER_GROWTH / 60;
 
-    // Online users calculation: 4-7% of total users (deterministic for consistency)
-    const MIN_ONLINE_PERCENTAGE = 0.04; // 4%
-    const MAX_ONLINE_PERCENTAGE = 0.07; // 7%
+      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const secondsSinceDayStart = (now.getTime() - dayStart.getTime()) / 1000;
+      const growthSinceDayStart = secondsSinceDayStart * SECOND_USER_GROWTH;
+      const totalUsers = Math.floor(BASE_TOTAL_USERS + growthSinceDayStart);
 
-    // Use deterministic calculation based on time to ensure all users see the same data
-    const timeBasedSeed = Math.floor(now.getTime() / (1000 * 60)); // Change every minute
-    const deterministicRandom = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280;
+      const MIN_ONLINE_PERCENTAGE = 0.04;
+      const MAX_ONLINE_PERCENTAGE = 0.07;
+      const timeBasedSeed = Math.floor(now.getTime() / (1000 * 60));
+      const deterministicRandom = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280;
 
-    const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
-      (deterministicRandom * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
+      const baseOnlinePercentage = MIN_ONLINE_PERCENTAGE +
+        (deterministicRandom * (MAX_ONLINE_PERCENTAGE - MIN_ONLINE_PERCENTAGE));
 
-    let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
+      let onlineUsers = Math.floor(totalUsers * baseOnlinePercentage);
+      const deterministicVariation = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280 - 0.5;
+      const variation = deterministicVariation * 0.02;
+      onlineUsers = Math.floor(onlineUsers * (1 + variation));
+      onlineUsers = Math.max(1, onlineUsers);
 
-    // Add small deterministic variation (±1%) for more frequent updates
-    const deterministicVariation = ((timeBasedSeed * 9301 + 49297) % 233280) / 233280 - 0.5;
-    const variation = deterministicVariation * 0.02; // ±1%
-    onlineUsers = Math.floor(onlineUsers * (1 + variation));
-
-    // Ensure minimum of 1 online user
-    onlineUsers = Math.max(1, onlineUsers);
-
-    const newUsersToday = Math.floor(secondsSinceDayStart * SECOND_USER_GROWTH);
-    const activeUsers = Math.floor(totalUsers * 0.35);
-
-    const fakeStats = {
-      totalUsers,
-      onlineUsers,
-      newUsersToday: Math.max(0, newUsersToday),
-      activeUsers,
-      usersWithDeposits: Math.floor(totalUsers * 0.15),
-      usersWithActiveSlots: Math.floor(totalUsers * 0.20),
-      totalInvested: totalUsers * 50,
-      totalEarnings: totalUsers * 25,
-      conversionRate: 15 + (deterministicRandom * 10), // Use deterministic value
-      lastUpdate: now.toISOString(),
-      isRealData: false,
-      dataSource: 'fake-realtime',
-      updateInterval: '10s'
-    };
+      fakeStats = {
+        totalUsers,
+        onlineUsers,
+        newUsersToday: Math.max(0, Math.floor(secondsSinceDayStart * SECOND_USER_GROWTH)),
+        activeUsers: Math.floor(totalUsers * 0.35),
+        usersWithDeposits: Math.floor(totalUsers * 0.15),
+        usersWithActiveSlots: Math.floor(totalUsers * 0.20),
+        totalInvested: totalUsers * 50,
+        totalEarnings: totalUsers * 25,
+        conversionRate: 15 + (deterministicRandom * 10),
+        lastUpdate: now.toISOString(),
+        isRealData: false,
+        dataSource: 'fake-realtime',
+        updateInterval: '10s'
+      };
+    } else {
+      // Use the calculated data from UnifiedStatsService
+      fakeStats = {
+        ...stats,
+        dataSource: 'fake-realtime',
+        updateInterval: '10s'
+      };
+    }
 
     const response = {
       success: true,
       data: fakeStats,
-      timestamp: now.toISOString()
+      timestamp: new Date().toISOString()
     };
 
     console.log('[FAKE-STATS] Sending real-time fake data:', fakeStats);
