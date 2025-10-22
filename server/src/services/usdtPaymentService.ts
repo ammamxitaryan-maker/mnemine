@@ -333,7 +333,8 @@ export class USDTPaymentService {
           });
 
           // Create transaction record
-          await tx.transaction.create({
+          console.log(`[NOWPAYMENTS] Creating transaction record: ${mneAmount} NON for user ${payment.userId}`);
+          const transaction = await tx.transaction.create({
             data: {
               userId: payment.userId,
               type: 'DEPOSIT',
@@ -344,6 +345,7 @@ export class USDTPaymentService {
               referenceId: payment.id
             }
           });
+          console.log(`[NOWPAYMENTS] Transaction created with ID: ${transaction.id}`);
 
           // Update user's total invested
           await tx.user.update({
