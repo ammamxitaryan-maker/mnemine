@@ -1,7 +1,7 @@
-import { defineConfig } from "vite";
 import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { defineConfig } from "vite";
 
 export default defineConfig(() => {
   return {
@@ -53,6 +53,12 @@ export default defineConfig(() => {
     define: {
       // Ensure proper debugging environment
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      // Define environment variables for production build
+      'import.meta.env.VITE_BACKEND_URL': JSON.stringify(process.env.VITE_BACKEND_URL || 'https://mnemine-fanp.onrender.com'),
+      'import.meta.env.VITE_WS_URL': JSON.stringify(process.env.VITE_WS_URL || 'wss://mnemine-fanp.onrender.com/ws'),
+      'import.meta.env.VITE_APP_NAME': JSON.stringify(process.env.VITE_APP_NAME || 'FastMine'),
+      'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.VITE_APP_VERSION || '1.0.0'),
+      'import.meta.env.VITE_ADMIN_TELEGRAM_IDS': JSON.stringify(process.env.VITE_ADMIN_TELEGRAM_IDS || '6760298907'),
     },
     // Enhanced optimization settings
     optimizeDeps: {
