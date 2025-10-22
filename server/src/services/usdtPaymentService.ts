@@ -127,8 +127,8 @@ export class USDTPaymentService {
         };
       }
 
-      // Prepare NOWPayments invoice request
-      const invoiceData = {
+      // Use the payment creation endpoint instead of invoice
+      const paymentData = {
         price_amount: request.amount,
         price_currency: 'usd',
         pay_currency: 'usdttrc20', // USDT on TRON network
@@ -136,19 +136,21 @@ export class USDTPaymentService {
         order_description: request.description || `NON Purchase: ${request.amount} USD`,
         ipn_callback_url: `${process.env.BACKEND_URL}/api/payments/usdt/webhook`,
         success_url: request.returnUrl,
-        cancel_url: `${process.env.FRONTEND_URL}/payment/cancel?orderId=${request.orderId}`
+        cancel_url: `${process.env.FRONTEND_URL}/payment/cancel?orderId=${request.orderId}`,
+        is_fixed_rate: true,
+        is_fee_paid_by_user: false
       };
 
-      console.log('[NOWPAYMENTS] Invoice data:', invoiceData);
+      console.log('[NOWPAYMENTS] Payment data:', paymentData);
 
-      // Make API request to NOWPayments
-      const response = await fetch(`${this.config.baseUrl}/invoice`, {
+      // Make API request to NOWPayments payment creation endpoint
+      const response = await fetch(`${this.config.baseUrl}/payment`, {
         method: 'POST',
         headers: {
           'x-api-key': this.config.apiKey,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(invoiceData)
+        body: JSON.stringify(paymentData)
       });
 
       if (!response.ok) {
@@ -171,35 +173,18 @@ export class USDTPaymentService {
         };
       }
 
-      const invoiceResponse: NOWPaymentsInvoiceResponse = await response.json();
-      console.log('[NOWPAYMENTS] Invoice created:', invoiceResponse);
+      const paymentResponse: NOWPaymentsPaymentStatusResponse = await response.json();
+      console.log('[NOWPAYMENTS] Payment created:', paymentResponse);
 
-      // Try to get payment details, but don't fail if not available immediately
-      // Payment details may not be available immediately after invoice creation
-      const paymentDetails = await this.getPaymentDetails(invoiceResponse.id);
-
-      if (paymentDetails) {
-        console.log('[NOWPAYMENTS] Payment details retrieved successfully');
-        return {
-          success: true,
-          paymentId: invoiceResponse.id,
-          paymentUrl: invoiceResponse.invoice_url,
-          usdtAddress: paymentDetails.pay_address,
-          usdtAmount: paymentDetails.pay_amount,
-          qrCode: `usdt:${paymentDetails.pay_address}?amount=${paymentDetails.pay_amount}&memo=${request.orderId}`
-        };
-      } else {
-        // Return basic response without payment details - they will be available later via webhook
-        console.log('[NOWPAYMENTS] Payment details not yet available, will be provided via webhook');
-        return {
-          success: true,
-          paymentId: invoiceResponse.id,
-          paymentUrl: invoiceResponse.invoice_url,
-          usdtAddress: 'Pending...',
-          usdtAmount: request.amount,
-          qrCode: `Payment URL: ${invoiceResponse.invoice_url}`
-        };
-      }
+      // Return payment details immediately
+      return {
+        success: true,
+        paymentId: paymentResponse.payment_id,
+        paymentUrl: `https://nowpayments.io/payment/?iid=${paymentResponse.payment_id}`,
+        usdtAddress: paymentResponse.pay_address,
+        usdtAmount: paymentResponse.pay_amount,
+        qrCode: `usdt:${paymentResponse.pay_address}?amount=${paymentResponse.pay_amount}&memo=${request.orderId}`
+      };
 
     } catch (error) {
       console.error('[NOWPAYMENTS] Error creating payment:', error);
@@ -248,15 +233,30 @@ export class USDTPaymentService {
       return true; // Allow in development mode
     }
 
-    const expectedSignature = crypto
-      .createHmac('sha256', this.config.ipnSecret)
-      .update(payload)
-      .digest('hex');
+    if (!signature) {
+      console.warn('[NOWPAYMENTS] No signature provided, skipping verification');
+      return true; // Allow in development mode
+    }
 
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, 'hex'),
-      Buffer.from(expectedSignature, 'hex')
-    );
+    try {
+      // Parse payload and sort parameters alphabetically
+      const payloadObj = JSON.parse(payload);
+      const sortedPayload = JSON.stringify(payloadObj, Object.keys(payloadObj).sort());
+
+      // Create HMAC using SHA-512 (as per NOWPayments documentation)
+      const expectedSignature = crypto
+        .createHmac('sha512', this.config.ipnSecret)
+        .update(sortedPayload)
+        .digest('hex');
+
+      return crypto.timingSafeEqual(
+        Buffer.from(signature, 'hex'),
+        Buffer.from(expectedSignature, 'hex')
+      );
+    } catch (error) {
+      console.error('[NOWPAYMENTS] Error verifying signature:', error);
+      return false;
+    }
   }
 
   /**

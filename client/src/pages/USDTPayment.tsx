@@ -48,12 +48,12 @@ const USDTPayment = () => {
   const paymentData: PaymentData = location.state?.paymentData ||
     JSON.parse(localStorage.getItem('currentPayment') || '{}');
 
-  // Check payment status every 10 seconds
+  // Check payment status every 5 seconds
   const { data: paymentStatus, refetch } = useQuery({
     queryKey: ['paymentStatus', paymentData.paymentId],
     queryFn: () => checkPaymentStatus(paymentData.paymentId),
     enabled: !!paymentData.paymentId,
-    refetchInterval: 10000, // Check every 10 seconds
+    refetchInterval: 5000, // Check every 5 seconds
     refetchIntervalInBackground: true
   });
 
@@ -95,6 +95,21 @@ const USDTPayment = () => {
   const handleBack = () => {
     navigate('/deposit');
   };
+
+  // Update payment data when status changes
+  useEffect(() => {
+    if (paymentStatus && paymentStatus.metadata) {
+      const updatedPaymentData = {
+        ...paymentData,
+        usdtAddress: paymentStatus.metadata.usdtAddress || paymentData.usdtAddress,
+        usdtAmount: paymentStatus.metadata.usdtAmount || paymentData.usdtAmount,
+        qrCode: paymentStatus.metadata.qrCode || paymentData.qrCode
+      };
+
+      // Update localStorage with new payment data
+      localStorage.setItem('currentPayment', JSON.stringify(updatedPaymentData));
+    }
+  }, [paymentStatus, paymentData]);
 
   // If payment is completed, redirect to success page
   useEffect(() => {

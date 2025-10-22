@@ -32,6 +32,7 @@ import Slots from "../pages/Slots";
 import Stats from "../pages/Stats";
 import TestAuth from "../pages/TestAuth";
 import USDTPayment from "../pages/USDTPayment";
+import USDTWithdraw from "../pages/USDTWithdraw";
 import Wallet from "../pages/Wallet";
 import Withdraw from "../pages/Withdraw";
 import { AppInitializer } from "./AppInitializer";
@@ -84,6 +85,7 @@ export const AppContent: React.FC = () => {
           <Route path="/deposit" element={<Deposit />} />
           <Route path="/payment/usdt" element={<USDTPayment />} />
           <Route path="/withdraw" element={<Withdraw />} />
+          <Route path="/withdraw/usdt" element={<USDTWithdraw />} />
           <Route path="/lottery-history" element={<LotteryHistory />} />
           <Route path="/settings" element={<Settings />} />
 

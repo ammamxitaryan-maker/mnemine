@@ -10,6 +10,7 @@ import { useUserData } from '@/hooks/useUserData';
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
+  DollarSign,
   History,
   TrendingUp,
   Wallet as WalletIcon
@@ -47,6 +48,13 @@ export const MinimalistWalletPage = () => {
       label: t('withdraw'),
       subtitle: 'Cash out',
       color: 'text-secondary'
+    },
+    {
+      to: '/withdraw/usdt',
+      icon: DollarSign,
+      label: 'USDT Withdraw',
+      subtitle: 'TRC20 USDT',
+      color: 'text-green-500'
     },
     {
       action: () => setIsPaymentHistoryOpen(true),

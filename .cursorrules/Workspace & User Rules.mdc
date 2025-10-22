@@ -10,7 +10,7 @@ alwaysApply: true
 3. **Code Style** - 2-space indentation, single quotes, no semicolons, kebab-case files, camelCase variables, PascalCase components
 4. **Functional Style** - Prefer pure functions, immutability, map/filter/reduce over loops, function components with hooks
 5. **Error Handling** - Handle edge cases, validate external data, use try/catch, prefer early returns
-6. **Server Launch Policy** - Never start multiple servers, check for existing processes first
+6. **Server Launch Policy** - Never start multiple servers, check for existing processes first. Before suggesting "cd server && pnpm run dev", always check if server is already running on ports 3001 or 5000 using netstat commands
 7. **Package Manager Policy** - Always use pnpm instead of npm/yarn
 8. **PowerShell Environment** - Use PowerShell syntax for all terminal commands
 
