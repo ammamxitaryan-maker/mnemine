@@ -85,8 +85,18 @@ export const MainBalanceDisplay = ({
             </div>
           </div>
           {usdEquivalent > 0 && (
-            <div className="text-sm text-accent font-medium">
-              ≈ ${usdEquivalent.toFixed(4)} USD
+            <div className="relative">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-xs text-green-400 font-medium uppercase tracking-wider">USD Value</span>
+              </div>
+              <div className="text-lg font-bold text-green-500 drop-shadow-lg relative">
+                <span className="relative z-10">${usdEquivalent.toFixed(2)}</span>
+                <div className="absolute inset-0 text-green-500/30 blur-sm">${usdEquivalent.toFixed(2)}</div>
+              </div>
+              <div className="text-xs text-green-400/80 font-medium">
+                ≈ {usdEquivalent.toFixed(4)} USD
+              </div>
             </div>
           )}
         </div>
@@ -131,9 +141,16 @@ export const MainBalanceDisplay = ({
             +{smoothLiveEarnings.formatted} NON
           </div>
           {smoothLiveEarningsUSD.value > 0 && (
-            <div className={`text-xs text-muted-foreground font-medium transition-all duration-200 ${smoothLiveEarningsUSD.isAnimating ? 'opacity-80' : 'opacity-100'
+            <div className={`transition-all duration-200 ${smoothLiveEarningsUSD.isAnimating ? 'opacity-80' : 'opacity-100'
               }`}>
-              ≈ +${smoothLiveEarningsUSD.formatted} USD
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <div className="w-1 h-1 bg-yellow-400 rounded-full animate-pulse" />
+                <span className="text-xs text-yellow-400 font-medium uppercase tracking-wider">Live USD</span>
+              </div>
+              <div className="text-sm font-bold text-yellow-500 drop-shadow-lg relative">
+                <span className="relative z-10">+${smoothLiveEarningsUSD.formatted}</span>
+                <div className="absolute inset-0 text-yellow-500/30 blur-sm">+${smoothLiveEarningsUSD.formatted}</div>
+              </div>
             </div>
           )}
         </div>

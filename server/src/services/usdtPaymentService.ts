@@ -265,11 +265,13 @@ export class USDTPaymentService {
   async processWebhook(webhookData: USDTWebhookData): Promise<boolean> {
     try {
       console.log(`[NOWPAYMENTS] Processing webhook for payment ${webhookData.payment_id}, status: ${webhookData.payment_status}`);
+      console.log(`[NOWPAYMENTS] Webhook data:`, JSON.stringify(webhookData, null, 2));
 
       // Import prisma here to avoid circular dependencies
       const { default: prisma } = await import('../prisma.js');
 
       // Find the payment record
+      console.log(`[NOWPAYMENTS] Looking for payment with orderId: ${webhookData.order_id}`);
       const payment = await prisma.payment.findUnique({
         where: { orderId: webhookData.order_id },
         include: { user: { include: { wallets: true } } }
@@ -279,6 +281,13 @@ export class USDTPaymentService {
         console.error(`[NOWPAYMENTS] Payment not found for order ${webhookData.order_id}`);
         return false;
       }
+
+      console.log(`[NOWPAYMENTS] Payment found:`, {
+        id: payment.id,
+        status: payment.status,
+        userId: payment.userId,
+        amount: payment.amount
+      });
 
       // Handle different payment statuses
       if (webhookData.payment_status === 'finished') {
@@ -334,18 +343,38 @@ export class USDTPaymentService {
 
           // Create transaction record
           console.log(`[NOWPAYMENTS] Creating transaction record: ${mneAmount} NON for user ${payment.userId}`);
-          const transaction = await tx.transaction.create({
-            data: {
-              userId: payment.userId,
-              type: 'DEPOSIT',
-              amount: mneAmount,
-              currency: 'NON',
-              description: `USDT Payment: ${webhookData.price_amount || 0} USD converted to ${mneAmount.toFixed(6)} NON`,
-              status: 'COMPLETED',
-              referenceId: payment.id
-            }
+          console.log(`[NOWPAYMENTS] Transaction data:`, {
+            userId: payment.userId,
+            type: 'DEPOSIT',
+            amount: mneAmount,
+            currency: 'NON',
+            description: `USDT Payment: ${webhookData.price_amount || 0} USD converted to ${mneAmount.toFixed(6)} NON`,
+            status: 'COMPLETED',
+            referenceId: payment.id
           });
-          console.log(`[NOWPAYMENTS] Transaction created with ID: ${transaction.id}`);
+          
+          try {
+            const transaction = await tx.transaction.create({
+              data: {
+                userId: payment.userId,
+                type: 'DEPOSIT',
+                amount: mneAmount,
+                currency: 'NON',
+                description: `USDT Payment: ${webhookData.price_amount || 0} USD converted to ${mneAmount.toFixed(6)} NON`,
+                status: 'COMPLETED',
+                referenceId: payment.id
+              }
+            });
+            console.log(`[NOWPAYMENTS] Transaction created successfully with ID: ${transaction.id}`);
+          } catch (transactionError) {
+            console.error(`[NOWPAYMENTS] Error creating transaction:`, transactionError);
+            console.error(`[NOWPAYMENTS] Transaction error details:`, {
+              message: transactionError.message,
+              code: transactionError.code,
+              meta: transactionError.meta
+            });
+            throw transactionError;
+          }
 
           // Update user's total invested
           await tx.user.update({

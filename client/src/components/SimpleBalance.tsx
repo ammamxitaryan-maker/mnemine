@@ -30,8 +30,15 @@ export const SimpleBalance = ({ telegramId, className = '' }: SimpleBalanceProps
             {mneBalance.toFixed(2)} NON
           </div>
           {usdEquivalent > 0 && (
-            <div className="text-sm text-muted-foreground">
-              ≈ ${usdEquivalent.toFixed(4)} USD
+            <div className="relative">
+              <div className="flex items-center gap-1 mb-1">
+                <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-xs text-green-400 font-medium uppercase tracking-wider">USD</span>
+              </div>
+              <div className="text-sm font-bold text-green-500 drop-shadow-sm relative">
+                <span className="relative z-10">${usdEquivalent.toFixed(2)}</span>
+                <div className="absolute inset-0 text-green-500/20 blur-sm">${usdEquivalent.toFixed(2)}</div>
+              </div>
             </div>
           )}
         </div>
